@@ -12,7 +12,9 @@ export default defineConfig({
       useCdn: false,
       apiVersion: '2024-03-22',
     }),
-    sitemap()
+    sitemap({
+      site: 'https://gekro.com'
+    })
   ],
   vite: {
     plugins: [tailwindcss()],
