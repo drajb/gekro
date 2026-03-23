@@ -1,0 +1,84 @@
+---
+---
+
+<!--
+  Giscus Comments Component
+  
+  SETUP REQUIRED (one-time):
+  1. Make sure your GitHub repo is PUBLIC
+  2. Go to github.com/your-repo → Settings → Features → enable Discussions
+  3. Visit https://giscus.app and configure:
+     - GitHub repo: drajb/gekro (or your repo)
+     - Page ↔ Discussion mapping: pathname  
+     - Discussion category: Announcements (prevents spam — only you can create categories)
+     - Features: enable reactions
+  4. Copy the data-repo-id and data-category-id values and add to .env.local:
+     PUBLIC_GISCUS_REPO_ID=your-repo-id
+     PUBLIC_GISCUS_CATEGORY_ID=your-category-id
+-->
+
+<section
+  id="comments"
+  class="mt-24 pt-16 border-t border-border-subtle"
+  aria-label="Post comments"
+>
+  <div class="space-y-1 mb-10">
+    <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-text-muted">Discussion</h3>
+    <p class="text-2xl font-heading text-text-primary">Comments</p>
+    <p class="text-sm text-text-secondary">Powered by GitHub Discussions — requires a GitHub account.</p>
+  </div>
+
+  <div id="giscus-container" class="giscus min-h-[100px]"></div>
+</section>
+
+<script>
+  const loadGiscus = () => {
+    const container = document.getElementById('giscus-container');
+    if (!container) return;
+
+    // Remove any existing giscus iframe (clean re-init on page swap)
+    container.innerHTML = '';
+
+    const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
+    const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID;
+
+    if (!repoId || !categoryId) {
+      container.innerHTML = `
+        <p class="text-sm text-text-muted font-mono italic">
+          Comments not configured. Add PUBLIC_GISCUS_REPO_ID and PUBLIC_GISCUS_CATEGORY_ID to .env.local.
+        </p>`;
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.setAttribute('data-repo', 'drajb/gekro');
+    script.setAttribute('data-repo-id', repoId);
+    script.setAttribute('data-category', 'Announcements');
+    script.setAttribute('data-category-id', categoryId);
+    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-strict', '0');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '0');
+    script.setAttribute('data-input-position', 'top');
+    script.setAttribute('data-theme', 'dark_dimmed');
+    script.setAttribute('data-lang', 'en');
+    script.setAttribute('data-loading', 'lazy');
+    script.crossOrigin = 'anonymous';
+    script.async = true;
+
+    container.appendChild(script);
+  };
+
+  loadGiscus();
+  document.addEventListener('astro:after-swap', loadGiscus);
+</script>
+
+<style>
+  /* Constrain giscus iframe to blend with site theme */
+  .giscus-frame {
+    border: none !important;
+    width: 100% !important;
+    color-scheme: dark;
+  }
+</style>

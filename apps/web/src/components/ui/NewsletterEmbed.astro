@@ -1,0 +1,81 @@
+---
+// Beehiiv Newsletter Embed
+// Set BEEHIIV_PUBLICATION_ID in .env.local → PUBLIC_BEEHIIV_PUBLICATION_ID
+// Find it at app.beehiiv.com → Settings → Publication → Publication ID
+const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
+const useEmbed = !!publicationId;
+---
+
+<section class="relative rounded-2xl border border-border bg-bg-surface overflow-hidden">
+  <!-- Subtle accent gradient -->
+  <div class="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent pointer-events-none" />
+
+  <div class="relative p-8 md:p-12 space-y-6">
+    <div class="space-y-2">
+      <p class="text-xs font-mono uppercase tracking-[0.2em] text-accent">The Lab Newsletter</p>
+      <h3 class="text-2xl md:text-3xl font-heading text-text-primary">
+        Get notified when I build<br class="hidden md:block" /> something worth sharing.
+      </h3>
+      <p class="text-text-secondary text-base max-w-md">
+        No filler. No frequency commitment. Just the experiments, tools, and breakdowns I'd want to read myself.
+      </p>
+    </div>
+
+    {useEmbed ? (
+      <!-- Real Beehiiv embed -->
+      <div class="beehiiv-embed-wrapper">
+        <iframe
+          src={`https://embeds.beehiiv.com/subscribe?publication_id=${publicationId}&slim=true`}
+          data-test-id="beehiiv-embed"
+          width="100%"
+          height="52"
+          frameborder="0"
+          scrolling="no"
+          style="border-radius: 0px !important; border: none; overflow: hidden;"
+          loading="lazy"
+          title="Subscribe to the gekro newsletter"
+        />
+      </div>
+    ) : (
+      <!-- Fallback form for local dev / when Beehiiv not configured -->
+      <form
+        id="newsletter-form"
+        class="flex flex-col sm:flex-row gap-3 max-w-md"
+        onsubmit="handleSubmit(event)"
+      >
+        <input
+          type="email"
+          name="email"
+          id="newsletter-email"
+          placeholder="your@email.com"
+          required
+          class="flex-1 px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 transition-colors font-body text-sm"
+          aria-label="Email address"
+        />
+        <button
+          type="submit"
+          class="px-6 py-3 bg-accent text-bg-base font-heading font-medium rounded-xl hover:bg-accent/90 active:scale-95 transition-all duration-200 text-sm whitespace-nowrap"
+        >
+          Subscribe →
+        </button>
+      </form>
+      <p id="newsletter-state" class="hidden text-sm text-text-secondary font-mono" aria-live="polite"></p>
+      <p class="text-xs text-text-muted">
+        Add <code class="font-mono bg-bg-elevated px-1 rounded">PUBLIC_BEEHIIV_PUBLICATION_ID</code> to .env.local to enable the real Beehiiv embed.
+      </p>
+
+      <script>
+        function handleSubmit(e: Event) {
+          e.preventDefault();
+          const form = document.getElementById('newsletter-form') as HTMLFormElement;
+          const state = document.getElementById('newsletter-state') as HTMLElement;
+          const email = (document.getElementById('newsletter-email') as HTMLInputElement).value;
+          if (!email) return;
+          form.classList.add('hidden');
+          state.classList.remove('hidden');
+          state.textContent = `✓ Got it — we'll reach out to ${email} when there's something worth sharing.`;
+        }
+      </script>
+    )}
+  </div>
+</section>

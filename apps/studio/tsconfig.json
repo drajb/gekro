@@ -1,0 +1,7 @@
+{
+  "extends": "@gekro/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "react-jsx"
+  }
+}

@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
+---
+
+<BaseLayout title="About | gekro" description="The mission behind the lab: building systems that bridge the gap between AI and reality.">
+  <HeroCanvasNeural />
+  
+  <main class="relative z-10 max-w-4xl mx-auto px-6 py-32 space-y-24">
+    <header class="space-y-8">
+      <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
+        Building at the edge.
+      </h1>
+      <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative">
+         <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent"></div>
+         <span class="absolute bottom-8 left-8 text-xs font-mono text-text-muted italic">// Lab Photo Placeholder</span>
+      </div>
+    </header>
+
+    <article class="prose prose-invert prose-lg max-w-none text-text-secondary space-y-8">
+      <p class="text-xl text-text-primary leading-relaxed">
+        I'm Rohit, an engineer obsessed with autonomous systems, self-hosting, and the convergence of AI with physical hardware.
+      </p>
+      
+      <p>
+        gekro.com is my personal engineering lab. It exists as a response to the "black box" nature of modern technology. 
+        I believe that the best way to understand a system is to build it, break it, and then document the wreckage.
+      </p>
+
+      <h2 class="text-3xl font-heading text-text-primary pt-12">The Mission</h2>
+      <p>
+        We are entering an era of <strong>agentic workflows</strong>. The shift from human-in-the-loop to human-on-the-loop 
+        is the most significant architectural change in our lifetime. My goal is to navigate this shift by building 
+        open-source experiments and documenting the technical hurdles honestly.
+      </p>
+
+      <h2 class="text-3xl font-heading text-text-primary pt-12">Technical Philosophy</h2>
+      <ul class="space-y-4 list-none pl-0">
+        <li class="flex gap-4">
+          <span class="text-accent text-2xl">01</span>
+          <span><strong>Privacy by Default.</strong> If it can be self-hosted, it should be. Centralized dependency is a technical debt.</span>
+        </li>
+        <li class="flex gap-4">
+          <span class="text-accent text-2xl">02</span>
+          <span><strong>Performance is UX.</strong> Every millisecond of latency is a friction point in the feedback loop.</span>
+        </li>
+        <li class="flex gap-4">
+          <span class="text-accent text-2xl">03</span>
+          <span><strong>Proof over Promise.</strong> Don't tell me what it can do. Show me the code and the telemetry.</span>
+        </li>
+      </ul>
+    </article>
+
+    <footer class="pt-24 border-t border-border-subtle flex justify-between items-center">
+      <p class="text-xs font-mono text-text-muted uppercase">EST. 2024 // UPDATED 2026</p>
+      <a href="/contact" class="text-sm font-mono text-accent hover:underline">Get in touch →</a>
+    </footer>
+  </main>
+</BaseLayout>

@@ -1,0 +1,29 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "TL;DR" } = Astro.props;
+---
+
+<section 
+  aria-label="Summary" 
+  class="relative my-12 overflow-hidden rounded-2xl border-l-4 border-accent bg-bg-surface p-8 lg:p-10"
+>
+  <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent/5 blur-3xl"></div>
+  
+  <div class="relative z-10 space-y-4">
+    <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+      {title}
+    </h2>
+    <div class="prose-tldr text-lg leading-relaxed text-text-primary italic lg:text-xl">
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .prose-tldr :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

@@ -1,0 +1,134 @@
+---
+import BrandLogo from '../ui/BrandLogo.astro';
+
+const navItems = [
+  { label: 'Blog', href: '/blog' },
+  { label: 'Experiments', href: '/experiments' },
+  { label: 'About', href: '/about' },
+];
+---
+
+<header class="fixed top-0 left-0 w-full z-50 px-6 py-4 md:py-8 flex justify-between items-center pointer-events-none">
+  <a href="/" class="group pointer-events-auto flex items-center gap-2">
+    <BrandLogo size="sm" className="group-hover:scale-110 transition-transform duration-300" />
+    <span class="text-xl font-heading font-medium tracking-tight text-white group-hover:text-accent transition-colors">gekro</span>
+  </a>
+
+  <!-- Desktop Nav -->
+  <nav class="hidden md:flex items-center gap-8 pointer-events-auto bg-bg-surface/50 backdrop-blur-xl border border-border px-6 py-3 rounded-full">
+    {navItems.map(item => (
+      <a 
+        href={item.href} 
+        class="text-xs font-mono uppercase tracking-widest text-text-secondary hover:text-accent transition-colors"
+      >
+        {item.label}
+      </a>
+    ))}
+  </nav>
+
+  <!-- Mobile Toggle -->
+  <div class="pointer-events-auto flex items-center gap-4">
+    <button id="menu-toggle" class="p-3 bg-bg-surface border border-border rounded-full hover:border-accent group transition-all">
+      <div id="line-1" class="w-5 h-[2px] bg-text-secondary group-hover:bg-accent mb-1 transition-all duration-300"></div>
+      <div id="line-2" class="w-3 h-[2px] bg-text-secondary group-hover:bg-accent transition-all duration-300 ml-auto"></div>
+    </button>
+  </div>
+
+</header>
+
+<!-- Mobile Menu Overlay -->
+<div id="mobile-menu" class="fixed inset-0 bg-bg-base/95 backdrop-blur-2xl z-[60] flex flex-col items-center justify-center space-y-8 opacity-0 pointer-events-none transition-all duration-500">
+  <button id="menu-close" class="absolute top-8 right-6 p-4 text-text-muted hover:text-white transition-colors">
+    <span class="text-xs font-mono uppercase tracking-[0.3em]">Close ×</span>
+  </button>
+  
+  <nav class="flex flex-col items-center space-y-6">
+    {navItems.map((item, idx) => (
+      <a 
+        href={item.href} 
+        class="mobile-link text-4xl font-heading font-medium text-text-primary hover:text-accent transition-colors"
+        style={`--idx: ${idx}`}
+      >
+        {item.label}
+      </a>
+    ))}
+  </nav>
+
+  <div class="pt-12 flex gap-8">
+    <a href="https://github.com/drajb" class="text-xs font-mono text-text-muted hover:text-accent uppercase tracking-widest">GitHub</a>
+    <a href="https://www.linkedin.com/in/rohitburani/" class="text-xs font-mono text-text-muted hover:text-accent uppercase tracking-widest">LinkedIn</a>
+  </div>
+</div>
+
+<script>
+  import gsap from 'gsap';
+
+  const initMenu = () => {
+    const toggle = document.getElementById('menu-toggle');
+    const close = document.getElementById('menu-close');
+    const menu = document.getElementById('mobile-menu');
+    const links = document.querySelectorAll('.mobile-link');
+    
+    let isOpen = false;
+
+    const openMenu = () => {
+      isOpen = true;
+      document.body.style.overflow = 'hidden';
+      gsap.to(menu, { opacity: 1, pointerEvents: 'auto', duration: 0.5, ease: 'power2.out' });
+      gsap.fromTo('.mobile-link', 
+        { y: 50, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'expo.out', delay: 0.2 }
+      );
+      // Hamburger animation
+      gsap.to('#line-1', { rotate: 45, y: 3, width: 20 });
+      gsap.to('#line-2', { rotate: -45, y: -3, width: 20 });
+    };
+
+    const closeMenu = () => {
+      isOpen = false;
+      document.body.style.overflow = '';
+      gsap.to(menu, { opacity: 0, pointerEvents: 'none', duration: 0.4, ease: 'power2.in' });
+      // Reset Hamburger
+      gsap.to('#line-1', { rotate: 0, y: 0, width: 20 });
+      gsap.to('#line-2', { rotate: 0, y: 0, width: 12 });
+    };
+
+    toggle?.addEventListener('click', () => isOpen ? closeMenu() : openMenu());
+    close?.addEventListener('click', closeMenu);
+    links.forEach(link => link.addEventListener('click', closeMenu));
+
+    // Smart Sticky Header
+    const header = document.querySelector('header');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+      if (isOpen) return; // Don't hide header if menu is open
+      
+      const currentScroll = window.pageYOffset;
+      if (currentScroll <= 0) {
+        gsap.to(header, { y: 0, duration: 0.4, ease: 'power2.out' });
+        header?.classList.remove('bg-bg-base/80', 'backdrop-blur-xl', 'border-b', 'border-border/50');
+        return;
+      }
+
+      if (currentScroll > lastScroll && currentScroll > 100) {
+        // Scrolling Down - Hide
+        gsap.to(header, { y: -120, duration: 0.4, ease: 'power2.in' });
+      } else {
+        // Scrolling Up - Show
+        gsap.to(header, { y: 0, duration: 0.4, ease: 'power2.out' });
+        header?.classList.add('bg-bg-base/80', 'backdrop-blur-xl', 'border-b', 'border-border/50');
+      }
+      lastScroll = currentScroll;
+    });
+  };
+
+  initMenu();
+  document.addEventListener('astro:after-swap', initMenu);
+</script>
+
+<style>
+  header {
+    transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  }
+</style>

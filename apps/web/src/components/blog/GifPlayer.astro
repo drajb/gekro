@@ -1,0 +1,51 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  poster?: string;
+}
+
+const { src, alt, poster } = Astro.props;
+---
+
+<div class="gif-player group relative my-12 overflow-hidden rounded-xl border border-border bg-bg-surface cursor-pointer">
+  <div class="absolute inset-0 z-10 flex items-center justify-center bg-bg-base/40 opacity-100 transition-opacity group-[.playing]:opacity-0">
+    <div class="w-16 h-16 rounded-full bg-accent flex items-center justify-center shadow-xl shadow-accent/20">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-bg-base fill-current"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    </div>
+  </div>
+
+  <div class="absolute bottom-4 right-4 z-10 bg-bg-base/60 backdrop-blur-md px-2 py-1 rounded text-[10px] uppercase tracking-widest font-mono border border-border text-text-muted transition-opacity group-[.playing]:opacity-0">
+    GIF
+  </div>
+
+  <img 
+    src={poster || src} 
+    data-gif={src}
+    alt={alt} 
+    class="gif-img w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+    loading="lazy"
+  />
+</div>
+
+<script>
+  const gifPlayers = document.querySelectorAll('.gif-player');
+
+  gifPlayers.forEach(player => {
+    const img = player.querySelector('.gif-img') as HTMLImageElement;
+    const originalSrc = img.src;
+    const gifSrc = img.dataset.gif || '';
+
+    player.addEventListener('click', () => {
+      const isPlaying = player.classList.contains('playing');
+      
+      if (isPlaying) {
+        player.classList.remove('playing');
+        img.src = originalSrc;
+      } else {
+        player.classList.add('playing');
+        img.src = gifSrc;
+      }
+    });
+  });
+</script>

@@ -1,0 +1,38 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host",
+    "build": "astro build",
+    "postbuild": "pagefind --site dist",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sanity/astro": "^3.0.0",
+    "@astrojs/sitemap": "^3.0.0",
+    "@astrojs/rss": "^4.0.0",
+    "@astrojs/tailwind": "^5.0.0",
+    "@sanity/client": "^6.0.0",
+    "astro": "^4.0.0",
+    "gsap": "^3.0.0",
+    "motion": "^10.0.0",
+    "shiki": "^1.0.0",
+    "tailwindcss": "4.0.0-beta.8",
+    "@tailwindcss/vite": "4.0.0-beta.8",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "@gekro/tsconfig": "workspace:*",
+    "@gekro/eslint-config": "workspace:*",
+    "pagefind": "^1.0.0",
+    "vitest": "^1.0.0",
+    "jsdom": "^24.0.0"
+  }
+}

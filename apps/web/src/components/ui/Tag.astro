@@ -1,0 +1,25 @@
+---
+interface Props {
+  title: string;
+  count?: number;
+  active?: boolean;
+}
+
+const { title, count, active } = Astro.props;
+---
+
+<a 
+  href={`/topics/${title.toLowerCase().replace(/\s+/g, '-')}`}
+  class={`px-4 py-2 rounded-full border transition-all duration-300 font-mono text-sm flex items-center gap-2 ${
+    active 
+      ? 'bg-accent text-bg-base border-accent' 
+      : 'bg-bg-elevated text-text-secondary border-border hover:border-accent hover:text-accent'
+  }`}
+>
+  {title}
+  {count !== undefined && (
+    <span class={`text-[10px] opacity-60 ${active ? 'text-bg-base' : 'text-text-muted'}`}>
+      ({count})
+    </span>
+  )}
+</a>

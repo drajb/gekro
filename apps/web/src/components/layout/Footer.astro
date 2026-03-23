@@ -1,0 +1,45 @@
+---
+import BrandLogo from '../ui/BrandLogo.astro';
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="relative z-10 w-full bg-bg-base border-t border-border-subtle py-24 px-6 overflow-hidden">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"></div>
+  
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16">
+    <div class="space-y-8">
+      <div class="flex items-center gap-3">
+        <BrandLogo size="sm" />
+        <span class="text-xl font-heading font-medium text-white">gekro</span>
+      </div>
+      <p class="text-text-secondary max-w-sm leading-relaxed">
+        Personal engineering lab documented by Rohit. Focused on agentic AI, self-hosting, and systems that build a better future.
+      </p>
+      <div class="flex gap-4">
+        <a href="https://www.linkedin.com/in/rohitburani/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 flex items-center justify-center rounded-full border border-border text-text-muted hover:border-accent hover:text-accent transition-all">in</a>
+        <a href="https://github.com/drajb" target="_blank" rel="noopener noreferrer" class="w-10 h-10 flex items-center justify-center rounded-full border border-border text-text-muted hover:border-accent hover:text-accent transition-all">gh</a>
+      </div>
+      <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest pt-4">© {currentYear} gekro.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-8">
+      <div class="space-y-6">
+        <h4 class="text-xs font-mono uppercase tracking-widest text-text-primary">Navigation</h4>
+        <ul class="space-y-4">
+          <li><a href="/blog" class="text-sm text-text-secondary hover:text-accent transition-colors">Blog</a></li>
+          <li><a href="/experiments" class="text-sm text-text-secondary hover:text-accent transition-colors">Experiments</a></li>
+          <li><a href="/about" class="text-sm text-text-secondary hover:text-accent transition-colors">About</a></li>
+        </ul>
+      </div>
+      <div class="space-y-6">
+        <h4 class="text-xs font-mono uppercase tracking-widest text-text-primary">Connect & AI</h4>
+        <ul class="space-y-4">
+          <li><a href="/contact" class="text-sm text-text-secondary hover:text-accent transition-colors">Contact</a></li>
+          <li><a href="/llms.txt" class="text-sm text-text-secondary hover:text-accent transition-colors">/llms.txt</a></li>
+          <li><a href="/rss.xml" class="text-sm text-text-secondary hover:text-accent transition-colors">RSS Feed</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</footer>

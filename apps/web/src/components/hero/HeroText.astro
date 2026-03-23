@@ -1,0 +1,98 @@
+---
+---
+<div class="relative z-10 text-center space-y-12 pt-32 md:pt-40 pb-20 px-4 min-h-[70vh] flex flex-col justify-center select-none">
+  <div class="space-y-6">
+    <h1 class="hero-headline text-4xl md:text-8xl font-display font-bold tracking-tight text-text-primary leading-[1.1] md:leading-[0.9]">
+      <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text">Building</span></div>
+      <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text">at the edge</span></div>
+      <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text text-accent">of possibility.</span></div>
+    </h1>
+    <p class="hero-subtext text-base md:text-xl text-text-secondary max-w-xl mx-auto font-body opacity-0">
+      Personal engineering lab documented by Rohit. <br class="hidden md:block"/>
+      Focused on agentic systems & self-hosted infrastructure.
+    </p>
+  </div>
+
+  <div class="hero-cta opacity-0 flex flex-col md:flex-row justify-center items-center gap-4 md:gap-6">
+    <a 
+      href="/experiments" 
+      class="magnetic-btn group relative w-full md:w-auto px-10 py-4 bg-accent text-bg-base font-heading font-medium rounded-full overflow-hidden transition-transform duration-300 text-center"
+    >
+      <span class="relative z-10">Explore Lab →</span>
+      <div class="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-out"></div>
+    </a>
+    <a 
+      href="/blog" 
+      class="magnetic-btn w-full md:w-auto px-10 py-4 border border-border text-text-primary font-heading font-medium rounded-full hover:bg-white hover:text-bg-base transition-all duration-300 text-center"
+    >
+      Read Blog
+    </a>
+  </div>
+</div>
+
+<script>
+  import gsap from 'gsap';
+
+  const initAnimations = () => {
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReducedMotion) {
+      gsap.set('.stagger-text, .hero-subtext, .hero-cta', { opacity: 1, y: 0 });
+      return;
+    }
+
+    // 1. Headline Stagger with Blur-In
+    const tl = gsap.timeline({ delay: 0.8 });
+    
+    tl.from('.stagger-text', {
+      y: 100,
+      rotateX: -20,
+      opacity: 0,
+      filter: 'blur(10px)',
+      duration: 1.5,
+      stagger: 0.2,
+      ease: 'expo.out'
+    });
+
+    tl.fromTo('.hero-subtext', 
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 1, ease: 'power2.out' },
+      "-=0.8"
+    );
+
+    tl.fromTo('.hero-cta', 
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 1, ease: 'back.out(1.7)' },
+      "-=0.5"
+    );
+
+    // 2. Magnetic Buttons
+    const buttons = document.querySelectorAll('.magnetic-btn');
+    buttons.forEach(btn => {
+      btn.addEventListener('mousemove', (e: any) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        
+        gsap.to(btn, {
+          x: x * 0.3,
+          y: y * 0.3,
+          duration: 0.4,
+          ease: 'power2.out'
+        });
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, {
+          x: 0,
+          y: 0,
+          duration: 0.6,
+          ease: 'elastic.out(1, 0.3)'
+        });
+      });
+    });
+  };
+
+  // Run on first load and after view transitions
+  initAnimations();
+  document.addEventListener('astro:after-swap', initAnimations);
+</script>

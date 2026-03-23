@@ -1,0 +1,104 @@
+---
+---
+
+<div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl space-y-8 relative overflow-hidden group">
+  <!-- Subtle background glow -->
+  <div class="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full -mr-32 -mt-32 blur-3xl transition-opacity group-hover:opacity-100 opacity-50"></div>
+  
+  <form 
+    action="https://formspree.io/f/mwvrddbr" 
+    method="POST"
+    id="contact-form"
+    class="relative z-10 space-y-8"
+  >
+    <!-- Honeypot (Spam Protection) -->
+    <input type="text" name="_gotcha" style="display:none" />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="space-y-2">
+        <label for="name" class="text-[10px] uppercase font-mono tracking-widest text-text-muted ml-1">Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          required 
+          placeholder="Your Name"
+          class="w-full h-12 bg-bg-base border border-border rounded-lg px-4 text-sm text-text-primary focus:border-accent focus:outline-none transition-colors placeholder:text-text-muted/30"
+        />
+      </div>
+      <div class="space-y-2">
+        <label for="email" class="text-[10px] uppercase font-mono tracking-widest text-text-muted ml-1">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          required 
+          placeholder="you@domain.com"
+          class="w-full h-12 bg-bg-base border border-border rounded-lg px-4 text-sm text-text-primary focus:border-accent focus:outline-none transition-colors placeholder:text-text-muted/30"
+        />
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <label for="message" class="text-[10px] uppercase font-mono tracking-widest text-text-muted ml-1">Message</label>
+      <textarea 
+        id="message" 
+        name="message" 
+        rows="6" 
+        required 
+        placeholder="Tell me about your build..."
+        class="w-full bg-bg-base border border-border rounded-lg p-4 text-sm text-text-primary focus:border-accent focus:outline-none transition-colors placeholder:text-text-muted/30 resize-none"
+      ></textarea>
+    </div>
+
+    <!-- Cloudflare Turnstile -->
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAACu_tM5JTZcwd6aO" data-theme="dark"></div>
+
+    <button 
+      type="submit" 
+      class="w-full md:w-auto px-12 py-4 bg-accent text-bg-base font-heading font-medium rounded-full hover:bg-white hover:scale-[1.02] active:scale-95 transition-all duration-300"
+    >
+      Send Message →
+    </button>
+  </form>
+
+  <div id="form-status" class="hidden absolute inset-0 z-20 bg-bg-surface flex flex-col items-center justify-center space-y-4 text-center p-8">
+    <div class="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center text-accent text-2xl">✓</div>
+    <h3 class="text-2xl font-heading text-text-primary">Message Received</h3>
+    <p class="text-sm text-text-secondary max-w-xs px-8">Thanks for reaching out. I'll get back to you shortly.</p>
+    <button onclick="document.getElementById('form-status').classList.add('hidden')" class="text-xs font-mono text-accent hover:underline mt-8">Send another</button>
+  </div>
+</div>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<script>
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const status = document.getElementById('form-status');
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          status.classList.remove('hidden');
+          form.reset();
+        } else {
+          alert('Submission failed. Please try again.');
+        }
+      } catch (err) {
+        alert('An error occurred. Direct signals might be jammed—try LinkedIn!');
+      }
+    });
+  }
+</script>

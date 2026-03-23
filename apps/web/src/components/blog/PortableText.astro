@@ -1,0 +1,54 @@
+---
+import CodeBlock from './CodeBlock.astro';
+
+interface Props {
+  value: any[];
+}
+
+const { value } = Astro.props;
+
+// Simple custom renderer for PortableText in Astro
+// Maps block types to components or HTML
+---
+
+<div class="prose prose-invert max-w-none">
+  {value && value.map((block) => {
+    if (block._type === 'block') {
+      const { style = 'normal', children } = block;
+      const text = children.map((c: any) => c.text).join('');
+      
+      switch (style) {
+        case 'h1': return <h1 class="font-heading mt-12 mb-6 text-4xl lg:text-5xl">{text}</h1>;
+        case 'h2': return <h2 class="font-heading mt-10 mb-5 text-3xl lg:text-4xl border-b border-border pb-4">{text}</h2>;
+        case 'h3': return <h3 class="font-heading mt-8 mb-4 text-2xl lg:text-3xl">{text}</h3>;
+        case 'blockquote': return <blockquote class="border-l-4 border-accent/40 pl-6 my-8 italic text-text-secondary">{text}</blockquote>;
+        default: return <p class="my-6 leading-relaxed text-text-secondary text-lg">{text}</p>;
+      }
+    }
+    
+    if (block._type === 'code') {
+      return <CodeBlock code={block.code} lang={block.language} filename={block.filename} />;
+    }
+    
+    if (block._type === 'image') {
+      // In a real project, use @astrojs/image
+      return (
+        <figure class="my-12">
+          <img src={block.asset?.url} alt={block.alt || ''} class="rounded-xl border border-border" />
+          {block.caption && <figcaption class="mt-4 text-center text-sm text-text-muted italic">{block.caption}</figcaption>}
+        </figure>
+      );
+    }
+    
+    return null;
+  })}
+</div>
+
+<style is:global>
+  .prose h2 {
+    color: var(--color-text-primary);
+  }
+  .prose p {
+    color: var(--color-text-secondary);
+  }
+</style>

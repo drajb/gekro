@@ -1,0 +1,44 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+import SEOHead from '../components/seo/SEOHead.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SEOHead title={title} description={description} />
+    <ViewTransitions />
+  </head>
+  <body class="bg-bg-base text-text-primary selection:bg-accent selection:text-bg-base antialiased">
+    <Header />
+    <div id="swup" class="transition-fade">
+      <slot />
+    </div>
+    <Footer />
+
+    <script>
+      import { gsap } from 'gsap';
+
+      document.addEventListener('astro:after-swap', () => {
+        if (typeof window !== 'undefined') {
+          gsap.from('main', {
+            opacity: 0,
+            y: 20,
+            duration: 0.6,
+            ease: 'power3.out',
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

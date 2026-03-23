@@ -1,0 +1,8 @@
+{
+  "extends": "@gekro/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "jsxImportSource": "astro"
+  }
+}

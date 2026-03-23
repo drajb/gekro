@@ -1,0 +1,150 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import PortableText from '../../components/blog/PortableText.astro';
+import TLDR from '../../components/blog/TLDR.astro';
+import RelatedPosts from '../../components/blog/RelatedPosts.astro';
+import { client } from '../../lib/sanity/client';
+import { ALL_POSTS_QUERY } from '../../lib/sanity/queries';
+
+export async function getStaticPaths() {
+  const localPosts = await getCollection('blog');
+  let sanityPosts = [];
+  
+  try {
+    sanityPosts = await client.fetch(ALL_POSTS_QUERY);
+  } catch (e) {
+    console.error("Sanity fetch failed, using local only", e);
+  }
+  
+  const sanityPaths = sanityPosts.map((post: any) => ({
+    params: { slug: post.slug.current },
+    props: { post, isLocal: false },
+  }));
+
+  const localPaths = localPosts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post, isLocal: true },
+  }));
+
+  return [...sanityPaths, ...localPaths];
+}
+
+const { post, isLocal } = Astro.props;
+
+let Content;
+let headings = [];
+let displayPost = post;
+
+if (isLocal) {
+  const rendered = await post.render();
+  Content = rendered.Content;
+  headings = rendered.headings;
+  displayPost = {
+    ...post.data,
+    title: post.data.title,
+    publishedAt: post.data.publishedAt,
+    topics: post.data.topics,
+    difficulty: post.data.difficulty,
+    description: post.data.description,
+    tldr: post.data.tldr || post.data.description || post.data.summary
+  };
+} else {
+  // Mock headings for Sanity posts or extract from portable text
+  headings = [
+    { depth: 2, text: 'Executive Summary', slug: 'summary' },
+    { depth: 2, text: 'What I Learned', slug: 'learned' },
+  ];
+}
+
+// Build allPosts for RelatedPosts component
+const localAll = await getCollection('blog');
+let sanityAll: any[] = [];
+try { sanityAll = await client.fetch(ALL_POSTS_QUERY); } catch (_) {}
+const allPostsForRelated = [
+  ...sanityAll,
+  ...localAll.map(p => ({
+    title: p.data.title,
+    slug: { current: p.slug },
+    description: p.data.description,
+    tldr: p.data.tldr || p.data.description,
+    publishedAt: p.data.publishedAt,
+    topics: p.data.topics,
+    difficulty: p.data.difficulty,
+  }))
+];
+---
+
+<BlogLayout post={displayPost} headings={headings}>
+  <div class="space-y-12">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <span class={`text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full border ${
+            displayPost.difficulty === 'Beginner' ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-400' :
+            displayPost.difficulty === 'Intermediate' ? 'border-blue-500/30 bg-blue-500/5 text-blue-400' :
+            'border-purple-500/30 bg-purple-500/5 text-purple-400'
+          }`}>
+            {displayPost.difficulty || 'Beginner'}
+          </span>
+          <span class="text-[10px] uppercase tracking-widest font-mono text-text-muted">
+            {displayPost.publishedAt ? new Date(displayPost.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}
+          </span>
+        </div>
+        <TLDR>
+          {displayPost.tldr}
+        </TLDR>
+      </div>
+
+      {isLocal ? (
+        <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
+          <Content />
+        </div>
+      ) : (
+        <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
+          <PortableText value={displayPost.body} />
+        </div>
+      )}
+
+      <!-- ... footer same ... -->
+      <RelatedPosts
+        currentSlug={isLocal ? post.slug : post.slug?.current}
+        currentTopics={displayPost.topics || []}
+        allPosts={allPostsForRelated}
+      />
+  </div>
+</BlogLayout>
+
+<script>
+  // Copy Code Button Implementation
+  function addCopyButtons() {
+    const blocks = document.querySelectorAll('pre');
+
+    blocks.forEach((block) => {
+      // Create button
+      const button = document.createElement('button');
+      button.innerText = 'Copy';
+      button.className = 'absolute right-4 top-4 p-2 text-[10px] uppercase tracking-widest font-mono text-text-muted bg-bg-surface border border-border rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:text-accent hover:border-accent z-20';
+      
+      block.appendChild(button);
+
+      button.addEventListener('click', async () => {
+        const code = block.querySelector('code');
+        if (!code) return;
+
+        await navigator.clipboard.writeText(code.innerText);
+
+        button.innerText = 'Copied!';
+        button.classList.add('text-emerald-400', 'border-emerald-400');
+
+        setTimeout(() => {
+          button.innerText = 'Copy';
+          button.classList.remove('text-emerald-400', 'border-emerald-400');
+        }, 2000);
+      });
+    });
+  }
+
+  // Run on page load and view transitions
+  addCopyButtons();
+  document.addEventListener('astro:after-swap', addCopyButtons);
+</script>

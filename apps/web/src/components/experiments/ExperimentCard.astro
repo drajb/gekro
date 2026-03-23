@@ -1,0 +1,56 @@
+---
+interface Props {
+  experiment: {
+    title: string;
+    slug: { current: string };
+    summary: string;
+    status: 'active' | 'completed' | 'archived';
+    stack: string[];
+    mainImage?: string;
+  };
+}
+
+const { experiment } = Astro.props;
+
+const statusColors = {
+  active: 'text-accent border-accent/20 bg-accent/5',
+  completed: 'text-accent-warm border-accent-warm/20 bg-accent-warm/5',
+  archived: 'text-text-muted border-border/20 bg-bg-elevated',
+};
+---
+
+<a 
+  href={`/experiments/${experiment.slug.current}`}
+  class="post-card group relative block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent/50 opacity-0 transform translate-y-4"
+>
+  <div class="flex flex-col h-full justify-between gap-6">
+    <div class="space-y-4">
+      <div class="flex justify-between items-center">
+        <span class={`text-[10px] uppercase tracking-widest font-mono border px-2 py-1 rounded-md ${statusColors[experiment.status]}`}>
+          {experiment.status}
+        </span>
+      </div>
+
+      <h3 class="text-2xl font-heading font-medium text-text-primary group-hover:text-accent transition-colors">
+        {experiment.title}
+      </h3>
+      
+      <p class="text-sm text-text-secondary leading-relaxed">
+        {experiment.summary}
+      </p>
+    </div>
+
+    <div class="space-y-4">
+      <div class="flex flex-wrap gap-2">
+        {experiment.stack.slice(0, 3).map((item) => (
+          <span class="text-[10px] text-text-muted font-mono bg-bg-elevated px-2 py-1 rounded border border-border-subtle">
+            {item}
+          </span>
+        ))}
+        {experiment.stack.length > 3 && (
+          <span class="text-[10px] text-text-muted font-mono px-1">+{experiment.stack.length - 3}</span>
+        )}
+      </div>
+    </div>
+  </div>
+</a>

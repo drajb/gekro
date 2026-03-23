@@ -1,0 +1,24 @@
+---
+interface Props {
+  headings: { depth: number; text: string; slug: string }[];
+}
+
+const { headings } = Astro.props;
+const filteredHeadings = headings.filter(h => h.depth <= 3);
+---
+
+<nav class="space-y-4">
+  <h4 class="text-xs uppercase tracking-[0.2em] text-text-muted font-mono">In this post</h4>
+  <ul class="space-y-3">
+    {filteredHeadings.map(h => (
+      <li class={`text-sm ${h.depth === 3 ? 'pl-4' : ''}`}>
+        <a 
+          href={`#${h.slug}`} 
+          class="text-text-secondary hover:text-accent transition-colors border-l border-transparent hover:border-accent/40 pl-3 -ml-3"
+        >
+          {h.text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

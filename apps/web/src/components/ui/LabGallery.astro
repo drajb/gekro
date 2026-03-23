@@ -1,0 +1,80 @@
+---
+import { Image } from 'astro:assets';
+
+const photos = [
+  {
+    src: '/images/lab/hardware-1.png',
+    alt: 'AI Workstation Setup',
+    caption: 'Neural Core v1',
+    rotation: '-3deg'
+  },
+  {
+    src: '/images/lab/hardware-2.png',
+    alt: 'Tesla Telemetry Lab',
+    caption: 'Fleet API Telemetry',
+    rotation: '2deg'
+  },
+  {
+    src: '/images/lab/hardware-3.png',
+    alt: 'Electronics Workbench',
+    caption: 'Micro-controller Lab',
+    rotation: '-1deg'
+  }
+];
+---
+
+<section class="space-y-12">
+  <div class="flex justify-between items-end border-b border-border-subtle pb-6">
+    <div class="space-y-1">
+      <h2 class="text-3xl font-heading font-medium text-text-primary">Physical Lab Log</h2>
+      <p class="text-sm text-text-muted font-mono">raw engineering / hardware snapshots</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8">
+    {photos.map((photo) => (
+      <div 
+        class="lab-photo group relative bg-white p-4 pb-12 shadow-xl transition-all duration-500 hover:scale-105 hover:z-20 hover:-rotate-0"
+        style={`transform: rotate(${photo.rotation});`}
+      >
+        <div class="overflow-hidden bg-bg-base aspect-[4/3] relative">
+          <img 
+            src={photo.src} 
+            alt={photo.alt}
+            class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+          />
+          <div class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+        </div>
+        <div class="mt-6 text-center">
+          <span class="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">{photo.caption}</span>
+        </div>
+        
+        <!-- Tape effect -->
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/20 backdrop-blur-sm -rotate-2 opacity-50"></div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  import { animate, inView } from "motion";
+
+  const photos = document.querySelectorAll(".lab-photo");
+  
+  photos.forEach((photo) => {
+    inView(photo, () => {
+      animate(
+        photo,
+        { opacity: [0, 1], scale: [0.9, 1] },
+        { duration: 0.8, easing: [0.22, 1, 0.36, 1] }
+      );
+    });
+  });
+</script>
+
+<style>
+  .lab-photo {
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    backface-visibility: hidden;
+  }
+</style>

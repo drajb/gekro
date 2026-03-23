@@ -1,0 +1,25 @@
+---
+---
+<div id="reading-progress" class="fixed top-0 left-0 w-full h-[3px] z-[60] origin-left pointer-events-none">
+  <div id="progress-bar" class="w-full h-full bg-accent scale-x-0 origin-left"></div>
+</div>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.to('#progress-bar', {
+      scaleX: 1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: 'main', // Or specific article selector
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: true,
+      }
+    });
+  }
+</script>

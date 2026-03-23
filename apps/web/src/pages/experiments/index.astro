@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ExperimentCard from '../../components/experiments/ExperimentCard.astro';
+import { client } from '../../lib/sanity/client';
+import { ALL_EXPERIMENTS_QUERY } from '../../lib/sanity/queries';
+
+// Mock experiments for fallback
+const mockExperiments = [
+  {
+    title: 'Neural Home Orchestrator',
+    slug: { current: 'neural-home-orchestrator' },
+    summary: 'A localized agentic system for managing home automation and energy efficiency.',
+    status: 'active' as const,
+    stack: ['Python', 'Home Assistant', 'Together AI'],
+  },
+  {
+    title: 'Self-Hosted LLM Lab',
+    slug: { current: 'self-hosted-llm' },
+    summary: 'Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels.',
+    status: 'completed' as const,
+    stack: ['Raspberry Pi', 'Ollama', 'Docker'],
+  },
+  {
+    title: 'EV Data Logger',
+    slug: { current: 'ev-data-logger' },
+    summary: 'Real-time telemetry extraction from Tesla Fleet API for green energy optimization.',
+    status: 'active' as const,
+    stack: ['TypeScript', 'Astro', 'Tesla API'],
+  }
+];
+
+let experiments = [];
+try {
+  experiments = await client.fetch(ALL_EXPERIMENTS_QUERY);
+} catch (e) {
+  experiments = mockExperiments;
+}
+---
+
+<BaseLayout title="Experiments | gekro" description="Technical case studies, architectural deep dives, and lab notes.">
+  <main class="max-w-6xl mx-auto px-6 py-32 space-y-24">
+    <header class="space-y-6 max-w-2xl">
+      <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tighter">Labs</h1>
+      <p class="text-text-secondary text-lg leading-relaxed">
+        This is where I document my technical experiments. Hard data, architectural diagrams, and lessons learned from building at the edge.
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {experiments.map(exp => (
+        <ExperimentCard experiment={exp} />
+      ))}
+    </div>
+
+    {experiments.length === 0 && (
+      <div class="py-24 text-center border border-dashed border-border rounded-xl">
+        <p class="text-text-muted">The lab is currently being reorganized. Check back soon!</p>
+      </div>
+    )}
+  </main>
+</BaseLayout>

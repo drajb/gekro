@@ -1,0 +1,43 @@
+---
+import PostCard from './PostCard.astro';
+
+interface Props {
+  currentSlug: string;
+  currentTopics: string[];
+  allPosts: {
+    title: string;
+    slug: { current: string };
+    description?: string;
+    tldr?: string;
+    publishedAt: string;
+    topics: string[];
+    difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+  }[];
+}
+
+const { currentSlug, currentTopics, allPosts } = Astro.props;
+
+// Find posts sharing at least one topic, excluding current
+const related = allPosts
+  .filter(p => p.slug.current !== currentSlug)
+  .map(p => ({
+    post: p,
+    sharedTopics: p.topics.filter(t => currentTopics.includes(t)).length,
+  }))
+  .filter(({ sharedTopics }) => sharedTopics > 0)
+  .sort((a, b) => b.sharedTopics - a.sharedTopics)
+  .slice(0, 3)
+  .map(({ post }) => post);
+---
+
+{related.length > 0 && (
+  <section class="mt-24 pt-16 border-t border-border-subtle space-y-10">
+    <div class="space-y-1">
+      <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-text-muted">Continue Reading</h3>
+      <p class="text-2xl font-heading text-text-primary">Related from the lab</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {related.map(post => <PostCard post={post} />)}
+    </div>
+  </section>
+)}

@@ -1,0 +1,79 @@
+---
+import { getHighlighter } from 'shiki';
+
+interface Props {
+  code: string;
+  lang?: string;
+  filename?: string;
+}
+
+const { code, lang = 'typescript', filename } = Astro.props;
+
+const highlighter = await getHighlighter({
+  themes: ['tokyo-night'],
+  langs: [lang, 'typescript', 'javascript', 'css', 'html', 'json', 'bash', 'markdown', 'yaml', 'python'],
+});
+
+const html = highlighter.codeToHtml(code, {
+  lang,
+  theme: 'tokyo-night',
+});
+---
+
+<div class="group relative my-8 overflow-hidden rounded-xl border border-border bg-bg-surface">
+  {filename && (
+    <div class="flex items-center justify-between border-b border-border bg-bg-elevated/50 px-4 py-2">
+      <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted">{filename}</span>
+      <span class="text-[10px] font-mono text-text-muted/60">{lang}</span>
+    </div>
+  )}
+  
+  <div class="relative">
+    <button 
+      class="copy-button absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-muted opacity-0 transition-all hover:border-accent hover:text-accent group-hover:opacity-100"
+      data-code={code}
+      aria-label="Copy code"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="copy-icon"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="check-icon hidden text-accent"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+    
+    <div class="shiki-container overflow-x-auto p-6 text-sm leading-relaxed" set:html={html} />
+  </div>
+</div>
+
+<style is:global>
+  .shiki {
+    background-color: transparent !important;
+    margin: 0 !important;
+  }
+  .shiki code {
+    font-family: var(--font-mono);
+  }
+</style>
+
+<script>
+  const buttons = document.querySelectorAll('.copy-button');
+  
+  buttons.forEach(button => {
+    button.addEventListener('click', async () => {
+      const code = (button as HTMLElement).dataset.code || '';
+      const copyIcon = button.querySelector('.copy-icon');
+      const checkIcon = button.querySelector('.check-icon');
+      
+      try {
+        await navigator.clipboard.writeText(code);
+        
+        copyIcon?.classList.add('hidden');
+        checkIcon?.classList.remove('hidden');
+        
+        setTimeout(() => {
+          copyIcon?.classList.remove('hidden');
+          checkIcon?.classList.add('hidden');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+    });
+  });
+</script>

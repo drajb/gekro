@@ -1,0 +1,44 @@
+---
+import { calculateReadingTime } from '../../lib/utils/reading-time';
+
+interface Props {
+  title: string;
+  publishedAt: string;
+  topics: string[];
+  tldr: string;
+  mainImage?: string;
+}
+
+const { title, publishedAt, topics, tldr } = Astro.props;
+const formattedDate = new Date(publishedAt).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const readingTime = calculateReadingTime(tldr); // Basic estimate
+---
+
+<header class="space-y-8 py-24">
+  <div class="space-y-4">
+    <div class="flex flex-wrap gap-3">
+      {topics.map(topic => (
+        <a 
+          href={`/topics/${topic.toLowerCase().replace(/\s+/g, '-')}`}
+          class="text-[10px] uppercase font-mono tracking-widest text-accent border border-accent/20 px-3 py-1 rounded-full bg-accent/5 hover:bg-accent/10 hover:border-accent/40 transition-all"
+        >
+          {topic}
+        </a>
+      ))}
+    </div>
+    
+    <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary leading-[1.1] tracking-tight">
+      {title}
+    </h1>
+    
+    <div class="flex items-center gap-6 text-xs text-text-muted font-mono uppercase tracking-widest pt-4">
+      <time datetime={publishedAt}>{formattedDate}</time>
+      <span class="w-1 h-1 bg-border rounded-full"></span>
+      <span>{readingTime} min read</span>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,117 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import PostHeader from '../components/blog/PostHeader.astro';
+import PostTOC from '../components/blog/PostTOC.astro';
+import ReadingProgress from '../components/blog/ReadingProgress.astro';
+import JsonLD from '../components/seo/JsonLD.astro';
+import GiscusComments from '../components/blog/GiscusComments.astro';
+
+interface Props {
+  post: any;
+  headings: any[];
+}
+
+const { post, headings } = Astro.props;
+
+// Use aiSummary → tldr → description as fallback chain for SEO description
+const seoDescription = post.aiSummary || post.tldr || post.description || '';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": post.title,
+  "description": seoDescription,
+  "datePublished": post.publishedAt,
+  "author": {
+    "@type": "Person",
+    "name": "Rohit",
+    "url": "https://gekro.com/about"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "gekro",
+    "url": "https://gekro.com"
+  }
+};
+---
+
+<BaseLayout title={post.title} description={seoDescription}>
+  <JsonLD data={schema} />
+  <ReadingProgress />
+  
+  <article class="max-w-6xl mx-auto px-6">
+    <PostHeader 
+      title={post.title} 
+      publishedAt={post.publishedAt} 
+      topics={post.topics || []}
+      tldr={post.tldr}
+    />
+    
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
+      <main class="lg:col-span-4 pb-24">
+        <slot />
+      </main>
+      
+      <aside class="hidden lg:block lg:col-span-1 border-l border-border-subtle pl-12 h-fit">
+        <div class="sticky top-32 space-y-12">
+          <PostTOC headings={headings} />
+          
+          <div class="space-y-6">
+            <h4 class="text-[10px] uppercase font-mono tracking-[0.2em] text-text-muted">Share Post</h4>
+            <div class="flex flex-col gap-4">
+              <a 
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.toString())}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="text-xs font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-2 group"
+              >
+                <span class="opacity-40 group-hover:opacity-100 transition-opacity">↗</span> LinkedIn
+              </a>
+              
+              <button 
+                id="copy-link"
+                class="text-xs font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-2 group text-left"
+                aria-label="Copy link to post"
+              >
+                <span class="opacity-40 group-hover:opacity-100 transition-opacity">#</span> Copy Link
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Giscus Comments -->
+    <GiscusComments />
+
+    <footer class="mt-16 py-16 border-t border-border-subtle">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="space-y-2">
+          <h4 class="text-xl font-heading text-text-primary">Thanks for reading.</h4>
+          <p class="text-sm text-text-secondary">If you enjoyed this, consider sharing it with your network.</p>
+        </div>
+        <a href="/blog" class="px-8 py-4 border border-border rounded-full hover:border-accent text-sm font-mono transition-all">
+          ← Back to Blog
+        </a>
+      </div>
+    </footer>
+  </article>
+
+  <script>
+    const copyBtn = document.getElementById('copy-link');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          const originalText = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<span class="text-emerald-400">✓</span> Copied!';
+          setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy: ', err);
+        }
+      });
+    }
+  </script>
+</BaseLayout>

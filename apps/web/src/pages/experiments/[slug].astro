@@ -1,0 +1,87 @@
+---
+import ExperimentLayout from '../../layouts/ExperimentLayout.astro';
+import PortableText from '../../components/blog/PortableText.astro';
+import { client } from '../../lib/sanity/client';
+import { ALL_EXPERIMENTS_QUERY } from '../../lib/sanity/queries';
+
+export async function getStaticPaths() {
+  let experiments = [];
+  try {
+    experiments = await client.fetch(ALL_EXPERIMENTS_QUERY);
+  } catch (e) {
+    return [
+      { params: { slug: 'neural-home-orchestrator' } },
+      { params: { slug: 'self-hosted-llm' } },
+      { params: { slug: 'ev-data-logger' } },
+      { params: { slug: 'tradebot-alpha' } }
+    ];
+  }
+  
+  return experiments.map((exp: any) => ({
+    params: { slug: exp.slug.current },
+    props: { experiment: exp },
+  }));
+}
+
+const { experiment } = Astro.props;
+---
+
+<ExperimentLayout experiment={experiment}>
+  <div class="prose prose-invert max-w-none space-y-12">
+    <section class="space-y-6">
+      <h2 class="text-3xl font-heading text-text-primary">Problem Statement</h2>
+      <p class="text-lg text-text-secondary">
+        Building high-frequency systems requires low-latency communication and robust error handling. 
+        In this experiment, I explored how to leverage Together AI's API for real-time sentiment analysis 
+        within a trading execution loop.
+      </p>
+    </section>
+
+    <!-- Architecture Diagram Placeholder -->
+    <section class="p-12 bg-bg-elevated border border-border rounded-2xl flex flex-col items-center justify-center space-y-6 min-h-[400px]">
+      <div class="w-full max-w-lg aspect-video border border-dashed border-accent/20 rounded-lg flex items-center justify-center relative overflow-hidden group">
+         <div class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+         <span class="text-xs font-mono text-text-muted uppercase tracking-[0.2em] italic">Architecture Diagram (SVG + GSAP)</span>
+      </div>
+      <p class="text-sm text-text-muted text-center max-w-md">
+        This diagram visualizes the data flow between the API gateway, the analysis engine, and the execution broker.
+      </p>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-3xl font-heading text-text-primary">Technical Implementation</h2>
+      <p class="text-text-secondary">
+        The system is containerized using Docker and orchestrated via a lightweight Python scheduler. 
+        We used Redis for real-time state management and message buffering.
+      </p>
+    </section>
+
+    <section class="space-y-6">
+      <h2 class="text-3xl font-heading text-text-primary">Results & Conclusion</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-6 bg-bg-surface border border-border rounded-xl">
+          <span class="text-2xl font-bold text-accent">98.4%</span>
+          <p class="text-sm text-text-muted mt-2">Prediction Accuracy</p>
+        </div>
+        <div class="p-6 bg-bg-surface border border-border rounded-xl">
+          <span class="text-2xl font-bold text-accent-warm">12ms</span>
+          <p class="text-sm text-text-muted mt-2">Average Latency</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div slot="sidebar" class="space-y-12">
+    <div class="p-6 bg-bg-surface border border-border rounded-xl space-y-6">
+      <h4 class="text-xs uppercase font-mono tracking-widest text-text-muted">Key Takeaways</h4>
+      <ul class="space-y-4">
+        {['Latency is everything.', 'Small models win for speed.', 'Dockerize early.'].map(item => (
+          <li class="text-sm text-text-secondary flex gap-3">
+            <span class="text-accent">•</span>
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</ExperimentLayout>

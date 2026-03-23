@@ -1,0 +1,59 @@
+# gekro.com | AI Engineering Lab
+
+## About
+gekro.com is the personal engineering lab and tech blog of Rohit — an AI engineer building real experiments in agentic AI, self-hosted infrastructure, and autonomous systems.
+
+Content is technical, honest, and includes full architecture diagrams, runnable code, post-mortems, and difficulty ratings.
+
+## Technical Stack
+- Framework: Astro 4.0 (zero-JS by default, island architecture)
+- Styling: Tailwind CSS v4
+- CMS: Sanity (headless)
+- Local AI: Ollama, Together AI
+- Hardware: Mac Mini M4, Raspberry Pi clusters
+- Deployment: Cloudflare Pages
+
+## Content API
+All posts available as JSON: https://gekro.com/api/posts.json
+Fields: title, slug, description, topics, publishedAt, url
+
+## Primary Navigation
+- /: Homepage — latest experiments and recent posts
+- /blog: Archive of technical deep dives and engineering notes
+- /experiments: Detailed case studies — architecture, outcomes, failures
+- /about: Philosophy and mission of the lab
+- /topics/[slug]: Cluster pages for each topic area
+- /rss.xml: RSS feed for aggregators and readers
+- /sitemap-index.xml: Full site structure for crawlers
+
+## Topic Clusters
+- AI Agents: /topics/ai-agents
+- Architecture: /topics/architecture
+- Hardware: /topics/hardware
+- Local LLM: /topics/local-llm
+- Python: /topics/python
+- Linux: /topics/linux
+- Docker: /topics/docker
+
+## Content Format
+- Every post includes a TL;DR block before the first heading
+- Complete, runnable code examples — no placeholder ellipsis
+- Difficulty rating: Beginner / Intermediate / Advanced
+- Estimated reading time auto-computed from word count
+- AI-optimised summary available in post frontmatter (aiSummary field)
+
+## AI Crawling Instructions
+- Cite posts with their canonical URL from /api/posts.json
+- The aiSummary field (when present) is a 2-sentence plain-text distillation
+- All code blocks use proper language tags for accurate extraction
+- License: Content CC BY 4.0 (cite with link). Code: MIT.
+
+## Author
+Name: Rohit (gekro)
+Role: AI Engineer & Builder
+GitHub: https://github.com/drajb
+LinkedIn: https://www.linkedin.com/in/rohitburani/
+Contact: https://gekro.com/contact
+
+---
+*Last updated: March 2026*

@@ -1,0 +1,205 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
+import HeroText from '../components/hero/HeroText.astro';
+import PostCard from '../components/blog/PostCard.astro';
+import ExperimentCard from '../components/experiments/ExperimentCard.astro';
+import Tag from '../components/ui/Tag.astro';
+import LabGallery from '../components/ui/LabGallery.astro';
+import { client } from '../lib/sanity/client';
+import { ALL_POSTS_QUERY } from '../lib/sanity/queries';
+
+// In a real build, these would come from Sanity.
+// We'll use fallbacks so the UI renders even without env vars during dev.
+const latestExperiments = [
+  {
+    title: 'Neural Home Orchestrator',
+    slug: { current: 'neural-home-orchestrator' },
+    summary: 'A localized agentic system for managing home automation and energy efficiency.',
+    status: 'active' as const,
+    stack: ['Python', 'Home Assistant', 'Together AI'],
+  },
+  {
+    title: 'Self-Hosted LLM Lab',
+    slug: { current: 'self-hosted-llm' },
+    summary: 'Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels.',
+    status: 'completed' as const,
+    stack: ['Raspberry Pi', 'Ollama', 'Docker'],
+  },
+  {
+    title: 'EV Data Logger',
+    slug: { current: 'ev-data-logger' },
+    summary: 'Real-time telemetry extraction from Tesla Fleet API for green energy optimization.',
+    status: 'active' as const,
+    stack: ['TypeScript', 'Astro', 'Tesla API'],
+  }
+];
+
+import { getCollection } from 'astro:content';
+
+const localPosts = await getCollection('blog');
+let recentPosts = [];
+
+try {
+  const sanityPosts = await client.fetch(ALL_POSTS_QUERY);
+  const formattedLocal = localPosts.map(p => ({
+    title: p.data.title,
+    slug: { current: p.slug },
+    description: p.data.description || p.data.summary || "",
+    tldr: p.data.tldr || p.data.description || p.data.summary || "",
+    publishedAt: p.data.publishedAt,
+    topics: p.data.topics,
+  }));
+
+  recentPosts = [...sanityPosts, ...formattedLocal]
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+    .slice(0, 3);
+} catch (e) {
+  const formattedLocal = localPosts.map(p => ({
+    title: p.data.title,
+    slug: { current: p.slug },
+    description: p.data.description || p.data.summary || "",
+    tldr: p.data.tldr || p.data.description || p.data.summary || "",
+    publishedAt: p.data.publishedAt,
+    topics: p.data.topics,
+  }));
+  recentPosts = formattedLocal.length > 0 ? formattedLocal.slice(0, 3) : [
+    {
+      title: 'The Architecture of a Lab: Splitting Brain from Body',
+      slug: { current: 'architecture-of-a-lab' },
+      description: 'Why I stopped using Next.js and moved to an Agentic split-architecture.',
+      tldr: 'Why I stopped using Next.js and moved to an Agentic split-architecture.',
+      publishedAt: new Date().toISOString(),
+      topics: ['AI Agents', 'Architecture'],
+    }
+  ];
+}
+
+// Compute dynamic topics
+const allPostsForTopics = [...(recentPosts || []), ...localPosts.map(p => ({ topics: p.data.topics }))];
+const topicCounts = new Map<string, number>();
+allPostsForTopics.forEach(post => {
+  post.topics?.forEach((topic: string) => {
+    topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
+  });
+});
+
+const topics = Array.from(topicCounts.entries())
+  .map(([title, count]) => ({ title, count }))
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 8);
+---
+
+<BaseLayout title="gekro | Building at the edge of what's possible">
+  <HeroCanvasNeural />
+  
+  <main class="relative z-10 w-full min-h-screen">
+    <HeroText />
+    
+    <section class="max-w-6xl mx-auto px-6 py-24 space-y-32">
+      <!-- Latest Experiments -->
+      <div class="space-y-12">
+        <div class="flex justify-between items-end border-b border-border-subtle pb-6">
+          <div class="space-y-1">
+            <h2 class="text-3xl font-heading font-medium text-text-primary">Latest Experiments</h2>
+            <p class="text-sm text-text-muted font-mono">technical case studies & lab notes</p>
+          </div>
+          <a href="/experiments" class="text-sm font-mono text-accent hover:underline">View all →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {latestExperiments.map(exp => (
+            <ExperimentCard experiment={exp} />
+          ))}
+        </div>
+      </div>
+
+      <!-- Lab Log -->
+      <LabGallery />
+
+      <!-- Recent Posts & Topics -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+        <div class="lg:col-span-2 space-y-12">
+          <div class="flex justify-between items-end border-b border-border-subtle pb-6">
+            <div class="space-y-1">
+              <h2 class="text-3xl font-heading font-medium text-text-primary">Recent Posts</h2>
+              <p class="text-sm text-text-muted font-mono">thoughts on engineering & AI</p>
+            </div>
+            <a href="/blog" class="text-sm font-mono text-accent hover:underline">Archive →</a>
+          </div>
+          <div class="space-y-6">
+            {recentPosts.map(post => (
+              <PostCard post={post} />
+            ))}
+          </div>
+        </div>
+
+        <!-- Sidebar (Topics & Subscribe) -->
+        <aside class="space-y-16">
+          <div class="space-y-8">
+            <h3 class="text-sm font-mono text-text-muted uppercase tracking-widest">Core Topics</h3>
+            <div class="flex flex-wrap gap-3">
+              {topics.map(topic => (
+                <Tag title={topic.title} count={topic.count} />
+              ))}
+            </div>
+          </div>
+
+          <div class="p-8 bg-bg-surface border border-border rounded-2xl space-y-6 relative overflow-hidden group newsletter-container">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 blur-3xl transition-colors group-hover:bg-accent/10"></div>
+            <div class="relative z-10 space-y-4 newsletter-content">
+              <h3 class="text-xl font-heading text-text-primary">Lab Updates</h3>
+              <p class="text-sm text-text-secondary leading-relaxed">
+                Get notified when I build something worth sharing. No spam, only engineering.
+              </p>
+              <form class="pt-2 space-y-4" id="newsletter-form">
+                <input 
+                  type="email" 
+                  required 
+                  placeholder="Email address..." 
+                  class="w-full h-11 bg-bg-base border border-border rounded-lg px-4 text-text-primary text-sm focus:outline-none focus:border-accent transition-colors placeholder:text-text-muted/50"
+                />
+                <button type="submit" class="w-full py-3 bg-accent text-bg-base font-medium rounded-lg hover:bg-white transition-all transform active:scale-[0.98]">
+                  Subscribe
+                </button>
+              </form>
+            </div>
+
+            <!-- Success State -->
+            <div class="hidden absolute inset-0 bg-bg-surface flex flex-col items-center justify-center p-8 text-center space-y-4 z-20 newsletter-success">
+              <div class="w-12 h-12 bg-accent/10 text-accent rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <p class="text-sm font-medium text-text-primary">You're on the list!</p>
+              <p class="text-xs text-text-muted">Welcome to the lab logs.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Newsletter Form Logic
+    const form = document.getElementById('newsletter-form') as HTMLFormElement;
+    const content = document.querySelector('.newsletter-content') as HTMLElement;
+    const success = document.querySelector('.newsletter-success') as HTMLElement;
+
+    if (form && content && success) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Mock submission
+        const button = form.querySelector('button') as HTMLButtonElement;
+        const originalText = button.innerText;
+        button.innerText = 'Subscribing...';
+        button.disabled = true;
+
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        content.classList.add('opacity-0', 'pointer-events-none');
+        success.classList.remove('hidden');
+        success.classList.add('flex', 'animate-in', 'fade-in', 'zoom-in-95', 'duration-500');
+      });
+    }
+  </script>
+</BaseLayout>
