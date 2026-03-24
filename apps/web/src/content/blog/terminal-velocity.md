@@ -1,116 +1,89 @@
 ---
-title: "Terminal Velocity: Using AI in the CLI to build 10x faster"
+title: "Terminal Velocity: The CLI as your AI Abstraction Layer"
+description: "Why GUIs are a bottleneck for AI engineering and how to build a high-speed command line workflow using WSL2 and Zsh."
 publishedAt: "2026-03-24"
-description: "Stop switching to a browser. Keep your hands on the keyboard. Simple bash wrappers for instant Git commits and file operations."
-summary: "Stop switching to a browser. Keep your hands on the keyboard. Simple bash wrappers for instant Git commits and file operations."
-topics: ["Workflow", "CLI"]
-readingTime: 6
-tldr: "The GUI is a lie. For AI development, the Command Line Interface (CLI) is the only way to move at the speed of thought. By combining terminal shortcuts with AI-powered CLI tools, you can automate your entire workflow in seconds."
+difficulty: "Intermediate"
+topics: ["Workflow", "CLI", "WSL2"]
+readingTime: 7
+aiSummary: "Rohit shares his optimized WSL2/Zsh workflow, including AI-powered shell functions for automated commits, log analysis, and file summarization."
 ---
 
-In a modern AI lab, your speed is limited by your interface. If you're constantly clicking through folders and menus, you're losing the "Flow State" that is required for complex engineering.
+<TLDR>
+  The GUI is a lie designed for discovery, not velocity. For AI development, the terminal is the only interface that keeps up with the speed of thought. This post details the specific Zsh functions and WSL2 configurations I use to pipe system outputs directly into LLMs without ever touching a mouse.
+</TLDR>
 
-To build at **Terminal Velocity**, you need to stop using your mouse and start using your keyboard.
+In a modern AI lab, your throughput is limited by your context-switching overhead. If you're constantly alt-tabbing to a browser to paste error logs or commit messages, you're bleeding focus. I run everything from a highly customized WSL2 instance because the terminal isn't just a way to run commands—it's the native interface for the "Intelligence Layer." By piping the OS directly into an LLM, I've reduced my "Idiot-Work" (formatting, commit messaging, log hunting) to near zero.
 
----
+## The Architecture
 
----
+My workflow treats the shell as a **Composable Data Pipeline**. The output of any command—a failed build, a `git diff`, or a `curl` response—is just text. Text is the primary language of LLMs.
 
+| Component | Tool / Config | Rationale |
+| :--- | :--- | :--- |
+| **Shell** | Zsh + Oh My Zsh | Plugin ecosystem and superior tab-completion. |
+| **Terminal** | Windows Terminal | Best-in-class multi-tab and GPU rendering for Windows. |
+| **Multiplexer** | Tmux | Persistent sessions across WSL2 restarts. |
+| **Font** | MesloLGS NF | Required for Powerlevel10k and iconography. |
+| **AI CLI** | `fabric` / `ollama` | Lightweight wrappers for piping text to brains. |
 
-## Why the Terminal? (The Rationale)
+## The Build
 
-A lot of beginners are afraid of the blinking cursor. They think it's "old school." But in reality, it's the most modern tool we have.
+The real power lives in your `.zshrc`. I don't use complex agents for simple tasks; I use shell functions that talk to my `GekroLLMClient`.
 
-1.  **Direct Control**: When you use a GUI, you are limited by what the designer wanted you to see. In the terminal, you talk directly to the operating system.
-2.  **Automation**: You can't "Copy-Paste" a series of mouse clicks into a script. But you can pipe terminal commands together to build complex data pipelines.
-3.  **AI Integration**: Most of the best AI tools (like `fabric`, `ollama-cli`, or `gh-cli`) are built for the terminal. They are meant to be fast, text-based, and scriptable.
+### 1. AI-Powered Git Commits
+Stop writing "fix" as a commit message. This function stages your changes, sends the diff to a local Llama 3 instance, and generates a conventional commit message.
 
-
----
-
-
-## Why the CLI? (The Rationale)
-
-In my daily workflow, I need to jump between five different lab nodes, trigger a docker container, and tail a log file—all in under 10 seconds. 
-
-1.  **Automation Readiness**: Everything you do in a terminal can be scripted. If I find myself running the same three commands twice, I turn them into a bash alias. This is how you reclaim hours of your life.
-2.  **AI Integration**: I use CLI-based AI tools. When I'm in the terminal, the AI is one pipe away (`| ai-summarize`). I don't have to copy-paste into a browser; the intelligence lives where the code lives.
-3.  **Universal Context**: Whether I'm on my Mac Mini, my Raspberry Pi, or a remote cloud server, the terminal is exactly the same. It is the universal language of compute.
-
-
----
-
-
-## 01. The Tools: Warp & Zsh
-
-I use **Warp** (on Mac) and **Zsh** everywhere else.
-
-### My Architect's Advice:
-Don't just use the default bash. Use a shell that supports **Auto-Suggestions** and **Syntax Highlighting**. When the terminal "guesses" correctly what I'm about to type, my velocity triples. It’s like having a co-pilot for your OS.
-
-
----
-
-
-## 02. The Workflow: Aliases are Your Agents
-
-I have dozens of aliases for common lab tasks.
-
-### The Logic:
-Instead of typing `docker compose up -d`, I type `gup`. Instead of `git push origin main`, I type `gp`. These micro-seconds add up. Over a year, a well-configured terminal saves me weeks of "Type-Time," allowing more room for "Think-Time."
-
-
----
-
-
-## 03. The Mission: Pipe Everything
-
-The most powerful character in your lab is the pipe: `|`.
-
-### The Example:
-I can fetch logs, filter for errors, and send them to an AI for a fix instruction in a single line:
 ```bash
-tail -n 100 app.log | grep "ERROR" | ai-fix
-```
-This is **Agentic Flow**. 
-
-
----
-
-
-## Conclusion: What I Learned
-
-When I was a junior, I was intimidated by the black screen. I thought I'd delete something important by mistake.
-
-**What I learned:** The terminal is where the **Truth** lives. GUIs show you a filtered, simplified version of reality. The CLI shows you exactly what the machine is thinking. Once you learn to speak this language, you'll never want to go back to the "Hand-Holding" of a mouse-driven world. It is the shortest path from an idea to a running agent.
-
-Next Up: **API Sovereignty**—Taking control of your intelligence layer.
-
----
-
-## 03. Building Your Own Wrappers
-You don't need a complex framework to be fast. Sometimes a simple script is the best agent.
-
-### Example: The "File Explainer" (Python)
-```python
-import sys
-import os
-
-# A simple wrapper to explain any file instantly
-def explain_file(path):
-    with open(path, 'r') as f:
-        content = f.read()
-    # Call your local LLM here
-    print(f"Agent: Analyzing {os.path.basename(path)}...")
-    # ... logic to call LLM ...
-
-if __name__ == "__main__":
-    explain_file(sys.argv[1])
+# Generate AI commit message from staged changes
+aic() {
+  local diff=$(git diff --cached)
+  if [ -z "$diff" ]; then
+    echo "No staged changes found."
+    return 1
+  fi
+  
+  echo "Generating commit message..."
+  local msg=$(echo "$diff" | ollama run llama3 "Generate a concise, one-line conventional commit message for this diff. No preamble.")
+  
+  git commit -m "$msg"
+}
 ```
 
----
+### 2. The Explain Pipe
+Every time a command fails, I pipe it. No more googling obscure C++ error codes.
 
-## What I Learned
-The terminal taught me that **speed is a focus tool.** 
+```bash
+# Pipe any output to LLM for instant explanation
+alias explain="ollama run llama3 'Explain this error output and suggest a fix concisely:'"
 
-When you can get an answer or perform an action in 2 seconds instead of 20, you stay in the "Deep Work" zone. The goal of using AI in the CLI isn't just to work faster—it's to work **clearer**.
+# Usage:
+# npm run build | explain
+```
+
+### 3. WSL2 Configuration Note
+To make this feel like a native Linux experience on Windows, you need to fix the path and font quirks.
+
+**Windows Terminal `settings.json` fragment:**
+```json
+{
+    "guid": "{57605e5d-1f0f-5602-9ae4-0466a014995f}",
+    "name": "Ubuntu-22.04",
+    "source": "Windows.Terminal.Wsl",
+    "font": {
+        "face": "MesloLGS NF",
+        "size": 12
+    },
+    "startingDirectory": "//wsl$/Ubuntu-22.04/home/rohit"
+}
+```
+*Tip: Always use the `//wsl$/` path format in Windows applications to avoid the NTFS/9P performance penalty.*
+
+## The Tradeoffs
+
+The biggest failure I see engineers make is **Alias Overload**. I once had 200+ aliases and spent more time remembering the shortcut than I would have spent typing the command. I've since pruned them down to the "High-Frequency Five": `aic` (AI commit), `gup` (Docker Compose Up), `ld` (Log Dump), `pf` (Python Format), and `explain`.
+
+Operational reality: **Piping sensitive logs to a cloud LLM is a security breach waiting to happen.** I learned this when I accidentally sent a production `.env` file containing clear-text credentials to a cloud provider because it was caught in a `grep` I piped to an "explain" alias. **Always use a local Ollama instance for shell piping** to ensure your environmental variables stay on your machine.
+
+## Where This Goes
+
+I'm currently building a **Terminal-to-Action** bridge. Instead of just explaining an error, the shell function will propose a `sed` or `patch` command, and I can press `Y` to apply the fix directly. The terminal isn't becoming obsolete; it's becoming the cockpit for every agent we build.

@@ -1,132 +1,126 @@
 ---
-title: "API Sovereignty: Why Vendor Lock-in is Your Greatest Risk"
-description: "Why I build my own abstraction layers instead of calling OpenAI directly."
+title: "API Sovereignty: Building for the 2 AM Failure"
+description: "Why generic API wrappers are a liability and how to build a resilient, multi-provider fallback chain."
 publishedAt: "2026-03-15"
 difficulty: "Advanced"
 topics: ["APIs", "Architecture", "Python"]
 readingTime: 8
-tldr: "Stop hardcoding import openai. To build a resilient AI lab, you must wrap your AI providers in a universal interface. This allows you to swap between cloud models and local models (Ollama) with a single configuration change."
+aiSummary: "Rohit implements a multi-provider LLM client with automatic fallback to local Ollama instances to ensure system resilience during cloud API outages."
 ---
 
-In the gold rush of AI, most developers are building on rented land. They hardcode OpenAI or Anthropic calls directly into their business logic, essentially handing the keys of their lab to a third party.
+<TLDR>
+  Hardcoding a single AI provider is architectural negligence. I built a unified LLM client that prioritizes Together AI but fails over to local Ollama instances automatically when the cloud goes dark. This post breaks down the GekroLLMClient pattern that keeps my lab running 24/7 without manual intervention.
+</TLDR>
 
-For **gekro.com**, I took a different path. I believe in **API Sovereignty**. In this post, I'll show you how to build a layer of abstraction that keeps you in control of your intelligence.
+It’s 2 AM in Dallas. A routine cron job triggers an agent to summarize my server logs. OpenAI’s API returns a 503. In a standard setup, the pipeline dies, a notification wakes me up, and I lose an hour of sleep fixing a dependency I don't control. In my lab, that failure is invisible. The system detects the timeout, catches the exception, and reroutes the request to a Llama 3 instance running on a Raspberry Pi in my closet. Resilience isn't a feature; it's a requirement for sovereignty.
 
----
+## The Architecture
 
----
+The core philosophy is simple: **Local by default, Cloud by necessity, Fallback by design.** I don't treat local and cloud models as different species; they are just different compute nodes in the same network.
 
-## Why Abstraction? (The Rationale)
+| Feature | Cloud (Together AI / Anthropic) | Local (Ollama on Pi/Mac) |
+| :--- | :--- | :--- |
+| **Latency** | 500ms - 2s (Network dependent) | 50ms - 5s (Hardware dependent) |
+| **Cost** | Per-token ($$$) | $0 (Electricity only) |
+| **Reliability** | "Up-time" (Subject to outages) | 100% (Air-gapped capable) |
+| **Privacy** | PII at risk | Absolute zero-leak |
 
-Business move fast, but AI moves faster. A model that is the "State of the Art" today might be obsolete (or 2x more expensive) next week.
+My architecture uses a **Universal Inference Layer**. The application logic never knows if it's talking to a massive cluster in a data center or a set of ARM cores in my living room.
 
-1.  **Price Protection**: If Provider A raises their prices, I switch to Provider B in the config file. No code changes required. 
-2.  **Model Resilience**: If a provider's API goes down, my agents automatically fail over to a local instance of Llama-3 running on my Mac Mini. My lab never stops working.
-3.  **Privacy Gradation**: I use different providers for different tasks. Sensitive data stays local; general world knowledge goes to the cloud. Abstraction makes this routing trivial.
+## The Build
 
----
+The implementation requires a unified interface. I use Python's `abc` module to enforce a strict contract. Whether the provider is Together AI (using the OpenAI-compatible spec) or Ollama, the calling code handles the same objects.
 
-## 01. The Architect's Pattern: The Wrapper
-
-I never call an AI API directly from my "Body" or "Brain." I use a **Python Wrapper**.
-
-### My Architect's Advice:
-Create a single class (e.g., `AILayer`) that handles all authentication, error handling, and formatting. Your application should only ever talk to `AILayer`. This is the single most important architectural decision I made for this site.
-
----
-
-## 02. The Logic: Unified Payload Structure
-
-Regardless of which model I use (GPT-4, Claude-3, or Llama-3), the "Brain" expects the same JSON structure.
-
-### The Learning Curve:
-Don't let the providers dictate your data format. **You** define the schema. Your wrapper should translate the provider's messy response into your lab's clean, structured format. This ensures that your agents never have to "re-learn" how to read an output.
-
----
-
-## 03. The Mission: Local-First Fallback
-
-My system is configured to prioritize local models for simple tasks.
-
-### Why this matters:
-It keeps my costs at near-zero. I only "Export" logic to the expensive cloud models when the local brain isn't powerful enough for the specific reasoning task. This "Sovereignty" over where the compute happens is what separates a hobbyist from a lab owner.
-
----
-
-## Conclusion: What I Learned
-
-Years ago, I built a project that relied entirely on a specific API. That provider changed their terms of service, and my project died overnight.
-
-**What I learned:** Dependency is a debt. Every time you use a third-party tool without a wrapper, you are taking out a loan that you'll eventually have to pay back with interest (refactoring time). **API Sovereignty** is about being the master of your own stack. It takes more work upfront, but it’s the only way to build something that lasts.
-
-### Lab Insights:
-*   **Provider Agnosticism**: I now use a `ProviderDispatcher` pattern that can route a request to Claude 3.5 Sonnet if it's high-stakes, or a local Llama 3 if it's just formatting a list.
-*   **The "Blackout" Test**: Periodically, I disable my internet connection and try to run the lab. If the core features break, it means I've failed the Sovereignty test and need to build more local fallbacks.
-
-Next Up: **Hello Ollama**—Mastering the local inference engine.
+### The GekroLLMClient
 
 ```python
 import os
-import openai
+import time
+import logging
+from typing import List, Dict, Optional
+from openai import OpenAI
+import ollama
 
-def get_client():
-    # Switch between local and cloud with ONE change
-    is_local = os.getenv("AI_ENV") == "local"
-    
-    if is_local:
-        return openai.OpenAI(
-            base_url="http://localhost:11434/v1", # The Ollama port
-            api_key="ollama" # Dummy key for local
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("GekroLab")
+
+class GekroLLMClient:
+    def __init__(self):
+        self.cloud_client = OpenAI(
+            api_key=os.getenv("TOGETHER_API_KEY"),
+            base_url="https://api.together.xyz/v1",
         )
-    else:
-        return openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.local_url = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
-client = get_client()
+    def chat(self, messages: List[Dict], model_cloud: str = "meta-llama/Llama-3-70b-chat-hf", 
+             model_local: str = "llama3:8b", retries: int = 3) -> str:
+        
+        # Phase 1: Try Cloud (Together AI)
+        for attempt in range(retries):
+            try:
+                logger.info(f"Attempting cloud inference (Attempt {attempt + 1})")
+                response = self.cloud_client.chat.completions.create(
+                    model=model_cloud,
+                    messages=messages,
+                    timeout=10.0
+                )
+                return response.choices[0].message.content
+            except Exception as e:
+                wait = 2 ** attempt
+                logger.warning(f"Cloud failure: {e}. Retrying in {wait}s...")
+                time.sleep(wait)
+
+        # Phase 2: Automatic Fallback to Local (Ollama)
+        logger.error("All cloud attempts failed. Falling back to local inference.")
+        try:
+            response = ollama.chat(
+                model=model_local,
+                messages=messages
+            )
+            return response['message']['content']
+        except Exception as e:
+            return f"CRITICAL SYSTEM FAILURE: All providers exhausted. Error: {str(e)}"
+
+# Usage in the Gekro Lab environment
+if __name__ == "__main__":
+    client = GekroLLMClient()
+    prompt = [{"role": "user", "content": "Analyze the thermal logs for the Tesla charging cycle."}]
+    print(client.chat(prompt))
 ```
 
----
+### Verifying the Chain
+I don't trust my code until I've seen it fail. This pytest suite simulates a network outage by poisoning the API key and verifies the fallback logic.
 
-## 02. Local vs. Cloud: When to use what?
+```python
+import pytest
+from unittest.mock import patch, MagicMock
+from your_module import GekroLLMClient
 
-In this lab, we follow a simple rule: **Local by default, Cloud by necessity.**
-
-- **Local (Ollama)**: For private data, rough drafts, and thousands of small, repetitive tasks. Cost: $0.
-- **Cloud (OpenAI/Anthropic)**: For final polishing, complex logic, and tasks that require massive reasoning power. Cost: $0.01 - $0.10.
-
----
-
-## 03. The Environment Toggle
-
-To make this work, we use Environment Variables. 
-
-### Why this is better:
-It allows you to change the "Nervous System" of your entire lab without changing a single line of code. You just flip a switch in your configuration, and the next time your agent runs, it's using a completely different model.
-
----
-
-## Handling API Keys
-
-When managing your API keys, safety is first. NEVER hardcode them in your files.
-
-### For Windows Users (PowerShell)
-```powershell
-[System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'your-key-here', 'User')
+def test_fallback_logic():
+    client = GekroLLMClient()
+    
+    # Mocking the cloud client to always fail
+    client.cloud_client.chat.completions.create = MagicMock(side_effect=Exception("API Down"))
+    
+    # Mocking ollama to succeed
+    with patch('ollama.chat') as mock_ollama:
+        mock_ollama.return_value = {'message': {'content': 'Local Fallback Success'}}
+        
+        response = client.chat([{"role": "user", "content": "test"}])
+        
+        assert response == "Local Fallback Success"
+        assert mock_ollama.called
 ```
 
-### For Mac/Linux Users (Zsh/Bash)
-```bash
-echo 'export OPENAI_API_KEY="your-key-here"' >> ~/.zshrc
-source ~/.zshrc
-```
+### WSL2 Note
+If you're running this on Windows, ensure your `OLLAMA_HOST` is set to `http://172.x.x.x:11434` (your Windows IP) if Ollama is running on the host, or simply `localhost` if it's inside the WSL2 instance. I prefer running Ollama on the Windows host to utilize the GPU directly while keeping my dev environment in Ubuntu.
 
----
+## The Tradeoffs
 
-## 03. Streaming is Performance
-Agents feel faster when they stream. Instead of waiting 10 seconds for a full answer, show the user the agent's "thoughts" as they arrive.
+Let's be honest: fallback logic adds latency. A failed cloud call plus 3 retries takes about 7 seconds before the local model even starts thinking. For real-time chat, that’s a "broken" UI. But for the background agents that run Gekro—log parsers, automated research, and code indexers—7 seconds of latency is better than a total system crash.
 
----
+The biggest hidden cost is **Context Management**. If I'm using a 128k context model in the cloud and fall back to an 8k model locally, the local model will hallucinate or crash if the prompt is too long. I learned this the hard way when my nightly summary agent tried to feed a local Llama 3-8B a 50k token log file and the Pi cluster just went into a kernel panic. You have to truncate aggressively during fallback.
 
-## What I Learned
-The API taught me that **abstraction is freedom.** 
+## Where This Goes
 
-By building a bridge that isn't tied to a single company, I gained the freedom to experiment. I can run my heavy production tasks on Claude 3.5, and my experimental debugging on a local Llama 3 for free. Sovereignty isn't about doing everything yourself—it's about having the **choice** to do so.
+This client is the first step toward a **Consensus Architecture**. Instead of one model being right, I want my client to poll three models simultaneously (Together, Groq, and Local) and use an "Adjudicator" model to pick the best answer. The goal isn't just to make the lab stay up—it's to make it smarter by comparing how different brains see the same problem.

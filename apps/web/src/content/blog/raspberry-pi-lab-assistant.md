@@ -1,78 +1,101 @@
 ---
 title: "The Raspberry Pi Master: Your 24/7 Lab Assistant"
-description: "Why my Pi is the most important member of my AI team."
+description: "Why my Pi isn't just for hobbyist projects, but serves as the always-on utility and IoT bridge for the Gekro Lab."
 publishedAt: "2026-02-15"
 difficulty: "Beginner"
 topics: ["Hardware", "Raspberry Pi", "AI Agents"]
 readingTime: 8
-tldr: "Don't waste your Mac Mini's power on background tasks. A Raspberry Pi 5 is the perfect 'Always-On' node for your AI lab. It handles the cron jobs, the webhooks, and the small agents, leaving your main machine free for heavy reasoning."
+aiSummary: "Rohit documents the Raspberry Pi's role as a low-power, high-availability utility node for MQTT brokering, Tesla telemetry ingestion, and agent scheduling."
 ---
 
-In a world of multi-billion dollar data centers, there is still a place for the **$80 computer**. 
+<TLDR>
+  Don't waste a $2,000 workstation on cron jobs and MQTT brokering. I use a Raspberry Pi 5 with an NVMe SSD as the "Lab Assistant"—an always-on node that handles the repetitive, low-compute tasks that keep the lab's heartbeat steady. This post covers the hardware setup and the Dockerized utility stack that bridges my physical world (Tesla/Home) to my AI agents.
+</TLDR>
 
-When I first started building **gekro.com**, I realized that I didn't want my main workstation (the "Brain") running 24/7 just to handle small, repetitive tasks like monitoring webhooks or triggering scheduled agents. I needed a reliable anchor—an assistant that never sleeps.
+In a world of multi-billion dollar data centers, the $80 computer is my most reliable employee. When I first started Gekro in DFW, I realized I needed a "Ground Truth" node—something that stayed alive even when my main Mac Mini was rebooting or my workstation was pinned under a 3D render. The Raspberry Pi is the anchor. It doesn't do the heavy "thinking," but it ensures that the data the Brain needs (like my Tesla's charging state or the office temperature) is always available and indexed.
 
----
+## The Architecture
 
----
+The Pi acts as the **Gateway Layer**. It sits between the chaotic world of IoT devices and the high-performance reasoning layer. 
 
+```mermaid
+graph LR
+    subgraph "External World"
+        T[Tesla API] --> P[Pi Gateway]
+        S[Sensors] --> P
+    end
+    subgraph "The Hub (RPi 5)"
+        P --> M[MQTT Broker]
+        M --> D[Dockerised Agents]
+    end
+    subgraph "The Brain (Mac Mini)"
+        D -->|JSON| B[Gekro Reasoning Engine]
+    end
+```
 
-## Why a Pi? (The Rationale)
+| Component | Hardware / Software | Role |
+| :--- | :--- | :--- |
+| **Board** | Raspberry Pi 5 (8GB) | High-performance ARM compute. |
+| **Storage** | PCIe HAT + NVMe Gen 3 SSD | Prevents SD card corruption and speeds up I/O. |
+| **Broker** | Mosquitto (Docker) | The "Post Office" for all lab telemetry. |
+| **Scheduler** | Cron / Supercronic | Triggers nightly research and cleanup agents. |
 
-A lot of people think the Raspberry Pi is a toy. I think it's the ultimate "Reliable Infrastructure" tool.
+## The Build
 
-1.  **Low Power, High Duty**: It draws less power than a lightbulb. I can leave it running for a year and not notice it on my electricity bill.
-2.  **Headless Stability**: Because it runs a minimal, headless Linux OS, there are no background updates or "Search Indexing" tasks to slow it down. It is purely dedicated to your agents.
-3.  **The "Safety" Node**: If an experimental agent goes rogue and starts a memory-leak loop, it only crashes the $80 Pi, not your $2,000 professional workstation.
+A production Pi needs to be "Immutability-First." I don't install anything on the base OS except Docker and Tailscale.
 
+### 1. The NVMe Advantage
+If you're still using SD cards for anything other than a weekend project, you're building on sand. I lost three weeks of data when a log-heavy agent shredded a high-end SD card. Now, I use an NVMe SSD.
 
----
+```bash
+# Verify NVMe is detected and using Gen 3 speeds
+lsblk
+sudo lspci -vvv | grep LnkSta
+```
 
+### 2. The Dockerized Assistant Stack
+I keep a `docker-compose.yml` for the Assistant Node that starts automatically on boot.
 
-## 01. The Hardware: Don't Skimp on the Basics
+```yaml
+services:
+  mqtt:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
 
-If you are following my lead, buy the **Raspberry Pi 5 (8GB)**. 
+  tesla-telemetry:
+    build: ./agents/tesla-bridge
+    restart: always
+    environment:
+      - TESLA_VIN=${VIN}
+      - MQTT_HOST=mqtt
 
-### My Architect's Advice:
-Do not use a slow SD card. It will be the bottleneck of your entire lab. I use an **NVMe SSD** via a PCIe HAT. This turns the Pi from a slow hobbyist board into a fast, professional server.
+  nightly-summarizer:
+    image: python:3.12-slim
+    volumes:
+      - ./scripts:/app
+    command: ["python", "/app/daily_digest.py"]
+```
 
+### 3. WSL2 Note: Remote Management
+I never plug a monitor into the Pi. I use a specific Zsh function in my WSL2 environment to jump into any node in the cluster instantly.
 
----
+```bash
+# Fast SSH to lab nodes
+lab() {
+  ssh rohit@192.168.1.$1
+}
+# Usage: lab 50 (connects to Pi at .50)
+```
 
+## The Tradeoffs
 
-## 02. The OS: Ubuntu Server (Headless)
+The Pi's biggest weakness is **Compute Saturation**. I once tried to run a local vector database (ChromaDB) on the Pi alongside four other agents. The I/O wait times spiked, and my MQTT bridge started dropping messages from my Tesla. You have to be a "Resource Scavenger." I’ve learned to strictly limit the Pi to **I/O bound tasks** (API fetching, message routing) and offload all **CPU/GPU bound tasks** to the Mac Mini.
 
-I never install a desktop environment on my Pi. Why would I? I'm not using it to browse the web; I'm using it to run intelligence.
+Also, **Power Matters**. A "standard" USB-C phone charger will cause the Pi 5 to throttle under load. I had to upgrade to the official 27W PD power supply to keep the NVMe drive and the active cooler running at full capacity during summer heatwaves in Texas.
 
-### The Learning Curve:
-Learn to use **SSH**. It allows you to manage the Pi from your main machine's terminal. No monitor, no keyboard, no mess.
+## Where This Goes
 
-
----
-
-
-## 03. The Mission: The "Cron" Agent
-
-The most important job of my Pi is running "Scheduled Agents."
-
-### The Logic:
-Every morning at 8:00 AM, my Pi wakes up, triggers an agent to summarize the latest AI research papers, and sends a JSON packet to this website. I don't have to lift a finger. The Pi is the "Muscle" that ensures the "Brain's" work is visible to the world.
-
-
----
-
-
-## Conclusion: What I Learned
-
-Years ago, I used to forget to run my scraper scripts. I'd lose days of data because I closed my laptop.
-
-**What I learned:** Consistency is the secret sauce of a great lab. The Raspberry Pi isn't the "smartest" tool in my arsenal, but it is the most **Consistent**. It provides the heartbeat of the lab, ensuring that even when I'm sleeping, my agents are working.
-
-Next Up: **The Linux Edge**—Why the terminal is your best friend.
-
----
-
-## What I Learned
-The Raspberry Pi taught me that **constraints are a gift.** 
-
-When you have infinite compute, you write lazy code. When you build for a Pi, you're forced to optimize your agents, understand your memory usage, and build systems that are actually efficient. It's the ultimate training ground for any serious engineer.
+I'm currently wiring a **Physical Killswitch** to the Pi's GPIO pins. If I detect an agent acting erratically or hitting an API spend limit, a physical button on my desk will send a SIGTERM to the entire Docker stack. Total sovereignty means having a physical hand on the plug.

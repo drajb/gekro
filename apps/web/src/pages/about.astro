@@ -3,74 +3,133 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
 ---
 
-<BaseLayout title="About | gekro" description="The mission behind the lab: building systems that bridge the gap between AI and reality.">
+<BaseLayout title="About | Rohit Burani" description="Grounded engineering, Purdue education, and the pilot's perspective behind Gekro Lab.">
   <HeroCanvasNeural />
   
-  <main class="relative z-10 max-w-4xl mx-auto px-6 py-32 space-y-24">
-    <header class="space-y-8">
-      <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
-        Building at the edge.
-      </h1>
+  <main class="relative z-10 max-w-4xl mx-auto px-6 py-32 space-y-32">
+    <!-- Section 1: Opening Header -->
+    <header class="space-y-12">
+      <div class="space-y-6 max-w-2xl">
+        <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">Biography // Analysis_01</span>
+        <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
+          Systems over theory.
+        </h1>
+        <p class="text-xl text-text-primary leading-relaxed">
+          I’ve always been obsessed with how things connect at a fundamental level. Long before AI dominated the conversation, I was trained in systems-oriented engineering at Purdue—a field that teaches you to think in terms of operations, bottlenecks, and the invisible architecture of complex systems. I don’t just look at a piece of software; I see the flow of data, the logic that keeps it standing under pressure, and the human intent behind the machine.
+        </p>
+      </div>
+
       <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative flex items-center justify-center p-12">
           <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent"></div>
           
-          <!-- Stylized Lab Schematic SVG -->
+          <!-- Avionics/System Blueprint SVG -->
           <svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full max-w-md opacity-40">
-            <circle cx="200" cy="100" r="40" stroke="var(--color-accent)" stroke-width="1" stroke-dasharray="4 4" />
-            <circle cx="200" cy="100" r="10" fill="var(--color-accent)" />
+            <path d="M20 100H380" stroke="var(--color-accent)" stroke-width="0.5" stroke-dasharray="4 4" />
+            <path d="M200 10V190" stroke="var(--color-accent)" stroke-width="0.5" stroke-dasharray="4 4" />
             
-            <path d="M200 60V20M200 140V180M160 100H120M240 100H280" stroke="var(--color-text-muted)" stroke-width="1" />
-            <circle cx="200" cy="20" r="4" fill="var(--color-text-muted)" />
-            <circle cx="200" cy="180" r="4" fill="var(--color-text-muted)" />
-            <circle cx="120" cy="100" r="4" fill="var(--color-text-muted)" />
-            <circle cx="280" cy="100" r="4" fill="var(--color-text-muted)" />
+            <!-- Flight Management Geometric Representation -->
+            <rect x="150" y="70" width="100" height="60" stroke="var(--color-text-primary)" stroke-width="1" />
+            <path d="M150 100L100 130M250 100L300 130M150 70L100 40M250 70L300 40" stroke="var(--color-text-muted)" stroke-width="1" />
             
-            <path d="M140 160L170 130M260 40L230 70" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="2 2" />
+            <circle cx="100" cy="130" r="4" fill="var(--color-accent)" />
+            <circle cx="300" cy="130" r="4" fill="var(--color-accent)" />
+            <circle cx="100" cy="40" r="4" fill="var(--color-accent)" />
+            <circle cx="300" cy="40" r="4" fill="var(--color-accent)" />
             
-            <text x="200" y="165" text-anchor="middle" class="fill-text-muted font-mono text-[8px] uppercase tracking-widest">Neural Orchestrator // Rev 2.1</text>
+            <text x="200" y="105" text-anchor="middle" class="fill-accent font-mono text-[6px] tracking-[0.2em] uppercase">Attitude Indicator // Nav_Mode</text>
+            <text x="200" y="145" text-anchor="middle" class="fill-text-muted font-mono text-[5px] uppercase">Gekro_System_Core: 03-24 [Synced]</text>
           </svg>
           
-          <span class="absolute bottom-8 left-8 text-[10px] font-mono text-text-muted uppercase tracking-widest opacity-50">Physical Lab Log // Schematic_01.svg</span>
+          <span class="absolute bottom-8 left-8 text-[10px] font-mono text-text-muted uppercase tracking-widest opacity-50">Log_Type: Avionics_Schematic</span>
       </div>
     </header>
 
-    <article class="prose prose-invert prose-lg max-w-none text-text-secondary space-y-8">
-      <p class="text-xl text-text-primary leading-relaxed">
-        I'm Rohit, an engineer obsessed with autonomous systems, self-hosting, and the convergence of AI with physical hardware.
-      </p>
+    <!-- Section 2: The Lab -->
+    <section class="max-w-2xl space-y-8">
+      <h2 class="text-3xl font-heading text-text-primary">The Lab</h2>
+      <div class="prose prose-invert prose-lg text-text-secondary">
+        <p>
+          Gekro is my workshop. It’s where I take the theories of the day and put them through the stress of actual implementation. While my professional life is spent navigating the high-stakes requirements of large, regulated organizations, my evenings are spent here: building, breaking, and documenting the results. This lab exists because curiosity isn't a hobby for me—it's a compulsion to understand the "how" behind the "what."
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 3: Technical Philosophy -->
+    <section class="space-y-12">
+      <h2 class="text-3xl font-heading text-text-primary">Technical Philosophy</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="space-y-4">
+          <span class="text-accent font-mono text-sm underline decoration-2 underline-offset-8">01 / Sovereignty</span>
+          <p class="text-text-secondary leading-relaxed">
+            Privacy isn't a feature; it's a foundation. In an era of data extraction, local ownership is a revolutionary act. I value cybersecurity as the bedrock of trust, building systems where you own the weights, the data, and the hardware.
+          </p>
+        </div>
+        <div class="space-y-4">
+          <span class="text-accent font-mono text-sm underline decoration-2 underline-offset-8">02 / Craft</span>
+          <p class="text-text-secondary leading-relaxed">
+            Efficiency is the ultimate elegance. I build systems that prioritize low-latency, minimal overhead, and sustainable resource usage—because a fast system that wastes energy is just a poorly designed one.
+          </p>
+        </div>
+        <div class="space-y-4">
+          <span class="text-accent font-mono text-sm underline decoration-2 underline-offset-8">03 / Empirical</span>
+          <p class="text-text-secondary leading-relaxed">
+            In an era of AI hype, I value the empirical. Every project here is backed by logs, telemetry, and functional code. If it doesn't run in the lab, it doesn't belong on the site. Proof over promise.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Scale Experience -->
+    <section class="max-w-2xl space-y-8">
+      <h2 class="text-3xl font-heading text-text-primary">Built for Scales</h2>
+      <div class="prose prose-invert prose-lg text-text-secondary">
+        <p>
+          The experiments you see here aren't academic exercises. They are informed by years of solving operational problems inside complex, scale-heavy environments. There is a specific kind of intuition that comes from seeing how things actually fail in production—the edge cases that theory misses and the robustness required when systems are mission-critical. I bring that production-first mindset into every local LLM or trade bot experiment I run.
+        </p>
+      </div>
+    </section>
+
+    <!-- Section 5: Beyond the Lab -->
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+      <div class="space-y-8">
+        <h2 class="text-3xl font-heading text-text-primary">Beyond the Lab</h2>
+        <div class="prose prose-invert prose-lg text-text-secondary">
+          <p>
+            Outside the terminal, I’m grounded by the physics of the real world. Based in Dallas-Fort Worth, I’m a licensed pilot who finds clarity in the cockpit. While professional excellence is a requirement, my personal bucket list is currently topped by the challenge of learning to skydive.
+          </p>
+          <p>
+            I’m driven by a realization that our digital footprint has a physical cost. Whether it’s exploring the Texas backcountry or tinkering with my Tesla's telemetry, I believe sustainable computing isn't a trend—it's a necessity.
+          </p>
+        </div>
+      </div>
       
-      <p>
-        gekro.com is my personal engineering lab. It exists as a response to the "black box" nature of modern technology. 
-        I believe that the best way to understand a system is to build it, break it, and then document the wreckage.
-      </p>
+      <div class="aspect-square bg-bg-elevated rounded-2xl border border-border p-12 relative flex items-center justify-center">
+        <!-- Texas Horizon / Geometric SVG -->
+        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full opacity-30">
+          <path d="M20 150H180" stroke="var(--color-text-primary)" stroke-width="1" />
+          <path d="M40 150L100 80L160 150" stroke="var(--color-accent)" stroke-width="1.5" />
+          <circle cx="100" cy="50" r="15" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="4 4" />
+          <path d="M100 150V180" stroke="var(--color-text-muted)" stroke-width="1" />
+          <text x="100" y="175" text-anchor="middle" class="fill-text-muted font-mono text-[8px] uppercase tracking-widest">Ground_Station // DFW</text>
+        </svg>
+      </div>
+    </section>
 
-      <h2 class="text-3xl font-heading text-text-primary pt-12">The Mission</h2>
-      <p>
-        We are entering an era of <strong>agentic workflows</strong>. The shift from human-in-the-loop to human-on-the-loop 
-        is the most significant architectural change in our lifetime. My goal is to navigate this shift by building 
-        open-source experiments and documenting the technical hurdles honestly.
-      </p>
-
-      <h2 class="text-3xl font-heading text-text-primary pt-12">Technical Philosophy</h2>
-      <ul class="space-y-4 list-none pl-0">
-        <li class="flex gap-4">
-          <span class="text-accent text-2xl">01</span>
-          <span><strong>Privacy by Default.</strong> If it can be self-hosted, it should be. Centralized dependency is a technical debt.</span>
-        </li>
-        <li class="flex gap-4">
-          <span class="text-accent text-2xl">02</span>
-          <span><strong>Performance is UX.</strong> Every millisecond of latency is a friction point in the feedback loop.</span>
-        </li>
-        <li class="flex gap-4">
-          <span class="text-accent text-2xl">03</span>
-          <span><strong>Proof over Promise.</strong> Don't tell me what it can do. Show me the code and the telemetry.</span>
-        </li>
-      </ul>
-    </article>
-
-    <footer class="pt-24 border-t border-border-subtle flex justify-between items-center">
-      <p class="text-xs font-mono text-text-muted uppercase">EST. 2024 // UPDATED 2026</p>
-      <a href="/contact" class="text-sm font-mono text-accent hover:underline">Get in touch →</a>
+    <!-- Section 6: Closing -->
+    <footer class="pt-32 space-y-12">
+      <div class="max-w-xl">
+        <p class="text-xl text-text-primary italic border-l-2 border-accent pl-8 py-2">
+          The door is always open for a technical deep dive or a conversation on the future of agentic systems.
+        </p>
+      </div>
+      
+      <div class="pt-12 border-t border-border-subtle flex justify-between items-center">
+        <p class="text-xs font-mono text-text-muted uppercase">EST. 2024 // UPDATED 2026 // ROHIT BURANI</p>
+        <a href="/contact" class="group flex items-center gap-2 text-sm font-mono text-accent hover:text-white transition-colors">
+          Get in touch 
+          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </a>
+      </div>
     </footer>
   </main>
 </BaseLayout>

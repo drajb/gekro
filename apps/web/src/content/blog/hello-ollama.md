@@ -1,102 +1,91 @@
 ---
-title: "Hello, Ollama: Your first local LLM call in 5 lines of code"
+title: "Hello, Ollama: Local Inference is Your Architectural Insurance"
+description: "Running LLMs on a Raspberry Pi isn't just a hobby; it's a fallback strategy for system resilience."
 publishedAt: "2026-03-24"
-description: "Running Llama 3 locally is now as easy as a single command. Here is how to talk to it with Python."
-topics: ["Local LLM", "Python"]
+difficulty: "Intermediate"
+topics: ["Local LLM", "Python", "Raspberry Pi"]
 readingTime: 6
-tldr: "Stop paying for tokens. Ollama is a lightweight tool that lets you run models like Llama-3, Mistral, and Phi-3 locally on your Mac, Linux, or Windows machine. Total privacy. Zero cost. Infinite experimentation."
+aiSummary: "Rohit demonstrates how to deploy Ollama on a Raspberry Pi cluster to serve as a high-availability fallback for cloud-based AI services."
 ---
 
-Welcome to the ultimate frontier of the lab: **Private, local AI**. 
+<TLDR>
+  Privacy is the marketing angle for local LLMs, but resilience is the engineering reality. I use Together AI for heavy lifting, but my Raspberry Pi cluster runs quantized Llama 3 models through Ollama as a zero-cost fallback. This post covers the specific models and quant levels that actually run on ARM hardware without melting the board.
+</TLDR>
 
-The first time you run a Large Language Model on your own hardware, with the internet disconnected, it feels like magic. 
+The first time I disconnected my Tesla from the home Wi-Fi and still had a local Llama 3 instance answering questions from my Raspberry Pi, I realized we had hit a tipping point. We are no longer dependent on a persistent connection to a multi-billion dollar data center for basic reasoning tasks. In the **Gekro Lab**, Ollama isn't just a toy—it's the architectural insurance policy that ensures my agents never go "braindead" during a provider outage.
 
-This is the final piece of the **gekro lab** puzzle: **Local Inference with Ollama.**
+## The Architecture
 
----
+My setup isn't a single machine; it's a distributed inference chain. I prioritize **Together AI (Minimax M2.5)** for high-complexity reasoning, but the "Nervous System" of the lab is anchored by a Raspberry Pi 5 (8GB) running Ollama.
 
----
+| Model | Size | Quant Level | RAM Usage | Tokens/Sec (Pi 5) | Best Use Case |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Llama-3-8B** | 4.7GB | Q4_K_M | ~5.2GB | 3-4 t/s | General reasoning |
+| **Phi-3-Mini** | 2.3GB | Q4_0 | ~2.8GB | 12-15 t/s | Fast classification |
+| **Mistral-7B** | 4.1GB | Q4_0 | ~4.5GB | 2-3 t/s | Tool use/Function calling |
 
-## Why Local? (The Rationale)
+On ARM64 architecture, memory bandwidth is the bottleneck. I've found that **4-bit quantization (Q4)** is the sweet spot: any lower and the model loses its "common sense," any higher and the Raspberry Pi spends more time swapping memory than generating text.
 
-For a long time, AI was something that happened "out there"—in a data center owned by a giant corporation. Local inference changes the power dynamic of the lab.
+## The Build
 
-1.  **Data Sovereignty**: If you are building an agent to organize your taxes or write your journal, you shouldn't have to send that text to a cloud provider. Local AI means your data never leaves your RAM.
----
+Setting up Ollama on Linux (including WSL2 and Raspberry Pi OS) is a single-liner, but the real engineering happens in how you wrap it.
 
----
-
-
-## Why Ollama? (The Rationale)
-
-There are many ways to run local models, but Ollama is the only one that feels like it was built for the modern engineer.
-
-1.  **Zero-Configuration**: It handles the model weights, the quantization, and the API serving in a single package. You don't need a PhD in machine learning to get started. 
-2.  **The API-First Design**: Ollama doesn't just give you a chat window; it gives you a local API endpoint on port `11434`. This is what allows our "Body" (Astro) to talk to our "Brain" (Python) without ever touching the internet.
-3.  **Privacy as a Default**: When I'm working on sensitive lab projects, I don't want my prompts used for "training data." With Ollama, the "training" stops at my firewall.
-
-
----
-
-
-## 01. The Setup: One Command to Rule Them All
-
-Whether you are on Mac, Linux, or Windows (WSL2), the setup is trivial.
-
-### My Architect's Advice:
-Don't just download the app. Use the terminal. It gives you more control over the service life-cycle.
+### 1. The Headless Install
+I run my Pi cluster headless. No GUI, just SSH and a systemd service.
 
 ```bash
-# On Mac/Linux
+# Install Ollama on Linux/Pi
 curl -fsSL https://ollama.com/install.sh | sh
+
+# Serve Ollama on all network interfaces (required for cluster access)
+sudo systemctl edit ollama.service
+```
+Add this environment variable to the service file to allow external calls from your main workstation:
+```ini
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
 ```
 
-
----
-
-
-## 02. The First Run: Llama-3
-
-Once installed, you can pull your first model.
-
-### The Logic:
-I always start with **Llama-3 (8B)**. It is the perfect balance of speed and intelligence for a local lab. It’s small enough to run on a 16GB Mac Mini but smart enough to handle complex coding tasks.
-
-```bash
-ollama run llama3
-```
-
-
----
-
-
-## 03. The Mission: Python Integration
-
-The real power of Ollama is using it inside your agents.
-
-### The Example:
-I use the `ollama` Python library to trigger my local brain. It’s consistent, fast, and remarkably stable.
+### 2. The Abstraction Boilerplate
+Don't use the raw Ollama API directly in your experiments. Use a fallback-aware client. This is a simplified version of the logic I use across the entire lab.
 
 ```python
 import ollama
+import logging
 
-response = ollama.chat(model='llama3', messages=[
-  {'role': 'user', 'content': 'Why is local AI better?'},
-])
-print(response['message']['content'])
+class LocalBrain:
+    def __init__(self, model="llama3:8b"):
+        self.model = model
+        self.logger = logging.getLogger("GekroLocal")
+
+    def inference(self, prompt: str) -> str:
+        try:
+            self.logger.info(f"Running local inference on {self.model}...")
+            response = ollama.chat(model=self.model, messages=[
+                {'role': 'user', 'content': prompt},
+            ])
+            return response['message']['content']
+        except Exception as e:
+            self.logger.error(f"Local inference failed: {e}")
+            return "ERROR: Brain Offline"
+
+# Running a quantized test on the Pi
+if __name__ == "__main__":
+    brain = LocalBrain(model="phi3:mini")
+    print(brain.inference("What is the current state of the Raspberry Pi cluster?"))
 ```
 
+### WSL2 Note
+If you're testing this in WSL2 on Windows, Ollama now has a native Windows installer that leverages your NVIDIA GPU. Run the Windows app, then set `OLLAMA_HOST=172.x.x.x` (your Windows Ethernet adapter IP) inside WSL2 to access that GPU power from your Linux environment.
 
----
+## The Tradeoffs
 
+The Raspberry Pi is not an H100. If you try to run a Llama 3-70B model, it won't just be slow; it will kill the process and likely corrupt your filesystem if you have swap enabled on a cheap SD card. 
 
-## Conclusion: What I Learned
+The biggest failure I hit was **Heat Throttling**. During a heavy batch-processing job, the Pi 5's temperature hit 85°C and the inference speed dropped to 0.5 tokens per second. In a lab environment, active cooling (shoutout to the Argon ONE case) isn't optional for local LLMs; it's mandatory. 
 
-When I first ran a model locally and saw it respond without an internet connection, it felt like magic. It felt like I finally **owned** the technology I was using.
+Also, don't expect cloud-level "creativity." Local quantized models are great for extraction, summarization, and basic logic. They are terrible for nuance or high-level strategic planning.
 
-**What I learned:** Local AI is about **Digital Sovereignty**. It’s about knowing that even if every cloud provider disappeared tomorrow, your lab would still be smart. It’s about building systems that are resilient, private, and truly yours.
+## Where This Goes
 
-**This concludes our Lab Onboarding series.** You now have the machine, the architecture, and the intelligence to build the future. 
-
-What will you build first?
-
+I'm currently experimenting with **Distributed Ollama**—splitting a single model across three Raspberry Pis to see if I can run a 13B parameter model at usable speeds. The goal is a truly "Sovereign Brain" that doesn't just act as a fallback, but as a local peer to the cloud models.
