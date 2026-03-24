@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import Tag from '../../components/ui/Tag.astro';
+import SearchWidget from '../../components/ui/SearchWidget.astro';
 import { client } from '../../lib/sanity/client';
 import { ALL_POSTS_QUERY, TOPIC_CLUSTERS_QUERY } from '../../lib/sanity/queries';
 
@@ -94,6 +95,8 @@ try {
         Deep dives, tutorials, and field notes from the lab.
       </p>
     </header>
+    
+    <SearchWidget />
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-16 items-start">
       <aside class="space-y-8 sticky top-32">

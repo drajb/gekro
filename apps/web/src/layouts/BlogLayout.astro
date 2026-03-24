@@ -5,6 +5,7 @@ import PostTOC from '../components/blog/PostTOC.astro';
 import ReadingProgress from '../components/blog/ReadingProgress.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
 import GiscusComments from '../components/blog/GiscusComments.astro';
+import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 
 interface Props {
   post: any;
@@ -80,6 +81,9 @@ const schema = {
         </div>
       </aside>
     </div>
+
+    <!-- Newsletter -->
+    <NewsletterEmbed />
 
     <!-- Giscus Comments -->
     <GiscusComments />

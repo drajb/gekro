@@ -64,12 +64,12 @@ const useEmbed = !!publicationId;
         Add <code class="font-mono bg-bg-elevated px-1 rounded">PUBLIC_BEEHIIV_PUBLICATION_ID</code> to .env.local to enable the real Beehiiv embed.
       </p>
 
-      <script>
-        function handleSubmit(e: Event) {
+      <script is:inline>
+        function handleSubmit(e) {
           e.preventDefault();
-          const form = document.getElementById('newsletter-form') as HTMLFormElement;
-          const state = document.getElementById('newsletter-state') as HTMLElement;
-          const email = (document.getElementById('newsletter-email') as HTMLInputElement).value;
+          const form = document.getElementById('newsletter-form');
+          const state = document.getElementById('newsletter-state');
+          const email = document.getElementById('newsletter-email').value;
           if (!email) return;
           form.classList.add('hidden');
           state.classList.remove('hidden');
