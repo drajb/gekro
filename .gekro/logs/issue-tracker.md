@@ -10,3 +10,5 @@ This log tracks bugs, user complaints, and regressions. Every entry must include
 | 2026-03-24 01:15 | Continuous Issue & Decision Logging | To prevent development cycles and regressions per user request. | Agent must read logs before every planning/execution phase. |
 | 2026-03-24 01:30 | Live System Heartbeat | Every page should have a live "System Sync" clock to reinforce the "Live Lab" identity. | Implemented real-time clock in Footer.astro. |
 | 2026-03-24 01:30 | Footer Clock Stale | The "Last System Sync" script only ran once on load and lacked a `setInterval` or Astro lifecycle handling. | Implementing `setInterval` and `astro:after-swap` listener. |
+| 2026-03-24 01:45 | LabGallery Visibility | The LabGallery component was not rendering due to a missing conditional check for content availability, causing it to be hidden when no items were present. | Added a conditional render check to ensure LabGallery only displays when content is available. |
+| 2026-03-24 02:15 | Fleet API Maintenance Overhead | Custom TS listener for Tesla Fleet API was becoming too complex to maintain (OAuth/signing). | Migrated to self-hosted TeslaMate instance on Raspberry Pi. |
