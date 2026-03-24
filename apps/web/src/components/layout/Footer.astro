@@ -28,13 +28,33 @@ const currentYear = new Date().getFullYear();
       </div>
 
       <script is:inline>
-        function updateSyncTime() {
-          const now = new Date();
-          const time = now.toLocaleTimeString('en-GB', { hour12: false });
-          const syncEl = document.getElementById('sync-time');
-          if (syncEl) syncEl.innerText = `${time} UTC`;
-        }
-        updateSyncTime();
+        (function() {
+          let intervalId;
+          function updateSyncTime() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-GB', { 
+              hour12: false,
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              timeZone: 'UTC'
+            });
+            const syncEl = document.getElementById('sync-time');
+            if (syncEl) syncEl.innerText = `${time} UTC`;
+          }
+
+          function startClock() {
+            if (intervalId) clearInterval(intervalId);
+            updateSyncTime();
+            intervalId = setInterval(updateSyncTime, 1000);
+          }
+
+          // Initial start
+          startClock();
+
+          // Re-start after Astro view transitions
+          document.addEventListener('astro:after-swap', startClock);
+        })();
       </script>
     </div>
 
