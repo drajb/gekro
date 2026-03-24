@@ -6,16 +6,17 @@ interface Props {
   publishedAt: string;
   topics: string[];
   tldr: string;
+  readingTime?: number;
   mainImage?: string;
 }
 
-const { title, publishedAt, topics, tldr } = Astro.props;
+const { title, publishedAt, topics, tldr, readingTime: readingTimeProp } = Astro.props;
 const formattedDate = new Date(publishedAt).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
 });
-const readingTime = calculateReadingTime(tldr); // Basic estimate
+const readingTime = readingTimeProp || calculateReadingTime(tldr);
 ---
 
 <header class="space-y-8 py-24">

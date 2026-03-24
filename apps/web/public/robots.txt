@@ -13,6 +13,5 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-# AI Context
+# Sitemap
 Sitemap: https://gekro.com/sitemap-index.xml
-Sitemap: https://gekro.com/llms.txt

@@ -1,4 +1,5 @@
 ---
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
 <div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl space-y-8 relative overflow-hidden group">
@@ -52,7 +53,9 @@
     </div>
 
     <!-- Cloudflare Turnstile -->
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAACu_tM5JTZcwd6aO" data-theme="dark"></div>
+    {turnstileSiteKey && (
+      <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark"></div>
+    )}
 
     <button 
       type="submit" 

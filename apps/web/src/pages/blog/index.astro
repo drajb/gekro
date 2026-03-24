@@ -3,88 +3,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import Tag from '../../components/ui/Tag.astro';
 import SearchWidget from '../../components/ui/SearchWidget.astro';
-import { client } from '../../lib/sanity/client';
-import { ALL_POSTS_QUERY, TOPIC_CLUSTERS_QUERY } from '../../lib/sanity/queries';
+import { getAllPosts, getTopicCounts } from '../../lib/utils/posts';
 
-// Mock data as fallback for development
-const mockPosts = [
-  {
-    title: 'The Architecture of a Lab: Splitting Brain from Body',
-    slug: { current: 'architecture-of-a-lab' },
-    tldr: 'Why I stopped using Next.js and moved to an Agentic split-architecture.',
-    publishedAt: new Date().toISOString(),
-    topics: ['AI Agents', 'Architecture'],
-  },
-  {
-    title: 'Hello, Ollama: Your first local LLM call in 5 lines of code',
-    slug: { current: 'hello-ollama' },
-    tldr: 'Running Llama 3 locally is now as easy as a single command. Here is how to talk to it with Python.',
-    publishedAt: new Date().toISOString(),
-    topics: ['Local LLM', 'Python'],
-  }
-];
-
-const mockTopics = [
-  { title: 'AI Agents', count: 12 },
-  { title: 'Self-Hosted', count: 8 },
-  { title: 'Tesla & EV', count: 5 },
-  { title: 'Trading Systems', count: 7 },
-  { title: 'Green Tech', count: 4 }
-];
-
-import { getCollection } from 'astro:content';
-
-let posts = [];
-let topics = [];
-
-try {
-  const sanityPosts = await client.fetch(ALL_POSTS_QUERY);
-  const localPosts = await getCollection('blog');
-  
-  // Format local posts to match Sanity structure
-  const formattedLocal = localPosts.map(p => ({
-    title: p.data.title,
-    slug: { current: p.slug },
-    description: p.data.description,
-    tldr: p.data.tldr || p.data.description,
-    publishedAt: p.data.publishedAt,
-    topics: p.data.topics,
-    difficulty: p.data.difficulty,
-    isLocal: true
-  }));
-
-  posts = [...sanityPosts, ...formattedLocal].sort((a, b) => 
-    new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
-  
-  topics = Array.from(
-    [...posts].reduce((acc, post) => {
-      post.topics?.forEach((t: string) => acc.set(t, (acc.get(t) || 0) + 1));
-      return acc;
-    }, new Map<string, number>())
-  ).map(([title, count]) => ({ title, count }))
-   .sort((a, b) => b.count - a.count);
-} catch (e) {
-  const localPosts = await getCollection('blog');
-  const formattedLocal = localPosts.map(p => ({
-    title: p.data.title,
-    slug: { current: p.slug },
-    description: p.data.description,
-    tldr: p.data.tldr || p.data.description,
-    publishedAt: p.data.publishedAt,
-    topics: p.data.topics,
-    difficulty: p.data.difficulty,
-    isLocal: true
-  }));
-  posts = formattedLocal.length > 0 ? formattedLocal : mockPosts;
-  topics = Array.from(
-    [...posts].reduce((acc, post) => {
-      post.topics?.forEach((t: string) => acc.set(t, (acc.get(t) || 0) + 1));
-      return acc;
-    }, new Map<string, number>())
-  ).map(([title, count]) => ({ title, count }))
-   .sort((a, b) => b.count - a.count);
-}
+// Shared utility eliminates duplicated Sanity+local merge pattern (#6)
+const posts = await getAllPosts();
+const topics = getTopicCounts(posts);
 ---
 
 <BaseLayout title="Blog | gekro" description="Thoughts on engineering, AI, and systems build for a better future.">

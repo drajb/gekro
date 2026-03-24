@@ -35,6 +35,9 @@ experiments.sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.dat
     gsap.registerPlugin(ScrollTrigger);
 
     const initAnimations = () => {
+      const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (isReducedMotion) return;
+
       gsap.from('.experiment-card', {
         y: 20,
         duration: 0.6,

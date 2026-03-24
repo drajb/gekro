@@ -10,12 +10,13 @@ interface Props {
     publishedAt: string;
     topics: string[];
     difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+    readingTime?: number;
     mainImage?: string;
   };
 }
 
 const { post } = Astro.props;
-const readingTime = calculateReadingTime(post.tldr || post.description || ""); 
+const readingTime = post.readingTime || calculateReadingTime(post.tldr || post.description || ""); 
 const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',
@@ -25,7 +26,7 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
 
 <a 
   href={`/blog/${post.slug.current}`}
-  class="group block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-accent/5"
+  class="post-card group block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-accent/5"
 >
   <!-- Glow Layer -->
   <div 
@@ -70,13 +71,16 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   
   cards.forEach((card) => {
     // Entrance animation
-    inView(card, () => {
-      animate(
-        card,
-        { opacity: [0, 1], y: [20, 0] },
-        { duration: 0.6, easing: [0.22, 1, 0.36, 1] }
-      );
-    });
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!isReducedMotion) {
+      inView(card, () => {
+        animate(
+          card,
+          { opacity: [0, 1], y: [20, 0] },
+          { duration: 0.6, easing: [0.22, 1, 0.36, 1] }
+        );
+      });
+    }
 
     // Mouse glow effect
     card.addEventListener("mousemove", (e: any) => {

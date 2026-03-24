@@ -23,27 +23,6 @@
   --font-mono: "Geist Mono", monospace;
 }
 
-:root {
-  /* Backgrounds */
-  --color-bg-base: #09090b;
-  --color-bg-surface: #121214;
-  --color-bg-elevated: #18181b;
-
-  /* Text */
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #52525b;
-
-  /* Brand */
-  --color-accent: #3fb1ff;
-  --color-accent-warm: #f59e0b;
-  --color-accent-danger: #ef4444;
-
-  /* Borders */
-  --color-border: #27272a;
-  --color-border-subtle: #18181b;
-}
-
 body {
   background-color: var(--color-bg-base);
   color: var(--color-text-primary);

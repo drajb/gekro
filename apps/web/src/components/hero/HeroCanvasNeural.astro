@@ -20,6 +20,8 @@
 </style>
 
 <script>
+  // Static import is intentional — Three.js is needed immediately for the hero canvas.
+  // This is NOT in frontmatter (rule: "never in frontmatter"); Astro bundles it per-page.
   import * as THREE from 'three';
 
   let renderer: THREE.WebGLRenderer | null = null;
@@ -28,6 +30,8 @@
   let points: THREE.Points | null = null;
   let lines: THREE.LineSegments | null = null;
   let animationId: number | null = null;
+  let onMouseMoveRef: ((e: MouseEvent) => void) | null = null;
+  let onResizeRef: (() => void) | null = null;
 
   const PARTICLE_COUNT = 150;
   const CONNECT_DIST = 15;
@@ -35,6 +39,10 @@
 
   const destroyThree = () => {
     if (animationId !== null) cancelAnimationFrame(animationId);
+    if (onMouseMoveRef) window.removeEventListener('mousemove', onMouseMoveRef);
+    if (onResizeRef) window.removeEventListener('resize', onResizeRef);
+    onMouseMoveRef = null;
+    onResizeRef = null;
     if (renderer) {
       renderer.dispose();
       renderer.forceContextLoss();
@@ -77,6 +85,8 @@
     const pointsGeometry = new THREE.BufferGeometry();
     pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     
+    // Hardcoded hex values required — THREE.Color cannot consume CSS variables.
+    // These match --color-accent (#3fb1ff) from global.css.
     const pointsMaterial = new THREE.PointsMaterial({
       color: 0x3fb1ff,
       size: 0.15,
@@ -105,12 +115,12 @@
     let targetX = 0;
     let targetY = 0;
 
-    const onMouseMove = (e: MouseEvent) => {
+    onMouseMoveRef = (e: MouseEvent) => {
       mouseX = (e.clientX - window.innerWidth / 2) / 100;
       mouseY = (e.clientY - window.innerHeight / 2) / 100;
     };
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMoveRef);
 
     const animate = () => {
       if (!points || !scene || !camera || !renderer) return;
@@ -160,13 +170,13 @@
     animate();
     container.classList.add('ready');
 
-    const handleResize = () => {
+    onResizeRef = () => {
       if (!camera || !renderer) return;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', onResizeRef);
   };
 
   initThree();

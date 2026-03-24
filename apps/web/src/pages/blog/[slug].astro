@@ -1,11 +1,12 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import BlogLayout from '../../layouts/BlogLayout.astro';
 import PortableText from '../../components/blog/PortableText.astro';
 import TLDR from '../../components/blog/TLDR.astro';
 import RelatedPosts from '../../components/blog/RelatedPosts.astro';
 import { client } from '../../lib/sanity/client';
 import { ALL_POSTS_QUERY } from '../../lib/sanity/queries';
+import { getAllPosts } from '../../lib/utils/posts';
 
 export async function getStaticPaths() {
   const localPosts = await getCollection('blog');
@@ -47,32 +48,18 @@ if (isLocal) {
     topics: post.data.topics,
     difficulty: post.data.difficulty,
     description: post.data.description,
+    readingTime: post.data.readingTime,
     tldr: post.data.tldr || post.data.description || post.data.summary
   };
 } else {
-  // Mock headings for Sanity posts or extract from portable text
   headings = [
     { depth: 2, text: 'Executive Summary', slug: 'summary' },
     { depth: 2, text: 'What I Learned', slug: 'learned' },
   ];
 }
 
-// Build allPosts for RelatedPosts component
-const localAll = await getCollection('blog');
-let sanityAll: any[] = [];
-try { sanityAll = await client.fetch(ALL_POSTS_QUERY); } catch (_) {}
-const allPostsForRelated = [
-  ...sanityAll,
-  ...localAll.map(p => ({
-    title: p.data.title,
-    slug: { current: p.slug },
-    description: p.data.description,
-    tldr: p.data.tldr || p.data.description,
-    publishedAt: p.data.publishedAt,
-    topics: p.data.topics,
-    difficulty: p.data.difficulty,
-  }))
-];
+// Use shared utility for related posts (#7: eliminates double fetch)
+const allPostsForRelated = await getAllPosts();
 ---
 
 <BlogLayout post={displayPost} headings={headings}>
@@ -105,7 +92,6 @@ const allPostsForRelated = [
         </div>
       )}
 
-      <!-- ... footer same ... -->
       <RelatedPosts
         currentSlug={isLocal ? post.slug : post.slug?.current}
         currentTopics={displayPost.topics || []}

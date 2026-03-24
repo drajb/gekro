@@ -28,7 +28,7 @@ const navItems = [
 
   <!-- Mobile Toggle -->
   <div class="pointer-events-auto flex items-center gap-4">
-    <button id="menu-toggle" class="p-3 bg-bg-surface border border-border rounded-full hover:border-accent group transition-all">
+    <button id="menu-toggle" aria-label="Toggle menu" class="p-3 bg-bg-surface border border-border rounded-full hover:border-accent group transition-all">
       <div id="line-1" class="w-5 h-[2px] bg-text-secondary group-hover:bg-accent mb-1 transition-all duration-300"></div>
       <div id="line-2" class="w-3 h-[2px] bg-text-secondary group-hover:bg-accent transition-all duration-300 ml-auto"></div>
     </button>
@@ -68,29 +68,38 @@ const navItems = [
     const close = document.getElementById('menu-close');
     const menu = document.getElementById('mobile-menu');
     const links = document.querySelectorAll('.mobile-link');
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     
     let isOpen = false;
 
     const openMenu = () => {
       isOpen = true;
       document.body.style.overflow = 'hidden';
-      gsap.to(menu, { opacity: 1, pointerEvents: 'auto', duration: 0.5, ease: 'power2.out' });
-      gsap.fromTo('.mobile-link', 
-        { y: 50, opacity: 0 }, 
-        { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'expo.out', delay: 0.2 }
-      );
-      // Hamburger animation
-      gsap.to('#line-1', { rotate: 45, y: 3, width: 20 });
-      gsap.to('#line-2', { rotate: -45, y: -3, width: 20 });
+      if (isReducedMotion) {
+        (menu as HTMLElement).style.opacity = '1';
+        (menu as HTMLElement).style.pointerEvents = 'auto';
+      } else {
+        gsap.to(menu, { opacity: 1, pointerEvents: 'auto', duration: 0.5, ease: 'power2.out' });
+        gsap.fromTo('.mobile-link', 
+          { y: 50, opacity: 0 }, 
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'expo.out', delay: 0.2 }
+        );
+        gsap.to('#line-1', { rotate: 45, y: 3, width: 20 });
+        gsap.to('#line-2', { rotate: -45, y: -3, width: 20 });
+      }
     };
 
     const closeMenu = () => {
       isOpen = false;
       document.body.style.overflow = '';
-      gsap.to(menu, { opacity: 0, pointerEvents: 'none', duration: 0.4, ease: 'power2.in' });
-      // Reset Hamburger
-      gsap.to('#line-1', { rotate: 0, y: 0, width: 20 });
-      gsap.to('#line-2', { rotate: 0, y: 0, width: 12 });
+      if (isReducedMotion) {
+        (menu as HTMLElement).style.opacity = '0';
+        (menu as HTMLElement).style.pointerEvents = 'none';
+      } else {
+        gsap.to(menu, { opacity: 0, pointerEvents: 'none', duration: 0.4, ease: 'power2.in' });
+        gsap.to('#line-1', { rotate: 0, y: 0, width: 20 });
+        gsap.to('#line-2', { rotate: 0, y: 0, width: 12 });
+      }
     };
 
     toggle?.addEventListener('click', () => isOpen ? closeMenu() : openMenu());

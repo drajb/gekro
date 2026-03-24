@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+---
 
 const photos = [
   {
@@ -83,15 +83,18 @@ const photos = [
 
   const photos = document.querySelectorAll(".lab-photo");
   
-  photos.forEach((photo) => {
-    inView(photo, () => {
-      animate(
-        photo,
-        { opacity: [0, 1], scale: [0.9, 1] },
-        { duration: 0.8, easing: [0.22, 1, 0.36, 1] }
-      );
+  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!isReducedMotion) {
+    photos.forEach((photo) => {
+      inView(photo, () => {
+        animate(
+          photo,
+          { opacity: [0, 1], scale: [0.9, 1] },
+          { duration: 0.8, easing: [0.22, 1, 0.36, 1] }
+        );
+      });
     });
-  });
+  }
 </script>
 
 <style>

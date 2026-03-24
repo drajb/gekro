@@ -5,89 +5,21 @@ import HeroText from '../components/hero/HeroText.astro';
 import PostCard from '../components/blog/PostCard.astro';
 import ExperimentCard from '../components/experiments/ExperimentCard.astro';
 import Tag from '../components/ui/Tag.astro';
-import LabGallery from '../components/ui/LabGallery.astro';
-import { client } from '../lib/sanity/client';
-import { ALL_POSTS_QUERY } from '../lib/sanity/queries';
-
-// In a real build, these would come from Sanity.
-// We'll use fallbacks so the UI renders even without env vars during dev.
-const latestExperiments = [
-  {
-    title: 'Neural Home Orchestrator',
-    slug: { current: 'neural-home-orchestrator' },
-    summary: 'A localized agentic system for managing home automation and energy efficiency.',
-    status: 'active' as const,
-    stack: ['Python', 'Home Assistant', 'Together AI'],
-  },
-  {
-    title: 'Self-Hosted LLM Lab',
-    slug: { current: 'self-hosted-llm' },
-    summary: 'Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels.',
-    status: 'completed' as const,
-    stack: ['Raspberry Pi', 'Ollama', 'Docker'],
-  },
-  {
-    title: 'EV Data Logger',
-    slug: { current: 'ev-data-logger' },
-    summary: 'Self-hosted TeslaMate instance on Raspberry Pi for Model Y telemetry and solar optimization.',
-    status: 'active' as const,
-    stack: ['TeslaMate', 'Docker', 'PostgreSQL'],
-  }
-];
-
 import { getCollection } from 'astro:content';
+import { getAllPosts, getTopicCounts } from '../lib/utils/posts';
 
-const localPosts = await getCollection('blog');
-let recentPosts = [];
+// Experiments from Content Collections (#8: no longer hardcoded)
+const allExperiments = await getCollection('experiments');
+const latestExperiments = allExperiments
+  .sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.data.startDate).getTime())
+  .slice(0, 3);
 
-try {
-  const sanityPosts = await client.fetch(ALL_POSTS_QUERY);
-  const formattedLocal = localPosts.map(p => ({
-    title: p.data.title,
-    slug: { current: p.slug },
-    description: p.data.description || p.data.summary || "",
-    tldr: p.data.tldr || p.data.description || p.data.summary || "",
-    publishedAt: p.data.publishedAt,
-    topics: p.data.topics,
-  }));
-
-  recentPosts = [...sanityPosts, ...formattedLocal]
-    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-    .slice(0, 3);
-} catch (e) {
-  const formattedLocal = localPosts.map(p => ({
-    title: p.data.title,
-    slug: { current: p.slug },
-    description: p.data.description || p.data.summary || "",
-    tldr: p.data.tldr || p.data.description || p.data.summary || "",
-    publishedAt: p.data.publishedAt,
-    topics: p.data.topics,
-  }));
-  recentPosts = formattedLocal.length > 0 ? formattedLocal.slice(0, 3) : [
-    {
-      title: 'The Architecture of a Lab: Splitting Brain from Body',
-      slug: { current: 'architecture-of-a-lab' },
-      description: 'Why I stopped using Next.js and moved to an Agentic split-architecture.',
-      tldr: 'Why I stopped using Next.js and moved to an Agentic split-architecture.',
-      publishedAt: new Date().toISOString(),
-      topics: ['AI Agents', 'Architecture'],
-    }
-  ];
-}
+// Posts from shared utility (#6: eliminated duplicated fetching logic)
+const allPosts = await getAllPosts();
+const recentPosts = allPosts.slice(0, 3);
 
 // Compute dynamic topics
-const allPostsForTopics = [...(recentPosts || []), ...localPosts.map(p => ({ topics: p.data.topics }))];
-const topicCounts = new Map<string, number>();
-allPostsForTopics.forEach(post => {
-  post.topics?.forEach((topic: string) => {
-    topicCounts.set(topic, (topicCounts.get(topic) || 0) + 1);
-  });
-});
-
-const topics = Array.from(topicCounts.entries())
-  .map(([title, count]) => ({ title, count }))
-  .sort((a, b) => b.count - a.count)
-  .slice(0, 8);
+const topics = getTopicCounts(allPosts).slice(0, 8);
 ---
 
 <BaseLayout title="gekro | Building at the edge of what's possible">
@@ -108,7 +40,7 @@ const topics = Array.from(topicCounts.entries())
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           {latestExperiments.map(exp => (
-            <ExperimentCard experiment={exp} />
+            <ExperimentCard experiment={exp.data} slug={exp.slug} />
           ))}
         </div>
       </div>
@@ -203,42 +135,48 @@ const topics = Array.from(topicCounts.entries())
       });
 
       // 2. Experiment Cards Stagger
-      gsap.from('.experiment-card-wrapper', {
+      gsap.from('.experiment-card', {
         scrollTrigger: {
-          trigger: '.experiment-card-wrapper',
-          start: "top 85%",
+          trigger: '.experiment-card',
+          start: "top 95%",
+          toggleActions: "play none none none"
         },
-        y: 60,
+        y: 40,
         opacity: 0,
-        duration: 1.2,
+        duration: 0.8,
         stagger: 0.15,
-        ease: "power3.out"
+        ease: "power3.out",
+        clearProps: "opacity,transform"
       });
 
       // 3. Post Cards Stagger
-      gsap.from('.post-card-wrapper', {
+      gsap.from('.post-card', {
         scrollTrigger: {
-          trigger: '.post-card-wrapper',
-          start: "top 85%",
+          trigger: '.post-card',
+          start: "top 95%",
+          toggleActions: "play none none none"
         },
-        x: -40,
+        x: -30,
         opacity: 0,
-        duration: 1,
+        duration: 0.8,
         stagger: 0.1,
-        ease: "power2.out"
+        ease: "power2.out",
+        clearProps: "opacity,transform"
       });
 
       // 4. Sidebar Elements Reveal
       gsap.from('aside > div', {
         scrollTrigger: {
           trigger: 'aside',
-          start: "top 80%",
+          start: "top 95%",
+          toggleActions: "play none none none"
         },
-        y: 40,
+        y: 30,
         opacity: 0,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power2.out"
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "power2.out",
+        clearProps: "opacity,transform"
       });
     };
 
