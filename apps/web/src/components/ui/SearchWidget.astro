@@ -24,7 +24,7 @@
       return;
     }
 
-    const { PagefindUI } = await import('/pagefind/pagefind-ui.js' as any);
+    const { PagefindUI } = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js' as any);
     new PagefindUI({
       element: '#pagefind-search',
       showSubResults: true,
