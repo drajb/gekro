@@ -29,9 +29,9 @@ const latestExperiments = [
   {
     title: 'EV Data Logger',
     slug: { current: 'ev-data-logger' },
-    summary: 'Real-time telemetry extraction from Tesla Fleet API for green energy optimization.',
+    summary: 'Self-hosted TeslaMate instance on Raspberry Pi for Model Y telemetry and solar optimization.',
     status: 'active' as const,
-    stack: ['TypeScript', 'Astro', 'Tesla API'],
+    stack: ['TeslaMate', 'Docker', 'PostgreSQL'],
   }
 ];
 
@@ -113,8 +113,8 @@ const topics = Array.from(topicCounts.entries())
         </div>
       </div>
 
-      <!-- Lab Log -->
-      <LabGallery />
+      <!-- Lab Log (Hidden per user request) -->
+      <!-- <LabGallery /> -->
 
       <!-- Recent Posts & Topics -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
