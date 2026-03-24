@@ -1,6 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
+import { Image } from 'astro:assets';
+import biographySystems from '../assets/about/biography-systems.png';
+import beyondTheLab from '../assets/about/beyond-the-lab.png';
 ---
 
 <BaseLayout title="About | Rohit Burani" description="Engineering, management, and the commitment to sustainable systems behind Gekro Lab.">
@@ -19,23 +22,14 @@ import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
         </p>
       </div>
 
-      <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative flex items-center justify-center p-12">
-          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent"></div>
-          
-          <!-- Systems Efficiency / Sustainability Hybrid SVG -->
-          <svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full max-w-md opacity-40">
-            <circle cx="200" cy="100" r="60" stroke="var(--color-accent)" stroke-width="0.5" stroke-dasharray="4 4" />
-            <path d="M140 100C140 66.8629 166.863 40 200 40C233.137 40 260 66.8629 260 100" stroke="var(--color-accent)" stroke-width="1.5" />
-            <path d="M140 100L120 100M260 100L280 100M200 40L200 20" stroke="var(--color-accent)" stroke-width="1.5" />
-            
-            <rect x="170" y="80" width="60" height="40" stroke="var(--color-text-primary)" stroke-width="1" />
-            <path d="M185 100H215" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="2 2" />
-            
-            <text x="200" y="145" text-anchor="middle" class="fill-accent font-mono text-[7px] tracking-[0.2em] uppercase">Efficiency_Architecture // System_Optimization</text>
-            <text x="200" y="165" text-anchor="middle" class="fill-text-muted font-mono text-[5px] uppercase">Gekro_System_Core: 03-24 [Synced]</text>
-          </svg>
-          
-          <span class="absolute bottom-8 left-8 text-[10px] font-mono text-text-muted uppercase tracking-widest opacity-50">Log_Type: Efficiency_Schematic</span>
+      <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative group">
+          <Image 
+            src={biographySystems} 
+            alt="An analytical engineering lab with a Mac Mini, Raspberry Pi cluster, and system architecture monitor." 
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-bg-base/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <span class="absolute bottom-8 left-8 text-[10px] font-mono text-white/50 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-500">Log_Type: Efficiency_Architecture</span>
       </div>
     </header>
 
@@ -98,15 +92,14 @@ import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
         </div>
       </div>
       
-      <div class="aspect-square bg-bg-elevated rounded-2xl border border-border p-12 relative flex items-center justify-center">
-        <!-- Natural Flow / Sustainable Systems SVG -->
-        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full opacity-30">
-          <path d="M40 150Q70 140 100 150T160 150" stroke="var(--color-accent)" stroke-width="1.5" />
-          <path d="M40 130Q70 120 100 130T160 130" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="2 2" />
-          <circle cx="100" cy="80" r="20" stroke="var(--color-text-primary)" stroke-width="1" />
-          <path d="M100 60L100 30" stroke="var(--color-accent)" stroke-width="1" />
-          <text x="100" y="175" text-anchor="middle" class="fill-text-muted font-mono text-[8px] uppercase tracking-widest">Natural_Flow // Systems_Sync</text>
-        </svg>
+      <div class="aspect-square bg-bg-elevated rounded-2xl border border-border overflow-hidden relative group">
+        <Image 
+          src={beyondTheLab} 
+          alt="A Tesla Model Y parked on a Texas backcountry trail at sunset." 
+          class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-bg-base/40 to-transparent"></div>
+        <span class="absolute bottom-6 left-6 text-[10px] font-mono text-white/40 uppercase tracking-widest">Natural_Flow // Systems_Sync</span>
       </div>
     </section>
 

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-bg-base: #09090b;
@@ -47,4 +48,37 @@ body {
   background-color: var(--color-bg-base);
   color: var(--color-text-primary);
   font-family: var(--font-body);
+}
+
+/* Prose Spacing Overrides */
+.prose {
+  @apply text-text-secondary leading-relaxed;
+}
+
+.prose p {
+  @apply mb-8;
+}
+
+.prose h2 {
+  @apply mt-20 mb-8 pb-4 border-b border-border text-text-primary;
+}
+
+.prose h3 {
+  @apply mt-12 mb-6 text-text-primary;
+}
+
+.prose ul, .prose ol {
+  @apply my-8 space-y-4;
+}
+
+.prose li {
+  @apply pl-2;
+}
+
+.prose pre {
+  @apply my-12 rounded-xl border border-border bg-bg-surface p-6;
+}
+
+.prose hr {
+  @apply my-16 border-border;
 }

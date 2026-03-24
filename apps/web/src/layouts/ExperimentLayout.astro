@@ -34,10 +34,14 @@ const schema = {
         </h1>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 border-y border-border-subtle py-8">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 border-y border-border-subtle py-8">
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Status</span>
           <span class="text-sm text-accent uppercase tracking-widest">{experiment.status}</span>
+        </div>
+        <div>
+          <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Complexity</span>
+          <span class="text-sm text-text-primary tracking-wide">{experiment.difficulty}</span>
         </div>
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Stack</span>
@@ -49,32 +53,43 @@ const schema = {
         </div>
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Started</span>
-          <span class="text-sm text-text-primary">March 2026</span>
+          <span class="text-sm text-text-primary">{experiment.startDate}</span>
         </div>
-        <div>
-          <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Source</span>
-          <a href="#" class="text-sm text-text-secondary hover:text-accent underline">GitHub</a>
-        </div>
+        {experiment.githubUrl ? (
+          <div>
+            <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Source</span>
+            <a href={experiment.githubUrl} target="_blank" rel="noopener noreferrer" class="text-sm text-text-secondary hover:text-accent underline flex items-center gap-1">
+              GitHub
+            </a>
+          </div>
+        ) : (
+          <div>
+             <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Lab Navigation</span>
+             <a href="/experiments" class="text-sm text-accent hover:underline flex items-center gap-2 text-nowrap">
+               ← Return to my lab
+             </a>
+          </div>
+        )}
       </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
-      <main class="lg:col-span-8 space-y-16">
-        <div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl">
-          <h3 class="text-xs uppercase font-mono tracking-widest text-text-muted mb-8">Executive Summary</h3>
-          <p class="text-xl text-text-primary leading-relaxed italic">
-             {experiment.summary}
-          </p>
-        </div>
+    <div class="space-y-16">
+      <div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl">
+        <h3 class="text-xs uppercase font-mono tracking-widest text-text-muted mb-8">Executive Summary</h3>
+        <p class="text-xl lg:text-3xl text-text-primary leading-tight font-heading italic">
+           {experiment.summary}
+        </p>
+      </div>
 
+      <div class="max-w-4xl">
         <slot />
-      </main>
-      
-      <aside class="lg:col-span-4 space-y-12">
-        <div class="sticky top-32 space-y-8">
-           <slot name="sidebar" />
-        </div>
-      </aside>
+      </div>
+
+      <div class="pt-16 border-t border-border">
+         <a href="/experiments" class="text-sm font-mono text-accent hover:underline flex items-center gap-2">
+           ← Return to my lab
+         </a>
+      </div>
     </div>
   </article>
 </BaseLayout>

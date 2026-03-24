@@ -4,58 +4,171 @@ description: "Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cl
 summary: "Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels. This experiment explores the limits of edge compute for decentralized intelligence."
 aiSummary: "Deployed a distributed Llama 3 instance across a 4-node Raspberry Pi 5 cluster using Ollama. Used Cloudflare Tunnels for secure remote CLI access to the private intelligence layer."
 status: "completed"
-startDate: "2026-03-20"
+startDate: "June 2025"
 stack:
   - "Raspberry Pi"
   - "Ollama"
   - "Docker"
+  - "Cloudflare Tunnels"
 topics:
   - "Self-Hosted"
   - "Edge Compute"
-githubUrl: "https://github.com/drajb/llm-edge-cluster"
+  - "Infrastructure"
 difficulty: "Intermediate"
 ---
 
+
 ## What I Was Trying to Solve
 
-Building AI shouldn't require a $10,000 GPU or a $20/month subscription to a closed API. I wanted to see if I could build a "Poor Man's Supercomputer"—a cluster of low-cost ARM devices that could run a competent language model for basic lab assistance.
+
+Building AI shouldn't require a $10,000 GPU or a $20/month subscription to a closed API.
+
+
+I wanted to see if I could build a "Poor Man's Supercomputer".
+
+
+A cluster of low-cost ARM devices that could run a competent language model for basic lab assistance.
+
+
+The goal wasn't just raw performance.
+
+
+It was about **sovereignty**—having a private brain that remains functional even when the global internet is fragmented.
+
 
 ---
 
-## Architecture
 
-The cluster consists of four Raspberry Pi 5s (8GB) networked via a high-speed switch, with Docker Swarm managing the container distribution.
+## Architecture: The ARM Intelligence Layer
 
+
+The cluster consists of four Raspberry Pi 5s (8GB) networked via a high-speed switch.
+
+
+Each node runs a headless Ubuntu Server environment, with **Ollama** serving as the core inference engine.
+
+
+```mermaid
+graph TD
+    subgraph "External Access"
+        U[User CLI] --> CT[Cloudflare Tunnel]
+    end
+    subgraph "The Cluster (Pi 5 x 4)"
+        CT --> P1[Node 1: Master]
+        P1 --> P2[Node 2: Worker]
+        P1 --> P3[Node 3: Worker]
+        P1 --> P4[Node 4: Worker]
+    end
+    subgraph "Storage"
+        P1 --> SSD[NVMe Shared Storage]
+    end
 ```
-[RPi 5 #1] \
-[RPi 5 #2] -- [Switch] -> [Cloudflare Tunnel] -> [Remote CLI]
-[RPi 5 #3] /
-[RPi 5 #4] /
-```
+
 
 ---
 
-## The Build
 
-### Step 1: Headless Setup
+## The Build: Scaling with Ollama
 
-I started by flashing Ubuntu Server across all nodes and configuring static IPs. The goal was a "plug and play" cluster where I could just add nodes to scale the context window.
+
+The real challenge wasn't just installing Ollama, but making it accessible and resilient across a distributed network.
+
+
+### 1. Headless Setup and Thermal Management
+
+
+I use **Argon ONE V3** cases for each Pi 5.
+
+
+At full inference load, a Pi 5 will throttle within 60 seconds without active cooling.
+
+
+The Argon cases provide both passive cooling via the aluminum shell and active cooling via a software-controlled fan.
+
 
 ```bash
-# Standardizing the environment
+# Standardizing the environment across all 4 nodes
 curl -fsSL https://ollama.com/install.sh | sh
+sudo systemctl enable ollama
 ```
 
-### Step 2: The Latency Bottleneck
 
-Running a 7B model on a single Pi is possible but slow (approx 2-3 tokens/sec). By distributing the load, I aimed for higher throughput, though the interconnect speed (Gigabit Ethernet) became the new bottleneck.
+### 2. Secure Remote Access via Cloudflare Tunnels
+
+
+I refuse to open ports on my home firewall.
+
+
+Instead, I use **Cloudflare Tunnels** (`cloudflared`) to create a secure, encrypted connection.
+
+
+This links the lab's master node securely to the internet.
+
+
+```yaml
+# config.yml for Cloudflare Tunnel
+tunnel: lab-intelligence-tunnel
+credentials-file: /home/rohit/.cloudflared/cert.json
+
+ingress:
+  - hostname: brain.gekro.com
+    service: http://localhost:11434
+  - service: http_status:404
+```
+
+
+This allows me to use the `OLLAMA_HOST` variable on my laptop anywhere in the world:
+
+
+```bash
+export OLLAMA_HOST=brain.gekro.com
+ollama run llama3 "Summarize these lab logs."
+```
+
 
 ---
 
-## Results
 
-| Metric | Single Node | 4-Node Cluster |
-|---|---|---|
-| Llama 3 (8B) | 2.5 TPS | 2.8 TPS* |
+## What I Learned (The "How" of Bottlenecks)
 
-*Note: The performance gain was marginal due to memory bandwidth limits on ARM, but the **reliability** and **concurrency** (handling multiple requests) improved significantly.*
+
+1. **Memory Bandwidth is the Real Ceiling** — While the Pi 5 is fast, its memory bandwidth is the primary bottleneck.
+
+
+For ARM clusters, **Concurrency** is a much better use of hardware than model splitting.
+
+
+Handling 4 different small requests on 4 different nodes beats model parallelism over Gigabit Ethernet.
+
+
+2. **Power Stability** — A 4-node cluster draws significant power under load (~45-50W).
+
+
+I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes.
+
+
+This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
+
+
+3. **Storage Latency** — Don't run your models off SD cards.
+
+
+The initial model load time on an SD card was over 45 seconds.
+
+
+By switching to an **NVMe SSD** via the PCIe HAT, load times dropped to under 8 seconds.
+
+
+## Where This Goes
+
+
+I'm currently experimenting with **Distroless Ollama Containers**.
+
+
+The goal is to strip away the entire Linux userland and run Ollama as a minimal binary.
+
+
+This squeezes an extra 5-10% of RAM for larger parameter models.
+
+
+The lab is a game of millimeters.

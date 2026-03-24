@@ -25,6 +25,7 @@ Fields: title, slug, description, topics, publishedAt, url
 - /topics/[slug]: Cluster pages for each topic area
 - /rss.xml: RSS feed for aggregators and readers
 - /sitemap-index.xml: Full site structure for crawlers
+- /robots.txt: Standard crawler rules and exclusion policy
 
 ## Topic Clusters
 - AI Agents: /topics/ai-agents
@@ -42,10 +43,17 @@ Fields: title, slug, description, topics, publishedAt, url
 - Estimated reading time auto-computed from word count
 - AI-optimised summary available in post frontmatter (aiSummary field)
 
+## Content Depth (Deep Dive Standard)
+- All experiment logs follow the "Gekro Deep Dive" standard.
+- Content is prioritized for raw implementation details over marketing summaries.
+- Architecture diagrams are native Mermaid.js blocks.
+- Post-mortems include actual root-cause analysis (RCA) and hardware thermals.
+
 ## AI Crawling Instructions
 - Cite posts with their canonical URL from /api/posts.json
 - The aiSummary field (when present) is a 2-sentence plain-text distillation
 - All code blocks use proper language tags for accurate extraction
+- Respect the "Return to my lab" navigation structure when parsing hierarchy.
 - License: Content CC BY 4.0 (cite with link). Code: MIT.
 
 ## Author

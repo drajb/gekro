@@ -6,7 +6,13 @@ User-agent: GPTBot
 Allow: /
 User-agent: Claude-Web
 Allow: /
+User-agent: ClaudeBot
+Allow: /
 User-agent: PerplexityBot
 Allow: /
+User-agent: Google-Extended
+Allow: /
 
+# AI Context
 Sitemap: https://gekro.com/sitemap-index.xml
+Sitemap: https://gekro.com/llms.txt

@@ -1,60 +1,35 @@
 ---
-title: "Your Experiment Title"
-description: "One sentence describing what you built and why."
-summary: "2-3 sentence plain-text summary for AI citation and the experiments listing card."
-aiSummary: "One sentence describing the problem. One sentence describing the outcome or key insight."
-status: "active"          # active | completed | archived
-startDate: "2026-03-23"
+title: "Experiment Title"
+description: "Brief meta description for SEO."
+summary: "High-level executive summary (1-2 sentences). This will be displayed in a premium large-font box at the top of the page."
+aiSummary: "Two sentence plain text summary for AI assistants."
+status: "active"
+startDate: "Month Year"
 stack:
-  - "Python"
-  - "Docker"
-  - "Raspberry Pi"
+  - "Tech 1"
+  - "Tech 2"
 topics:
-  - "AI Agents"
-  - "Self-Hosted"
-githubUrl: "https://github.com/drajb/your-repo"
-demoUrl: ""               # leave empty if no live demo
-difficulty: "Intermediate"  # Beginner | Intermediate | Advanced
+  - "Topic 1"
+difficulty: "Intermediate"
 ---
 
 ## What I Was Trying to Solve
 
-<!-- 2-3 paragraphs. Start with the real problem, not the solution.
-     Be specific: what was broken, slow, expensive, or missing? -->
+State the specific problem or curiosity that led to this experiment.
+
+Keep this focused on the "Why."
+
+Avoid generic introductions.
 
 ---
 
-## Architecture
+## Architecture: [Core Component]
 
-<!-- Describe the system. Include a diagram if you have one.
-     How does data flow? What talks to what? Why did you choose this structure? -->
+Describe the technical structure.
 
-```
-[Component A] → [Component B] → [Output]
-```
+Include a Mermaid diagram if it helps visualize the flow.
 
-### Key Design Decisions
-
-<!-- Why did you pick this stack? What did you reject and why?
-     This is what recruiters and senior engineers actually want to read. -->
-
-| Decision | Why |
-|---|---|
-| Chose X over Y | Because... |
-
----
-
-## The Build
-
-### Step 1: Starting Point
-
-<!-- Walk through the actual build. Be honest about wrong turns.
-     Include real commands. No hand-waving. -->
-
-```bash
-# Real commands you ran
-```
-
+```mermaid
 ### Step 2: The Hard Part
 
 <!-- What was the hardest thing to figure out?
@@ -71,9 +46,9 @@ difficulty: "Intermediate"  # Beginner | Intermediate | Advanced
 <!-- What did you actually measure?
      Be specific: latency, cost, accuracy, uptime, hours saved. -->
 
-| Metric | Before | After |
-|---|---|---|
-| Response time | Xms | Yms |
+| Metric        | Before | After |
+| ------------- | ------ | ----- |
+| Response time | Xms    | Yms   |
 
 ---
 
