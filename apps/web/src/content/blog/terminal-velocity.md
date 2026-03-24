@@ -4,7 +4,6 @@ publishedAt: "2026-03-24"
 description: "Stop switching to a browser. Keep your hands on the keyboard. Simple bash wrappers for instant Git commits and file operations."
 summary: "Stop switching to a browser. Keep your hands on the keyboard. Simple bash wrappers for instant Git commits and file operations."
 topics: ["Workflow", "CLI"]
-topics: ["Workflow", "CLI"]
 readingTime: 6
 tldr: "The GUI is a lie. For AI development, the Command Line Interface (CLI) is the only way to move at the speed of thought. By combining terminal shortcuts with AI-powered CLI tools, you can automate your entire workflow in seconds."
 ---
