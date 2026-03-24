@@ -29,4 +29,26 @@ experiments.sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.dat
       </div>
     )}
   </main>
+  <script>
+    import gsap from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+    gsap.registerPlugin(ScrollTrigger);
+
+    const initAnimations = () => {
+      gsap.from('.experiment-card', {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: '.grid',
+          start: 'top 85%',
+        }
+      });
+    };
+
+    initAnimations();
+    document.addEventListener('astro:after-swap', initAnimations);
+  </script>
 </BaseLayout>
