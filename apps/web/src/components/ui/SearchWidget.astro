@@ -15,26 +15,28 @@
 
 <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
 
-<script>
+<script is:inline>
   const initSearch = async () => {
     // Check if pagefind is available (only after build)
-    const response = await fetch('/pagefind/pagefind-ui.js').catch(() => null);
-    if (!response || !response.ok) {
+    try {
+      const response = await fetch('/pagefind/pagefind-ui.js');
+      if (!response.ok) throw new Error('Search not ready');
+      
+      const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+      new PagefindUI({
+        element: '#pagefind-search',
+        showSubResults: true,
+        showImages: false,
+        resetStyles: false,
+        excerptLength: 20,
+        translations: {
+          placeholder: 'Search posts and experiments...',
+        }
+      });
+    } catch (e) {
+      console.log('Search initialization delayed or unavailable.');
       document.getElementById('search-unavailable')?.classList.remove('hidden');
-      return;
     }
-
-    const { PagefindUI } = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js' as any);
-    new PagefindUI({
-      element: '#pagefind-search',
-      showSubResults: true,
-      showImages: false,
-      resetStyles: false,
-      excerptLength: 20,
-      translations: {
-        placeholder: 'Search posts and experiments...',
-      }
-    });
   };
 
   initSearch();
