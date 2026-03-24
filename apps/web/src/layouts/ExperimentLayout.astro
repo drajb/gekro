@@ -72,24 +72,80 @@ const schema = {
         )}
       </div>
     </header>
-
-    <div class="space-y-16">
-      <div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl">
-        <h3 class="text-xs uppercase font-mono tracking-widest text-text-muted mb-8">Executive Summary</h3>
-        <p class="text-xl lg:text-3xl text-text-primary leading-tight font-heading italic">
-           {experiment.summary}
-        </p>
-      </div>
-
-      <div class="max-w-4xl">
+    
+    <div class="max-w-4xl mx-auto px-6 py-24">
+      <div class="prose prose-invert max-w-none 
+                  prose-headings:font-heading prose-headings:font-medium
+                  prose-h1:text-5xl prose-h1:mb-20
+                  prose-h2:text-3xl prose-h2:mt-32 prose-h2:mb-12
+                  prose-h3:text-xl prose-h3:mt-16 prose-h3:mb-8
+                  prose-p:text-lg prose-p:leading-relaxed prose-p:text-text-secondary prose-p:mb-8
+                  prose-li:text-lg prose-li:text-text-secondary
+                  prose-strong:text-text-primary prose-strong:font-semibold
+                  prose-code:text-accent prose-code:bg-accent/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                  prose-pre:bg-bg-surface prose-pre:border prose-pre:border-border-subtle prose-pre:rounded-2xl
+                  prose-img:rounded-2xl prose-img:border prose-img:border-border-subtle
+                  prose-hr:border-border-subtle prose-hr:my-24">
+        <div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl mb-16">
+          <h3 class="text-xs uppercase font-mono tracking-widest text-text-muted mb-8">Executive Summary</h3>
+          <p class="text-xl lg:text-3xl text-text-primary leading-tight font-heading italic">
+            {experiment.summary}
+          </p>
+        </div>
         <slot />
       </div>
-
-      <div class="pt-16 border-t border-border">
-         <a href="/experiments" class="text-sm font-mono text-accent hover:underline flex items-center gap-2">
-           ← Return to my lab
-         </a>
+      
+      <div class="mt-32 pt-16 border-t border-border-subtle">
+        <a href="/experiments" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
+          <span class="transition-transform group-hover:-translate-x-1">←</span>
+          Return to my lab
+        </a>
       </div>
     </div>
-  </article>
+  </main>
+
+  <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script is:inline>
+    const initMermaid = async () => {
+      if (typeof mermaid === 'undefined') {
+        console.error('Mermaid not loaded');
+        return;
+      }
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose',
+        fontFamily: 'JetBrains Mono, monospace',
+      });
+      
+      // Target Astro's Shiki-highlighted code blocks
+      const diagrams = document.querySelectorAll('pre[data-language="mermaid"]');
+      for (let i = 0; i < diagrams.length; i++) {
+        const pre = diagrams[i];
+        const content = pre.textContent; // This gets the raw text even from spanned highlighing
+        if (content) {
+          const id = `mermaid-${i}`;
+          try {
+            const { svg } = await mermaid.render(id, content);
+            
+            // Create wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mermaid-rendered my-12 flex justify-center bg-bg-surface p-8 rounded-2xl border border-border-subtle overflow-x-auto';
+            wrapper.innerHTML = svg;
+            
+            // Replace the entire <pre> block
+            pre.replaceWith(wrapper);
+          } catch (err) {
+            console.error('Mermaid render error:', err);
+          }
+        }
+      }
+    };
+
+    // Run on mount
+    initMermaid();
+    // Run after view transitions
+    document.addEventListener('astro:after-swap', initMermaid);
+  </script>
 </BaseLayout>

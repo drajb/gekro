@@ -56,7 +56,7 @@ body {
 }
 
 .prose p {
-  @apply mb-8;
+  @apply mb-12;
 }
 
 .prose h2 {

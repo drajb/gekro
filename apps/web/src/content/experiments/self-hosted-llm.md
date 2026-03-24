@@ -20,33 +20,16 @@ difficulty: "Intermediate"
 
 ## What I Was Trying to Solve
 
+Building AI shouldn't require a $10,000 GPU or a $20/month subscription to a closed API. I wanted to see if I could build a "Poor Man's Supercomputer"—a cluster of low-cost ARM devices that could run a competent language model for basic lab assistance.
 
-Building AI shouldn't require a $10,000 GPU or a $20/month subscription to a closed API.
-
-
-I wanted to see if I could build a "Poor Man's Supercomputer".
-
-
-A cluster of low-cost ARM devices that could run a competent language model for basic lab assistance.
-
-
-The goal wasn't just raw performance.
-
-
-It was about **sovereignty**—having a private brain that remains functional even when the global internet is fragmented.
-
+The goal wasn't just raw performance. It was about **sovereignty**—having a private brain that remains functional even when the global internet is fragmented.
 
 ---
 
 
 ## Architecture: The ARM Intelligence Layer
 
-
-The cluster consists of four Raspberry Pi 5s (8GB) networked via a high-speed switch.
-
-
-Each node runs a headless Ubuntu Server environment, with **Ollama** serving as the core inference engine.
-
+The cluster consists of four Raspberry Pi 5s (8GB) networked via a high-speed switch. Each node runs a headless Ubuntu Server environment, with **Ollama** serving as the core inference engine.
 
 ```mermaid
 graph TD
@@ -64,27 +47,16 @@ graph TD
     end
 ```
 
-
 ---
 
 
 ## The Build: Scaling with Ollama
 
-
 The real challenge wasn't just installing Ollama, but making it accessible and resilient across a distributed network.
-
 
 ### 1. Headless Setup and Thermal Management
 
-
-I use **Argon ONE V3** cases for each Pi 5.
-
-
-At full inference load, a Pi 5 will throttle within 60 seconds without active cooling.
-
-
-The Argon cases provide both passive cooling via the aluminum shell and active cooling via a software-controlled fan.
-
+I use **Argon ONE V3** cases for each Pi 5. At full inference load, a Pi 5 will throttle within 60 seconds without active cooling. The Argon cases provide both passive cooling via the aluminum shell and active cooling via a software-controlled fan.
 
 ```bash
 # Standardizing the environment across all 4 nodes
@@ -92,18 +64,9 @@ curl -fsSL https://ollama.com/install.sh | sh
 sudo systemctl enable ollama
 ```
 
-
 ### 2. Secure Remote Access via Cloudflare Tunnels
 
-
-I refuse to open ports on my home firewall.
-
-
-Instead, I use **Cloudflare Tunnels** (`cloudflared`) to create a secure, encrypted connection.
-
-
-This links the lab's master node securely to the internet.
-
+I refuse to open ports on my home firewall. Instead, I use **Cloudflare Tunnels** (`cloudflared`) to create a secure, encrypted connection. This links the lab's master node securely to the internet.
 
 ```yaml
 # config.yml for Cloudflare Tunnel
@@ -116,59 +79,24 @@ ingress:
   - service: http_status:404
 ```
 
-
 This allows me to use the `OLLAMA_HOST` variable on my laptop anywhere in the world:
-
 
 ```bash
 export OLLAMA_HOST=brain.gekro.com
 ollama run llama3 "Summarize these lab logs."
 ```
 
-
 ---
 
 
 ## What I Learned (The "How" of Bottlenecks)
 
+1. **Memory Bandwidth is the Real Ceiling** — While the Pi 5 is fast, its memory bandwidth is the primary bottleneck. For ARM clusters, **Concurrency** is a much better use of hardware than model splitting. Handling 4 different small requests on 4 different nodes beats model parallelism over Gigabit Ethernet.
 
-1. **Memory Bandwidth is the Real Ceiling** — While the Pi 5 is fast, its memory bandwidth is the primary bottleneck.
+2. **Power Stability** — A 4-node cluster draws significant power under load (~45-50W). I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes. This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
 
-
-For ARM clusters, **Concurrency** is a much better use of hardware than model splitting.
-
-
-Handling 4 different small requests on 4 different nodes beats model parallelism over Gigabit Ethernet.
-
-
-2. **Power Stability** — A 4-node cluster draws significant power under load (~45-50W).
-
-
-I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes.
-
-
-This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
-
-
-3. **Storage Latency** — Don't run your models off SD cards.
-
-
-The initial model load time on an SD card was over 45 seconds.
-
-
-By switching to an **NVMe SSD** via the PCIe HAT, load times dropped to under 8 seconds.
-
+3. **Storage Latency** — Don't run your models off SD cards. The initial model load time on an SD card was over 45 seconds. By switching to an **NVMe SSD** via the PCIe HAT, load times dropped to under 8 seconds.
 
 ## Where This Goes
 
-
-I'm currently experimenting with **Distroless Ollama Containers**.
-
-
-The goal is to strip away the entire Linux userland and run Ollama as a minimal binary.
-
-
-This squeezes an extra 5-10% of RAM for larger parameter models.
-
-
-The lab is a game of millimeters.
+I'm currently experimenting with **Distroless Ollama Containers**. The goal is to strip away the entire Linux userland and run Ollama as a minimal binary. This squeezes an extra 5-10% of RAM for larger parameter models. The lab is a game of millimeters.
