@@ -12,7 +12,7 @@ aiSummary: "Rohit analyzes the cost-to-performance ratio of Apple Silicon for LL
   Stop chasing 24GB NVIDIA cards. For local LLM inference, Video RAM (VRAM) is the only metric that matters, and Apple's Unified Memory Architecture (UMA) is the most cost-effective way to get 64GB+ of it. This post explains why a Mac Mini M4 Pro is the silent, high-density heart of my lab's reasoning layer.
 </TLDR>
 
-If you're building a lab in a DFW suburb, you quickly learn that power draw and heat are your biggest enemies. I spent years fighting with a dual-3090 PC build that sounded like a jet engine and turned my office into a sauna every time an agent ran a background task. Then I switched to a Mac Mini M4 Pro with 64GB of unified memory. It’s silent, it draws less power than a desk lamp, and it runs Llama 3-70B models at usable speeds. For the first time, the hardware has become invisible, which is the ultimate goal of any engineering lab.
+If you're building a lab in a DFW suburb, you quickly learn that power draw and heat are your biggest enemies. I spent months fighting with a 3090 PC build that sounded like a jet engine and turned my office into a sauna every time an agent ran a background task. Then I switched to a Mac Mini M4 Pro with 64GB of unified memory. It’s silent, it draws less power than a desk lamp, and it runs Llama 3-70B models at usable speeds. For the first time, the hardware has become invisible, which is the ultimate goal of any engineering lab.
 
 ## The Architecture
 

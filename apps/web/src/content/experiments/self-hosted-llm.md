@@ -1,8 +1,8 @@
----
+﻿---
 title: "Self-Hosted LLM Lab"
 description: "Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels."
 summary: "Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels. This experiment explores the limits of edge compute for decentralized intelligence."
-aiSummary: "Deployed a distributed Llama 3 instance across a 4-node Raspberry Pi 5 cluster using Ollama. Used Cloudflare Tunnels for secure remote CLI access to the private intelligence layer."
+aiSummary: "Deployed a concurrent Ollama inference cluster across a 3-node Raspberry Pi 5 cluster (16GB each). Used Cloudflare Tunnels with Access policies for secure remote CLI access to the private intelligence layer."
 status: "completed"
 startDate: "June 2025"
 stack:
@@ -29,18 +29,17 @@ The goal wasn't just raw performance. It was about **sovereignty**—having a pr
 
 ## Architecture: The ARM Intelligence Layer
 
-The cluster consists of four Raspberry Pi 5s (8GB) networked via a high-speed switch. Each node runs a headless Ubuntu Server environment, with **Ollama** serving as the core inference engine.
+The cluster consists of three Raspberry Pi 5s (16GB) networked via a high-speed switch. Each node runs a headless Ubuntu Server environment with an M.2 NVMe 256GB SSD, and **Ollama** serving as the core inference engine. Rather than splitting a single model across nodes, each Pi runs its own Ollama instance and handles independent requests concurrently.
 
 ```mermaid
 graph TD
     subgraph "External Access"
-        U[User CLI] --> CT[Cloudflare Tunnel]
+        U[User CLI] -->CT[Cloudflare Tunnel + Access]
     end
-    subgraph "The Cluster (Pi 5 x 4)"
-        CT --> P1[Node 1: Master]
+    subgraph "The Cluster (Pi 5 x 3)"
+        CT --> P1[Node 1: Primary]
         P1 --> P2[Node 2: Worker]
         P1 --> P3[Node 3: Worker]
-        P1 --> P4[Node 4: Worker]
     end
     subgraph "Storage"
         P1 --> SSD[NVMe Shared Storage]
@@ -66,7 +65,7 @@ sudo systemctl enable ollama
 
 ### 2. Secure Remote Access via Cloudflare Tunnels
 
-I refuse to open ports on my home firewall. Instead, I use **Cloudflare Tunnels** (`cloudflared`) to create a secure, encrypted connection. This links the lab's master node securely to the internet.
+I refuse to open ports on my home firewall. Instead, I use **Cloudflare Tunnels** (`cloudflared`) to create a secure, encrypted connection. This links the lab's primary node securely to the internet. I layer **Cloudflare Access** on top to require authentication---without it, Ollama's API has no built-in auth and would be wide open to anyone who discovers the hostname.
 
 ```yaml
 # config.yml for Cloudflare Tunnel
@@ -91,11 +90,11 @@ ollama run llama3 "Summarize these lab logs."
 
 ## What I Learned (The "How" of Bottlenecks)
 
-1. **Memory Bandwidth is the Real Ceiling** — While the Pi 5 is fast, its memory bandwidth is the primary bottleneck. For ARM clusters, **Concurrency** is a much better use of hardware than model splitting. Handling 4 different small requests on 4 different nodes beats model parallelism over Gigabit Ethernet.
+1. **Memory Bandwidth is the Real Ceiling** — While the Pi 5 is fast, its memory bandwidth is the primary bottleneck. For ARM clusters, **Concurrency** is a much better use of hardware than model splitting. Handling 3 different small requests on 3 different nodes beats model parallelism over Gigabit Ethernet.
 
-2. **Power Stability** — A 4-node cluster draws significant power under load (~45-50W). I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes. This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
+2. **Power Stability** — A 3-node cluster draws significant power under load (~35-40W). I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes. This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
 
-3. **Storage Latency** — Don't run your models off SD cards. The initial model load time on an SD card was over 45 seconds. By switching to an **NVMe SSD** via the PCIe HAT, load times dropped to under 8 seconds.
+3. **Storage Latency** — Don't run your models off SD cards. The initial model load time on an SD card was over 45 seconds. By switching to an **M.2 NVMe 256GB SSD** via the M.2 HAT, load times dropped to under 8 seconds.
 
 ## Where This Goes
 

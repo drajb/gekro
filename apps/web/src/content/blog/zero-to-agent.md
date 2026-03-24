@@ -56,7 +56,9 @@ class BasicAgent:
             self.state["iterations"] += 1
             print(f"\n--- Cycle {self.state['iterations']} ---")
             
-            # SENSE: Get system stats (Mocked for example)
+            # SENSE: Get system stats
+            # In production, use psutil.cpu_percent(), MQTT subscriptions, or API calls.
+            # This static string is for demonstration only.
             context = "System Load: 85%, Temperature: 78C, Network: Latent"
             
             # THINK: Ask the Brain what to do

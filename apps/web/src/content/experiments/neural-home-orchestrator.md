@@ -2,7 +2,7 @@
 title: "Neural Home Orchestrator"
 description: "A localized agentic system for managing home automation and energy efficiency."
 summary: "A localized agentic system for managing home automation and energy efficiency. This experiment integrates local LLMs with Home Assistant to create a truly private, intelligent home controller."
-aiSummary: "Integrated Home Assistant with Together AI and local Ollama instances to automate home energy routines based on real-time occupancy and tariff data. Achieved a 15% reduction in vampire power draw via intelligent context-aware orchestration."
+aiSummary: "Integrated Home Assistant with Together AI and local Ollama instances to automate home energy routines based on real-time occupancy and tariff data. Uses local-first inference for privacy-sensitive commands with optional cloud escalation for complex reasoning."
 status: "active"
 startDate: "October 2025"
 stack:
@@ -25,7 +25,7 @@ Smart homes today aren't smart; they are just remote-controlled. Most solutions 
 
 Knowing that when I'm in a deep work session, the lights should stay cool and notifications should be silenced. When I'm winding down, the environment should shift automatically. The goal was to replace static rules with a dynamic **Neural Controller**.
 
-This controller reasons about my needs using a local LLM or a cloud-based inference provider. Absolute privacy was the starting point. No data about my home state should live on a third-party server without encryption.
+This controller reasons about my needs using a local LLM or a cloud-based inference provider. Privacy is enforced by default: all reactive home commands (lights, HVAC, plugs) are processed exclusively by a local Ollama instance on my Raspberry Pi. Cloud inference via Together AI is only triggered for complex, non-sensitive planning tasks—like optimizing the weekly energy schedule—and the prompts are stripped of identifiable data before being sent.
 
 ---
 

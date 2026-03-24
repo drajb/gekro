@@ -16,14 +16,14 @@ Most developers treat an LLM like a glorified database query—a synchronous req
 
 ## The Architecture
 
-My lab is distributed. I don't believe in putting all my compute in one basket. My Tesla doesn't rely on the cloud to stay in its lane; my lab shouldn't rely on a single Vercel deployment to remain smart.
+My lab is distributed. I don't believe in putting all my compute in one basket. A single deployment going down shouldn't take the lab's intelligence offline; the architecture should survive any individual failure.
 
 ```mermaid
 graph TD
     subgraph "The Body (Astro 4)"
         UI[Web Interface] -->|Fetch| API[FastAPI Gateway]
     end
-    subgraph "The Nervous System (Redis/ZeroMQ)"
+    subgraph "The Nervous System (Redis)"
         API <--> QUEUE[Task Queue]
     end
     subgraph "The Brain (Python 3.12)"
@@ -71,10 +71,11 @@ async def run_thought_cycle(task: Task, background_tasks: BackgroundTasks):
     return {"status": "accepted", "session_id": task.session_id}
 
 def expensive_reasoning(prompt, sid):
-    # Logic to call LLM, parse logs, or run shell scripts
-    # ...
+    from gekro_client import GekroLLMClient
+    client = GekroLLMClient()
+    result = client.chat([{"role": "user", "content": prompt}])
     r.set(f"status:{sid}", "completed")
-    r.set(f"result:{sid}", "Logic implemented successfully.")
+    r.set(f"result:{sid}", result)
 ```
 
 ### 2. The Body: Astro Request Pattern

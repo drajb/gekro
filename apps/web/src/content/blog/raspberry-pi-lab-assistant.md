@@ -35,8 +35,8 @@ graph LR
 
 | Component | Hardware / Software | Role |
 | :--- | :--- | :--- |
-| **Board** | Raspberry Pi 5 (8GB) | High-performance ARM compute. |
-| **Storage** | PCIe HAT + NVMe Gen 3 SSD | Prevents SD card corruption and speeds up I/O. |
+| **Board** | Raspberry Pi 5 (16GB) | High-performance ARM compute. |
+| **Storage** | M.2 HAT + NVMe 256GB SSD | Prevents SD card corruption and speeds up I/O. |
 | **Broker** | Mosquitto (Docker) | The "Post Office" for all lab telemetry. |
 | **Scheduler** | Cron / Supercronic | Triggers nightly research and cleanup agents. |
 

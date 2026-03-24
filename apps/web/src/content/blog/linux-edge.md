@@ -1,4 +1,4 @@
----
+﻿---
 title: "The Linux Edge: Why AI Breathes Better in the Kernel"
 description: "Why I stopped fighting Windows registry errors and moved my entire AI engineering lab to WSL2 and Ubuntu Server."
 publishedAt: "2026-02-22"

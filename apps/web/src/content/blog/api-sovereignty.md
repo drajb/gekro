@@ -1,4 +1,4 @@
----
+﻿---
 title: "API Sovereignty: Building for the 2 AM Failure"
 description: "Why generic API wrappers are a liability and how to build a resilient, multi-provider fallback chain."
 publishedAt: "2026-03-15"
@@ -12,11 +12,11 @@ aiSummary: "Rohit implements a multi-provider LLM client with automatic fallback
   Hardcoding a single AI provider is architectural negligence. I built a unified LLM client that prioritizes Together AI but fails over to local Ollama instances automatically when the cloud goes dark. This post breaks down the GekroLLMClient pattern that keeps my lab running 24/7 without manual intervention.
 </TLDR>
 
-It’s 2 AM in Dallas. A routine cron job triggers an agent to summarize my server logs. OpenAI’s API returns a 503. In a standard setup, the pipeline dies, a notification wakes me up, and I lose an hour of sleep fixing a dependency I don't control. In my lab, that failure is invisible. The system detects the timeout, catches the exception, and reroutes the request to a Llama 3 instance running on a Raspberry Pi in my closet. Resilience isn't a feature; it's a requirement for sovereignty.
+It’s 2 AM in Dallas. A routine cron job triggers an agent to summarize my server logs. Together AI's API returns a 503. In a standard setup, the pipeline dies, a notification wakes me up, and I lose an hour of sleep fixing a dependency I don't control. In my lab, that failure is invisible. The system detects the timeout, catches the exception, and reroutes the request to a Llama 3 instance running on one of my Raspberry Pis. Resilience isn't a feature; it's a requirement for sovereignty.
 
 ## The Architecture
 
-The core philosophy is simple: **Local by default, Cloud by necessity, Fallback by design.** I don't treat local and cloud models as different species; they are just different compute nodes in the same network.
+The core philosophy is simple: **Cloud for power, Local for resilience, Fallback by design.** I use cloud providers for heavy-lifting inference but ensure every request has a local escape hatch. I don't treat local and cloud models as different species; they are just different compute nodes in the same network.
 
 | Feature | Cloud (Together AI / Anthropic) | Local (Ollama on Pi/Mac) |
 | :--- | :--- | :--- |
@@ -94,7 +94,7 @@ I don't trust my code until I've seen it fail. This pytest suite simulates a net
 ```python
 import pytest
 from unittest.mock import patch, MagicMock
-from your_module import GekroLLMClient
+from gekro_client import GekroLLMClient
 
 def test_fallback_logic():
     client = GekroLLMClient()
@@ -119,7 +119,9 @@ If you're running this on Windows, ensure your `OLLAMA_HOST` is set to `http://1
 
 Let's be honest: fallback logic adds latency. A failed cloud call plus 3 retries takes about 7 seconds before the local model even starts thinking. For real-time chat, that’s a "broken" UI. But for the background agents that run Gekro—log parsers, automated research, and code indexers—7 seconds of latency is better than a total system crash.
 
-The biggest hidden cost is **Context Management**. If I'm using a 128k context model in the cloud and fall back to an 8k model locally, the local model will hallucinate or crash if the prompt is too long. I learned this the hard way when my nightly summary agent tried to feed a local Llama 3-8B a 50k token log file and the Pi cluster just went into a kernel panic. You have to truncate aggressively during fallback.
+There's also a **Quality Cliff**. A Llama 3-70B on Together AI and a quantized Llama 3-8B on a Pi are fundamentally different brains. The calling code sees the same interface, but the local model's responses are shorter, less nuanced, and more prone to missing edge cases. For structured extraction or summarization, the gap is manageable. For complex reasoning, the local fallback is a bandage, not a cure. Design your agents to tolerate degraded output during fallback, not just degraded speed.
+
+The biggest hidden cost is **Context Management**. If I'm using a 128k context model in the cloud and fall back to an 8k model locally, the local model will hallucinate or crash if the prompt is too long. I learned this the hard way when my nightly summary agent tried to feed a local Llama 3-8B a 50k token log file and the OOM killer terminated the process mid-inference. You have to truncate aggressively during fallback.
 
 ## Where This Goes
 

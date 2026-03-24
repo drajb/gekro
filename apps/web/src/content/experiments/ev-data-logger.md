@@ -1,8 +1,8 @@
----
+﻿---
 title: "EV Data Logger"
 description: "Self-hosted TeslaMate instance for Model Y telemetry and solar charging optimization."
 summary: "Transitioned from a custom TypeScript listener to a self-hosted TeslaMate fork running on a Raspberry Pi 5. Tracks every drive, charge, and phantom drain on my Model Y with 100% data sovereignty."
-aiSummary: "Deployed a self-hosted TeslaMate instance in Docker to monitor his Tesla Model Y. Optimized charging cycles against solar production peaks using MQTT telemetry, achieving 100% grid-independent charging."
+aiSummary: "Deployed a self-hosted TeslaMate instance in Docker to monitor his Tesla Model Y. Optimized charging cycles against solar production peaks using MQTT telemetry to maximize solar-offset charging."
 status: "active"
 startDate: "June 2024"
 stack:
@@ -30,7 +30,7 @@ However, the maintenance overhead of handle-signing and OAuth rotation was steal
 
 ## Architecture: The TeslaMate Core
 
-I've migrated the entire logging stack to a self-hosted fork of [TeslaMate](https://github.com/teslamate-org/teslamate). It runs in a Docker-compose stack on my **Raspberry Pi 5**. This ensures that my vehicle's location and state history never leave my local network.
+I've migrated the entire logging stack to a self-hosted instance of [TeslaMate](https://github.com/teslamate-org/teslamate). It runs in a Docker-compose stack on my **Raspberry Pi 5 (16GB)**. This ensures that my vehicle's location and state history never leave my local network.
 
 ```mermaid
 graph TD
@@ -88,7 +88,7 @@ Once TeslaMate is running, it publishes a rich stream of data to Mosquitto. I us
 
 ## What I Learned
 
-1. **Self-Hosting is Resilience** — By fork-hosting TeslaMate, I’ve gained historical insights that the official Tesla app simply doesn't provide. I can now see precise degradation curves over **20,000 miles** without worrying about Tesla's API changing the UI tomorrow.
+1. **Self-Hosting is Resilience** — By hosting TeslaMate locally, I’ve gained historical insights that the official Tesla app simply doesn't provide. I can now see precise degradation curves over **20,000 miles** without worrying about Tesla's API changing the UI tomorrow.
 
 2. **The Docker Advantage** — Using the [TeslaMate Repo](https://github.com/teslamate-org/teslamate) structure within Docker allowed me to deploy the entire stack—Postgres, Grafana, and MQTT—in under 10 minutes on the Pi.
 
@@ -96,4 +96,4 @@ Once TeslaMate is running, it publishes a rich stream of data to Mosquitto. I us
 
 ## Where This Goes
 
-The next step is a **Predictive Charging Agent**. By combining weather forecasts with my Model Y's current SoC via TeslaMate's MQTT stream, the lab will autonomously decide whether to charge *now* or wait for a solar peak. Total automation means the car is always fueled by the sun, scheduled by the Brain.
+The next step is a **Predictive Charging Agent**. By combining weather forecasts with my Model Y's current SoC via TeslaMate's MQTT stream, the lab will autonomously decide whether to charge *now* or wait for a solar peak. The goal is to maximize solar-offset charging---getting as close to grid-independent as possible, measured by net-metering credits over a full billing cycle.
