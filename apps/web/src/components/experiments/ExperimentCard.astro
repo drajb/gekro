@@ -1,16 +1,15 @@
----
 interface Props {
   experiment: {
     title: string;
-    slug: { current: string };
     summary: string;
     status: 'active' | 'completed' | 'archived';
     stack: string[];
     mainImage?: string;
   };
+  slug: string;
 }
 
-const { experiment } = Astro.props;
+const { experiment, slug } = Astro.props;
 
 const statusColors = {
   active: 'text-accent border-accent/20 bg-accent/5',
@@ -20,7 +19,7 @@ const statusColors = {
 ---
 
 <a 
-  href={`/experiments/${experiment.slug.current}`}
+  href={`/experiments/${slug}`}
   class="post-card group relative block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent/50 opacity-0 transform translate-y-4"
 >
   <div class="flex flex-col h-full justify-between gap-6">
