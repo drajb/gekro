@@ -4,7 +4,8 @@ description: "Why my Pi is the most important member of my AI team."
 publishedAt: "2026-02-15"
 difficulty: "Beginner"
 topics: ["Hardware", "Raspberry Pi", "AI Agents"]
-readingTime: 6
+readingTime: 8
+tldr: "Don't waste your Mac Mini's power on background tasks. A Raspberry Pi 5 is the perfect 'Always-On' node for your AI lab. It handles the cron jobs, the webhooks, and the small agents, leaving your main machine free for heavy reasoning."
 ---
 
 In a world of multi-billion dollar data centers, there is still a place for the **$80 computer**. 
@@ -12,11 +13,6 @@ In a world of multi-billion dollar data centers, there is still a place for the 
 When I first started building **gekro.com**, I realized that I didn't want my main workstation (the "Brain") running 24/7 just to handle small, repetitive tasks like monitoring webhooks or triggering scheduled agents. I needed a reliable anchor—an assistant that never sleeps.
 
 ---
-
-## TL;DR
-
-> [!NOTE]
-> Don't waste your Mac Mini's power on background tasks. A **Raspberry Pi 5** is the perfect "Always-On" node for your AI lab. It handles the cron jobs, the webhooks, and the small agents, leaving your main machine free for heavy reasoning.
 
 ---
 

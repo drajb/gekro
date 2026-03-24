@@ -4,7 +4,8 @@ description: "Why I spent my budget on RAM instead of a PC GPU."
 publishedAt: "2026-03-01"
 difficulty: "Intermediate"
 topics: ["Hardware", "Apple Silicon", "LLMs"]
-readingTime: 6
+readingTime: 8
+tldr: "Stop buying GPUs with 8GB of VRAM. For local LLMs, the GPU VRAM is the bottleneck. The Mac's Unified Memory Architecture allows the system memory to act as VRAM, meaning a Mac Mini with 64GB of RAM can run massive AI models."
 ---
 
 If you told me 5 years ago that the most cost-effective hardware for running a 70-billion parameter AI model was a **Mac Mini**, I wouldn't have believed you.
@@ -12,11 +13,6 @@ If you told me 5 years ago that the most cost-effective hardware for running a 7
 But today, the **M-series Mac Mini** (specifically the M4) has become the unofficial king of the local AI lab. In this post, I'll explain why I pivoted my entire hardware strategy to Apple Silicon.
 
 ---
-
-## TL;DR
-
-> [!NOTE]
-> Stop buying GPUs with 8GB of VRAM. For local LLMs, the **GPU VRAM** is the bottleneck. The Mac's **Unified Memory Architecture** allows the system memory to act as VRAM, meaning a Mac Mini with 64GB of RAM can run massive AI models that would require two $1,500 GPUs on a PC.
 
 ---
 
@@ -72,5 +68,9 @@ This makes the Mac Mini not just a "learning" tool, but a production-ready serve
 Before the M-series revolution, I spent hours trying to configure NVIDIA drivers on Linux only to have them break after an update. 
 
 **What I learned:** For a lab to be effective, the hardware must be **Invisible**. I don't want to spend my weekend fixing drivers; I want to spend it building agents. The Mac Mini M4 is the first piece of hardware that truly allows me to focus on the intelligence of the agents rather than the temperature of my GPU. It is the silent, powerful heart of Gekro.
+
+### Lab Insights:
+*   **The RAM Factor**: If you can't afford 64GB, 32GB is the strict floor for 2026. Models are getting smarter, but they aren't getting smaller. 
+*   **Thermals Matter**: Even though it's quiet, keep the Mac Mini in a well-ventilated spot. Sustained inference (30+ mins) will generate heat, and you don't want it to throttle your TPS.
 
 Next Up: **Terminal Velocity**—How to use the CLI to build at 10x speed.

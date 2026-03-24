@@ -20,6 +20,22 @@ const currentYear = new Date().getFullYear();
         <a href="https://github.com/drajb" target="_blank" rel="noopener noreferrer" class="w-10 h-10 flex items-center justify-center rounded-full border border-border text-text-muted hover:border-accent hover:text-accent transition-all">gh</a>
       </div>
       <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest pt-4">© {currentYear} gekro.</p>
+      <div class="flex items-center gap-2 pt-2">
+        <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
+        <p class="text-[9px] font-mono text-text-muted uppercase tracking-widest">
+          Last System Sync: <span id="sync-time" class="text-text-secondary">--:--:--</span>
+        </p>
+      </div>
+
+      <script is:inline>
+        function updateSyncTime() {
+          const now = new Date();
+          const time = now.toLocaleTimeString('en-GB', { hour12: false });
+          const syncEl = document.getElementById('sync-time');
+          if (syncEl) syncEl.innerText = `${time} UTC`;
+        }
+        updateSyncTime();
+      </script>
     </div>
 
     <div class="grid grid-cols-2 gap-8">

@@ -32,25 +32,47 @@ const photos = [
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8">
-    {photos.map((photo) => (
+    {photos.map((photo, i) => (
       <div 
         class="lab-photo group relative bg-white p-4 pb-12 shadow-xl transition-all duration-500 hover:scale-105 hover:z-20 hover:-rotate-0"
         style={`transform: rotate(${photo.rotation});`}
       >
-        <div class="overflow-hidden bg-bg-base aspect-[4/3] relative">
-          <img 
-            src={photo.src} 
-            alt={photo.alt}
-            class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-          />
-          <div class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+        <div class="overflow-hidden bg-bg-base aspect-[4/3] relative flex items-center justify-center p-6 border border-zinc-100">
+          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent"></div>
+          
+          {i === 0 && (
+            <svg viewBox="0 0 200 150" fill="none" class="w-full h-full opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">
+              <rect x="40" y="30" width="120" height="90" rx="8" stroke="var(--color-accent)" stroke-width="1.5" />
+              <circle cx="100" cy="75" r="20" stroke="var(--color-accent)" stroke-width="1" stroke-dasharray="4 2" />
+              <path d="M40 50h120M40 75h120M40 100h120M80 30v90M120 30v90" stroke="var(--color-text-muted)" stroke-width="0.5" stroke-opacity="0.2" />
+              <text x="100" y="140" text-anchor="middle" class="fill-accent font-mono text-[6px] uppercase tracking-widest">N-Cluster // v1.2</text>
+            </svg>
+          )}
+          
+          {i === 1 && (
+            <svg viewBox="0 0 200 150" fill="none" class="w-full h-full opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">
+              <path d="M100 20v40M60 100l40-40 40 40" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" />
+              <circle cx="100" cy="60" r="10" stroke="var(--color-accent)" stroke-width="1" />
+              <path d="M30 130c20-40 120-40 140 0" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="4 4" />
+              <text x="100" y="140" text-anchor="middle" class="fill-accent font-mono text-[6px] uppercase tracking-widest">Tesla-Link // Active</text>
+            </svg>
+          )}
+
+          {i === 2 && (
+            <svg viewBox="0 0 200 150" fill="none" class="w-full h-full opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">
+              <rect x="30" y="40" width="140" height="70" rx="4" stroke="var(--color-text-muted)" stroke-width="1" />
+              <path d="M30 75h140" stroke="var(--color-text-muted)" stroke-width="0.5" />
+              <path d="M50 75v10M70 75v-5M90 75v15M110 75v-8M130 75v12M150 75v-4" stroke="var(--color-accent)" stroke-width="1.5" />
+              <text x="100" y="140" text-anchor="middle" class="fill-accent font-mono text-[6px] uppercase tracking-widest">Signal_Core // Lab.03</text>
+            </svg>
+          )}
         </div>
         <div class="mt-6 text-center">
           <span class="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">{photo.caption}</span>
         </div>
         
         <!-- Tape effect -->
-        <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-white/20 backdrop-blur-sm -rotate-2 opacity-50"></div>
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-8 bg-zinc-200/40 backdrop-blur-sm -rotate-2 opacity-50"></div>
       </div>
     ))}
   </div>

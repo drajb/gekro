@@ -4,7 +4,9 @@ publishedAt: "2026-03-24"
 description: "Stop switching to a browser. Keep your hands on the keyboard. Simple bash wrappers for instant Git commits and file operations."
 summary: "Stop switching to a browser. Keep your hands on the keyboard. Simple bash wrappers for instant Git commits and file operations."
 topics: ["Workflow", "CLI"]
-readingTime: 4
+topics: ["Workflow", "CLI"]
+readingTime: 6
+tldr: "The GUI is a lie. For AI development, the Command Line Interface (CLI) is the only way to move at the speed of thought. By combining terminal shortcuts with AI-powered CLI tools, you can automate your entire workflow in seconds."
 ---
 
 In a modern AI lab, your speed is limited by your interface. If you're constantly clicking through folders and menus, you're losing the "Flow State" that is required for complex engineering.
@@ -12,11 +14,6 @@ In a modern AI lab, your speed is limited by your interface. If you're constantl
 To build at **Terminal Velocity**, you need to stop using your mouse and start using your keyboard.
 
 ---
-
-## TL;DR
-
-> [!NOTE]
-> The GUI is a lie. For AI development, the **Command Line Interface (CLI)** is the only way to move at the speed of thought. By combining terminal shortcuts with AI-powered CLI tools, you can automate your entire workflow in seconds.
 
 ---
 
@@ -29,9 +26,6 @@ A lot of beginners are afraid of the blinking cursor. They think it's "old schoo
 2.  **Automation**: You can't "Copy-Paste" a series of mouse clicks into a script. But you can pipe terminal commands together to build complex data pipelines.
 3.  **AI Integration**: Most of the best AI tools (like `fabric`, `ollama-cli`, or `gh-cli`) are built for the terminal. They are meant to be fast, text-based, and scriptable.
 
-
----
-> GUIs are for consumers; terminals are for creators. To build agents at scale, you must master the CLI. It allows for automation, piped logic, and instant AI integration that no mouse-driven interface can match. 
 
 ---
 

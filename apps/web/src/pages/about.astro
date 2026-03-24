@@ -11,9 +11,26 @@ import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
       <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
         Building at the edge.
       </h1>
-      <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative">
-         <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 to-transparent"></div>
-         <span class="absolute bottom-8 left-8 text-xs font-mono text-text-muted italic">// Lab Photo Placeholder</span>
+      <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative flex items-center justify-center p-12">
+          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent"></div>
+          
+          <!-- Stylized Lab Schematic SVG -->
+          <svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full max-w-md opacity-40">
+            <circle cx="200" cy="100" r="40" stroke="var(--color-accent)" stroke-width="1" stroke-dasharray="4 4" />
+            <circle cx="200" cy="100" r="10" fill="var(--color-accent)" />
+            
+            <path d="M200 60V20M200 140V180M160 100H120M240 100H280" stroke="var(--color-text-muted)" stroke-width="1" />
+            <circle cx="200" cy="20" r="4" fill="var(--color-text-muted)" />
+            <circle cx="200" cy="180" r="4" fill="var(--color-text-muted)" />
+            <circle cx="120" cy="100" r="4" fill="var(--color-text-muted)" />
+            <circle cx="280" cy="100" r="4" fill="var(--color-text-muted)" />
+            
+            <path d="M140 160L170 130M260 40L230 70" stroke="var(--color-text-muted)" stroke-width="1" stroke-dasharray="2 2" />
+            
+            <text x="200" y="165" text-anchor="middle" class="fill-text-muted font-mono text-[8px] uppercase tracking-widest">Neural Orchestrator // Rev 2.1</text>
+          </svg>
+          
+          <span class="absolute bottom-8 left-8 text-[10px] font-mono text-text-muted uppercase tracking-widest opacity-50">Physical Lab Log // Schematic_01.svg</span>
       </div>
     </header>
 

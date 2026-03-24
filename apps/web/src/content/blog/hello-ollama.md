@@ -3,7 +3,8 @@ title: "Hello, Ollama: Your first local LLM call in 5 lines of code"
 publishedAt: "2026-03-24"
 description: "Running Llama 3 locally is now as easy as a single command. Here is how to talk to it with Python."
 topics: ["Local LLM", "Python"]
-readingTime: 4
+readingTime: 6
+tldr: "Stop paying for tokens. Ollama is a lightweight tool that lets you run models like Llama-3, Mistral, and Phi-3 locally on your Mac, Linux, or Windows machine. Total privacy. Zero cost. Infinite experimentation."
 ---
 
 Welcome to the ultimate frontier of the lab: **Private, local AI**. 
@@ -14,11 +15,6 @@ This is the final piece of the **gekro lab** puzzle: **Local Inference with Olla
 
 ---
 
-## TL;DR
-
-> [!NOTE]
-> Stop paying for tokens. **Ollama** is a lightweight tool that lets you run models like Llama-3, Mistral, and Phi-3 locally on your Mac, Linux, or Windows machine. Total privacy. Zero cost. Infinite experimentation.
-
 ---
 
 ## Why Local? (The Rationale)
@@ -26,7 +22,7 @@ This is the final piece of the **gekro lab** puzzle: **Local Inference with Olla
 For a long time, AI was something that happened "out there"—in a data center owned by a giant corporation. Local inference changes the power dynamic of the lab.
 
 1.  **Data Sovereignty**: If you are building an agent to organize your taxes or write your journal, you shouldn't have to send that text to a cloud provider. Local AI means your data never leaves your RAM.
-> Stop being a product for Big Tech. **Ollama** allows you to run powerful LLMs (Llama-3, Mistral, Phi-3) directly on your own hardware. It's fast, it's free, and most importantly, it's private. If your data never leaves your room, it can never be leaked.
+---
 
 ---
 

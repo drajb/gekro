@@ -179,6 +179,74 @@ const topics = Array.from(topicCounts.entries())
   </main>
 
   <script>
+    import gsap from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const initHomeAnimations = () => {
+      const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (isReducedMotion) return;
+
+      // 1. Section Headers Reveal
+      gsap.utils.toArray('section > div:first-child').forEach((header: any) => {
+        gsap.from(header, {
+          scrollTrigger: {
+            trigger: header,
+            start: "top 90%",
+            toggleActions: "play none none none"
+          },
+          y: 30,
+          opacity: 0,
+          duration: 1,
+          ease: "expo.out"
+        });
+      });
+
+      // 2. Experiment Cards Stagger
+      gsap.from('.experiment-card-wrapper', {
+        scrollTrigger: {
+          trigger: '.experiment-card-wrapper',
+          start: "top 85%",
+        },
+        y: 60,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.15,
+        ease: "power3.out"
+      });
+
+      // 3. Post Cards Stagger
+      gsap.from('.post-card-wrapper', {
+        scrollTrigger: {
+          trigger: '.post-card-wrapper',
+          start: "top 85%",
+        },
+        x: -40,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.1,
+        ease: "power2.out"
+      });
+
+      // 4. Sidebar Elements Reveal
+      gsap.from('aside > div', {
+        scrollTrigger: {
+          trigger: 'aside',
+          start: "top 80%",
+        },
+        y: 40,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power2.out"
+      });
+    };
+
+    // Run on first load and after view transitions
+    initHomeAnimations();
+    document.addEventListener('astro:after-swap', initHomeAnimations);
+
     // Newsletter Form Logic
     const form = document.getElementById('newsletter-form') as HTMLFormElement;
     const content = document.querySelector('.newsletter-content') as HTMLElement;

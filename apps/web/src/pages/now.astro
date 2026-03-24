@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
+---
+
+<BaseLayout title="/now | gekro" description="What is happening in the lab right now.">
+  <HeroCanvasNeural />
+  
+  <main class="relative z-10 max-w-4xl mx-auto px-6 py-32 space-y-24">
+    <header class="space-y-6">
+      <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
+        Now.
+      </h1>
+      <p class="text-xl text-text-secondary max-w-xl font-mono uppercase tracking-widest opacity-60">
+        Current focus areas & lab status
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <section class="space-y-8">
+        <div class="p-8 bg-bg-elevated rounded-2xl border border-border space-y-4">
+          <div class="flex items-center gap-3">
+             <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+             <h2 class="text-xl font-heading font-medium text-text-primary">Primary Directive</h2>
+          </div>
+          <p class="text-text-secondary leading-relaxed">
+            Scaling the **Gekro Lab** architecture. Migrating from monolithic scripts to a distributed agentic framework using LangGraph and localized Ollama clusters.
+          </p>
+        </div>
+
+        <div class="p-8 bg-bg-elevated rounded-2xl border border-border space-y-4">
+          <h2 class="text-xl font-heading font-medium text-text-primary">Hardware Status</h2>
+          <ul class="space-y-3 font-mono text-sm text-text-secondary">
+            <li class="flex justify-between">
+              <span>Neural-Core (Mac Mini M4)</span>
+              <span class="text-accent">ONLINE</span>
+            </li>
+            <li class="flex justify-between">
+              <span>Edge-Node-01 (Pi 5)</span>
+              <span class="text-accent">ACTIVE</span>
+            </li>
+            <li class="flex justify-between">
+              <span>Tesla-Link API</span>
+              <span class="text-zinc-500">STANDBY</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="space-y-8">
+        <div class="space-y-6">
+          <h2 class="text-2xl font-heading text-text-primary">Currently Reading/Thinking</h2>
+          <ul class="space-y-6">
+            <li class="border-l-2 border-accent pl-6 py-1">
+              <h3 class="font-heading text-lg text-text-primary">Agentic Workflow Patterns</h3>
+              <p class="text-sm text-text-secondary mt-1">Exploring the transition from human-in-the-loop to fully autonomous corrective loops.</p>
+            </li>
+            <li class="border-l-2 border-border pl-6 py-1">
+              <h3 class="font-heading text-lg text-text-primary">Tesla Fleet API Telemetry</h3>
+              <p class="text-sm text-text-secondary mt-1">Mapping real-time car state to private dashboard for energy optimization.</p>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="pt-8 text-xs font-mono text-text-muted">
+          LAST UPDATED: 2026-03-24 // 14:00 UTC
+        </div>
+      </section>
+    </div>
+  </main>
+</BaseLayout>

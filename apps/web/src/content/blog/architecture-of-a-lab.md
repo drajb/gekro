@@ -5,7 +5,8 @@ summary: "Why I stopped using Next.js and moved to an Agentic split-architecture
 publishedAt: "2026-02-08"
 difficulty: "Intermediate"
 topics: ["Architecture", "AI Agents", "Astro"]
-readingTime: 7
+readingTime: 10
+tldr: "Stop building monoliths. An AI lab needs a clear separation: Python (The Brain) handles the logic and model interaction, while Astro (The Body) handles the high-performance user interface. This split is the secret to scaling autonomous systems."
 ---
 
 Most developers make a fatal architectural mistake: they try to make their AI do everything inside a single monolithic application. They treat the LLM like another API endpoint.
@@ -13,11 +14,6 @@ Most developers make a fatal architectural mistake: they try to make their AI do
 In this lab, I've pioneered a different approach. I split the **Brain** (Intelligence) from the **Body** (Interface). This isn't just a design pattern; it's a philosophy of agency.
 
 ---
-
-## TL;DR
-
-> [!NOTE]
-> Stop building monoliths. An AI lab needs a clear separation: **Python (The Brain)** handles the logic and model interaction, while **Astro (The Body)** handles the high-performance user interface. This split is the secret to scaling autonomous systems.
 
 ---
 
@@ -65,7 +61,11 @@ Instead of hardcoding a specific AI provider, I build an abstraction layer. This
 
 Architecting a lab is about managing **Cognitive Load**. If you try to manage your web styles and your neural weights in the same mental space, you will burn out.
 
-**What I learned:** Architecture is about **Respecting the Tools**. Let Python be great at logic, and let Astro be great at display. When you stop forcing tools to do things they weren't meant for, your lab starts to feel like magic.
+**What I learned:** Architecture is about **Respecting the Tools**. Let Python be great at logic, and let Astro be great at display. When you stop forcing tools to do things they weren't meant for, your lab starts to feel like magic. 
+
+### My Architect's Insights:
+*   **Decouple or Die**: If your frontend is making direct DB calls for AI state, you've already lost. Use an intermediate "Nervous System" (API layer).
+*   **Stateless Brains**: Keep your Python agents as stateless as possible. Move state management to the "Body" (Astro/Browser) or a dedicated cache like Redis.
 
 Next Up: **The Raspberry Pi Assistant**—Moving your agents to the edge.
 
