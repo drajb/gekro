@@ -14,6 +14,7 @@ const blog = defineCollection({
     // 2-sentence plain-text summary optimised for AI citation (GEO)
     // If missing, BlogLayout falls back to description
     aiSummary: z.string().optional(),
+    mainImage: z.string().optional(),
   }),
 });
 const experiments = defineCollection({
