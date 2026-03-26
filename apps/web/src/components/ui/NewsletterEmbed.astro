@@ -24,17 +24,19 @@ const useEmbed = !!publicationId;
     {useEmbed ? (
       <!-- Real Beehiiv embed -->
       <div class="beehiiv-embed-wrapper">
+        <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
         <iframe
-          src={`https://embeds.beehiiv.com/subscribe?publication_id=${publicationId}&slim=true`}
+          src={`https://subscribe-forms.beehiiv.com/${publicationId}${publicationId.includes('pub_') ? '?slim=true' : ''}`}
           data-test-id="beehiiv-embed"
           width="100%"
-          height="52"
+          height="339"
           frameborder="0"
           scrolling="no"
-          style="border-radius: 0px !important; border: none; overflow: hidden;"
+          style="border-radius: 0px !important; border: none; overflow: hidden; background-color: transparent;"
           loading="lazy"
           title="Subscribe to the gekro newsletter"
         />
+        <script type="text/javascript" async src="https://subscribe-forms.beehiiv.com/attribution.js"></script>
       </div>
     ) : (
       <!-- Fallback form for local dev / when Beehiiv not configured -->
