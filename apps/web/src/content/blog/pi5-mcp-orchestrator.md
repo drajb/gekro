@@ -12,13 +12,13 @@ aiSummary: "A detailed teardown of converting a Raspberry Pi 5 16GB into an isol
 I transformed one of my three Raspberry Pi 5 (16GB + M.2 256GB) nodes into a financially air-gapped orchestration shell that runs fully capable, daily-use AI personal assistants. By utilizing a split-brain architecture where a Master Control Program (MCP) supervises multi-purpose OpenClaw workers, the system can autonomously handle everything from Telegram interfaces to business tool integrations. This approach enforces strict cost-governance over highly capable agents without artificially limiting their abilities, proving that you don't need to choose between advanced AI assistance and predictable API billing.
 </TLDR>
 
-I isolated one of my three Raspberry Pi 5 (16GB + M.2 256GB) nodes to act as a financially air-gapped AI orchestrator governed by a Master Control Program (MCP). The goal wasn't just to cut costs—it was to build a truly capable, multi-purpose AI assistant system I could use daily without watching my "Pro" tier API billing completely vaporize from constant state-maintenance. 
+I isolated one of my three Raspberry Pi 5 (16GB + M.2 256GB) nodes to act as a financially air-gapped AI orchestrator governed by a Master Control Program (MCP). The goal wasn't just to cut costs—it was to build a truly capable, multi-purpose AI assistant system I could use daily without watching my "Pro" tier API billing completely vaporize from constant state-maintenance.
 
 The workers in this system aren't narrow, single-purpose daemons. They are fully functional personal assistants actively monitoring systems, executing autonomous background tasks, interfacing with personal productivity tools, and answering queries via Telegram. However, running these highly capable assistants requires a safeguard. The solution was an aggressive routing strategy: utilizing a central MCP to oversee the environment while running the actual assistants as dockerized background processes through an aggregator with strict account-level spend caps. The Pi is no longer a general-purpose home lab—every other container was purged to make it a dedicated, networked OpenClaw shell.
 
 ## The Architecture
 
-The system operates on a split-brain, tiered architecture. At the root sits the MCP. Instead of hardcoding a single expensive model, the MCP utilizes a `manifest.ai` skill as a built-in router. It dynamically evaluates the complexity of the administrative task and decides which Gemini model to invoke, defaulting to Gemini's native auto mode for baseline efficiency. 
+The system operates on a split-brain, tiered architecture. At the root sits the MCP. Instead of hardcoding a single expensive model, the MCP utilizes a `manifest.ai` skill as a built-in router. It dynamically evaluates the complexity of the administrative task and decides which Gemini model to invoke, defaulting to Gemini's native auto mode for baseline efficiency.
 
 Beneath it, completely isolated on a dedicated Docker bridge network (`claw_net`), sit two task-specific workers. The workers do the heavy lifting via a prepaid OpenRouter connection. The MCP monitors their logs, rewrites their configurations if they fail, and restarts their containers.
 
@@ -30,7 +30,7 @@ Beneath it, completely isolated on a dedicated Docker bridge network (`claw_net`
 
 ## The Build
 
-The transition required wiping the Pi 5 to eliminate port conflicts and CPU overhead. The hardware is now exclusively an OpenClaw host. 
+The transition required wiping the Pi 5 to eliminate port conflicts and CPU overhead. The hardware is now exclusively an OpenClaw host.
 
 First, I needed a clean slate. I executed a total purge of existing infrastructure to ensure no phantom containers chewed up memory or conflicted with my routing layers. Then, I established the isolated network (`claw_net`). The workers need outbound internet for the Telegram API and OpenRouter, but isolating them on their own bridge network guarantees they have no inbound access and cannot see each other's traffic.
 
