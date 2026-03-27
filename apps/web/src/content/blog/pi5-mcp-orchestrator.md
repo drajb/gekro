@@ -48,7 +48,7 @@ I restructured the filesystem in `/opt/openclaw` to reflect the hierarchy, givin
 mkdir -p /opt/openclaw/{mcp,workers/worker-01,workers/worker-02}
 ```
 
-Next, I configured the isolated workers. I locked their authentication to a prepaid $10 OpenRouter key. This physically prevents cost overruns at the API level—if a loop happens, the max damage is ten dollars, not a surprise $500 monthly bill. I also severely capped their token outputs to stop runaway Telegram context loops from burning through allocations.
+Next, I configured the isolated workers. I locked their authentication to a prepaid $10 OpenRouter key. This hard-caps cost overruns at the API level—if a loop happens, the max damage is ten dollars, not a surprise $500 monthly bill. I also severely capped their token outputs to stop runaway Telegram context loops from burning through allocations.
 
 ```bash
 # Configure Worker 01
