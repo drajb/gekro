@@ -30,7 +30,7 @@ Beneath it, completely isolated on a dedicated Docker bridge network (`claw_net`
 
 The transition required wiping the Pi 5 to eliminate port conflicts and CPU overhead. The hardware is now exclusively an OpenClaw host. 
 
-First, I executed a total purge of existing infrastructure and established the isolated network. The workers need outbound internet for the Telegram API and OpenRouter, but no inbound access.
+First, I needed a clean slate. I executed a total purge of existing infrastructure to ensure no phantom containers chewed up memory or conflicted with my routing layers. Then, I established the isolated network (`claw_net`). The workers need outbound internet for the Telegram API and OpenRouter, but isolating them on their own bridge network guarantees they have no inbound access and cannot see each other's traffic.
 
 ```bash
 # Purge all non-essential containers and images
@@ -42,13 +42,13 @@ docker system prune -a --volumes -f
 docker network create --driver bridge claw_net
 ```
 
-I restructured the filesystem in `/opt/openclaw` to reflect the hierarchy, giving the MCP absolute visibility over the workers.
+I restructured the filesystem in `/opt/openclaw` to reflect the hierarchy, giving the MCP absolute visibility over the workers' configuration files.
 
 ```bash
 mkdir -p /opt/openclaw/{mcp,workers/worker-01,workers/worker-02}
 ```
 
-Next, I configured the isolated workers. I locked their authentication to a prepaid $10 OpenRouter key to physically prevent cost overruns, and severely capped their token outputs to stop runaway Telegram context loops.
+Next, I configured the isolated workers. I locked their authentication to a prepaid $10 OpenRouter key. This physically prevents cost overruns at the API level—if a loop happens, the max damage is ten dollars, not a surprise $500 monthly bill. I also severely capped their token outputs to stop runaway Telegram context loops from burning through allocations.
 
 ```bash
 # Configure Worker 01
@@ -66,7 +66,7 @@ openclaw config set agents.defaults.maxOutputTokens 600
 openclaw config set agents.defaults.maxHistoryTurns 8
 ```
 
-I launched the workers attached to the isolated network.
+I launched the workers attached to the isolated network. By mounting their respective configuration directories directly into the containers, the MCP can later step in, read these configs via the Docker socket, and dynamically rewrite them if a worker begins to misbehave.
 
 ```bash
 docker run -d --name worker-01 \
@@ -80,7 +80,7 @@ docker run -d --name worker-02 \
   openclaw/core:latest
 ```
 
-Finally, the Master Control Program. The MCP requires Google AI credentials, but to prevent unnecessary token burn, I implemented the `manifest.ai` routing skill. I mounted the Docker socket and the root `/opt/openclaw/workers` directory into its container so it could supervise the sub-processes.
+Finally, the Master Control Program. The MCP requires Google AI credentials, but to prevent unnecessary token burn, I implemented the `manifest.ai` routing skill. I mounted the Docker socket and the root `/opt/openclaw/workers` directory into its container so it could supervise the sub-processes natively. The MCP is the only container with the keys to the kingdom.
 
 ```bash
 cd /opt/openclaw/mcp
@@ -107,4 +107,8 @@ Additionally, the `manifest.ai` router is smart, but it's not foolproof. When Wo
 
 ## What I Learned
 
-The system currently relies on me asking the MCP to check on the workers. The architectural logical conclusion is establishing a continuous heartbeat monitor. By piping the workers' health checks into a local lightweight vector store on the Pi, the MCP can autonomously query historical crash data and proactively adjust the workers' DeepSeek temperature or token caps before a failure cascades, creating a truly self-healing swarm.
+Before I implemented the routing logic, I actually had Worker 01 silently fail. It couldn't parse a malformed JSON payload from Telegram and just hung there, quietly chewing up memory resources on the Pi while the API timed out repeatedly. I didn't catch it for two days. That silence, and the cascading failure it risked, is what drove me to build the MCP in the first place.
+
+The system currently relies on me manually asking the MCP to check on the workers, which is a half-measure. The architectural logical conclusion—and my next project in the lab—is establishing a continuous heartbeat monitor. By piping the workers' health checks into a local lightweight vector store on the Pi, the MCP will be able to autonomously query historical crash data and proactively adjust the workers' DeepSeek temperature or token caps *before* a failure cascades.
+
+This experiment proved that you don't need a massive, monolithic cloud infrastructure to run complex, tiered AI systems. By forcing the architecture into the physical constraints of a single Raspberry Pi and the financial constraints of a prepaid API key, the result wasn't a compromised system—it was a vastly more efficient one. The $0.14 per 1M tokens on DeepSeek V3 is a game changer when governed by a baseline-cost supervisor. The lab is finally running smart, and my billing page is finally boring.
