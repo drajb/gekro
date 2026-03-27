@@ -55,14 +55,14 @@ Next, I configured the isolated workers. I locked their authentication to OpenRo
 ```bash
 # Configure Worker 01
 cd /opt/openclaw/workers/worker-01
-openclaw onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_PREPAID_KEY" --non-interactive
+openclaw onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" --non-interactive
 openclaw config set agents.defaults.model.primary "openrouter/deepseek/deepseek-chat"
 openclaw config set agents.defaults.maxOutputTokens 250
 openclaw config set agents.defaults.maxHistoryTurns 5
 
 # Configure Worker 02
 cd /opt/openclaw/workers/worker-02
-openclaw onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_PREPAID_KEY" --non-interactive
+openclaw onboard --auth-choice apiKey --token-provider openrouter --token "$OPENROUTER_API_KEY" --non-interactive
 openclaw config set agents.defaults.model.primary "openrouter/deepseek/deepseek-chat"
 openclaw config set agents.defaults.maxOutputTokens 600
 openclaw config set agents.defaults.maxHistoryTurns 8
