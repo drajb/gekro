@@ -110,12 +110,12 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
   </main>
 
   <script>
-    import gsap from 'gsap';
-    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+    const initHomeAnimations = async () => {
+      const { default: gsap } = await import('gsap');
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
 
-    gsap.registerPlugin(ScrollTrigger);
+      gsap.registerPlugin(ScrollTrigger);
 
-    const initHomeAnimations = () => {
       const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (isReducedMotion) return;
 

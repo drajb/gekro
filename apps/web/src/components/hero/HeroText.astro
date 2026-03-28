@@ -31,9 +31,8 @@
 </div>
 
 <script>
-  import gsap from 'gsap';
-
-  const initAnimations = () => {
+  const initAnimations = async () => {
+    const { default: gsap } = await import('gsap');
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (isReducedMotion) {
       gsap.set('.stagger-text, .hero-subtext, .hero-cta', { opacity: 1, y: 0 });

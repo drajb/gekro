@@ -49,10 +49,9 @@ const gtmId = import.meta.env.PUBLIC_GTM_ID || '';
     <Footer />
 
     <script>
-      import { gsap } from 'gsap';
-
-      document.addEventListener('astro:after-swap', () => {
+      document.addEventListener('astro:after-swap', async () => {
         if (typeof window !== 'undefined') {
+          const { gsap } = await import('gsap');
           gsap.from('main', {
             opacity: 0,
             y: 20,

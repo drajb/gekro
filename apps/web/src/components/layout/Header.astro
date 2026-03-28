@@ -61,9 +61,8 @@ const navItems = [
 </div>
 
 <script>
-  import gsap from 'gsap';
-
-  const initMenu = () => {
+  const initMenu = async () => {
+    const { default: gsap } = await import('gsap');
     const toggle = document.getElementById('menu-toggle');
     const close = document.getElementById('menu-close');
     const menu = document.getElementById('mobile-menu');

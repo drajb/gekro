@@ -5,10 +5,10 @@
 </div>
 
 <script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
   if (typeof window !== 'undefined') {
+    const { gsap } = await import('gsap');
+    const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+
     gsap.registerPlugin(ScrollTrigger);
 
     gsap.to('#progress-bar', {
