@@ -14,6 +14,8 @@ aiSummary: "AI coding tools act as stateless engines that degrade without archit
 
 Two weeks after the demo looked incredible, the build was unfixable. Not broken in one place — broken everywhere, in ways that contradicted each other. That's what zero-shot scaling actually looks like. Non-developers and occasional coders are screaming from the rooftops about how AI can build entire applications in seconds. They look at a shiny, functional Proof of Concept stitched together with zero-shot prompting and assume it's basically finished, completely ignoring the genuine, grinding structural time it takes to refine a product to its end state.
 
+![A brilliantly polished futuristic app hologram on the front, but pulling back the curtain reveals an operational disaster of duct tape, tangled wires, and a tiny goldfish randomly pushing buttons.](/images/blog/ai_goldfish_facade.png)
+
 ## The Architecture
 
 AI models like Claude, GPT5, Gemini 3 act as stateless prediction engines. A complex project is only going to hold up if its underlying knowledge base is rock-solid. If the foundation is weak, the product build will inevitably start introducing bugs and inconsistencies as changes are required over time. 
