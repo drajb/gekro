@@ -5,7 +5,7 @@
 <lab-terminal>
   <div
     id="lab-terminal-container"
-    class="fixed bottom-0 left-0 z-50 p-0 md:p-4 w-full md:w-[600px] h-[50vh] md:h-[400px] transition-opacity duration-300 opacity-0 pointer-events-none"
+    class="fixed bottom-0 left-0 z-50 p-0 md:p-4 w-full md:w-[70vw] h-[75vh] md:h-[60vh] transition-opacity duration-300 opacity-0 pointer-events-none"
     aria-hidden="true"
     style="display: none;"
   >
@@ -42,19 +42,25 @@
 
 <script>
   class LabTerminal extends HTMLElement {
+    isOpen: boolean = false;
+    isBooted: boolean = false;
+    history: string[] = [];
+    historyIndex: number = -1;
+    container: HTMLElement | null = null;
+    output: HTMLElement | null = null;
+    form: HTMLFormElement | null = null;
+    input: HTMLInputElement | null = null;
+    closeBtn: HTMLElement | null = null;
+
     constructor() {
       super();
-      this.isOpen = false;
-      this.isBooted = false;
-      this.history = [];
-      this.historyIndex = -1;
     }
 
     connectedCallback() {
       this.container = this.querySelector('#lab-terminal-container');
       this.output = this.querySelector('#lab-terminal-output');
-      this.form = this.querySelector('#lab-terminal-form');
-      this.input = this.querySelector('#lab-terminal-input');
+      this.form = this.querySelector('form#lab-terminal-form');
+      this.input = this.querySelector('input#lab-terminal-input');
       this.closeBtn = this.querySelector('#lab-terminal-close');
 
       // Bind events
@@ -73,7 +79,7 @@
       document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    printLine(text, isHTML = false) {
+    printLine(text: string, isHTML: boolean = false) {
       if (!this.output) return;
       const line = document.createElement('div');
       if (isHTML) {
@@ -85,7 +91,7 @@
       this.output.scrollTop = this.output.scrollHeight;
     }
 
-    async slowPrint(lines, delayMs = 120) {
+    async slowPrint(lines: string[], delayMs: number = 120) {
       for (const line of lines) {
         this.printLine(line);
         await new Promise(r => setTimeout(r, delayMs));
@@ -96,6 +102,18 @@
       if (this.isBooted) return;
       this.isBooted = true;
       if (this.output) this.output.innerHTML = '';
+      
+      const ascii = `
+.##....##.....##....##.
+.##....##....####...##.
+.##....##...##.##...##.
+.########..##...##..##.
+.##....##.#########.##.
+.##....##.##.....##.##.
+.##....##.##.....##.####
+`;
+      this.printLine(`<pre class="text-accent mb-4">${ascii.trim()}</pre>`, true);
+
       await this.slowPrint([
         "gekro.lab // v1.0.0",
         "Initializing secure connection...",
@@ -130,12 +148,13 @@
       }
     }
 
-    handleKeydown(e) {
+    handleKeydown(e: KeyboardEvent) {
       if (e.key === '`') {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
             e.preventDefault();
             this.toggleTerminal();
-        } else if (e.target === this.input) {
+        } else if (target === this.input) {
             e.preventDefault();
             this.toggleTerminal();
         }
@@ -146,7 +165,7 @@
       if (this.isOpen) this.toggleTerminal();
     }
 
-    async handleCommand(cmd) {
+    async handleCommand(cmd: string) {
       const trimmed = cmd.trim();
       if (!trimmed) return;
       
@@ -160,13 +179,18 @@
       const lower = trimmed.toLowerCase();
       
       if (lower === 'help') {
-        this.printLine('Available commands: help, whoami, blog, github, linkedin, clear, exit');
-      } else if (lower === 'whoami') {
+        this.printLine(`<pre>[whoami]   or [w]
+[blog]     or [b]
+[github]   or [gh]
+[linkedin] or [li]
+[clear]    or [c]
+[exit]     or [q]</pre>`, true);
+      } else if (lower === 'whoami' || lower === 'w') {
         this.printLine(`Rohit Burani // gekro.com
 AI agents. Self-hosted infrastructure. EV telemetry.
 Building at the edge of what's possible — Dallas, TX.
 Type [blog] to see the lab logs. Type [exit] to disconnect.`);
-      } else if (lower === 'blog') {
+      } else if (lower === 'blog' || lower === 'b') {
         try {
           this.printLine('Fetching logs from the edge...');
           const res = await fetch('/api/posts.json');
@@ -185,15 +209,15 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
         } catch (e) {
           this.printLine('Error fetching logs. Endpoint unreachable.');
         }
-      } else if (lower === 'github') {
+      } else if (lower === 'github' || lower === 'gh') {
         this.printLine('Opening github...');
         window.open('https://github.com/drajb', '_blank');
-      } else if (lower === 'linkedin') {
+      } else if (lower === 'linkedin' || lower === 'li') {
         this.printLine('Opening LinkedIn...');
         window.open('https://www.linkedin.com/in/rohitburani/', '_blank');
-      } else if (lower === 'clear') {
+      } else if (lower === 'clear' || lower === 'c') {
         if (this.output) this.output.innerHTML = '';
-      } else if (lower === 'exit') {
+      } else if (lower === 'exit' || lower === 'q') {
         this.printLine('logout // Connection to gekro.lab closed.');
         if (this.form) this.form.classList.add('hidden');
         setTimeout(() => {
@@ -206,7 +230,7 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       }
     }
 
-    handleSubmit(e) {
+    handleSubmit(e: Event) {
       e.preventDefault();
       if (this.input) {
          this.handleCommand(this.input.value);
@@ -214,7 +238,7 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       }
     }
 
-    handleInputKeydown(e) {
+    handleInputKeydown(e: KeyboardEvent) {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         if (this.historyIndex > 0) {
