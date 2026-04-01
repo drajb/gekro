@@ -42,15 +42,15 @@
 
 <script>
   class LabTerminal extends HTMLElement {
-    isOpen: boolean = false;
-    isBooted: boolean = false;
-    history: string[] = [];
-    historyIndex: number = -1;
-    container: HTMLElement | null = null;
-    output: HTMLElement | null = null;
-    form: HTMLFormElement | null = null;
-    input: HTMLInputElement | null = null;
-    closeBtn: HTMLElement | null = null;
+    isOpen = false;
+    isBooted = false;
+    history = [];
+    historyIndex = -1;
+    container = null;
+    output = null;
+    form = null;
+    input = null;
+    closeBtn = null;
 
     constructor() {
       super();
@@ -79,7 +79,7 @@
       document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    printLine(text: string, isHTML: boolean = false) {
+    printLine(text, isHTML = false) {
       if (!this.output) return;
       const line = document.createElement('div');
       if (isHTML) {
@@ -91,7 +91,7 @@
       this.output.scrollTop = this.output.scrollHeight;
     }
 
-    async slowPrint(lines: string[], delayMs: number = 120) {
+    async slowPrint(lines, delayMs = 120) {
       for (const line of lines) {
         this.printLine(line);
         await new Promise(r => setTimeout(r, delayMs));
@@ -104,15 +104,15 @@
       if (this.output) this.output.innerHTML = '';
       
       const ascii = `
-.##....##.....##....##.
-.##....##....####...##.
-.##....##...##.##...##.
-.########..##...##..##.
-.##....##.#########.##.
-.##....##.##.....##.##.
-.##....##.##.....##.####
+░█████████    ░██████   ░██     ░██ ░██████░██████████   ░████████   ░██     ░██ ░█████████     ░███    ░███    ░██ ░██████
+░██     ░██  ░██   ░██  ░██     ░██   ░██      ░██       ░██    ░██  ░██     ░██ ░██     ░██   ░██░██   ░████   ░██   ░██  
+░██     ░██ ░██     ░██ ░██     ░██   ░██      ░██       ░██    ░██  ░██     ░██ ░██     ░██  ░██  ░██  ░██░██  ░██   ░██  
+░█████████  ░██     ░██ ░██████████   ░██      ░██       ░████████   ░██     ░██ ░█████████  ░█████████ ░██ ░██ ░██   ░██  
+░██   ░██   ░██     ░██ ░██     ░██   ░██      ░██       ░██     ░██ ░██     ░██ ░██   ░██   ░██    ░██ ░██  ░██░██   ░██  
+░██    ░██   ░██   ░██  ░██     ░██   ░██      ░██       ░██     ░██  ░██   ░██  ░██    ░██  ░██    ░██ ░██   ░████   ░██  
+░██     ░██   ░██████   ░██     ░██ ░██████    ░██       ░█████████    ░██████   ░██     ░██ ░██    ░██ ░██    ░███ ░██████
 `;
-      this.printLine(`<pre class="text-accent mb-4">${ascii.trim()}</pre>`, true);
+      this.printLine(`<pre class="text-accent mb-4 text-[10px] sm:text-xs leading-none">${ascii.trim()}</pre>`, true);
 
       await this.slowPrint([
         "gekro.lab // v1.0.0",
@@ -148,10 +148,10 @@
       }
     }
 
-    handleKeydown(e: KeyboardEvent) {
+    handleKeydown(e) {
       if (e.key === '`') {
-        const target = e.target as HTMLElement;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+        const target = e.target;
+        if (target && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
             e.preventDefault();
             this.toggleTerminal();
         } else if (target === this.input) {
@@ -165,7 +165,7 @@
       if (this.isOpen) this.toggleTerminal();
     }
 
-    async handleCommand(cmd: string) {
+    async handleCommand(cmd) {
       const trimmed = cmd.trim();
       if (!trimmed) return;
       
@@ -230,7 +230,7 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       }
     }
 
-    handleSubmit(e: Event) {
+    handleSubmit(e) {
       e.preventDefault();
       if (this.input) {
          this.handleCommand(this.input.value);
@@ -238,7 +238,7 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       }
     }
 
-    handleInputKeydown(e: KeyboardEvent) {
+    handleInputKeydown(e) {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         if (this.historyIndex > 0) {
