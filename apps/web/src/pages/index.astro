@@ -178,9 +178,17 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
       });
     };
 
-    // Run on first load and after view transitions
-    initHomeAnimations();
-    document.addEventListener('astro:after-swap', initHomeAnimations);
+    // Run on idle after first load and view transitions to preserve FCP
+    const startHomeAnimations = () => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => initHomeAnimations(), { timeout: 2000 });
+      } else {
+        setTimeout(initHomeAnimations, 500);
+      }
+    };
+
+    startHomeAnimations();
+    document.addEventListener('astro:after-swap', startHomeAnimations);
 
     // Newsletter Form Logic
     const form = document.getElementById('newsletter-form') as HTMLFormElement;
