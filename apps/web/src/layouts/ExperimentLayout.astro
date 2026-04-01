@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import ReadingProgress from '../components/blog/ReadingProgress.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
+import ThemeToggle from '../components/ui/ThemeToggle.astro';
 
 interface Props {
   experiment: any;
@@ -25,7 +26,11 @@ const schema = {
   <JsonLD data={schema} />
   <ReadingProgress />
   
-  <article class="max-w-6xl mx-auto px-6 py-32">
+  <article class="max-w-6xl mx-auto px-6 py-32 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
+    <div class="absolute top-8 right-6 md:right-10 z-50">
+      <ThemeToggle />
+    </div>
+    
     <header class="space-y-12 mb-24">
       <div class="space-y-6">
         <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">Experiment Log</span>

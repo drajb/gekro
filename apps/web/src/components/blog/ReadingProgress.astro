@@ -5,21 +5,27 @@
 </div>
 
 <script>
-  if (typeof window !== 'undefined') {
+  const initProgress = async () => {
+    if (typeof window === 'undefined') return;
+    const progress = document.getElementById('progress-bar');
+    if (!progress) return; // Not on an article page
+
     const { gsap } = await import('gsap');
     const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.to('#progress-bar', {
+    gsap.to(progress, {
       scaleX: 1,
       ease: 'none',
       scrollTrigger: {
-        trigger: 'main', // Or specific article selector
+        trigger: 'main', 
         start: 'top top',
         end: 'bottom bottom',
         scrub: true,
       }
     });
-  }
+  };
+
+  initProgress();
+  document.addEventListener('astro:after-swap', initProgress);
 </script>

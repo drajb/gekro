@@ -1,0 +1,100 @@
+---
+---
+
+<button
+  id="theme-toggle"
+  class="relative p-2.5 rounded-full border border-border-subtle hover:bg-bg-elevated hover:border-border hover:text-accent transition-all text-text-muted z-50 flex items-center justify-center bg-bg-surface/50 backdrop-blur-sm"
+  aria-label="Toggle reader theme"
+  title="Toggle Reading Mode"
+>
+  <!-- Sun Icon (Hidden by default for dark mode) -->
+  <svg id="icon-sun" class="w-4 h-4 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2"></path>
+    <path d="M12 20v2"></path>
+    <path d="m4.93 4.93 1.41 1.41"></path>
+    <path d="m17.66 17.66 1.41 1.41"></path>
+    <path d="M2 12h2"></path>
+    <path d="M20 12h2"></path>
+    <path d="m6.34 17.66-1.41 1.41"></path>
+    <path d="m19.07 4.93-1.41 1.41"></path>
+  </svg>
+  
+  <!-- Moon Icon -->
+  <svg id="icon-moon" class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </svg>
+</button>
+
+<script is:inline>
+  const setupThemeToggle = () => {
+    const btn = document.getElementById('theme-toggle');
+    
+    // If the component is not on this page (e.g. user navigated to homepage), force completely dark
+    if (!btn) {
+      document.body.classList.remove('theme-light', 'bg-bg-base');
+      return;
+    }
+
+    if (btn.hasAttribute('data-initialized')) return;
+    btn.setAttribute('data-initialized', 'true');
+
+    const iconSun = document.getElementById('icon-sun');
+    const iconMoon = document.getElementById('icon-moon');
+    const defaultArticle = document.querySelector('article');
+    const proseContainers = document.querySelectorAll('.prose');
+
+    const isLight = localStorage.getItem('reader-theme') === 'light';
+
+    // To prevent layout shift or visual gaps if article doesn't usually have background color,
+    // we must dynamically ensure parents don't override the reading experience.
+    const updateUI = (light) => {
+      if (light) {
+        document.body.classList.add('theme-light', 'bg-bg-base');
+        if (defaultArticle) defaultArticle.classList.add('bg-bg-base');
+        proseContainers.forEach(prose => prose.classList.remove('prose-invert'));
+        if (iconMoon && iconSun) {
+          iconMoon.classList.add('hidden');
+          iconSun.classList.remove('hidden');
+        }
+      } else {
+        document.body.classList.remove('theme-light', 'bg-bg-base');
+        if (defaultArticle) defaultArticle.classList.remove('bg-bg-base');
+        proseContainers.forEach(prose => prose.classList.add('prose-invert'));
+        if (iconMoon && iconSun) {
+          iconSun.classList.add('hidden');
+          iconMoon.classList.remove('hidden');
+        }
+      }
+    };
+
+    // Apply immediately on mount to prevent FOUC for cached users
+    if (isLight) updateUI(true);
+
+    btn.addEventListener('click', (e) => {
+      const isCurrentlyLight = document.body.classList.contains('theme-light');
+      const nextTheme = !isCurrentlyLight ? 'light' : 'dark';
+      
+      const x = e.clientX;
+      const y = e.clientY;
+
+      document.documentElement.style.setProperty('--click-x', `${x}px`);
+      document.documentElement.style.setProperty('--click-y', `${y}px`);
+
+      if (!document.startViewTransition) {
+        updateUI(nextTheme === 'light');
+        localStorage.setItem('reader-theme', nextTheme);
+        return;
+      }
+
+      document.startViewTransition(() => {
+        updateUI(nextTheme === 'light');
+        localStorage.setItem('reader-theme', nextTheme);
+      });
+    });
+  };
+
+  // Ensure execution on Astro page-load lifecycle
+  setupThemeToggle();
+  document.addEventListener('astro:after-swap', setupThemeToggle);
+</script>
