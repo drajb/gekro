@@ -3,6 +3,7 @@ import { ViewTransitions } from 'astro:transitions';
 import SEOHead from '../components/seo/SEOHead.astro';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
+import LabTerminal from '../components/LabTerminal.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -63,5 +64,6 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
     <!-- Cloudflare Web Analytics -->
     <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "c5e0a28057dd450da40a567079cc5b40"}'></script>
     <!-- End Cloudflare Web Analytics -->
+    <LabTerminal />
   </body>
 </html>
