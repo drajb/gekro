@@ -39,8 +39,9 @@ const useEmbed = !!publicationId;
         <script type="text/javascript" async src="https://subscribe-forms.beehiiv.com/attribution.js"></script>
       </div>
     ) : (
-      <!-- Fallback form for local dev / when Beehiiv not configured -->
-      <form
+      <>
+        <!-- Fallback form for local dev / when Beehiiv not configured -->
+        <form
         id="newsletter-form"
         class="flex flex-col sm:flex-row gap-3 max-w-md"
         onsubmit="handleSubmit(event)"
@@ -80,6 +81,7 @@ const useEmbed = !!publicationId;
           state.textContent = `✓ Got it — we'll reach out to ${email} when there's something worth sharing.`;
         }
       </script>
+      </>
     )}
   </div>
 </section>
