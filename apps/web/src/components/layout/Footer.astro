@@ -1,6 +1,14 @@
 ---
+import { Image } from 'astro:assets';
 import BrandLogo from '../ui/BrandLogo.astro';
 const currentYear = new Date().getFullYear();
+const buildTime = new Date().toLocaleTimeString('en-GB', { 
+  hour12: false,
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  timeZone: 'UTC'
+}) + ' UTC';
 ---
 
 <footer class="relative z-10 w-full bg-bg-base border-t border-border-subtle py-24 px-6 overflow-hidden">
@@ -23,7 +31,7 @@ const currentYear = new Date().getFullYear();
       <div class="flex items-center gap-2 pt-2">
         <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
         <p class="text-[9px] font-mono text-text-muted uppercase tracking-widest">
-          Last System Sync: <span id="sync-time" class="text-text-secondary">--:--:--</span>
+          Last System Sync: <span id="sync-time" class="text-text-secondary">{buildTime}</span>
         </p>
       </div>
 
@@ -67,6 +75,11 @@ const currentYear = new Date().getFullYear();
           <li><a href="/contact" class="text-sm text-text-secondary hover:text-accent transition-colors">Contact</a></li>
           <li><a href="/llms.txt" class="text-sm text-text-secondary hover:text-accent transition-colors">/llms.txt</a></li>
           <li><a href="/rss.xml" class="text-sm text-text-secondary hover:text-accent transition-colors">RSS Feed</a></li>
+          <li class="pt-2">
+            <a href="https://deepwiki.com/drajb/gekro" target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-80 transition-opacity" aria-label="Ask DeepWiki">
+              <Image src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki Badge" width={110} height={20} class="h-5 w-auto" />
+            </a>
+          </li>
         </ul>
       </div>
     </div>

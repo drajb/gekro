@@ -62,9 +62,11 @@ const useEmbed = !!publicationId;
         </button>
       </form>
       <p id="newsletter-state" class="hidden text-sm text-text-secondary font-mono" aria-live="polite"></p>
-      <p class="text-xs text-text-muted">
-        Add <code class="font-mono bg-bg-elevated px-1 rounded">PUBLIC_BEEHIIV_PUBLICATION_ID</code> to .env.local to enable the real Beehiiv embed.
-      </p>
+      {import.meta.env.DEV && (
+        <p class="text-xs text-text-muted">
+          Add <code class="font-mono bg-bg-elevated px-1 rounded">PUBLIC_BEEHIIV_PUBLICATION_ID</code> to .env.local to enable the real Beehiiv embed.
+        </p>
+      )}
 
       <script is:inline>
         function handleSubmit(e) {
