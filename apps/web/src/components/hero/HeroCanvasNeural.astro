@@ -63,9 +63,9 @@
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 30;
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     // Particles
@@ -179,7 +179,15 @@
     window.addEventListener('resize', onResizeRef);
   };
 
-  initThree();
+  const startThree = () => {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => initThree(), { timeout: 2000 });
+    } else {
+      setTimeout(initThree, 500);
+    }
+  };
+
+  startThree();
   document.addEventListener('astro:before-swap', destroyThree);
-  document.addEventListener('astro:after-swap', initThree);
+  document.addEventListener('astro:after-swap', startThree);
 </script>

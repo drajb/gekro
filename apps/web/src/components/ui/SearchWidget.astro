@@ -8,9 +8,11 @@
 -->
 <div id="search-wrapper" class="relative w-full max-w-xl mx-auto">
   <div id="pagefind-search"></div>
-  <p id="search-unavailable" class="hidden text-sm text-text-muted font-mono text-center py-4">
-    Search is available after a production build.
-  </p>
+  {import.meta.env.DEV && (
+    <p id="search-unavailable" class="hidden text-sm text-text-muted font-mono text-center py-4">
+      Search is available after a production build.
+    </p>
+  )}
 </div>
 
 <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />

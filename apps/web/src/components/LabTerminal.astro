@@ -1,0 +1,265 @@
+---
+// apps/web/src/components/LabTerminal.astro
+---
+
+<lab-terminal>
+  <div
+    id="lab-terminal-container"
+    class="fixed bottom-0 left-0 z-50 p-0 md:p-4 w-full md:w-[70vw] h-[75vh] md:h-[60vh] transition-opacity duration-300 opacity-0 pointer-events-none"
+    aria-hidden="true"
+    style="display: none;"
+  >
+    <div class="w-full h-full bg-bg-base border border-border rounded-t-lg md:rounded-tr-lg md:rounded-tl-lg shadow-2xl flex flex-col font-mono text-sm overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-3 py-2 bg-bg-surface border-b border-border">
+        <div class="flex space-x-2">
+          <div class="w-3 h-3 rounded-full bg-border-subtle"></div>
+          <div class="w-3 h-3 rounded-full bg-border-subtle"></div>
+          <div class="w-3 h-3 rounded-full bg-border-subtle"></div>
+        </div>
+        <div class="text-text-muted text-xs">gekro.lab terminal</div>
+        <button id="lab-terminal-close" class="text-text-muted hover:text-text-primary" aria-label="Close terminal">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <!-- Terminal Body -->
+      <div id="lab-terminal-output" class="flex-1 p-4 overflow-y-auto text-text-primary whitespace-pre-wrap flex flex-col gap-1"></div>
+      <!-- Input line -->
+      <form id="lab-terminal-form" class="flex px-4 pb-4 hidden" autocomplete="off">
+        <span class="text-accent mr-2 shrink-0">rohit@gekro:~$</span>
+        <input 
+          type="text" 
+          id="lab-terminal-input" 
+          class="flex-1 bg-transparent outline-none border-none p-0 text-text-primary w-full" 
+          spellcheck="false"
+        />
+      </form>
+    </div>
+  </div>
+</lab-terminal>
+
+<script>
+  class LabTerminal extends HTMLElement {
+    isOpen = false;
+    isBooted = false;
+    history = [];
+    historyIndex = -1;
+    container = null;
+    output = null;
+    form = null;
+    input = null;
+    closeBtn = null;
+
+    constructor() {
+      super();
+    }
+
+    connectedCallback() {
+      this.container = this.querySelector('#lab-terminal-container');
+      this.output = this.querySelector('#lab-terminal-output');
+      this.form = this.querySelector('form#lab-terminal-form');
+      this.input = this.querySelector('input#lab-terminal-input');
+      this.closeBtn = this.querySelector('#lab-terminal-close');
+
+      // Bind events
+      this.handleKeydown = this.handleKeydown.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
+      this.handleInputKeydown = this.handleInputKeydown.bind(this);
+      this.handleCloseBtn = this.handleCloseBtn.bind(this);
+
+      document.addEventListener('keydown', this.handleKeydown);
+      if (this.form) this.form.addEventListener('submit', this.handleSubmit);
+      if (this.input) this.input.addEventListener('keydown', this.handleInputKeydown);
+      if (this.closeBtn) this.closeBtn.addEventListener('click', this.handleCloseBtn);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener('keydown', this.handleKeydown);
+    }
+
+    printLine(text, isHTML = false) {
+      if (!this.output) return;
+      const line = document.createElement('div');
+      if (isHTML) {
+        line.innerHTML = text;
+      } else {
+        line.textContent = text;
+      }
+      this.output.appendChild(line);
+      this.output.scrollTop = this.output.scrollHeight;
+    }
+
+    async slowPrint(lines, delayMs = 120) {
+      for (const line of lines) {
+        this.printLine(line);
+        await new Promise(r => setTimeout(r, delayMs));
+      }
+    }
+
+    async bootSequence() {
+      if (this.isBooted) return;
+      this.isBooted = true;
+      if (this.output) this.output.innerHTML = '';
+      
+      const ascii = `
+░█████████    ░██████   ░██     ░██ ░██████░██████████   ░████████   ░██     ░██ ░█████████     ░███    ░███    ░██ ░██████
+░██     ░██  ░██   ░██  ░██     ░██   ░██      ░██       ░██    ░██  ░██     ░██ ░██     ░██   ░██░██   ░████   ░██   ░██  
+░██     ░██ ░██     ░██ ░██     ░██   ░██      ░██       ░██    ░██  ░██     ░██ ░██     ░██  ░██  ░██  ░██░██  ░██   ░██  
+░█████████  ░██     ░██ ░██████████   ░██      ░██       ░████████   ░██     ░██ ░█████████  ░█████████ ░██ ░██ ░██   ░██  
+░██   ░██   ░██     ░██ ░██     ░██   ░██      ░██       ░██     ░██ ░██     ░██ ░██   ░██   ░██    ░██ ░██  ░██░██   ░██  
+░██    ░██   ░██   ░██  ░██     ░██   ░██      ░██       ░██     ░██  ░██   ░██  ░██    ░██  ░██    ░██ ░██   ░████   ░██  
+░██     ░██   ░██████   ░██     ░██ ░██████    ░██       ░█████████    ░██████   ░██     ░██ ░██    ░██ ░██    ░███ ░██████
+`;
+      this.printLine(`<pre class="text-accent mb-4 text-[10px] sm:text-xs leading-none">${ascii.trim()}</pre>`, true);
+
+      await this.slowPrint([
+        "gekro.lab // v1.0.0",
+        "Initializing secure connection...",
+        "Type [help] to see available commands.",
+        " "
+      ], 120);
+      if (this.form) this.form.classList.remove('hidden');
+      if (this.input) this.input.focus();
+    }
+
+    toggleTerminal() {
+      if (!this.container) return;
+      this.isOpen = !this.isOpen;
+      if (this.isOpen) {
+        this.container.style.display = 'block';
+        void this.container.offsetWidth; // Trigger reflow
+        this.container.classList.remove('opacity-0', 'pointer-events-none');
+        this.container.classList.add('opacity-100');
+        this.container.setAttribute('aria-hidden', 'false');
+        if (!this.isBooted) {
+          this.bootSequence();
+        } else {
+          setTimeout(() => this.input?.focus(), 100);
+        }
+      } else {
+        this.container.classList.remove('opacity-100');
+        this.container.classList.add('opacity-0', 'pointer-events-none');
+        this.container.setAttribute('aria-hidden', 'true');
+        setTimeout(() => {
+          this.container.style.display = 'none';
+        }, 300);
+      }
+    }
+
+    handleKeydown(e) {
+      if (e.key === '`') {
+        const target = e.target;
+        if (target && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            this.toggleTerminal();
+        } else if (target === this.input) {
+            e.preventDefault();
+            this.toggleTerminal();
+        }
+      }
+    }
+
+    handleCloseBtn() {
+      if (this.isOpen) this.toggleTerminal();
+    }
+
+    async handleCommand(cmd) {
+      const trimmed = cmd.trim();
+      if (!trimmed) return;
+      
+      this.printLine(`<span class="text-accent">rohit@gekro:~$</span> ${trimmed}`, true);
+      
+      // History
+      this.history.push(trimmed);
+      if (this.history.length > 20) this.history.shift();
+      this.historyIndex = this.history.length;
+
+      const lower = trimmed.toLowerCase();
+      
+      if (lower === 'help') {
+        this.printLine(`<pre>[whoami]   or [w]
+[blog]     or [b]
+[github]   or [gh]
+[linkedin] or [li]
+[clear]    or [c]
+[exit]     or [q]</pre>`, true);
+      } else if (lower === 'whoami' || lower === 'w') {
+        this.printLine(`Rohit Burani // gekro.com
+AI agents. Self-hosted infrastructure. EV telemetry.
+Building at the edge of what's possible — Dallas, TX.
+Type [blog] to see the lab logs. Type [exit] to disconnect.`);
+      } else if (lower === 'blog' || lower === 'b') {
+        try {
+          this.printLine('Fetching logs from the edge...');
+          const res = await fetch('/api/posts.json');
+          if (!res.ok) throw new Error('API Error');
+          const posts = await res.json();
+          const recent = posts.slice(0, 3);
+          for (const post of recent) {
+             const published = post.publishedAt || post.date || new Date().toISOString();
+             const d = new Date(published).toLocaleDateString('en-US', {
+                year: 'numeric', month: '2-digit', day: '2-digit'
+             });
+             const itemSlug = post.slug?.current || post.slug;
+             const url = `/blog/${itemSlug}`;
+             this.printLine(`<a href="${url}" target="_blank" class="hover:text-accent hover:underline focus:text-accent outline-none">[${d}] → ${post.title} — ${url}</a>`, true);
+          }
+        } catch (e) {
+          this.printLine('Error fetching logs. Endpoint unreachable.');
+        }
+      } else if (lower === 'github' || lower === 'gh') {
+        this.printLine('Opening github...');
+        window.open('https://github.com/drajb', '_blank');
+      } else if (lower === 'linkedin' || lower === 'li') {
+        this.printLine('Opening LinkedIn...');
+        window.open('https://www.linkedin.com/in/rohitburani/', '_blank');
+      } else if (lower === 'clear' || lower === 'c') {
+        if (this.output) this.output.innerHTML = '';
+      } else if (lower === 'exit' || lower === 'q') {
+        this.printLine('logout // Connection to gekro.lab closed.');
+        if (this.form) this.form.classList.add('hidden');
+        setTimeout(() => {
+          this.toggleTerminal();
+          this.isBooted = false;
+          if (this.output) this.output.innerHTML = '';
+        }, 800);
+      } else {
+        this.printLine(`command not found: ${trimmed}. Type [help] for available commands.`);
+      }
+    }
+
+    handleSubmit(e) {
+      e.preventDefault();
+      if (this.input) {
+         this.handleCommand(this.input.value);
+         this.input.value = '';
+      }
+    }
+
+    handleInputKeydown(e) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (this.historyIndex > 0) {
+          this.historyIndex--;
+          this.input.value = this.history[this.historyIndex];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (this.historyIndex < this.history.length - 1) {
+          this.historyIndex++;
+          this.input.value = this.history[this.historyIndex];
+        } else {
+          this.historyIndex = this.history.length;
+          this.input.value = '';
+        }
+      }
+    }
+  }
+  
+  // Register custom element (checks if already defined for HMR/ViewTransitions safety)
+  if (!customElements.get('lab-terminal')) {
+    customElements.define('lab-terminal', LabTerminal);
+  }
+</script>

@@ -24,6 +24,9 @@ export default defineConfig({
       site: 'https://gekro.com'
     })
   ],
+  image: {
+    domains: ['deepwiki.com'],
+  },
   vite: {
     plugins: [tailwindcss()],
   },

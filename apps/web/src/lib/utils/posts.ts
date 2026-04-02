@@ -36,22 +36,72 @@ export async function getAllPosts(): Promise<FormattedPost[]> {
     description: p.data.description || p.data.summary || '',
     tldr: p.data.tldr || p.data.description || p.data.summary || '',
     publishedAt: p.data.publishedAt,
-    topics: p.data.topics,
+    topics: consolidateTopics(p.data.topics),
     difficulty: p.data.difficulty,
     readingTime: p.data.readingTime,
     isLocal: true,
   }));
 
-  return [...sanityPosts, ...formattedLocal].sort(
+  const allPostsCombined = [...sanityPosts, ...formattedLocal].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
+
+  return allPostsCombined.map(post => ({
+    ...post,
+    topics: consolidateTopics(post.topics),
+  }));
+}
+
+const TOPIC_MAP: Record<string, string> = {
+  // AI Agents mapping
+  'Ollama': 'AI Agents',
+  'LLM': 'AI Agents',
+  'AI': 'AI Agents',
+  'Prompt Engineering': 'AI Agents',
+  'Local AI': 'AI Agents',
+  'Machine Learning': 'AI Agents',
+  
+  // Hardware mapping
+  'Pi5': 'Hardware',
+  'Raspberry Pi': 'Hardware',
+  'Mac Mini': 'Hardware',
+  'M4': 'Hardware',
+  
+  // Infrastructure mapping
+  'Server': 'Infrastructure',
+  'WSL2': 'Infrastructure',
+  'Linux': 'Infrastructure',
+  'Docker': 'Infrastructure',
+  'Ubuntu': 'Infrastructure',
+  
+  // Architecture mapping
+  'Sanity': 'Architecture',
+  'Astro': 'Architecture',
+  'Cloudflare': 'Architecture',
+  'Frontend': 'Architecture',
+  'TypeScript': 'Architecture',
+  
+  // Add some core tags unconditionally passed
+};
+
+function consolidateTopics(topics: string[]): string[] {
+  if (!topics || !Array.isArray(topics)) return [];
+  const merged = new Set<string>();
+  topics.forEach(t => {
+    const mapped = TOPIC_MAP[t] || t; // keep original if no mapping exists, though some will be long.
+    // If you want to strictly limit to core topics, we can filter out non-core,
+    // but mapping is safer to not lose data.
+    merged.add(mapped);
+  });
+  return Array.from(merged);
 }
 
 /** Derive { title, count } topic stats from a post array. */
 export function getTopicCounts(posts: Pick<FormattedPost, 'topics'>[]): { title: string; count: number }[] {
   const counts = new Map<string, number>();
   posts.forEach(p => {
-    p.topics?.forEach(t => counts.set(t, (counts.get(t) || 0) + 1));
+    const consolidated = consolidateTopics(p.topics);
+    consolidated.forEach(t => counts.set(t, (counts.get(t) || 0) + 1));
   });
   return Array.from(counts.entries())
     .map(([title, count]) => ({ title, count }))

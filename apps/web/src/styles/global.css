@@ -29,6 +29,46 @@ body {
   font-family: var(--font-body);
 }
 
+/* Localized Light Reader Theme */
+.theme-light {
+  --color-bg-base: #fdfdfd;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #f4f4f5;
+
+  --color-text-primary: #18181b;
+  --color-text-secondary: #3f3f46;
+  --color-text-muted: #71717a;
+
+  --color-border: #e4e4e7;
+  --color-border-subtle: #f4f4f5;
+  /* Accent colors remain untouched for consistency */
+}
+
+/* View Transition API Clip-path Animation */
+::view-transition-group(root) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+::view-transition-new(root) {
+  animation-name: reveal-light;
+}
+
+::view-transition-old(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  display: block;
+}
+
+@keyframes reveal-light {
+  from {
+    clip-path: circle(0% at var(--click-x) var(--click-y));
+  }
+  to {
+    clip-path: circle(150% at var(--click-x) var(--click-y));
+  }
+}
+
 /* Prose Spacing Overrides */
 .prose {
   @apply text-text-secondary leading-relaxed;

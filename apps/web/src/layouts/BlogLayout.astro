@@ -6,6 +6,7 @@ import ReadingProgress from '../components/blog/ReadingProgress.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
 import GiscusComments from '../components/blog/GiscusComments.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
+import ThemeToggle from '../components/ui/ThemeToggle.astro';
 
 interface Props {
   post: any;
@@ -40,7 +41,12 @@ const schema = {
   <JsonLD data={schema} />
   <ReadingProgress />
   
-  <article class="max-w-6xl mx-auto px-6">
+  <article class="max-w-6xl mx-auto px-6 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
+    
+    <div class="absolute top-8 right-6 md:right-10 z-50">
+      <ThemeToggle />
+    </div>
+
     <PostHeader 
       title={post.title} 
       publishedAt={post.publishedAt} 

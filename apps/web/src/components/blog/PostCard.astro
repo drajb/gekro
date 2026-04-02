@@ -31,7 +31,7 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   <!-- Glow Layer -->
   <div 
     class="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-    style="background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), var(--color-accent), transparent 40%);"
+    style="background: radial-gradient(300px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.06), transparent 40%);"
   ></div>
 
   <div class="relative z-10 space-y-4">
@@ -47,7 +47,7 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
     </div>
 
     <div class="space-y-2">
-      <h3 class="text-lg md:text-xl font-heading font-medium text-text-primary group-hover:text-accent transition-colors">
+      <h3 class="text-lg md:text-xl font-heading font-medium text-text-primary transition-colors">
         {post.title}
       </h3>
       <p class="text-sm text-text-secondary line-clamp-2 leading-relaxed">
@@ -67,30 +67,39 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
 <script>
   import { animate, inView } from "motion";
 
-  const cards = document.querySelectorAll(".post-card");
-  
-  cards.forEach((card) => {
-    // Entrance animation
+  const initCards = () => {
+    const cards = document.querySelectorAll(".post-card");
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!isReducedMotion) {
-      inView(card, () => {
-        animate(
-          card,
-          { opacity: [0, 1], y: [20, 0] },
-          { duration: 0.6, easing: [0.22, 1, 0.36, 1] }
-        );
-      });
-    }
+    
+    cards.forEach((card) => {
+      // Entrance animation
+      if (!isReducedMotion && !(card as any)._animated) {
+        (card as any)._animated = true;
+        inView(card, () => {
+          animate(
+            card,
+            { opacity: [0, 1], y: [20, 0] },
+            { duration: 0.6, easing: [0.22, 1, 0.36, 1] }
+          );
+        });
+      }
 
-    // Mouse glow effect
-    card.addEventListener("mousemove", (e: any) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      (card as HTMLElement).style.setProperty("--mouse-x", `${x}px`);
-      (card as HTMLElement).style.setProperty("--mouse-y", `${y}px`);
+      // Mouse glow effect
+      if (!(card as any)._glowInitialized) {
+        (card as any)._glowInitialized = true;
+        card.addEventListener("mousemove", (e: any) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          (card as HTMLElement).style.setProperty("--mouse-x", `${x}px`);
+          (card as HTMLElement).style.setProperty("--mouse-y", `${y}px`);
+        });
+      }
     });
-  });
+  };
+
+  initCards();
+  document.addEventListener('astro:after-swap', initCards);
 </script>
 
 <style>
@@ -101,8 +110,8 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   
   .post-card div[style*="radial-gradient"] {
     background: radial-gradient(
-      800px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), 
-      rgba(63, 177, 255, 0.15), 
+      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), 
+      rgba(255, 255, 255, 0.05), 
       transparent 40%
     ) !important;
   }
