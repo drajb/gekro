@@ -35,4 +35,4 @@ If a proposed change might break an existing decision or cause a known issue fro
 - Alert the user BEFORE implementation.
 - Ask for clarification or confirmation of the potential risk.
 
-**Maintenance**: Keep these logs updated in REAL-TIME with every prompt and implementation.
+**Maintenance**: Keep these logs updated in REAL-TIME with every prompt and implementation (file edits), but only commit/push these updates as part of a batched commit when the technical task is complete or when the USER requests it.

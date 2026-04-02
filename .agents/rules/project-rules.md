@@ -67,7 +67,8 @@ The main site lives at apps/web/. Sanity Studio at apps/studio/.
 
 - Never commit directly to `main`. Always work on `dev` or a `feature/*` branch.
 - Commit messages: conventional commits format — `feat:`, `fix:`, `content:`, `chore:`, `style:`
-- Before pushing: run `pnpm lint` and `pnpm typecheck` from the repo root.
+- **Commit Frequency**: Stop committing and pushing after every single change. Batch changes or finish a topic before committing and pushing. Verify changes in localhost first.
+- **Testing & Validation**: Run `pnpm lint` and `pnpm typecheck` from the repo root only for **major code changes** or before a final feature push. Do not waste time testing for minor tweaks or content updates on this stable site.
 - Environment variables: NEVER hardcode API keys. Always use import.meta.env.
 - The `.env.local` file is gitignored. Always update `.env.example` when adding new vars.
 
