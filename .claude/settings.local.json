@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter web exec astro check)",
+      "Bash(pnpm --filter web typecheck)",
+      "Bash(ls -lt apps/web/src/content/blog/*.md)"
+    ]
+  }
+}

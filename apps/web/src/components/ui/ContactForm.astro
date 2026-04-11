@@ -76,14 +76,18 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <script>
-  const form = document.getElementById('contact-form') as HTMLFormElement;
-  const status = document.getElementById('form-status');
+  // Bound to astro:after-swap so the submit handler re-attaches after any
+  // View Transition into /contact. Without this the form still posts to
+  // Formspree via native action, but loses the async UX + success overlay.
+  function initContactForm() {
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
+    const status = document.getElementById('form-status');
+    if (!form) return;
 
-  if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
-      
+
       try {
         const response = await fetch(form.action, {
           method: 'POST',
@@ -94,7 +98,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
         });
 
         if (response.ok) {
-          status.classList.remove('hidden');
+          status?.classList.remove('hidden');
           form.reset();
         } else {
           alert('Submission failed. Please try again.');
@@ -104,4 +108,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
       }
     });
   }
+
+  initContactForm();
+  document.addEventListener('astro:after-swap', initContactForm);
 </script>

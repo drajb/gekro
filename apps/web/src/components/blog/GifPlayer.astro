@@ -29,23 +29,32 @@ const { src, alt, poster } = Astro.props;
 </div>
 
 <script>
-  const gifPlayers = document.querySelectorAll('.gif-player');
+  // Bound to astro:after-swap so GIF players on newly-swapped-in posts pick
+  // up their click handlers. Re-querying after each View Transition is
+  // idempotent because the old DOM nodes are gone along with their listeners.
+  function initGifPlayers() {
+    const gifPlayers = document.querySelectorAll<HTMLElement>('.gif-player');
 
-  gifPlayers.forEach(player => {
-    const img = player.querySelector('.gif-img') as HTMLImageElement;
-    const originalSrc = img.src;
-    const gifSrc = img.dataset.gif || '';
+    gifPlayers.forEach(player => {
+      const img = player.querySelector('.gif-img') as HTMLImageElement | null;
+      if (!img) return;
+      const originalSrc = img.src;
+      const gifSrc = img.dataset.gif || '';
 
-    player.addEventListener('click', () => {
-      const isPlaying = player.classList.contains('playing');
-      
-      if (isPlaying) {
-        player.classList.remove('playing');
-        img.src = originalSrc;
-      } else {
-        player.classList.add('playing');
-        img.src = gifSrc;
-      }
+      player.addEventListener('click', () => {
+        const isPlaying = player.classList.contains('playing');
+
+        if (isPlaying) {
+          player.classList.remove('playing');
+          img.src = originalSrc;
+        } else {
+          player.classList.add('playing');
+          img.src = gifSrc;
+        }
+      });
     });
-  });
+  }
+
+  initGifPlayers();
+  document.addEventListener('astro:after-swap', initGifPlayers);
 </script>

@@ -53,27 +53,35 @@ const html = highlighter.codeToHtml(code, {
 </style>
 
 <script>
-  const buttons = document.querySelectorAll('.copy-button');
-  
-  buttons.forEach(button => {
-    button.addEventListener('click', async () => {
-      const code = (button as HTMLElement).dataset.code || '';
-      const copyIcon = button.querySelector('.copy-icon');
-      const checkIcon = button.querySelector('.check-icon');
-      
-      try {
-        await navigator.clipboard.writeText(code);
-        
-        copyIcon?.classList.add('hidden');
-        checkIcon?.classList.remove('hidden');
-        
-        setTimeout(() => {
-          copyIcon?.classList.remove('hidden');
-          checkIcon?.classList.add('hidden');
-        }, 2000);
-      } catch (err) {
-        console.error('Failed to copy: ', err);
-      }
+  // Bound to astro:after-swap so copy-code buttons on newly-navigated posts
+  // get their click handlers. Without this, clicking Copy silently no-ops on
+  // any post reached via View Transition.
+  function initCopyButtons() {
+    const buttons = document.querySelectorAll('.copy-button');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', async () => {
+        const code = (button as HTMLElement).dataset.code || '';
+        const copyIcon = button.querySelector('.copy-icon');
+        const checkIcon = button.querySelector('.check-icon');
+
+        try {
+          await navigator.clipboard.writeText(code);
+
+          copyIcon?.classList.add('hidden');
+          checkIcon?.classList.remove('hidden');
+
+          setTimeout(() => {
+            copyIcon?.classList.remove('hidden');
+            checkIcon?.classList.add('hidden');
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy: ', err);
+        }
+      });
     });
-  });
+  }
+
+  initCopyButtons();
+  document.addEventListener('astro:after-swap', initCopyButtons);
 </script>

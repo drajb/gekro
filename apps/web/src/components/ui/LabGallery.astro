@@ -81,10 +81,14 @@ const photos = [
 <script>
   import { animate, inView } from "motion";
 
-  const photos = document.querySelectorAll(".lab-photo");
-  
-  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!isReducedMotion) {
+  // Bound to astro:after-swap so lab photos on /about animate in when the
+  // page is reached via View Transition. Old observers reference now-detached
+  // DOM nodes and are garbage collected — re-querying is safe.
+  function initLabGallery() {
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReducedMotion) return;
+
+    const photos = document.querySelectorAll(".lab-photo");
     photos.forEach((photo) => {
       inView(photo, () => {
         animate(
@@ -95,6 +99,9 @@ const photos = [
       });
     });
   }
+
+  initLabGallery();
+  document.addEventListener('astro:after-swap', initLabGallery);
 </script>
 
 <style>

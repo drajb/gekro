@@ -109,8 +109,12 @@ const schema = {
   </article>
 
   <script>
-    const copyBtn = document.getElementById('copy-link');
-    if (copyBtn) {
+    // Bound to astro:after-swap so the copy-link listener re-attaches to the
+    // new DOM on every View Transition (post → post) — inline one-shot scripts
+    // lose their handlers otherwise.
+    function initCopyLink() {
+      const copyBtn = document.getElementById('copy-link');
+      if (!copyBtn) return;
       copyBtn.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(window.location.href);
@@ -124,5 +128,8 @@ const schema = {
         }
       });
     }
+
+    initCopyLink();
+    document.addEventListener('astro:after-swap', initCopyLink);
   </script>
 </BaseLayout>
