@@ -5,15 +5,17 @@ publishedAt: "2026-04-12"
 difficulty: "Intermediate"
 topics: ["AI", "Automation", "Productivity"]
 readingTime: 11
-aiSummary: "Rohit built Sonic Phoenix, a seven-phase pipeline that used acoustic fingerprinting, language classification, metadata enrichment, and an AI agent skill to transform 7,246 chaotic audio files into a clean 30GB library with on-demand Spotify playlist curation. The project started when his kid asked to hear the music he grew up with."
+aiSummary: "Rohit built Sonic Phoenix, a seven-phase pipeline that used acoustic fingerprinting, language classification, and metadata enrichment to extract a structured catalog from 7,246 chaotic audio files — then deleted the 30GB of audio and shipped the metadata as an AI skill for on-demand Spotify playlist curation. The project started when his kid asked to hear the music he grew up with."
 mainImage: "/images/blog/sonic-phoenix.png"
 ---
 
 <TLDR>
-  My kid asked to hear what I listened to growing up. The problem: 7,246 audio files on a hard drive with broken tags, garbled metadata, and zero usable organization. Over a weekend I built Sonic Phoenix — a seven-phase pipeline that fingerprinted every track via Shazam, classified languages, merged 1,365 fragmented artist folders, enriched metadata from iTunes and LrcLib, and sorted the entire 30GB collection into a clean hierarchy. Zero unsorted files remain. Phase 7 is a ClawHub AI skill that sits on top of the catalog and lets any OpenClaw-compatible agent curate Spotify playlists on demand from natural language.
+  My kid asked to hear what I listened to growing up. The problem: 7,246 audio files on a hard drive with broken tags, garbled metadata, and zero usable organization. Over a weekend I built Sonic Phoenix — a seven-phase pipeline that fingerprinted every track via Shazam, classified languages, merged 1,365 fragmented artist folders, enriched metadata from iTunes and LrcLib, and extracted every useful data point into a structured catalog. Then I deleted the 30GB of audio files — turns out 11 MB of metadata and a Spotify subscription is all you actually need. Phase 7 is a ClawHub AI skill that sits on top of the catalog and lets any OpenClaw-compatible agent curate Spotify playlists on demand from natural language.
 </TLDR>
 
 My kid asked me to play the songs I used to listen to when I was their age. Simple request. I said sure, pulled out a dusty external drive, plugged it in, and opened a folder I hadn't touched in years. What I found was 7,246 audio files with metadata that was either wrong, missing, or nonsensical — artist fields containing track numbers, album names that meant nothing, titles that had nothing to do with the actual song. I couldn't find a single track by name. That drive held everything I grew up on — Eminem, Linkin Park, A.R. Rahman, Pritam, Queen — buried under layers of broken tags accumulated over years of ripping, converting, and moving files between devices. The weekend that followed turned into [Sonic Phoenix](https://github.com/drajb/sonic-phoenix).
+
+![Sonic Phoenix — a seven-phase pipeline that turned 7,246 chaotic audio files into a structured metadata catalog](/images/blog/sonic-phoenix.png)
 
 ## The Architecture
 
@@ -30,6 +32,8 @@ The pipeline is split into seven phases, each a series of small scripts that wri
 | **7 — AI Skill (ClawHub)** | On-demand playlist curation via OpenClaw agents | Shipped as `ultimate-music-manager` on ClawHub |
 
 The target structure is `Sorted/<Language>/<Artist>/<Album>/<Artist> - <Title>.<ext>`. Two language buckets emerged from my collection: **English** (3,621 tracks) and **Hindi** (1,410 tracks). The classification isn't hardcoded — it's driven entirely by JSON hint files you drop into `config/language_hints/`. If your collection is French and Japanese, the pipeline produces `Sorted/French/` and `Sorted/Japanese/` and nothing else.
+
+At its peak, before I deleted the audio files, the sorted library looked like this:
 
 ```text
 T:\Music\
@@ -91,11 +95,11 @@ The result: **6,733 out of 7,160** cataloged tracks now carry real album metadat
 
 ### Phase 5–6: Finalization and the Spotify Bridge
 
-Phase 5 locked the catalog. `05I_finalize_catalog.py` merges ID3, Shazam, and NLP classification data into a single `final_catalog.json` — a 1.9 MB read-only artifact that downstream consumers treat as the single source of truth. After finalization: **zero unsorted audio files remaining** anywhere under the music root.
+Phase 5 locked the catalog. `05I_finalize_catalog.py` merges ID3, Shazam, and NLP classification data into a single `final_catalog.json` — a 1.9 MB read-only artifact that downstream consumers treat as the single source of truth. After finalization: **zero unsorted audio files remaining** anywhere under the music root. And then I deleted them all. 30 GB of audio files, gone. The 11 MB of pipeline state in `.data/` — the catalogs, the enrichment records, the Shazam identifications — that's what actually matters. Every song in the catalog exists on Spotify. The local files were just the raw material; the metadata is the product.
 
-Phase 6 was the payoff. The discovery sync engine (`06E_spotify_discovery_sync.py`) cross-references local artists against Spotify's catalog and auto-generates genre-based "Essentials" playlists. It processed **95 artists** in the first sync run. The Spotify 403 on playlist creation (the app was in Development Mode) blocked the auto-generated playlists from landing — a one-click fix in the Spotify Developer Dashboard that I'll resolve before the next run.
+Phase 6 made the deletion painless. The discovery sync engine (`06E_spotify_discovery_sync.py`) cross-references catalog artists against Spotify and auto-generates genre-based "Essentials" playlists. It processed **95 artists** in the first sync run. The Spotify 403 on playlist creation (the app was in Development Mode) blocked the auto-generated playlists from landing — a one-click fix in the Spotify Developer Dashboard that I'll resolve before the next run.
 
-But the real payoff isn't Phase 6 itself. It's that the catalog is now structured and enriched enough to hand to an AI.
+But the real payoff isn't Phase 6 itself. It's that the catalog is structured and enriched enough to hand to an AI — no audio files required.
 
 ### Phase 7: The AI Skill — Playlist Curation on Demand
 
@@ -103,9 +107,9 @@ Phases 1–6 built the dataset. Phase 7 puts an AI on top of it.
 
 I've shipped the skill to [ClawHub](https://clawhub.ai/drajb/ultimate-music-manager) under the name `ultimate-music-manager`. Any OpenClaw-compatible agent — Claude Code, Codex, Copilot — can install it and immediately operate the pipeline or query the catalog. The skill package includes the full pipeline instruction set (`SKILL.md`), helper scripts for preflight checks and status dashboards, and a safety hook that intercepts destructive operations before they execute.
 
-This is where the weekend project pays off. I can now say "build me a 90s Bollywood nostalgia playlist" or "give me every Eminem track sorted by album" or "create a road trip mix from my English collection, heavy on rock" and the agent has the structured metadata — artist, title, album, language, genre — to actually do it. It reads `final_catalog.json`, filters by whatever criteria I describe in plain language, and pushes the result to Spotify via Phase 6's sync engine.
+This is where the weekend project pays off. I can now say "build me a 90s Bollywood nostalgia playlist" or "give me every Eminem track sorted by album" or "create a road trip mix from my English collection, heavy on rock" and the agent has the structured metadata — artist, title, album, language, genre — to actually do it. It reads `final_catalog.json`, filters by whatever criteria I describe in plain language, and pushes the result to Spotify via Phase 6's sync engine. No local audio files needed — just the catalog and a Spotify subscription.
 
-The final catalog isn't a flat list of filenames anymore. It's a queryable dataset sitting behind a shipped AI skill that turns natural language into curated playlists — built entirely from my own music, not from an algorithm that doesn't know what I grew up on.
+The final catalog isn't a flat list of filenames anymore. It's a queryable dataset sitting behind a shipped AI skill that turns natural language into curated playlists — built entirely from metadata I extracted from my own music, not from an algorithm that doesn't know what I grew up on.
 
 ## The Tradeoffs
 
@@ -119,4 +123,4 @@ The 690 mismatch entries in the mismatch report represent tracks where iTunes re
 
 ## What I Learned
 
-My kid got to hear the songs. That was the whole point, and it almost got lost in the engineering. But the real lesson is that a pile of 7,246 untagged audio files isn't a music collection — it's a data problem, and data problems are exactly what AI tooling has gotten good at. The pipeline I built over a weekend would have taken weeks of manual sorting a few years ago. Now the catalog is structured enough that an AI skill can build me a playlist in seconds from metadata I never would have had the patience to curate by hand. The hard drive isn't dusty anymore. It's a dataset, and datasets compound.
+My kid got to hear the songs. That was the whole point, and it almost got lost in the engineering. But the real lesson is that a pile of 7,246 untagged audio files isn't a music collection — it's a data problem, and data problems are exactly what AI tooling has gotten good at. The pipeline I built over a weekend would have taken weeks of manual sorting a few years ago. Now the catalog is structured enough that an AI skill can build me a playlist in seconds from metadata I never would have had the patience to curate by hand. I deleted 30 GB of audio and kept 11 MB of JSON. The files were never the point — the data was, and datasets compound.
