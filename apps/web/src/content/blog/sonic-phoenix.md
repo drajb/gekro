@@ -1,6 +1,6 @@
 ---
 title: "Sonic Phoenix: Bringing 7,246 Forgotten Songs Back from the Dead"
-description: "How a child's request to hear my childhood music turned into a seven-phase pipeline that fingerprinted, sorted, enriched, and synced a 30GB library to Spotify — then handed it to an AI skill for on-demand playlist curation."
+description: "How my child's request to hear my childhood music turned into a seven-phase pipeline that fingerprinted, sorted, enriched, and synced a 30GB library to Spotify — then handed it to an AI skill for on-demand playlist curation."
 publishedAt: "2026-04-12"
 difficulty: "Intermediate"
 topics: ["AI", "Automation", "Productivity"]
@@ -45,7 +45,7 @@ T:\Music\
 │   │   └── ... (600+ more artists)
 │   └── Hindi/            # 1,410 tracks
 │       ├── Pritam/       # 122 tracks
-│       ├── Himesh Reshammiya/ # 63 tracks
+│       ├── Sonu Nigam/       # 63 tracks
 │       ├── A.R. Rahman/  # 44 tracks
 │       ├── Shankar Ehsaan Loy/ # 39 tracks
 │       └── ... (350+ more artists)
@@ -71,7 +71,7 @@ Out of 7,246 files, Shazam positively identified 4,177 — a 57.6% recognition r
 
 Language classification was straightforward for English tracks but broke down immediately for Hindi. The problem: `langdetect` sees transliterated Hindi (Hindi written in English letters — "Tujhe Dekha Toh Yeh Jaana Sanam") and classifies it as English. Every Bollywood song with a romanized title ended up in the wrong bucket.
 
-The fix was explicit language hint files — JSON configs under `config/language_hints/` that list known artists, DNA keywords, and language codes. Drop a `Hindi.json` with `"artists": ["Pritam", "A.R. Rahman", "Himesh Reshammiya"]` and those artists get hard-routed to the Hindi bucket regardless of what `langdetect` thinks. The pipeline loaded these at runtime with zero hardcoded language knowledge in the code itself.
+The fix was explicit language hint files — JSON configs under `config/language_hints/` that list known artists, DNA keywords, and language codes. Drop a `Hindi.json` with `"artists": ["Pritam", "A.R. Rahman", "Sonu Nigam"]` and those artists get hard-routed to the Hindi bucket regardless of what `langdetect` thinks. The pipeline loaded these at runtime with zero hardcoded language knowledge in the code itself.
 
 Then came the artist fragmentation problem. After the initial sort, I had separate folders for `Akon feat. Eminem`, `Akon ft Snoop Dogg`, and `AKON` — all the same primary artist, scattered across three directories. The consolidation pass (`03A_consolidate_by_artist.py`) used fuzzy matching at a 70% similarity threshold plus a manual override map for canonical names. It executed **1,365 folder merges** to collapse the mess down to **968 clean artist directories**.
 
