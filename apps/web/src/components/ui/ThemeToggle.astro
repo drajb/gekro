@@ -1,4 +1,36 @@
 ---
+/**
+ * ThemeToggle.astro — Light/dark reader mode toggle button
+ *
+ * Used in: BlogLayout.astro, ExperimentLayout.astro (top-right corner of articles)
+ * NOT used on the homepage, about, contact, or now pages.
+ *
+ * Theme mechanism:
+ *  Toggling adds/removes the `.theme-light` class on `document.body`.
+ *  global.css defines CSS variable overrides scoped to `.theme-light body` or
+ *  `body.theme-light`, which switches the colour scheme without re-rendering.
+ *  The preference is persisted to localStorage under 'reader-theme'.
+ *
+ * View Transition integration:
+ *  Uses document.startViewTransition() (if available) to animate the theme
+ *  change with a reveal transition anchored to the click position
+ *  (--click-x/--click-y CSS vars set just before the transition).
+ *
+ * Script type:
+ *  is:inline — must run before first paint to prevent FOUC for users with
+ *  a cached 'light' preference. Module scripts run after hydration and would
+ *  show a flash of dark mode first.
+ *
+ * data-initialized guard:
+ *  Prevents the click handler from being attached twice if setupThemeToggle()
+ *  is called multiple times (e.g., after repeated View Transitions on the
+ *  same reading page).
+ *
+ * Non-reading pages:
+ *  When the button isn't present (homepage, contact, etc.), setupThemeToggle()
+ *  forcibly resets the body to dark mode so light-mode styles don't bleed
+ *  from a previous reading page into non-reading pages.
+ */
 ---
 
 <button

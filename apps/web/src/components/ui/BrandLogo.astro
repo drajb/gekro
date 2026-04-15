@@ -1,4 +1,23 @@
 ---
+/**
+ * BrandLogo.astro — Animated orbital brand mark
+ *
+ * Used in: Header.astro (top-left nav), Footer.astro (brand column)
+ *
+ * Renders a pulsing "star" circle with an orbiting "planet" circle —
+ * a purely CSS animation using @keyframes pulse-slow and orbit.
+ * No JavaScript required.
+ *
+ * Props:
+ *  size      — "sm" | "md" | "lg" (maps to Tailwind w/h classes)
+ *  className — forwarded to the outer wrapper div for external positioning
+ *
+ * Colors:
+ *  Hardcoded shadow values reference accent colour hex (#3fb1ff).
+ *  The core fill and orbit dots use bg-accent (CSS var) so they respond
+ *  to any future accent colour change in global.css.
+ */
+
 interface Props {
   size?: "sm" | "md" | "lg";
   className?: string;

@@ -1,4 +1,29 @@
 ---
+/**
+ * SearchWidget.astro — Pagefind-powered client-side search
+ *
+ * Used in: blog/index.astro (top of archive page)
+ *
+ * Pagefind indexes the built site at postbuild time (after `astro build`).
+ * The index lives at /pagefind/ and is not available during `pnpm dev`.
+ * In dev mode, the "search unavailable" message is shown instead.
+ *
+ * Initialisation:
+ *  initSearch() fetches /pagefind/pagefind-ui.js to probe availability before
+ *  importing it. This avoids an unhandled module error if the index hasn't
+ *  been built yet (common in fresh forks / CI environments).
+ *
+ * Styling:
+ *  Pagefind UI CSS variables are overridden to match the site design system.
+ *  resetStyles: false prevents Pagefind from injecting its own default styles
+ *  that would conflict with the site's Tailwind base.
+ *
+ * is:inline:
+ *  The script uses is:inline so it runs immediately and re-runs on View
+ *  Transitions (Astro module scripts run once per page load, not per swap).
+ *  The PagefindUI constructor is safe to call multiple times — it replaces
+ *  the #pagefind-search container's content on each call.
+ */
 ---
 <!--
   Pagefind Search Component

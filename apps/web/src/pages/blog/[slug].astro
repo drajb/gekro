@@ -1,4 +1,31 @@
 ---
+/**
+ * blog/[slug].astro — Individual blog post page (/blog/[slug])
+ *
+ * Static generation: getStaticPaths() builds one page per post from both
+ * local Content Collections AND Sanity CMS (Sanity fetch fails silently).
+ *
+ * Rendering modes:
+ *  isLocal = true  → Astro markdown render via post.render(); provides
+ *                    Content component and heading extraction.
+ *  isLocal = false → Sanity PortableText render via <PortableText> component;
+ *                    headings are hardcoded stubs (Sanity posts don't auto-extract).
+ *
+ * Display post normalization:
+ *  Local post data lives in post.data.*; we flatten it into a displayPost
+ *  object that BlogLayout and child components expect (flat keys, not .data.*).
+ *
+ * Related posts:
+ *  getAllPosts() is called again in the component body (not getStaticPaths)
+ *  so RelatedPosts gets the full post list at render time. This is a second
+ *  Sanity fetch at build time — acceptable for static generation.
+ *
+ * Copy-code buttons:
+ *  addCopyButtons() dynamically appends a "Copy" button to every <pre> block.
+ *  Bound to astro:after-swap so buttons appear on posts navigated to via
+ *  View Transitions (issue 2026-04-11).
+ */
+
 import { getCollection } from 'astro:content';
 import BlogLayout from '../../layouts/BlogLayout.astro';
 import PortableText from '../../components/blog/PortableText.astro';
@@ -9,15 +36,17 @@ import { ALL_POSTS_QUERY } from '../../lib/sanity/queries';
 import { getAllPosts } from '../../lib/utils/posts';
 
 export async function getStaticPaths() {
+  // Build paths from local markdown files
   const localPosts = await getCollection('blog');
-  let sanityPosts = [];
-  
+  let sanityPosts: any[] = [];
+
+  // Sanity posts are optional — site works local-only if Sanity is unreachable
   try {
     sanityPosts = await client.fetch(ALL_POSTS_QUERY);
   } catch (e) {
     console.error("Sanity fetch failed, using local only", e);
   }
-  
+
   const sanityPaths = sanityPosts.map((post: any) => ({
     params: { slug: post.slug.current },
     props: { post, isLocal: false },
@@ -33,14 +62,18 @@ export async function getStaticPaths() {
 
 const { post, isLocal } = Astro.props;
 
-let Content;
-let headings = [];
+// Typed explicitly to avoid 'never[]' inference in strict TS (bug fixed 2026-04-15)
+let Content: any;
+let headings: { depth: number; text: string; slug: string }[] = [];
 let displayPost = post;
 
 if (isLocal) {
+  // Render markdown to component + extract headings for TOC
   const rendered = await post.render();
   Content = rendered.Content;
   headings = rendered.headings;
+
+  // Flatten post.data.* into the shape BlogLayout + children expect
   displayPost = {
     ...post.data,
     title: post.data.title,
@@ -52,65 +85,85 @@ if (isLocal) {
     tldr: post.data.tldr || post.data.description || post.data.summary
   };
 } else {
+  // Sanity posts don't have extracted headings; use a stub for the TOC
   headings = [
     { depth: 2, text: 'Executive Summary', slug: 'summary' },
     { depth: 2, text: 'What I Learned', slug: 'learned' },
   ];
 }
 
-// Use shared utility for related posts (#7: eliminates double fetch)
+// getAllPosts() for related posts (second build-time fetch; acceptable for SSG)
 const allPostsForRelated = await getAllPosts();
 ---
 
 <BlogLayout post={displayPost} headings={headings}>
   <div class="space-y-12">
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <span class={`text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full border ${
-            displayPost.difficulty === 'Beginner' ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-400' :
-            displayPost.difficulty === 'Intermediate' ? 'border-blue-500/30 bg-blue-500/5 text-blue-400' :
-            'border-purple-500/30 bg-purple-500/5 text-purple-400'
-          }`}>
-            {displayPost.difficulty || 'Beginner'}
-          </span>
-          <span class="text-[10px] uppercase tracking-widest font-mono text-text-muted">
-            {displayPost.publishedAt ? new Date(displayPost.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : ''}
-          </span>
-        </div>
-        <TLDR>
-          {displayPost.tldr}
-        </TLDR>
+
+    <!-- ── Post meta bar: difficulty badge + publish date ── -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <!-- Difficulty badge: colour-coded by level -->
+        <span class={`text-[10px] uppercase tracking-widest font-mono px-2 py-0.5 rounded-full border ${
+          displayPost.difficulty === 'Beginner'     ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-400' :
+          displayPost.difficulty === 'Intermediate' ? 'border-blue-500/30 bg-blue-500/5 text-blue-400' :
+                                                      'border-purple-500/30 bg-purple-500/5 text-purple-400'
+        }`}>
+          {displayPost.difficulty || 'Beginner'}
+        </span>
+        <span class="text-[10px] uppercase tracking-widest font-mono text-text-muted">
+          {displayPost.publishedAt
+            ? new Date(displayPost.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            : ''}
+        </span>
       </div>
 
-      {isLocal ? (
-        <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
-          <Content />
-        </div>
-      ) : (
-        <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
-          <PortableText value={displayPost.body} />
-        </div>
-      )}
+      <!-- TLDR block — governance rule: must appear before the first H2 -->
+      <TLDR>
+        {displayPost.tldr}
+      </TLDR>
+    </div>
 
-      <RelatedPosts
-        currentSlug={isLocal ? post.slug : post.slug?.current}
-        currentTopics={displayPost.topics || []}
-        allPosts={allPostsForRelated}
-      />
+    <!-- ── Article content ── -->
+    <!-- Prose classes are duplicated for local/Sanity branches to allow
+         future divergence (e.g., Sanity might need different heading styles) -->
+    {isLocal ? (
+      <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
+        <Content />
+      </div>
+    ) : (
+      <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
+        <PortableText value={displayPost.body} />
+      </div>
+    )}
+
+    <!-- Related posts by shared topic (max 3) -->
+    <RelatedPosts
+      currentSlug={isLocal ? post.slug : post.slug?.current}
+      currentTopics={displayPost.topics || []}
+      allPosts={allPostsForRelated}
+    />
   </div>
 </BlogLayout>
 
 <script>
-  // Copy Code Button Implementation
+  /**
+   * addCopyButtons — appends a "Copy" button to every <pre> code block.
+   *
+   * Buttons are injected at runtime rather than server-rendered so they don't
+   * appear in RSS/print views or interfere with Pagefind indexing.
+   *
+   * Bound to astro:after-swap so buttons appear on posts navigated to via
+   * View Transitions. The old DOM is fully replaced on each swap, so there
+   * is no risk of duplicate buttons (issue 2026-04-11).
+   */
   function addCopyButtons() {
     const blocks = document.querySelectorAll('pre');
 
     blocks.forEach((block) => {
-      // Create button
       const button = document.createElement('button');
       button.innerText = 'Copy';
       button.className = 'absolute right-4 top-4 p-2 text-[10px] uppercase tracking-widest font-mono text-text-muted bg-bg-surface border border-border rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:text-accent hover:border-accent z-20';
-      
+
       block.appendChild(button);
 
       button.addEventListener('click', async () => {
@@ -130,7 +183,6 @@ const allPostsForRelated = await getAllPosts();
     });
   }
 
-  // Run on page load and view transitions
   addCopyButtons();
   document.addEventListener('astro:after-swap', addCopyButtons);
 </script>

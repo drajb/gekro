@@ -1,4 +1,27 @@
 ---
+/**
+ * LabGallery.astro — Polaroid-style physical lab photo gallery
+ *
+ * Currently unused — available for use on the homepage or about page.
+ * Renders a 3-column grid of "polaroid" cards with inline SVG artwork
+ * (placeholder lab diagrams) until real hardware photos are available.
+ *
+ * Photo data:
+ *  Hardcoded array of 3 entries (Neural Core, Tesla Telemetry, Micro-controller).
+ *  The `src` fields reference /images/lab/hardware-*.png which are not yet
+ *  in the repo — only the SVG fallback inside each card is visible.
+ *
+ * Animation:
+ *  Motion One inView() triggers a fade+scale entrance for each card.
+ *  prefers-reduced-motion is respected (early return).
+ *  Bound to astro:after-swap for View Transition compatibility.
+ *
+ * Visual effect:
+ *  Each card has a slight CSS rotation (--rotation prop → inline style) and
+ *  snaps to 0deg on hover. The "tape" strip is a CSS pseudo-element effect
+ *  using a semi-transparent div.
+ */
+
 ---
 
 const photos = [

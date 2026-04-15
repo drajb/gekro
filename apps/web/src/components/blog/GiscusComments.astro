@@ -1,4 +1,29 @@
 ---
+/**
+ * GiscusComments.astro — GitHub Discussions comments embed
+ *
+ * Used in: BlogLayout.astro (below the article body, above the footer)
+ *
+ * Configuration:
+ *  Requires PUBLIC_GISCUS_REPO_ID and PUBLIC_GISCUS_CATEGORY_ID in .env.local.
+ *  If either is missing, a setup-required placeholder is shown instead.
+ *  The repo and category are hardcoded to drajb/gekro / Announcements.
+ *
+ * Theme sync:
+ *  Reads document.body.classList to detect the reader's active theme.
+ *  Uses 'light' when .theme-light is present (ThemeToggle has been activated),
+ *  otherwise uses 'dark_dimmed'. This ensures Giscus matches the reader mode.
+ *
+ * View Transitions:
+ *  loadGiscus() clears container.innerHTML and injects a fresh <script> tag on
+ *  every astro:after-swap. This is required because each post slug maps to a
+ *  different GitHub Discussion thread — the Giscus iframe must reload.
+ *
+ * Setup guide (one-time):
+ *  1. GitHub repo must be PUBLIC with Discussions enabled
+ *  2. Visit https://giscus.app, configure repo + category, copy IDs
+ *  3. Add IDs to .env.local as described below
+ */
 ---
 
 <!--
@@ -36,7 +61,7 @@
     const container = document.getElementById('giscus-container');
     if (!container) return;
 
-    // Remove any existing giscus iframe (clean re-init on page swap)
+    // Remove any existing Giscus iframe for a clean re-init on page swap
     container.innerHTML = '';
 
     const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID;
@@ -50,6 +75,11 @@
       return;
     }
 
+    // Mirror the active reader theme so Giscus doesn't stay dark when the user
+    // has toggled to light mode. ThemeToggle.astro binds .theme-light to body.
+    const isLight = document.body.classList.contains('theme-light');
+    const giscusTheme = isLight ? 'light' : 'dark_dimmed';
+
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
     script.setAttribute('data-repo', 'drajb/gekro');
@@ -61,7 +91,7 @@
     script.setAttribute('data-reactions-enabled', '1');
     script.setAttribute('data-emit-metadata', '0');
     script.setAttribute('data-input-position', 'top');
-    script.setAttribute('data-theme', 'dark_dimmed');
+    script.setAttribute('data-theme', giscusTheme);
     script.setAttribute('data-lang', 'en');
     script.setAttribute('data-loading', 'lazy');
     script.crossOrigin = 'anonymous';
@@ -71,6 +101,7 @@
   };
 
   loadGiscus();
+  // Re-init after View Transitions (new slug = new Giscus thread)
   document.addEventListener('astro:after-swap', loadGiscus);
 </script>
 

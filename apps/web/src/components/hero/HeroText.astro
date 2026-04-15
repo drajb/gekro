@@ -1,4 +1,29 @@
 ---
+/**
+ * HeroText.astro — GSAP-animated hero headline and CTA buttons
+ *
+ * Mounted inside the homepage (index.astro) on top of the HeroCanvasNeural
+ * particle background. z-10 ensures it sits above the z-0 canvas.
+ *
+ * Animation sequence (GSAP timeline, 0.8s initial delay):
+ *  1. Headline stagger — 3 lines slide up from y:100 + blur:10px, 0.2s apart
+ *  2. Subtext fade-in  — overlapping with tail of headline (-=0.8)
+ *  3. CTA scale-in     — back.out(1.7) spring for a subtle bounce (-=0.5)
+ *
+ * Magnetic buttons:
+ *  Each .magnetic-btn tracks cursor position relative to its bounding rect
+ *  and offsets by 30% of the delta. mouseleave snaps back with elastic easing.
+ *  The interaction uses plain mouse events (not pointer events) — no touch
+ *  support is needed since magnetic effects are desktop-only.
+ *
+ * Reduced motion:
+ *  If prefers-reduced-motion is set, all animated elements are snapped to
+ *  their final state (opacity: 1, y: 0) immediately via gsap.set().
+ *
+ * View Transitions:
+ *  initAnimations() is bound to astro:after-swap so the animation sequence
+ *  replays when navigating back to the homepage via View Transitions.
+ */
 ---
 <div class="relative z-10 text-center space-y-12 pt-32 md:pt-40 pb-20 px-4 min-h-[70vh] flex flex-col justify-center select-none">
   <div class="space-y-6">
@@ -39,7 +64,7 @@
       return;
     }
 
-    // 1. Headline Stagger with Blur-In
+    // 1. Headline: 3-line stagger with blur-in from below
     const tl = gsap.timeline({ delay: 0.8 });
     
     tl.from('.stagger-text', {
@@ -64,7 +89,7 @@
       "-=0.5"
     );
 
-    // 2. Magnetic Buttons
+    // 2. Magnetic buttons: cursor-tracking offset on mousemove, elastic snap on leave
     const buttons = document.querySelectorAll('.magnetic-btn');
     buttons.forEach(btn => {
       btn.addEventListener('mousemove', (e: any) => {
@@ -91,7 +116,7 @@
     });
   };
 
-  // Run on first load and after view transitions
+  // Init on first load; replay after each View Transition swap
   initAnimations();
   document.addEventListener('astro:after-swap', initAnimations);
 </script>

@@ -1,5 +1,37 @@
 ---
-// apps/web/src/components/LabTerminal.astro
+/**
+ * LabTerminal.astro — Hidden easter-egg terminal overlay
+ *
+ * Mounted globally in BaseLayout.astro (present on every page).
+ * Opens and closes with the backtick (`) key.
+ *
+ * Architecture:
+ *  Implemented as a Web Component (<lab-terminal>) so the class instance
+ *  survives View Transitions without re-registering. customElements.define()
+ *  is guarded with `if (!customElements.get(...))` for HMR/hot-reload safety.
+ *
+ * Supported commands:
+ *  help / h      — list available commands
+ *  whoami / w    — display Rohit's bio blurb
+ *  blog / b      — fetch and display 3 latest posts from /api/posts.json
+ *  github / gh   — open github.com/drajb in a new tab
+ *  linkedin / li — open linkedin.com/in/rohitburani in a new tab
+ *  clear / c     — clear terminal output
+ *  exit / q      — close terminal and reset state
+ *
+ * Boot sequence:
+ *  On first open, slowPrint() types out the ASCII art + boot lines with a
+ *  120ms delay per line. isBooted prevents the boot from replaying on
+ *  subsequent opens in the same session. `exit` resets isBooted so the
+ *  next open shows the full boot sequence again.
+ *
+ * Command history:
+ *  ArrowUp/ArrowDown on the input navigates command history (max 20 entries).
+ *
+ * Accessibility:
+ *  aria-hidden is toggled on the container to hide it from screen readers
+ *  when closed. The overlay does not trap focus — users can tab out.
+ */
 ---
 
 <lab-terminal>
@@ -63,7 +95,7 @@
       this.input = this.querySelector('input#lab-terminal-input');
       this.closeBtn = this.querySelector('#lab-terminal-close');
 
-      // Bind events
+      // Bind methods to instance so removeEventListener can match the same ref
       this.handleKeydown = this.handleKeydown.bind(this);
       this.handleSubmit = this.handleSubmit.bind(this);
       this.handleInputKeydown = this.handleInputKeydown.bind(this);
@@ -98,6 +130,10 @@
       }
     }
 
+    /**
+     * bootSequence — plays the ASCII art + init messages on first open.
+     * isBooted guard prevents replaying on subsequent opens; `exit` resets it.
+     */
     async bootSequence() {
       if (this.isBooted) return;
       this.isBooted = true;
@@ -124,6 +160,12 @@
       if (this.input) this.input.focus();
     }
 
+    /**
+     * toggleTerminal — show/hide the overlay with CSS opacity transition.
+     * display:none is set via setTimeout after the fade-out to avoid layout
+     * shifts while the container is fading. void offsetWidth forces reflow
+     * so the opacity transition fires when opening (browser batching guard).
+     */
     toggleTerminal() {
       if (!this.container) return;
       this.isOpen = !this.isOpen;
@@ -148,6 +190,11 @@
       }
     }
 
+    /**
+     * handleKeydown — global ` key listener for toggling the terminal.
+     * Ignores the key when focus is in an INPUT or TEXTAREA (other than the
+     * terminal's own input, which should also toggle-close the terminal).
+     */
     handleKeydown(e) {
       if (e.key === '`') {
         const target = e.target;
@@ -165,13 +212,19 @@
       if (this.isOpen) this.toggleTerminal();
     }
 
+    /**
+     * handleCommand — parse and dispatch a terminal command string.
+     * Echoes the command to the output first, then appends to history,
+     * then dispatches to the appropriate handler.
+     */
     async handleCommand(cmd) {
       const trimmed = cmd.trim();
       if (!trimmed) return;
-      
+
+      // Echo typed command back to output (mimics a real terminal)
       this.printLine(`<span class="text-accent">rohit@gekro:~$</span> ${trimmed}`, true);
-      
-      // History
+
+      // Command history (max 20 entries, oldest dropped from front)
       this.history.push(trimmed);
       if (this.history.length > 20) this.history.shift();
       this.historyIndex = this.history.length;

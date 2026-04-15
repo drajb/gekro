@@ -1,4 +1,21 @@
 ---
+/**
+ * Tag.astro — Topic chip / filter badge
+ *
+ * Used in: blog/index.astro (sidebar filter), index.astro (sidebar chip cloud)
+ *
+ * Each chip links to /topics/[slug] where slug is the lowercased,
+ * hyphenated version of `title` — matching the slug format in topics/[topic].astro.
+ *
+ * Props:
+ *  title  — topic name (used as display text and for URL generation)
+ *  count  — optional post count, shown in parentheses at reduced opacity
+ *  active — when true, renders with solid accent fill (used for "All Posts")
+ *
+ * The filter click behaviour (client-side topic filtering on the archive page)
+ * is handled by the SearchWidget, not by this component.
+ */
+
 interface Props {
   title: string;
   count?: number;

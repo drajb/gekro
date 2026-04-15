@@ -1,30 +1,59 @@
 ---
+/**
+ * blog/index.astro — Blog archive page (/blog)
+ *
+ * Layout: BaseLayout (no hero canvas — content-first page)
+ *
+ * Sections:
+ *  1. Archive header — title + tagline
+ *  2. SearchWidget  — Pagefind-powered client-side search
+ *  3. Sidebar       — sticky topic filter chips (Tag components)
+ *  4. Post list     — full archive grid via PostCard (3/4 width)
+ *
+ * Data:
+ *  getAllPosts() merges local Content Collections + Sanity (silent fallback),
+ *  sorted newest-first. getTopicCounts() derives [{title, count}] for the
+ *  sidebar chips. Tag filter interaction is client-side only (Pagefind / JS).
+ *
+ * Empty state:
+ *  If getAllPosts() returns [], the post list shows a placeholder instead of
+ *  an empty grid. This handles fresh forks before any content is added.
+ */
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import Tag from '../../components/ui/Tag.astro';
 import SearchWidget from '../../components/ui/SearchWidget.astro';
 import { getAllPosts, getTopicCounts } from '../../lib/utils/posts';
 
-// Shared utility eliminates duplicated Sanity+local merge pattern (#6)
+// Merge local + Sanity posts, sorted newest-first
 const posts = await getAllPosts();
+// Derive topic counts for sidebar chips (all topics, no slice limit on archive)
 const topics = getTopicCounts(posts);
 ---
 
 <BaseLayout title="Blog | gekro" description="Thoughts on engineering, AI, and systems build for a better future.">
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-16">
+
+    <!-- ── Archive header ── -->
     <header class="space-y-4">
       <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tight">Archive</h1>
       <p class="text-text-secondary text-lg max-w-xl">
         Deep dives, tutorials, and field notes from the lab.
       </p>
     </header>
-    
+
+    <!-- Pagefind client-side search bar (index built at postbuild; no-op in dev) -->
     <SearchWidget />
 
+    <!-- ── 4-column grid: sidebar (1 col) + post list (3 cols) ── -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-16 items-start">
+
+      <!-- Sidebar: sticky topic filter chips -->
       <aside class="space-y-8 lg:sticky lg:top-32">
         <h3 class="text-xs font-mono uppercase tracking-widest text-text-muted">Filter by topic</h3>
         <div class="flex flex-wrap lg:flex-col gap-3">
+          <!-- "All Posts" chip is always active by default -->
           <Tag title="All Posts" active />
           {topics.map(topic => (
             <Tag title={topic.title} count={topic.count} />
@@ -32,10 +61,12 @@ const topics = getTopicCounts(posts);
         </div>
       </aside>
 
+      <!-- Post list: full archive, newest-first -->
       <div class="lg:col-span-3 space-y-12">
         {posts.length > 0 ? (
           posts.map(post => <PostCard post={post} />)
         ) : (
+          // Empty state — shown on fresh forks before any content is added
           <div class="py-24 text-center border border-dashed border-border rounded-xl">
             <p class="text-text-muted">No posts found. Time to write something!</p>
           </div>

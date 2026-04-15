@@ -1,4 +1,30 @@
 ---
+/**
+ * SEOHead.astro — Global <head> meta tags for SEO, OG, Twitter, and AI discoverability
+ *
+ * Used in: BaseLayout.astro (rendered inside <head> on every page)
+ *
+ * Props:
+ *  title        — page title; auto-appends "| gekro" unless already present
+ *  description  — meta description; defaults to the site tagline
+ *  ogImage      — OG image path relative to site root (default: /og/default.png)
+ *  canonicalURL — canonical href (default: Astro.url.href for the current page)
+ *
+ * Font loading strategy:
+ *  Inter (body) is loaded via Google Fonts with a print→all media swap trick
+ *  (non-render-blocking). A <noscript> fallback ensures it loads without JS.
+ *  Cabinet Grotesk (heading) is available from Fontshare but is not loaded
+ *  here — per project rules: max 2 web font families. Currently Inter only.
+ *
+ * AI discoverability:
+ *  Two <link rel="alternate"> tags expose the JSON posts API and llms.txt
+ *  manifest for AI crawlers / LLM training pipelines (GEO strategy).
+ *
+ * Title normalisation:
+ *  `title.includes('gekro')` check prevents double-appending the site name
+ *  on pages like "Blog | gekro" that already include it.
+ */
+
 interface Props {
   title: string;
   description?: string;

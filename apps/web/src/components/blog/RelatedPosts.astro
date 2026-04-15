@@ -1,4 +1,30 @@
 ---
+/**
+ * RelatedPosts.astro — Related posts section at the bottom of a blog post
+ *
+ * Used in: blog/[slug].astro (rendered inside the article body slot)
+ *
+ * Algorithm:
+ *  1. Exclude the current post (by slug)
+ *  2. For each remaining post, count how many topics it shares with the current
+ *  3. Keep only posts with at least 1 shared topic
+ *  4. Sort descending by sharedTopics count (most relevant first)
+ *  5. Take the top 3 results
+ *
+ * The section is omitted entirely if no related posts are found.
+ *
+ * Props:
+ *  currentSlug   — slug of the current post (to exclude it from results)
+ *  currentTopics — topics array of the current post (to match against)
+ *  allPosts      — full post list from getAllPosts() (passed from the page,
+ *                  not fetched here, to avoid a second Sanity fetch in the
+ *                  component tree)
+ *
+ * readingTime:
+ *  Must be included in the allPosts objects so PostCard shows the correct
+ *  value from frontmatter rather than re-computing from the short description.
+ */
+
 import PostCard from './PostCard.astro';
 
 interface Props {
@@ -12,6 +38,9 @@ interface Props {
     publishedAt: string;
     topics: string[];
     difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+    // readingTime must be passed through so PostCard shows the correct value
+    // from frontmatter rather than re-computing from the short tldr/description
+    readingTime?: number;
   }[];
 }
 

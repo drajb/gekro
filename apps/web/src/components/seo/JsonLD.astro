@@ -1,4 +1,19 @@
 ---
+/**
+ * JsonLD.astro — Injects a JSON-LD structured data <script> into the page <head>
+ *
+ * Used in: BlogLayout.astro (BlogPosting schema), ExperimentLayout.astro (TechArticle schema)
+ *
+ * Receives a plain JS object and serialises it to JSON inside a
+ * <script type="application/ld+json"> tag. Astro's set:html directive
+ * handles the serialisation — no XSS risk because JSON.stringify()
+ * produces safe output and set:html bypasses Astro's HTML escaping
+ * intentionally (the output is a <script> tag, not prose HTML).
+ *
+ * The caller is responsible for passing a valid schema.org object.
+ * See BlogLayout.astro and ExperimentLayout.astro for usage examples.
+ */
+
 interface Props {
   data: object;
 }

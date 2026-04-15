@@ -1,12 +1,37 @@
 ---
+/**
+ * now.astro — /now page (nownownow.com convention)
+ *
+ * Layout: BaseLayout with full-viewport HeroCanvasNeural background.
+ *
+ * Purpose:
+ *  A "now" page is a public snapshot of what the site owner is currently
+ *  focused on — a nownownow.com standard. This page is static (no CMS) and
+ *  must be manually updated whenever the focus areas change.
+ *  The "LAST UPDATED" timestamp at the bottom is the canonical indicator.
+ *
+ * Sections:
+ *  1. Page header     — title + subtitle
+ *  2. Primary Directive — current top-of-mind engineering focus (pulsing indicator)
+ *  3. Hardware Status — live lab hardware state (static labels, not real telemetry)
+ *  4. Reading/Thinking — current intellectual threads
+ *  5. Last updated    — manual timestamp (update whenever content changes)
+ *
+ * Note: Hardware statuses (ONLINE / ACTIVE / STANDBY) are static display labels,
+ *  not live telemetry. They reflect the expected state at time of last update.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
 ---
 
 <BaseLayout title="/now | gekro" description="What is happening in the lab right now.">
+  <!-- Full-bleed Three.js particle field (z-0, behind all content) -->
   <HeroCanvasNeural />
-  
+
   <main class="relative z-10 max-w-4xl mx-auto px-6 py-32 space-y-24">
+
+    <!-- ── Page header ── -->
     <header class="space-y-6">
       <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
         Now.
@@ -16,8 +41,13 @@ import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
       </p>
     </header>
 
+    <!-- ── Two-column grid: lab status (left) + thinking (right) ── -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+
+      <!-- Left column: Primary Directive + Hardware Status -->
       <section class="space-y-8">
+
+        <!-- Primary Directive: top-of-mind engineering focus, pulsing dot = active -->
         <div class="p-8 bg-bg-elevated rounded-2xl border border-border space-y-4">
           <div class="flex items-center gap-3">
              <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
@@ -28,6 +58,7 @@ import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
           </p>
         </div>
 
+        <!-- Hardware Status: static display labels (not live telemetry) -->
         <div class="p-8 bg-bg-elevated rounded-2xl border border-border space-y-4">
           <h2 class="text-xl font-heading font-medium text-text-primary">Hardware Status</h2>
           <ul class="space-y-3 font-mono text-sm text-text-secondary">
@@ -47,23 +78,27 @@ import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
         </div>
       </section>
 
+      <!-- Right column: Reading/Thinking threads + last updated timestamp -->
       <section class="space-y-8">
         <div class="space-y-6">
           <h2 class="text-2xl font-heading text-text-primary">Currently Reading/Thinking</h2>
           <ul class="space-y-6">
+            <!-- Active thread: accent border -->
             <li class="border-l-2 border-accent pl-6 py-1">
               <h3 class="font-heading text-lg text-text-primary">Agentic Workflow Patterns</h3>
               <p class="text-sm text-text-secondary mt-1">Exploring the transition from human-in-the-loop to fully autonomous corrective loops.</p>
             </li>
+            <!-- Secondary thread: subtle border -->
             <li class="border-l-2 border-border pl-6 py-1">
               <h3 class="font-heading text-lg text-text-primary">Tesla Fleet API Telemetry</h3>
               <p class="text-sm text-text-secondary mt-1">Mapping real-time car state to private dashboard for energy optimization.</p>
             </li>
           </ul>
         </div>
-        
+
+        <!-- Manual timestamp — update this when content changes -->
         <div class="pt-8 text-xs font-mono text-text-muted">
-          LAST UPDATED: 2026-03-24 // 14:00 UTC
+          LAST UPDATED: 2026-04-15 // 12:00 UTC
         </div>
       </section>
     </div>

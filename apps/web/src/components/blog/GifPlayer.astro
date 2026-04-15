@@ -1,4 +1,28 @@
 ---
+/**
+ * GifPlayer.astro — Click-to-play GIF component for blog posts
+ *
+ * Displays a static poster image by default; clicking it swaps to the
+ * animated GIF src. Clicking again pauses (reverts to poster).
+ *
+ * Props:
+ *  src    — the .gif URL (used as data-gif attribute; loaded only on click)
+ *  alt    — image alt text
+ *  poster — optional static poster image (if omitted, `src` is used as the
+ *           initial image — the GIF loads immediately, defeating the purpose)
+ *           Always pass a poster for large GIFs to avoid wasted bandwidth.
+ *
+ * Play state:
+ *  The '.playing' class on the player div drives CSS transitions:
+ *  - The play button overlay fades out (group-[.playing]:opacity-0)
+ *  - The "GIF" badge fades out (group-[.playing]:opacity-0)
+ *  No JS is needed for these transitions beyond toggling the class.
+ *
+ * View Transitions:
+ *  initGifPlayers() re-queries after each astro:after-swap. Re-running on
+ *  the new DOM nodes is safe — old nodes and their listeners are gone.
+ */
+
 interface Props {
   src: string;
   alt: string;

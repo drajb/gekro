@@ -1,4 +1,25 @@
 ---
+/**
+ * ReadingProgress.astro — Thin accent-coloured reading progress bar
+ *
+ * Fixed to the top of the viewport; grows from left-to-right as the user
+ * scrolls through the article. Used on all reading pages (BlogLayout,
+ * ExperimentLayout).
+ *
+ * Implementation:
+ *  GSAP ScrollTrigger scrub:true animates scaleX from 0 → 1 as the user
+ *  scrolls from the top of <main> to the bottom. The bar starts hidden
+ *  (scale-x-0) and uses transform-origin: left so it grows left-to-right.
+ *
+ * z-[60]:
+ *  Higher than Header (z-50) so the bar is always visible above the nav.
+ *
+ * View Transitions:
+ *  initProgress() is bound to astro:after-swap. GSAP ScrollTrigger instances
+ *  are not automatically cleaned up between navigations, but re-registering
+ *  via initProgress() on each swap creates a new instance targeting the new
+ *  <main> element — the old instance orphans harmlessly.
+ */
 ---
 <div id="reading-progress" class="fixed top-0 left-0 w-full h-[3px] z-[60] origin-left pointer-events-none">
   <div id="progress-bar" class="w-full h-full bg-accent scale-x-0 origin-left"></div>

@@ -1,4 +1,31 @@
 ---
+/**
+ * ContactForm.astro — Contact form with FormSpree backend + Turnstile CAPTCHA
+ *
+ * Used in: contact.astro
+ *
+ * Submission:
+ *  Posts to FormSpree (endpoint hardcoded: formspree.io/f/mwvrddbr) via fetch.
+ *  On success: hides the form, shows the #form-status success overlay.
+ *  On failure: shows the #form-error inline error paragraph (never alert()).
+ *
+ * CAPTCHA:
+ *  Cloudflare Turnstile widget rendered when PUBLIC_TURNSTILE_SITE_KEY is set.
+ *  The Turnstile API script is loaded via a regular <script> tag (not is:inline)
+ *  to avoid blocking the initial render.
+ *  If PUBLIC_TURNSTILE_SITE_KEY is missing, the CAPTCHA widget is omitted —
+ *  the form still works but is unprotected (acceptable in local dev).
+ *
+ * Spam protection:
+ *  Honeypot field (_gotcha) is hidden via inline style — FormSpree discards
+ *  submissions where this field is filled in by bots.
+ *
+ * View Transitions:
+ *  initContactForm() re-attaches the submit handler after each astro:after-swap.
+ *  Without this, the form would still submit via native action (Formspree POST)
+ *  but lose the async UX, success overlay, and inline error display.
+ */
+
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
@@ -65,12 +92,16 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
     </button>
   </form>
 
+  <!-- Success overlay — shown after a successful Formspree submission -->
   <div id="form-status" class="hidden absolute inset-0 z-20 bg-bg-surface flex flex-col items-center justify-center space-y-4 text-center p-8">
     <div class="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center text-accent text-2xl">✓</div>
     <h3 class="text-2xl font-heading text-text-primary">Message Received</h3>
     <p class="text-sm text-text-secondary max-w-xs px-8">Thanks for reaching out. I'll get back to you shortly.</p>
     <button onclick="document.getElementById('form-status').classList.add('hidden')" class="text-xs font-mono text-accent hover:underline mt-8">Send another</button>
   </div>
+
+  <!-- Inline error message — replaces the jarring alert() on network or API failure -->
+  <p id="form-error" class="hidden text-sm text-accent-danger font-mono mt-4" role="alert"></p>
 </div>
 
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -82,29 +113,37 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
   function initContactForm() {
     const form = document.getElementById('contact-form') as HTMLFormElement | null;
     const status = document.getElementById('form-status');
+    const errorMsg = document.getElementById('form-error');
     if (!form) return;
+
+    const showError = (msg: string) => {
+      if (!errorMsg) return;
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('hidden');
+      // Auto-hide after 6 seconds
+      setTimeout(() => errorMsg.classList.add('hidden'), 6000);
+    };
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (errorMsg) errorMsg.classList.add('hidden'); // clear previous error
       const formData = new FormData(form);
 
       try {
         const response = await fetch(form.action, {
           method: 'POST',
           body: formData,
-          headers: {
-            'Accept': 'application/json'
-          }
+          headers: { 'Accept': 'application/json' }
         });
 
         if (response.ok) {
           status?.classList.remove('hidden');
           form.reset();
         } else {
-          alert('Submission failed. Please try again.');
+          showError('Submission failed. Please try again or reach out on LinkedIn.');
         }
       } catch (err) {
-        alert('An error occurred. Direct signals might be jammed—try LinkedIn!');
+        showError('Network error — direct signals might be jammed. Try LinkedIn instead.');
       }
     });
   }

@@ -1,7 +1,25 @@
 ---
-// Beehiiv Newsletter Embed
-// Set BEEHIIV_PUBLICATION_ID in .env.local → PUBLIC_BEEHIIV_PUBLICATION_ID
-// Find it at app.beehiiv.com → Settings → Publication → Publication ID
+/**
+ * NewsletterEmbed.astro — Beehiiv newsletter signup (real or fallback)
+ *
+ * Used in: index.astro (sidebar), BlogLayout.astro (below article body)
+ *
+ * Two modes:
+ *  - Real embed: when PUBLIC_BEEHIIV_PUBLICATION_ID is set in .env.local,
+ *    renders a Beehiiv iframe + attribution script (official embed pattern).
+ *  - Fallback form: shown in dev / when the env var is missing. The form
+ *    collects the email client-side and shows a success message inline.
+ *    It does NOT submit to any backend — it's a pure UX placeholder.
+ *    A dev note prompts adding the real publication ID.
+ *
+ * Finding the publication ID:
+ *  app.beehiiv.com → Settings → Publication → Publication ID (format: pub_xxxxx)
+ *
+ * The iframe src conditionally appends ?slim=true for pub_ IDs, which removes
+ * the Beehiiv header from the embed for a cleaner integration.
+ */
+
+// Resolve the Beehiiv publication ID from env (undefined in local dev without .env.local)
 const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
 const useEmbed = !!publicationId;
 ---

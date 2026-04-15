@@ -1,13 +1,34 @@
 ---
+/**
+ * contact.astro — Contact page (/contact)
+ *
+ * Layout: BaseLayout with full-viewport HeroCanvasNeural background.
+ *
+ * Sections:
+ *  1. Header          — title + tagline
+ *  2. Digital Hubs    — GitHub + LinkedIn link cards
+ *  3. Contact Form    — ContactForm component (FormSpree backend)
+ *
+ * The two-column grid places Digital Hubs on the left and ContactForm on
+ * the right at lg breakpoints, stacking vertically on mobile.
+ *
+ * ContactForm handles its own submission logic (FormSpree), validation,
+ * Turnstile CAPTCHA rendering, and inline error display. No form logic
+ * lives in this page file.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
 import ContactForm from '../components/ui/ContactForm.astro';
 ---
 
 <BaseLayout title="Contact | gekro" description="Get in touch for technical inquiries, lab visits, or collaborative experiments.">
+  <!-- Full-bleed Three.js particle field (z-0, behind all content) -->
   <HeroCanvasNeural />
-  
+
   <main class="relative z-10 max-w-6xl mx-auto px-6 py-32 space-y-24">
+
+    <!-- ── Page header ── -->
     <header class="space-y-6">
       <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tighter">Connect</h1>
       <p class="text-text-secondary text-lg max-w-xl">
@@ -15,7 +36,10 @@ import ContactForm from '../components/ui/ContactForm.astro';
       </p>
     </header>
 
+    <!-- ── Two-column grid: social links + contact form ── -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+      <!-- Left column: Digital Hubs (GitHub + LinkedIn) -->
       <div class="space-y-12">
         <section class="space-y-6">
           <h2 class="text-xs font-mono uppercase tracking-widest text-text-muted">Digital Hubs</h2>
@@ -36,6 +60,7 @@ import ContactForm from '../components/ui/ContactForm.astro';
         </section>
       </div>
 
+      <!-- Right column: ContactForm (FormSpree + Turnstile CAPTCHA) -->
       <div class="space-y-8">
         <ContactForm />
       </div>

@@ -1,19 +1,41 @@
 ---
+/**
+ * topics/[topic].astro — Topic cluster page (/topics/[topic])
+ *
+ * Static generation: getStaticPaths() derives one page per unique topic slug
+ * from all posts. Topics are extracted from the `topics` array on each post
+ * and normalised to slug format (lowercase, spaces → hyphens).
+ *
+ * Rendering:
+ *  - `topicName` is the raw display name passed as a prop (not the slug).
+ *  - `relatedPosts` filters the full post list to those whose `topics` array
+ *    contains topicName (case-insensitive match).
+ *  - Experiments are not filtered here yet — a stub comment marks where they
+ *    could be added in the future.
+ *
+ * Data:
+ *  getAllPosts() is called twice: once in getStaticPaths() to build the path
+ *  list, and once in the component body to get the filtered post list.
+ *  This is an acceptable double-fetch for a static site — Astro deduplicates
+ *  Content Collection reads via its internal cache at build time.
+ */
+
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import ExperimentCard from '../../components/experiments/ExperimentCard.astro';
 import { getAllPosts } from '../../lib/utils/posts';
 
-// Fix #10: import at top of frontmatter, not mid-file
 export async function getStaticPaths() {
   const allPosts = await getAllPosts();
+  // Collect every unique topic name across all posts
   const allTopics = new Set<string>();
 
   allPosts.forEach(post => {
-    post.topics?.forEach(t => allTopics.add(t));
+    post.topics?.forEach((t: string) => allTopics.add(t));
   });
 
+  // Slugify topic name for the URL param; store raw name as prop for display
   return Array.from(allTopics).map(topic => ({
     params: { topic: topic.toLowerCase().replace(/\s+/g, '-') },
     props: { topicName: topic },
@@ -22,7 +44,7 @@ export async function getStaticPaths() {
 
 const { topicName } = Astro.props;
 
-// Shared utility (#6: eliminated duplicated fetch logic)
+// Filter posts: case-insensitive match against the raw topic name
 const allPosts = await getAllPosts();
 const relatedPosts = allPosts
   .filter(post => post.topics.some((t: string) => t.toLowerCase() === topicName.toLowerCase()));
@@ -30,6 +52,8 @@ const relatedPosts = allPosts
 
 <BaseLayout title={`${topicName} | gekro`} description={`Explore all articles and experiments related to ${topicName}.`}>
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-24">
+
+    <!-- ── Topic cluster header ── -->
     <header class="space-y-4">
       <span class="text-xs font-mono uppercase tracking-widest text-accent">Topic Cluster</span>
       <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tighter">
@@ -40,7 +64,10 @@ const relatedPosts = allPosts
       </p>
     </header>
 
+    <!-- ── Related content sections ── -->
     <div class="space-y-16">
+
+      <!-- Written content: filtered post cards, 2-column grid -->
       <div class="space-y-8">
         <h2 class="text-2xl font-heading text-text-primary border-b border-border pb-4">Written Content</h2>
         {relatedPosts.length > 0 ? (
@@ -48,15 +75,17 @@ const relatedPosts = allPosts
             {relatedPosts.map(post => <PostCard post={post} />)}
           </div>
         ) : (
+          // Empty state: no posts match this topic yet
           <div class="py-12 text-center border border-dashed border-border rounded-xl">
             <p class="text-text-muted">No articles found in this cluster yet. Stay tuned.</p>
           </div>
         )}
       </div>
-      
-      <!-- Potentially related experiments here if any -->
+
+      <!-- TODO: Add related experiments section when experiments support topics -->
     </div>
 
+    <!-- ── Back to archive ── -->
     <div class="pt-24 border-t border-border-subtle">
       <a href="/blog" class="text-sm font-mono text-accent hover:underline">← Back to Archive</a>
     </div>

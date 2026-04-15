@@ -1,4 +1,32 @@
 ---
+/**
+ * PostCard.astro — Blog post preview card
+ *
+ * Used in: blog/index.astro (archive grid), index.astro (recent posts),
+ *           topics/[topic].astro (filtered grid), RelatedPosts.astro
+ *
+ * Props:
+ *  post — a FormattedPost-shaped object. `slug` must have a `.current` key
+ *          (the Sanity slug shape); local posts are normalised to this shape
+ *          by getAllPosts() in lib/utils/posts.ts.
+ *
+ * Reading time:
+ *  Uses post.readingTime if provided (from frontmatter); falls back to
+ *  calculateReadingTime(tldr || description) for Sanity posts that omit it.
+ *  The fallback is inaccurate for full-length posts — pass readingTime
+ *  from frontmatter for accurate values.
+ *
+ * Mouse glow effect:
+ *  CSS custom properties --mouse-x/--mouse-y are updated on mousemove and
+ *  consumed by the .glow-layer CSS radial gradient. The gradient is fully
+ *  defined in the <style> block — no inline styles needed (prior inline style
+ *  was always overridden by the CSS block; fixed 2026-04-15).
+ *
+ * Entrance animation:
+ *  Motion One inView() triggers a fade+slide-up once. _animated flag prevents
+ *  re-triggering after initCards() re-runs on astro:after-swap.
+ */
+
 import { calculateReadingTime } from '../../lib/utils/reading-time';
 
 interface Props {
@@ -28,11 +56,9 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   href={`/blog/${post.slug.current}`}
   class="post-card group block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-accent/5"
 >
-  <!-- Glow Layer -->
-  <div 
-    class="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-    style="background: radial-gradient(300px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.06), transparent 40%);"
-  ></div>
+  <!-- Glow layer — follows the mouse via --mouse-x/--mouse-y CSS vars set by JS.
+       Gradient is defined entirely in the <style> block below; no inline style needed. -->
+  <div class="glow-layer pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
 
   <div class="relative z-10 space-y-4">
     <div class="flex justify-between items-start">
@@ -104,15 +130,18 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
 
 <style>
   .post-card {
-    /* Ensure the glow is subtle */
+    /* CSS variable used internally — keeps glow intensity in one place */
     --color-glow: color-mix(in srgb, var(--color-accent) 15%, transparent);
   }
-  
-  .post-card div[style*="radial-gradient"] {
+
+  /* Radial gradient glow that follows the cursor.
+     --mouse-x / --mouse-y are updated via mousemove in the <script> block.
+     Default to 0px so there is no flash if the script hasn't run yet. */
+  .glow-layer {
     background: radial-gradient(
-      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), 
-      rgba(255, 255, 255, 0.05), 
+      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+      rgba(255, 255, 255, 0.05),
       transparent 40%
-    ) !important;
+    );
   }
 </style>

@@ -1,4 +1,30 @@
 ---
+/**
+ * ExperimentLayout.astro — Shell for individual experiment detail pages
+ *                          (/experiments/[slug])
+ *
+ * Extends BaseLayout and provides:
+ *  - JSON-LD structured data (TechArticle schema) for SEO
+ *  - ReadingProgress scroll bar
+ *  - ThemeToggle (light/dark reader mode)
+ *  - Experiment meta header: status badge, complexity, stack chips,
+ *    start date, and GitHub/return-to-lab link
+ *  - Executive Summary callout block
+ *  - Prose-styled article slot
+ *  - Mermaid diagram rendering (CDN script + JS init)
+ *
+ * Props:
+ *  experiment — Experiment frontmatter object containing:
+ *    title, summary, status ('active'|'completed'|'archived'),
+ *    difficulty, stack[], startDate, githubUrl? (optional)
+ *
+ * Mermaid:
+ *  Loaded from CDN (mermaid@10). initMermaid() queries Shiki-rendered
+ *  `pre[data-language="mermaid"]` blocks, replaces them with rendered SVGs.
+ *  The listener is registered once per module execution (not is:inline),
+ *  preventing accumulation on repeated visits (bug fixed 2026-04-15).
+ */
+
 import BaseLayout from './BaseLayout.astro';
 import ReadingProgress from '../components/blog/ReadingProgress.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
@@ -10,6 +36,7 @@ interface Props {
 
 const { experiment } = Astro.props;
 
+// JSON-LD TechArticle schema for structured data
 const schema = {
   "@context": "https://schema.org",
   "@type": "TechArticle",
@@ -25,12 +52,14 @@ const schema = {
 <BaseLayout title={`${experiment.title} | Labs`} description={experiment.summary}>
   <JsonLD data={schema} />
   <ReadingProgress />
-  
+
   <article class="max-w-6xl mx-auto px-6 py-32 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
+    <!-- Theme toggle: top-right, mirrors BlogLayout placement -->
     <div class="absolute top-8 right-6 md:right-10 z-50">
       <ThemeToggle />
     </div>
-    
+
+    <!-- ── Experiment meta header ── -->
     <header class="space-y-12 mb-24">
       <div class="space-y-6">
         <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">Experiment Log</span>
@@ -39,6 +68,7 @@ const schema = {
         </h1>
       </div>
 
+      <!-- Status / complexity / stack / date grid -->
       <div class="grid grid-cols-2 md:grid-cols-5 gap-8 border-y border-border-subtle py-8">
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Status</span>
@@ -51,7 +81,7 @@ const schema = {
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Stack</span>
           <div class="flex flex-wrap gap-2 pt-1">
-            {experiment.stack.map(s => (
+            {experiment.stack.map((s: string) => (
               <span class="text-[10px] bg-bg-elevated px-2 py-0.5 border border-border rounded">{s}</span>
             ))}
           </div>
@@ -60,6 +90,7 @@ const schema = {
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Started</span>
           <span class="text-sm text-text-primary">{experiment.startDate}</span>
         </div>
+        <!-- Show GitHub link if provided, otherwise fall back to lab navigation -->
         {experiment.githubUrl ? (
           <div>
             <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Source</span>
@@ -69,17 +100,18 @@ const schema = {
           </div>
         ) : (
           <div>
-             <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Lab Navigation</span>
-             <a href="/experiments" class="text-sm text-accent hover:underline flex items-center gap-2 text-nowrap">
-               ← Return to my lab
-             </a>
+            <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Lab Navigation</span>
+            <a href="/experiments" class="text-sm text-accent hover:underline flex items-center gap-2 text-nowrap">
+              ← Return to my lab
+            </a>
           </div>
         )}
       </div>
     </header>
-    
+
+    <!-- ── Article body ── -->
     <div class="max-w-4xl mx-auto px-6 py-24">
-      <div class="prose prose-invert max-w-none 
+      <div class="prose prose-invert max-w-none
                   prose-headings:font-heading prose-headings:font-medium
                   prose-h1:text-5xl prose-h1:mb-20
                   prose-h2:text-3xl prose-h2:mt-32 prose-h2:mb-12
@@ -91,15 +123,20 @@ const schema = {
                   prose-pre:bg-bg-surface prose-pre:border prose-pre:border-border-subtle prose-pre:rounded-2xl
                   prose-img:rounded-2xl prose-img:border prose-img:border-border-subtle
                   prose-hr:border-border-subtle prose-hr:my-24">
+
+        <!-- Executive Summary callout — pulls from experiment.summary frontmatter -->
         <div class="p-8 lg:p-12 bg-bg-surface border border-border rounded-2xl mb-16">
           <h3 class="text-xs uppercase font-mono tracking-widest text-text-muted mb-8">Executive Summary</h3>
           <p class="text-xl lg:text-3xl text-text-primary leading-tight font-heading italic">
             {experiment.summary}
           </p>
         </div>
+
+        <!-- Markdown content rendered here -->
         <slot />
       </div>
-      
+
+      <!-- Return to lab link -->
       <div class="mt-32 pt-16 border-t border-border-subtle">
         <a href="/experiments" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
           <span class="transition-transform group-hover:-translate-x-1">←</span>
@@ -109,13 +146,32 @@ const schema = {
     </div>
   </article>
 
+  <!-- ── Mermaid diagram support ────────────────────────────────────────────── -->
+  <!-- CDN load; initMermaid() below replaces Shiki-rendered mermaid code blocks -->
+  <!-- with live SVG renders after each page load / View Transition.             -->
   <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script is:inline>
+  <script>
+    /**
+     * initMermaid — renders `mermaid` fenced code blocks as SVG diagrams.
+     *
+     * Astro/Shiki wraps fenced code blocks as <pre data-language="mermaid">.
+     * We query those, extract the raw text content, and hand it to mermaid.render().
+     * The resulting SVG replaces the <pre> element in the DOM.
+     *
+     * Uses a regular module script (not is:inline) so the astro:after-swap
+     * listener is only registered once per session — not once per experiment
+     * page visit (which was causing listener stacking, fixed 2026-04-15).
+     *
+     * Note: mermaid is loaded globally via is:inline CDN script above, so we
+     * access it via (window as any).mermaid to satisfy TypeScript.
+     */
     const initMermaid = async () => {
-      if (typeof mermaid === 'undefined') {
+      if (typeof (window as any).mermaid === 'undefined') {
         console.error('Mermaid not loaded');
         return;
       }
+
+      const mermaid = (window as any).mermaid;
 
       mermaid.initialize({
         startOnLoad: false,
@@ -123,23 +179,21 @@ const schema = {
         securityLevel: 'loose',
         fontFamily: 'JetBrains Mono, monospace',
       });
-      
-      // Target Astro's Shiki-highlighted code blocks
+
+      // Target Astro's Shiki-highlighted mermaid code blocks
       const diagrams = document.querySelectorAll('pre[data-language="mermaid"]');
       for (let i = 0; i < diagrams.length; i++) {
         const pre = diagrams[i];
-        const content = pre.textContent; // This gets the raw text even from spanned highlighing
+        const content = pre.textContent; // raw text survives Shiki's span wrapping
         if (content) {
           const id = `mermaid-${i}`;
           try {
             const { svg } = await mermaid.render(id, content);
-            
-            // Create wrapper
+
             const wrapper = document.createElement('div');
             wrapper.className = 'mermaid-rendered my-12 flex justify-center bg-bg-surface p-8 rounded-2xl border border-border-subtle overflow-x-auto';
             wrapper.innerHTML = svg;
-            
-            // Replace the entire <pre> block
+
             pre.replaceWith(wrapper);
           } catch (err) {
             console.error('Mermaid render error:', err);
@@ -148,9 +202,7 @@ const schema = {
       }
     };
 
-    // Run on mount
     initMermaid();
-    // Run after view transitions
     document.addEventListener('astro:after-swap', initMermaid);
   </script>
 </BaseLayout>

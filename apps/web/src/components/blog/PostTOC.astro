@@ -1,9 +1,34 @@
 ---
+/**
+ * PostTOC.astro — Sticky table-of-contents sidebar (blog posts)
+ *
+ * Used in: BlogLayout.astro (hidden on mobile, shown in the right sidebar on lg+)
+ *
+ * Props:
+ *  headings — array of { depth, text, slug } extracted from the post markdown
+ *             by Astro's post.render() — available for local Content Collection
+ *             posts only. Sanity posts receive a hardcoded stub array from
+ *             blog/[slug].astro (no heading extraction on Sanity posts).
+ *
+ * Filtering:
+ *  Only H2 (depth 2) and H3 (depth 3) headings are shown.
+ *  H1 is the post title (already in PostHeader); H4+ are too granular for a TOC.
+ *
+ * Indentation:
+ *  H3 items get pl-4 to visually nest under their parent H2.
+ *
+ * No scroll-spy:
+ *  Active heading highlighting is not implemented. Adding it would require a
+ *  client-side IntersectionObserver bound to each heading — deferred as a
+ *  future enhancement.
+ */
+
 interface Props {
   headings: { depth: number; text: string; slug: string }[];
 }
 
 const { headings } = Astro.props;
+// Only H2 and H3 — H1 is the title, H4+ are too granular for a sidebar TOC
 const filteredHeadings = headings.filter(h => h.depth <= 3);
 ---
 

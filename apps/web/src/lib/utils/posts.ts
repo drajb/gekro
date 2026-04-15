@@ -1,3 +1,28 @@
+/**
+ * lib/utils/posts.ts — Central post data utilities
+ *
+ * Single source of truth for the merged local + Sanity post list.
+ * Decision 2026-03-24: all post fetching must go through getAllPosts() —
+ * do NOT duplicate the merge/sort/consolidate logic elsewhere.
+ *
+ * Exports:
+ *  FormattedPost  — canonical post shape consumed by all pages and components
+ *  getAllPosts()   — merge + sort posts from local Content Collections + Sanity
+ *  getTopicCounts() — derive [{title, count}] sorted by count desc
+ *  calculateReadingTime() — rough WPM estimate (also in reading-time.ts)
+ *
+ * Topic consolidation:
+ *  TOPIC_MAP normalises raw topic strings from frontmatter/Sanity into a
+ *  smaller set of canonical topic names used for filtering and display.
+ *  Unmapped topics are kept as-is. Add mappings here when new posts use
+ *  new topic strings that should resolve to an existing canonical topic.
+ *
+ * Sanity fallback:
+ *  client.fetch() is wrapped in try/catch. If it rejects (missing env,
+ *  network error, etc.), only local posts are returned. The site is fully
+ *  functional without Sanity configured.
+ */
+
 import { getCollection } from 'astro:content';
 import { client } from '../sanity/client';
 import { ALL_POSTS_QUERY } from '../sanity/queries';

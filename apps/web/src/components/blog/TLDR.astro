@@ -1,4 +1,22 @@
 ---
+/**
+ * TLDR.astro — TL;DR / summary callout block
+ *
+ * Used in: blog/[slug].astro (rendered before the first H2, governance rule)
+ *
+ * The summary content is passed as a <slot /> child, not a prop, so it
+ * can contain arbitrary markup (links, code spans, etc.).
+ *
+ * Governance rule: TLDR must appear before the first H2 in every blog post.
+ * This ensures readers and AI crawlers see the summary before the article body.
+ *
+ * Props:
+ *  title — override the default "TL;DR" label (rarely needed)
+ *
+ * The prose-tldr style removes the bottom margin from the last <p> inside
+ * the slot so there is no excess spacing inside the callout box.
+ */
+
 interface Props {
   title?: string;
 }

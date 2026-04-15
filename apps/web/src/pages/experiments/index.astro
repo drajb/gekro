@@ -1,15 +1,39 @@
 ---
+/**
+ * experiments/index.astro — Experiments lab index (/experiments)
+ *
+ * Layout: BaseLayout (no hero canvas — focused content page)
+ *
+ * Sections:
+ *  1. Lab header  — title + ethos tagline
+ *  2. Card grid   — all experiments via ExperimentCard (3-column responsive)
+ *  3. Empty state — placeholder if no experiments exist
+ *
+ * Data:
+ *  getCollection('experiments') is local Content Collections only —
+ *  experiments are not in Sanity. Sorted newest-first by startDate.
+ *
+ * Animation:
+ *  GSAP ScrollTrigger stagger on '.experiment-card' elements.
+ *  initAnimations() is bound to astro:after-swap so cards animate
+ *  on back-navigation as well as first load.
+ *  prefers-reduced-motion is respected (early return).
+ */
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ExperimentCard from '../../components/experiments/ExperimentCard.astro';
 import { getCollection } from 'astro:content';
 
+// Local-only content; Sanity is not used for experiments
 const experiments = await getCollection('experiments');
-// Sort by startDate desc
+// Sort newest-first by startDate
 experiments.sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.data.startDate).getTime());
 ---
 
 <BaseLayout title="Experiments | gekro" description="Technical case studies, architectural deep dives, and lab notes.">
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-24">
+
+    <!-- ── Lab header ── -->
     <header class="space-y-6 max-w-2xl">
       <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tighter">Labs</h1>
       <p class="text-text-secondary text-lg leading-relaxed">
@@ -17,19 +41,31 @@ experiments.sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.dat
       </p>
     </header>
 
+    <!-- ── Experiment card grid — 1/2/3 columns responsive ── -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {experiments.map(exp => (
         <ExperimentCard experiment={exp.data} slug={exp.slug} />
       ))}
     </div>
 
+    <!-- Empty state — shown on fresh forks before any experiments are added -->
     {experiments.length === 0 && (
       <div class="py-24 text-center border border-dashed border-border rounded-xl">
         <p class="text-text-muted">The lab is currently being reorganized. Check back soon!</p>
       </div>
     )}
   </main>
+
   <script>
+    /**
+     * initAnimations — GSAP ScrollTrigger entrance stagger for experiment cards.
+     *
+     * Skipped if prefers-reduced-motion is set.
+     * Bound to astro:after-swap so the animation re-runs on back-navigation
+     * (the DOM is replaced on each View Transition — listeners don't persist).
+     * No opacity clear-props needed: cards are visible without the animation
+     * since GSAP only sets `from` values.
+     */
     const initAnimations = async () => {
       const { default: gsap } = await import('gsap');
       const { ScrollTrigger } = await import('gsap/ScrollTrigger');

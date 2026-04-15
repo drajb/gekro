@@ -1,4 +1,27 @@
 ---
+/**
+ * BlogLayout.astro — Shell for individual blog post pages (/blog/[slug])
+ *
+ * Extends BaseLayout and provides:
+ *  - JSON-LD structured data (BlogPosting schema) for SEO / AI citation
+ *  - ReadingProgress scroll bar (GSAP ScrollTrigger, re-inits on swap)
+ *  - ThemeToggle button (light/dark reader mode, top-right corner)
+ *  - PostHeader (title, date, topics, reading time)
+ *  - 5-column grid: 4-col article body + 1-col sticky sidebar (TOC + share)
+ *  - NewsletterEmbed and GiscusComments below the article
+ *  - "Copy Link" button wired via initCopyLink() + astro:after-swap
+ *
+ * Props:
+ *  post     — FormattedPost-shaped object (title, publishedAt, topics, tldr,
+ *             readingTime, aiSummary, description, difficulty). Typed `any` for
+ *             Sanity/local union compatibility — be careful adding new fields.
+ *  headings — Array of { depth, text, slug } extracted from the post markdown.
+ *             Used by PostTOC in the sidebar.
+ *
+ * SEO description fallback chain: aiSummary → tldr → description → ''
+ * This mirrors the same chain used in SEOHead and the JSON-LD schema.
+ */
+
 import BaseLayout from './BaseLayout.astro';
 import PostHeader from '../components/blog/PostHeader.astro';
 import PostTOC from '../components/blog/PostTOC.astro';
@@ -9,15 +32,16 @@ import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
 
 interface Props {
-  post: any;
+  post: any; // FormattedPost union (local markdown + Sanity) — strict typing deferred
   headings: any[];
 }
 
 const { post, headings } = Astro.props;
 
-// Use aiSummary → tldr → description as fallback chain for SEO description
+// SEO description: prefer richer AI-optimised summary over the short description field
 const seoDescription = post.aiSummary || post.tldr || post.description || '';
 
+// JSON-LD BlogPosting schema for search engine + AI crawler structured data
 const schema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
@@ -38,45 +62,58 @@ const schema = {
 ---
 
 <BaseLayout title={post.title} description={seoDescription}>
+  <!-- Structured data injected into <head> via a <script type="application/ld+json"> -->
   <JsonLD data={schema} />
+
+  <!-- Thin accent-coloured bar that grows as you scroll through the article -->
   <ReadingProgress />
-  
+
+  <!-- Max-width container with rounded corners; light theme applies here when toggled -->
   <article class="max-w-6xl mx-auto px-6 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
-    
+
+    <!-- Theme toggle floated to top-right — only active on reading pages -->
     <div class="absolute top-8 right-6 md:right-10 z-50">
       <ThemeToggle />
     </div>
 
-    <PostHeader 
-      title={post.title} 
-      publishedAt={post.publishedAt} 
+    <!-- Title, publish date, topic chips, reading time -->
+    <PostHeader
+      title={post.title}
+      publishedAt={post.publishedAt}
       topics={post.topics || []}
       tldr={post.tldr}
       readingTime={post.readingTime}
     />
-    
+
+    <!-- 5-column grid: article body (4 cols) + sticky sidebar (1 col, lg only) -->
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
+      <!-- ── Article body ── -->
       <main class="lg:col-span-4 pb-24">
         <slot />
       </main>
-      
+
+      <!-- ── Sticky sidebar: TOC + Share buttons (desktop only) ── -->
       <aside class="hidden lg:block lg:col-span-1 border-l border-border-subtle pl-12 h-fit">
         <div class="sticky top-32 space-y-12">
+          <!-- Auto-generated table of contents from H2/H3 headings -->
           <PostTOC headings={headings} />
-          
+
+          <!-- Share section -->
           <div class="space-y-6">
             <h4 class="text-[10px] uppercase font-mono tracking-[0.2em] text-text-muted">Share Post</h4>
             <div class="flex flex-col gap-4">
-              <a 
-                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.toString())}`} 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <!-- LinkedIn share link — uses the current page URL via encodeURIComponent -->
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(Astro.url.toString())}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 class="text-xs font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-2 group"
               >
                 <span class="opacity-40 group-hover:opacity-100 transition-opacity">↗</span> LinkedIn
               </a>
-              
-              <button 
+
+              <!-- Copy Link button — JS-powered, wired via initCopyLink() below -->
+              <button
                 id="copy-link"
                 class="text-xs font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-2 group text-left"
                 aria-label="Copy link to post"
@@ -89,12 +126,13 @@ const schema = {
       </aside>
     </div>
 
-    <!-- Newsletter -->
+    <!-- Newsletter signup (Beehiiv embed or fallback form) -->
     <NewsletterEmbed />
 
-    <!-- Giscus Comments -->
+    <!-- GitHub Discussions comments embed -->
     <GiscusComments />
 
+    <!-- Post footer — thanks message + back-to-blog link -->
     <footer class="mt-16 py-16 border-t border-border-subtle">
       <div class="flex flex-col md:flex-row justify-between items-center gap-8">
         <div class="space-y-2">
@@ -109,22 +147,25 @@ const schema = {
   </article>
 
   <script>
-    // Bound to astro:after-swap so the copy-link listener re-attaches to the
-    // new DOM on every View Transition (post → post) — inline one-shot scripts
-    // lose their handlers otherwise.
+    /**
+     * initCopyLink — wires the Copy Link sidebar button.
+     *
+     * Bound to astro:after-swap so the listener re-attaches to the new DOM
+     * on every View Transition (post → post navigation). Without this, the
+     * button silently no-ops after the first navigation (issue 2026-04-11).
+     */
     function initCopyLink() {
       const copyBtn = document.getElementById('copy-link');
       if (!copyBtn) return;
+
       copyBtn.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(window.location.href);
-          const originalText = copyBtn.innerHTML;
+          const originalHTML = copyBtn.innerHTML;
           copyBtn.innerHTML = '<span class="text-emerald-400">✓</span> Copied!';
-          setTimeout(() => {
-            copyBtn.innerHTML = originalText;
-          }, 2000);
+          setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
         } catch (err) {
-          console.error('Failed to copy: ', err);
+          console.error('Failed to copy link:', err);
         }
       });
     }

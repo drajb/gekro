@@ -1,36 +1,67 @@
 ---
+/**
+ * index.astro — Homepage (/)
+ *
+ * Layout: BaseLayout with full-viewport Three.js neural-canvas hero
+ *
+ * Sections (top to bottom):
+ *  1. HeroCanvasNeural — Three.js particle field (full-bleed background)
+ *  2. HeroText         — GSAP-animated headline + CTA buttons
+ *  3. Recent Posts     — 3 latest posts via getAllPosts() + PostCard grid
+ *  4. Core Topics      — Topic chips (Tag component) derived from all posts
+ *  5. NewsletterEmbed  — Real Beehiiv embed (or fallback form if env missing)
+ *  6. Latest Experiments — 3 newest experiments via getCollection('experiments')
+ *
+ * Data fetching:
+ *  - getAllPosts() merges local Content Collections + Sanity (silent fallback)
+ *  - getCollection('experiments') is local-only (Sanity not used for experiments)
+ *  - getTopicCounts() derives [{title, count}] from consolidated topics
+ *
+ * Scripts:
+ *  - initHomeAnimations(): GSAP ScrollTrigger stagger for section headers,
+ *    experiment cards, post cards, and sidebar elements.
+ *    Wrapped in requestIdleCallback to protect FCP/TBT (incident 2026-04-01).
+ *  - Both startHomeAnimations() and the astro:after-swap listener are needed
+ *    because the homepage can be reached both on first load AND via back-navigation.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
 import HeroText from '../components/hero/HeroText.astro';
 import PostCard from '../components/blog/PostCard.astro';
 import ExperimentCard from '../components/experiments/ExperimentCard.astro';
 import Tag from '../components/ui/Tag.astro';
+import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import { getCollection } from 'astro:content';
 import { getAllPosts, getTopicCounts } from '../lib/utils/posts';
 
-// Experiments from Content Collections (#8: no longer hardcoded)
+// Experiments from Content Collections (local-only, sorted newest-first)
 const allExperiments = await getCollection('experiments');
 const latestExperiments = allExperiments
   .sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.data.startDate).getTime())
   .slice(0, 3);
 
-// Posts from shared utility (#6: eliminated duplicated fetching logic)
+// Posts via shared utility — merges local + Sanity, sorts newest-first
 const allPosts = await getAllPosts();
 const recentPosts = allPosts.slice(0, 3);
 
-// Compute dynamic topics
+// Derive topic counts for the sidebar chip cloud (top 8 by post count)
 const topics = getTopicCounts(allPosts).slice(0, 8);
 ---
 
 <BaseLayout title="gekro | Building at the edge of what's possible">
+  <!-- Full-bleed Three.js particle hero (z-0, behind all content) -->
   <HeroCanvasNeural />
-  
+
   <main class="relative z-10 w-full min-h-screen">
+    <!-- GSAP-animated headline + CTA buttons -->
     <HeroText />
-    
+
     <section class="max-w-6xl mx-auto px-6 py-24 space-y-32">
-      <!-- Recent Posts & Topics -->
+
+      <!-- ── Section 1: Recent Posts + Sidebar ── -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+        <!-- Post list (2/3 width) -->
         <div class="lg:col-span-2 space-y-12">
           <div class="flex justify-between items-end border-b border-border-subtle pb-6">
             <div class="space-y-1">
@@ -46,8 +77,9 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
           </div>
         </div>
 
-        <!-- Sidebar (Topics & Subscribe) -->
+        <!-- Sidebar: topic chips + newsletter (1/3 width) -->
         <aside class="space-y-16">
+          <!-- Topic chip cloud -->
           <div class="space-y-8">
             <h3 class="text-sm font-mono text-text-muted uppercase tracking-widest">Core Topics</h3>
             <div class="flex flex-wrap gap-3">
@@ -57,39 +89,15 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
             </div>
           </div>
 
-          <div class="p-8 bg-bg-surface border border-border rounded-2xl space-y-6 relative overflow-hidden group newsletter-container">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -mr-16 -mt-16 blur-3xl transition-colors group-hover:bg-accent/10"></div>
-            <div class="relative z-10 space-y-4 newsletter-content">
-              <h3 class="text-xl font-heading text-text-primary">Lab Updates</h3>
-              <p class="text-sm text-text-secondary leading-relaxed">
-                Get notified when I build something worth sharing. No spam, only engineering.
-              </p>
-              <form class="pt-2 space-y-4" id="newsletter-form">
-                <input 
-                  type="email" 
-                  required 
-                  placeholder="Email address..." 
-                  class="w-full h-11 bg-bg-base border border-border rounded-lg px-4 text-text-primary text-sm focus:outline-none focus:border-accent transition-colors placeholder:text-text-muted/50"
-                />
-                <button type="submit" class="w-full py-3 bg-accent text-bg-base font-medium rounded-lg hover:bg-white transition-all transform active:scale-[0.98]">
-                  Subscribe
-                </button>
-              </form>
-            </div>
-
-            <!-- Success State -->
-            <div class="hidden absolute inset-0 bg-bg-surface flex flex-col items-center justify-center p-8 text-center space-y-4 z-20 newsletter-success">
-              <div class="w-12 h-12 bg-accent/10 text-accent rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              </div>
-              <p class="text-sm font-medium text-text-primary">You're on the list!</p>
-              <p class="text-xs text-text-muted">Welcome to the lab logs.</p>
-            </div>
-          </div>
+          <!-- Real newsletter embed — uses Beehiiv when PUBLIC_BEEHIIV_PUBLICATION_ID
+               is set, otherwise shows the fallback form from NewsletterEmbed.astro.
+               Previously this was a mock form that simulated success without sending
+               any data anywhere. -->
+          <NewsletterEmbed />
         </aside>
       </div>
 
-      <!-- Latest Experiments -->
+      <!-- ── Section 2: Latest Experiments ── -->
       <div class="space-y-12">
         <div class="flex justify-between items-end border-b border-border-subtle pb-6">
           <div class="space-y-1">
@@ -108,6 +116,18 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
   </main>
 
   <script>
+    /**
+     * initHomeAnimations — GSAP ScrollTrigger entrance animations for the homepage.
+     *
+     * 1. Section Headers Reveal — fade-up on scroll
+     * 2. Experiment Cards Stagger — fade-up with 0.15s delay between cards
+     * 3. Post Cards Stagger     — slide-in from left with 0.1s delay
+     * 4. Sidebar Elements       — fade-up with 0.15s delay
+     *
+     * Skipped entirely if prefers-reduced-motion is set.
+     * clearProps: "opacity,transform" ensures cards are fully visible after animation
+     * so they don't disappear if ScrollTrigger is killed on navigation.
+     */
     const initHomeAnimations = async () => {
       const { default: gsap } = await import('gsap');
       const { ScrollTrigger } = await import('gsap/ScrollTrigger');
@@ -117,68 +137,42 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
       const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (isReducedMotion) return;
 
-      // 1. Section Headers Reveal
+      // 1. Section headers reveal
       gsap.utils.toArray('section > div:first-child').forEach((header: any) => {
         gsap.from(header, {
-          scrollTrigger: {
-            trigger: header,
-            start: "top 90%",
-            toggleActions: "play none none none"
-          },
-          y: 30,
-          opacity: 0,
-          duration: 1,
-          ease: "expo.out"
+          scrollTrigger: { trigger: header, start: "top 90%", toggleActions: "play none none none" },
+          y: 30, opacity: 0, duration: 1, ease: "expo.out"
         });
       });
 
-      // 2. Experiment Cards Stagger
+      // 2. Experiment cards stagger
       gsap.from('.experiment-card', {
-        scrollTrigger: {
-          trigger: '.experiment-card',
-          start: "top 95%",
-          toggleActions: "play none none none"
-        },
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power3.out",
+        scrollTrigger: { trigger: '.experiment-card', start: "top 95%", toggleActions: "play none none none" },
+        y: 40, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power3.out",
         clearProps: "opacity,transform"
       });
 
-      // 3. Post Cards Stagger
+      // 3. Post cards slide-in from left
       gsap.from('.post-card', {
-        scrollTrigger: {
-          trigger: '.post-card',
-          start: "top 95%",
-          toggleActions: "play none none none"
-        },
-        x: -30,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power2.out",
+        scrollTrigger: { trigger: '.post-card', start: "top 95%", toggleActions: "play none none none" },
+        x: -30, opacity: 0, duration: 0.8, stagger: 0.1, ease: "power2.out",
         clearProps: "opacity,transform"
       });
 
-      // 4. Sidebar Elements Reveal
+      // 4. Sidebar elements reveal
       gsap.from('aside > div', {
-        scrollTrigger: {
-          trigger: 'aside',
-          start: "top 95%",
-          toggleActions: "play none none none"
-        },
-        y: 30,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: "power2.out",
+        scrollTrigger: { trigger: 'aside', start: "top 95%", toggleActions: "play none none none" },
+        y: 30, opacity: 0, duration: 0.8, stagger: 0.15, ease: "power2.out",
         clearProps: "opacity,transform"
       });
     };
 
-    // Run on idle after first load and view transitions to preserve FCP
+    /**
+     * startHomeAnimations — defers initHomeAnimations to idle time so it doesn't
+     * block FCP. requestIdleCallback fires after the browser finishes painting;
+     * the 2000ms timeout is a fallback for browsers that delay idle callbacks.
+     * Incident: 34s TBT on mobile before this deferral was added (2026-04-01).
+     */
     const startHomeAnimations = () => {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => initHomeAnimations(), { timeout: 2000 });
@@ -189,28 +183,5 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
 
     startHomeAnimations();
     document.addEventListener('astro:after-swap', startHomeAnimations);
-
-    // Newsletter Form Logic
-    const form = document.getElementById('newsletter-form') as HTMLFormElement;
-    const content = document.querySelector('.newsletter-content') as HTMLElement;
-    const success = document.querySelector('.newsletter-success') as HTMLElement;
-
-    if (form && content && success) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // Mock submission
-        const button = form.querySelector('button') as HTMLButtonElement;
-        const originalText = button.innerText;
-        button.innerText = 'Subscribing...';
-        button.disabled = true;
-
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        content.classList.add('opacity-0', 'pointer-events-none');
-        success.classList.remove('hidden');
-        success.classList.add('flex', 'animate-in', 'fade-in', 'zoom-in-95', 'duration-500');
-      });
-    }
   </script>
 </BaseLayout>

@@ -1,6 +1,39 @@
+/**
+ * global.css — Tailwind v4 design system and global base styles
+ *
+ * Architecture:
+ *  @theme block defines all CSS custom properties consumed by Tailwind's
+ *  utility classes (bg-bg-base, text-text-primary, font-heading, etc.).
+ *  Tailwind v4 reads these as design tokens — no tailwind.config.js needed.
+ *
+ * Design tokens:
+ *  bg-*      — background layers (base → surface → elevated, darkest → lightest)
+ *  text-*    — text hierarchy (primary → secondary → muted, brightest → dimmest)
+ *  accent    — primary interactive colour (#3fb1ff)
+ *  accent-warm — secondary warm accent (#f59e0b, used for completed experiments)
+ *  accent-danger — error/destructive colour (#ef4444)
+ *  border / border-subtle — two levels of border opacity
+ *  font-*    — font stacks (display, heading, body, mono)
+ *
+ * Light reader mode (.theme-light):
+ *  Overrides the @theme vars to a light palette when the ThemeToggle is
+ *  activated. Only bg/text/border vars are changed — accent colours are
+ *  intentionally kept the same for visual consistency.
+ *
+ * View Transition reveal animation:
+ *  reveal-light keyframe drives a radial clip-path transition anchored to
+ *  the click position (--click-x/--click-y, set by ThemeToggle.astro).
+ *  Triggered by document.startViewTransition() in ThemeToggle.
+ *
+ * Prose overrides:
+ *  Supplement @tailwindcss/typography defaults for the site's reading pages.
+ *  All overrides use Tailwind @apply for consistency with the design system.
+ */
+
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ── Design tokens ── */
 @theme {
   --color-bg-base: #09090b;
   --color-bg-surface: #121214;
@@ -29,7 +62,8 @@ body {
   font-family: var(--font-body);
 }
 
-/* Localized Light Reader Theme */
+/* ── Light reader mode — activated by ThemeToggle via .theme-light on body ── */
+/* Overrides bg/text/border tokens only; accent colour unchanged intentionally */
 .theme-light {
   --color-bg-base: #fdfdfd;
   --color-bg-surface: #ffffff;
@@ -44,7 +78,8 @@ body {
   /* Accent colors remain untouched for consistency */
 }
 
-/* View Transition API Clip-path Animation */
+/* ── View Transition reveal: radial clip-path from click position ── */
+/* --click-x/--click-y are set by ThemeToggle.astro just before startViewTransition */
 ::view-transition-group(root) {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
@@ -69,7 +104,7 @@ body {
   }
 }
 
-/* Prose Spacing Overrides */
+/* ── Prose spacing overrides — supplements @tailwindcss/typography defaults ── */
 .prose {
   @apply text-text-secondary leading-relaxed;
 }

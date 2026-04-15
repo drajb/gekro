@@ -1,3 +1,23 @@
+/**
+ * astro.config.mjs — Astro site configuration
+ *
+ * Site: https://gekro.com (used for canonical URLs, sitemap, RSS)
+ *
+ * Integrations:
+ *  sanity (conditional) — loaded only when PUBLIC_SANITY_PROJECT_ID is set.
+ *    Dynamic import avoids a hard dependency on @sanity/astro for local builds.
+ *    Without it, the site builds cleanly using only local Content Collections.
+ *  sitemap — generates /sitemap.xml at build time (auto-discovers all pages)
+ *
+ * Vite plugins:
+ *  @tailwindcss/vite — Tailwind v4 Vite plugin (replaces postcss config).
+ *    Processing happens in Vite's transform pipeline, not PostCSS.
+ *
+ * Image domains:
+ *  deepwiki.com is whitelisted so Astro's <Image> component can optimise
+ *  the DeepWiki badge loaded from their CDN in Footer.astro.
+ */
+
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';

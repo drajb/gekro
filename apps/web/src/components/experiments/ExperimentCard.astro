@@ -1,4 +1,28 @@
 ---
+/**
+ * ExperimentCard.astro — Experiment preview card for the labs grid
+ *
+ * Used in: experiments/index.astro (full grid), index.astro (latest 3 on homepage)
+ *
+ * Props:
+ *  experiment — frontmatter from the experiment's Content Collection entry.
+ *               title, summary, status, stack are required; mainImage is optional
+ *               (not currently rendered — reserved for future use).
+ *  slug       — the experiment's URL slug (passed from the parent page alongside
+ *               the frontmatter since data and slug live on separate keys of
+ *               the collection entry).
+ *
+ * Status badge:
+ *  Colour-coded via statusColors map: active → accent blue, completed → warm,
+ *  archived → muted. The map must be kept in sync with the Zod schema in
+ *  content/config.ts.
+ *
+ * Stack chips:
+ *  Only the first 3 stack items are shown; overflow count is displayed as "+N".
+ *  This keeps cards visually consistent regardless of how many stack items an
+ *  experiment lists.
+ */
+
 interface Props {
   experiment: {
     title: string;

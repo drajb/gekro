@@ -1,4 +1,27 @@
 ---
+/**
+ * about.astro — About page (/about)
+ *
+ * Layout: BaseLayout with full-viewport HeroCanvasNeural background (same
+ *         pattern as homepage and contact page).
+ *
+ * Sections (top to bottom):
+ *  1. Opening header   — headline + intro paragraph + lab photo
+ *  2. The Lab          — prose block: what gekro is
+ *  3. Technical Philosophy — 3-column grid: Sovereignty / Sustainability / Empirical
+ *  4. Built for Depth  — prose: production-first mindset
+ *  5. Beyond the Lab   — 2-column: text + outdoor photo
+ *  6. Closing footer   — quote, llms.txt badge, contact CTA
+ *
+ * Images:
+ *  Astro <Image /> component handles optimisation + lazy loading for both
+ *  local assets (biography-systems.png, beyond-the-lab.png).
+ *
+ * Note: The image caption spans on hover use text-white/50 and text-white/40
+ *  (hardcoded opacity values, not CSS vars) because these captions intentionally
+ *  overlay the image regardless of the page's light/dark theme.
+ */
+
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
 import { Image } from 'astro:assets';
@@ -7,10 +30,12 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
 ---
 
 <BaseLayout title="About | Rohit Burani" description="Engineering, management, and the commitment to sustainable systems behind Gekro Lab.">
+  <!-- Full-bleed Three.js particle field (z-0, behind all content) -->
   <HeroCanvasNeural />
-  
+
   <main class="relative z-10 max-w-4xl mx-auto px-6 py-32 space-y-32">
-    <!-- Section 1: Opening Header -->
+
+    <!-- ── Section 1: Opening header ── -->
     <header class="space-y-12">
       <div class="space-y-6 max-w-2xl">
         <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">Biography // Logic_01</span>
@@ -18,14 +43,15 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
           Systems at scale.
         </h1>
         <p class="text-xl text-text-primary leading-relaxed">
-          I’ve always been obsessed with how things connect at a fundamental level. My education—an engineering bachelors followed by a Masters in Management—trained me to look past the surface of technology to the operational logic and human impact beneath. That combination — analytical rigour meeting operational reality — is the lens I bring to everything built in this lab.
+          I've always been obsessed with how things connect at a fundamental level. My education—an engineering bachelors followed by a Masters in Management—trained me to look past the surface of technology to the operational logic and human impact beneath. That combination — analytical rigour meeting operational reality — is the lens I bring to everything built in this lab.
         </p>
       </div>
 
+      <!-- Lab photo with hover gradient overlay + caption -->
       <div class="aspect-video bg-bg-elevated rounded-2xl border border-border overflow-hidden relative group">
-          <Image 
-            src={biographySystems} 
-            alt="An analytical engineering lab with a Mac Mini, Raspberry Pi cluster, and system architecture monitor." 
+          <Image
+            src={biographySystems}
+            alt="An analytical engineering lab with a Mac Mini, Raspberry Pi cluster, and system architecture monitor."
             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           <div class="absolute inset-0 bg-gradient-to-t from-bg-base/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -33,17 +59,17 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
       </div>
     </header>
 
-    <!-- Section 2: The Lab -->
+    <!-- ── Section 2: The Lab ── -->
     <section class="max-w-2xl space-y-8">
       <h2 class="text-3xl font-heading text-text-primary">The Lab</h2>
       <div class="prose prose-invert prose-lg text-text-secondary">
         <p>
-          Gekro is my workshop. It’s where I take technical concepts and put them through the stress of actual implementation. While my professional life is spent navigating the complexities of large, regulated organizations, my personal time is dedicated to building, breaking, and documenting experiments in the lab.
+          Gekro is my workshop. It's where I take technical concepts and put them through the stress of actual implementation. While my professional life is spent navigating the complexities of large, regulated organizations, my personal time is dedicated to building, breaking, and documenting experiments in the lab.
         </p>
       </div>
     </section>
 
-    <!-- Section 3: Technical Philosophy -->
+    <!-- ── Section 3: Technical Philosophy — 3 principles ── -->
     <section class="space-y-12">
       <h2 class="text-3xl font-heading text-text-primary">Technical Philosophy</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -68,7 +94,7 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
       </div>
     </section>
 
-    <!-- Section 4: Scale Experience -->
+    <!-- ── Section 4: Built for Depth ── -->
     <section class="max-w-2xl space-y-8">
       <h2 class="text-3xl font-heading text-text-primary">Built for Depth</h2>
       <div class="prose prose-invert prose-lg text-text-secondary">
@@ -78,7 +104,7 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
       </div>
     </section>
 
-    <!-- Section 5: Beyond the Lab -->
+    <!-- ── Section 5: Beyond the Lab — 2-column text + photo ── -->
     <section class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
       <div class="space-y-8">
         <h2 class="text-3xl font-heading text-text-primary">Beyond the Lab</h2>
@@ -91,11 +117,12 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
           </p>
         </div>
       </div>
-      
+
+      <!-- Outdoor photo: static gradient overlay + caption (always visible, not on hover) -->
       <div class="aspect-square bg-bg-elevated rounded-2xl border border-border overflow-hidden relative group">
-        <Image 
-          src={beyondTheLab} 
-          alt="A Tesla Model Y parked on a Texas backcountry trail at sunset." 
+        <Image
+          src={beyondTheLab}
+          alt="A Tesla Model Y parked on a Texas backcountry trail at sunset."
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div class="absolute inset-0 bg-gradient-to-t from-bg-base/40 to-transparent"></div>
@@ -103,25 +130,28 @@ import beyondTheLab from '../assets/about/beyond-the-lab.png';
       </div>
     </section>
 
-    <!-- Section 6: Closing -->
+    <!-- ── Section 6: Closing footer ── -->
     <footer class="pt-32 space-y-12">
+      <!-- Pull-quote CTA -->
       <div class="max-w-xl">
         <p class="text-xl text-text-primary italic border-l-2 border-accent pl-8 py-2">
           If something here resonates, reach out.
         </p>
       </div>
-      
+
+      <!-- llms.txt badge — signals AI crawler friendliness -->
       <div class="flex items-center gap-4 pt-4">
         <a href="/llms.txt" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-2 px-4 py-2 bg-bg-surface border border-border rounded-lg hover:border-accent transition-colors">
           <svg class="w-4 h-4 text-text-muted group-hover:text-accent transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
           <span class="text-xs font-mono text-text-secondary group-hover:text-text-primary transition-colors">AI Crawler Friendly (/llms.txt)</span>
         </a>
       </div>
-      
+
+      <!-- Bottom bar: build info + contact link -->
       <div class="pt-12 border-t border-border-subtle flex justify-between items-center">
         <p class="text-xs font-mono text-text-muted uppercase">EST. 2024 // UPDATED 2026 // ROHIT BURANI</p>
         <a href="/contact" class="group flex items-center gap-2 text-sm font-mono text-accent hover:text-white transition-colors">
-          Get in touch 
+          Get in touch
           <span class="group-hover:translate-x-1 transition-transform">→</span>
         </a>
       </div>
