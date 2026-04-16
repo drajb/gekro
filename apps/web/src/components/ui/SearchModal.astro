@@ -202,10 +202,12 @@
 
     initSearchModal();
     document.addEventListener('astro:after-swap', () => {
-      // State resets on nav — the new DOM needs a fresh Pagefind instance so
-      // the search index is re-built against the new page's PagefindUI container
+      // Reset open state (modal should close on navigation) but NOT loaded —
+      // PagefindUI mounts into #search-modal-pagefind which lives outside #swup
+      // and survives View Transitions. Re-setting loaded=false would cause a new
+      // PagefindUI instance to be appended into the same container on next open,
+      // stacking search UIs after every navigation.
       state.open = false;
-      state.loaded = false;
       initSearchModal();
     });
   })();

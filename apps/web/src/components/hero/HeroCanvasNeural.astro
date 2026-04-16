@@ -155,7 +155,16 @@
       blending: THREE.AdditiveBlending
     });
     
+    // Pre-allocate line position buffer at maximum possible size.
+    // Max pairs = n*(n-1)/2 = 150*149/2 = 11,175; each pair = 2 points × 3 floats.
+    // Writing in-place each frame eliminates the per-frame Float32Array allocation
+    // and GC churn that the previous push()-then-new-BufferAttribute approach caused.
+    const MAX_LINE_PAIRS = (PARTICLE_COUNT * (PARTICLE_COUNT - 1)) / 2;
+    const lineBuffer = new Float32Array(MAX_LINE_PAIRS * 2 * 3);
     const linesGeometry = new THREE.BufferGeometry();
+    const linePositionAttr = new THREE.BufferAttribute(lineBuffer, 3);
+    linePositionAttr.setUsage(THREE.DynamicDrawUsage); // hint GPU: data changes every frame
+    linesGeometry.setAttribute('position', linePositionAttr);
     lines = new THREE.LineSegments(linesGeometry, lineMaterial);
     scene.add(lines);
 
@@ -210,7 +219,9 @@
       scene.rotation.x = -targetY * 0.2;
 
       const posAttr = points.geometry.attributes.position;
-      const linePositions: number[] = [];
+      // lineIdx tracks write position in the pre-allocated lineBuffer.
+      // Reset each frame; setDrawRange at the end limits rendering to active pairs.
+      let lineIdx = 0;
 
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         // Move particles
@@ -252,7 +263,8 @@
           }
         }
 
-        // Connections
+        // Connections — write directly into the pre-allocated lineBuffer.
+        // Avoids creating a new JS array and Float32Array allocation every frame.
         for (let j = i + 1; j < PARTICLE_COUNT; j++) {
           const dx = posAttr.getX(i) - posAttr.getX(j);
           const dy = posAttr.getY(i) - posAttr.getY(j);
@@ -260,14 +272,21 @@
           const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
           if (dist < CONNECT_DIST) {
-            linePositions.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
-            linePositions.push(posAttr.getX(j), posAttr.getY(j), posAttr.getZ(j));
+            lineBuffer[lineIdx++] = posAttr.getX(i);
+            lineBuffer[lineIdx++] = posAttr.getY(i);
+            lineBuffer[lineIdx++] = posAttr.getZ(i);
+            lineBuffer[lineIdx++] = posAttr.getX(j);
+            lineBuffer[lineIdx++] = posAttr.getY(j);
+            lineBuffer[lineIdx++] = posAttr.getZ(j);
           }
         }
       }
 
       posAttr.needsUpdate = true;
-      lines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      // Only render the line segments written this frame; leave the rest of the
+      // buffer stale (it will be overwritten next frame before use).
+      linesGeometry.setDrawRange(0, lineIdx / 3);
+      linePositionAttr.needsUpdate = true;
       
       renderer.render(scene, camera);
     };

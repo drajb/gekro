@@ -67,14 +67,17 @@ export async function getAllPosts(): Promise<FormattedPost[]> {
     isLocal: true,
   }));
 
-  const allPostsCombined = [...sanityPosts, ...formattedLocal].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
-
-  return allPostsCombined.map(post => ({
+  // Local posts already have consolidated topics from formattedLocal.map() above.
+  // Sanity posts need consolidation here. Running consolidateTopics on both is
+  // idempotent but wasteful — apply only to Sanity posts before merging.
+  const formattedSanity = sanityPosts.map(post => ({
     ...post,
     topics: consolidateTopics(post.topics),
   }));
+
+  return [...formattedSanity, ...formattedLocal].sort(
+    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  );
 }
 
 const TOPIC_MAP: Record<string, string> = {

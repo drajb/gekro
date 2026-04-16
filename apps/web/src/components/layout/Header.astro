@@ -137,14 +137,17 @@ const navItems = [
       }
     };
 
-    toggle?.addEventListener('click', () => isOpen ? closeMenu() : openMenu());
-    close?.addEventListener('click', closeMenu);
-    links.forEach(link => link.addEventListener('click', closeMenu));
-
-    // Abort (remove) the previous scroll listener, then create a fresh one
-    // tied to the current header element from the new DOM after swap.
+    // Abort ALL previous listeners (scroll + clicks) before re-attaching.
+    // Header, mobile-menu, and nav links are outside #swup and survive View
+    // Transitions — without aborting first, every swap stacks another set of
+    // click handlers on the same DOM elements.
     scrollController?.abort();
     scrollController = new AbortController();
+    const { signal } = scrollController;
+
+    toggle?.addEventListener('click', () => isOpen ? closeMenu() : openMenu(), { signal });
+    close?.addEventListener('click', closeMenu, { signal });
+    links.forEach(link => link.addEventListener('click', closeMenu, { signal }));
 
     const header = document.querySelector('header');
     let lastScroll = 0;
@@ -168,7 +171,7 @@ const navItems = [
         header?.classList.add('bg-bg-base/80', 'backdrop-blur-xl', 'border-b', 'border-border/50');
       }
       lastScroll = currentScroll;
-    }, { signal: scrollController.signal, passive: true });
+    }, { signal, passive: true });
   };
 
   initMenu();

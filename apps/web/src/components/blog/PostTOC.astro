@@ -29,7 +29,9 @@ interface Props {
 
 const { headings } = Astro.props;
 // Only H2 and H3 — H1 is the title, H4+ are too granular for a sidebar TOC
-const filteredHeadings = headings.filter(h => h.depth <= 3);
+// H2 and H3 only — H1 is the post title (in PostHeader, never in the body),
+// H4+ are too granular. depth <= 3 alone would include H1 if ever present.
+const filteredHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 ---
 
 <nav class="space-y-4">
