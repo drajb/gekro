@@ -1,0 +1,14 @@
+# Cloudflare Pages redirect rules
+#
+# Strip trailing slashes — 301-redirect every path ending in "/" to the
+# canonical no-trailing-slash form so Google sees a single authoritative URL.
+# This pairs with the canonical normalisation in SEOHead.astro and the
+# sitemap serializer in astro.config.mjs.
+#
+# Pattern  /*/  matches /blog/, /about/, /blog/some-post/, etc.
+# :splat   captures everything before the final "/" and reuses it as the target.
+# The root path "/" is NOT matched — it has no leading segment before the slash.
+#
+# Reference: https://developers.cloudflare.com/pages/configuration/redirects/
+
+/*/  /:splat  301
