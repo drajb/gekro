@@ -145,12 +145,18 @@
     let rafId: number | null = null;
     let isHovering = false;
 
-    // Lower LERP_FACTOR = more trailing lag (0.15 = gentle, 1.0 = locked to cursor)
+    // LERP_FACTOR: 0.15 = gentle trailing lag (1.0 = locked to cursor)
     const LERP_FACTOR = 0.15;
+    // RAF sleeps once residual movement drops below this threshold (px)
+    const SETTLE_THRESHOLD = 0.1;
 
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      // Wake the RAF only if it's sleeping — avoids scheduling while already running
+      if (!rafId) {
+        rafId = requestAnimationFrame(render);
+      }
     };
 
     const onMouseOver = (e: MouseEvent) => {
@@ -164,8 +170,7 @@
     };
 
     const onMouseOut = (e: MouseEvent) => {
-      // relatedTarget is the element being entered — if it's still interactive,
-      // stay in hovering state; otherwise drop back to the small dot
+      // relatedTarget is the element being entered — stay hovering if still interactive
       const related = e.relatedTarget as HTMLElement | null;
       if (!related?.closest(CURSOR_SELECTORS)) {
         if (isHovering) {
@@ -176,23 +181,27 @@
     };
 
     const render = () => {
-      // Lerp toward the mouse position — smooth trailing
-      cursorX += (mouseX - cursorX) * LERP_FACTOR;
-      cursorY += (mouseY - cursorY) * LERP_FACTOR;
+      const dx = mouseX - cursorX;
+      const dy = mouseY - cursorY;
 
-      // Offset by half the current dot size so it centers on the cursor point
-      const size = isHovering ? 40 : 12;
-      const offset = size / 2;
+      cursorX += dx * LERP_FACTOR;
+      cursorY += dy * LERP_FACTOR;
 
+      const offset = isHovering ? 20 : 6;
       dot.style.transform = `translate3d(${cursorX - offset}px, ${cursorY - offset}px, 0)`;
 
-      rafId = requestAnimationFrame(render);
+      // Self-terminating: keep running while there's perceptible movement,
+      // then sleep. The next mousemove will wake it again.
+      if (Math.abs(dx) > SETTLE_THRESHOLD || Math.abs(dy) > SETTLE_THRESHOLD) {
+        rafId = requestAnimationFrame(render);
+      } else {
+        rafId = null;
+      }
     };
 
-    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mousemove', onMouseMove, { passive: true });
     document.addEventListener('mouseover', onMouseOver);
     document.addEventListener('mouseout', onMouseOut);
-    rafId = requestAnimationFrame(render);
 
     // Store cleanup fn on the element so destroyCursor can find it later
     (dot as any)._cursorCleanup = () => {
