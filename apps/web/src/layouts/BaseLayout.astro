@@ -6,6 +6,8 @@
  *  - Injects <head> (SEO, fonts, GA, GTM, ViewTransitions)
  *  - Wraps page content in the #swup transition container
  *  - Mounts the global fixed Header, Footer, and LabTerminal (the `\`` easter-egg)
+ *  - Mounts CursorFollower (custom cursor dot, desktop only)
+ *  - Mounts SearchModal (Cmd+K / Ctrl+K Pagefind overlay)
  *  - Runs a GSAP fade-in on <main> after every View Transition swap
  *
  * Props:
@@ -32,6 +34,8 @@ import SEOHead from '../components/seo/SEOHead.astro';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
 import LabTerminal from '../components/LabTerminal.astro';
+import CursorFollower from '../components/ui/CursorFollower.astro';
+import SearchModal from '../components/ui/SearchModal.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -116,5 +120,13 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
 
     <!-- Hidden easter-egg terminal — opens with the backtick (`) key -->
     <LabTerminal />
+
+    <!-- Custom cursor dot (desktop only — hidden on touch, mobile, and reduced-motion).
+         Mounted outside #swup so it survives View Transitions. -->
+    <CursorFollower />
+
+    <!-- Global Cmd+K / Ctrl+K search modal (Pagefind-powered, lazy-loaded).
+         Mounted outside #swup so the keydown listener persists across swaps. -->
+    <SearchModal />
   </body>
 </html>

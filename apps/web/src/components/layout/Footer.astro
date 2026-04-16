@@ -87,6 +87,13 @@ const buildTime = new Date().toLocaleTimeString('en-GB', {
           updateSyncTime();
         });
       </script>
+
+      <!-- Discoverability hints — barely visible by design. Signals to power
+           users that the backtick terminal and Cmd+K search exist without
+           shouting. Opacity-30 / 50 lets them fade into the footer. -->
+      <p class="text-[9px] font-mono text-text-muted/30 uppercase tracking-widest pt-2">
+        press <kbd class="text-text-muted/50">`</kbd> for terminal &bull; <kbd class="text-text-muted/50">⌘K</kbd> / <kbd class="text-text-muted/50">Ctrl+K</kbd> to search
+      </p>
     </div>
 
     <div class="grid grid-cols-2 gap-8">

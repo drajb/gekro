@@ -3,7 +3,11 @@
     "allow": [
       "Bash(pnpm --filter web exec astro check)",
       "Bash(pnpm --filter web typecheck)",
-      "Bash(ls -lt apps/web/src/content/blog/*.md)"
+      "Bash(ls -lt apps/web/src/content/blog/*.md)",
+      "Bash(pnpm --filter web build)",
+      "Bash(timeout 15 pnpm --filter web dev)",
+      "Bash(timeout 20 pnpm --filter web dev)",
+      "Bash(pnpm --filter web dev)"
     ]
   }
 }

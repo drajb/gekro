@@ -1,0 +1,212 @@
+---
+/**
+ * SearchModal.astro — Global Cmd+K / Ctrl+K search overlay
+ *
+ * Mounted in: BaseLayout.astro (global, every page, outside #swup so it
+ * persists across View Transitions).
+ *
+ * Trigger: Cmd+K (Mac) or Ctrl+K (Windows/Linux) — standard "command palette"
+ * convention. A keyboard-savvy first impression for developer visitors.
+ *
+ * Dismiss: Escape key, click on the backdrop, or Cmd/Ctrl+K again to toggle.
+ *
+ * Pagefind availability:
+ *  Same constraint as SearchWidget — Pagefind only exists after `pnpm build`
+ *  (postbuild script indexes the site). The probe fetch to /pagefind/pagefind-ui.js
+ *  detects availability; if it fails (dev mode or pre-build), the fallback
+ *  message is shown.
+ *
+ * Pagefind lazy-load:
+ *  The PagefindUI module is imported on FIRST open, not on page load, so
+ *  there's zero cost until the user invokes the modal.
+ *
+ * View Transitions:
+ *  The keydown listener is attached via astro:after-swap. Because the modal
+ *  is rendered outside #swup, the DOM nodes persist — but the listener
+ *  bound in the inline script gets orphaned on swap, so we re-bind it.
+ *  pagefindLoaded resets to false on swap so the index is re-initialised
+ *  against the new DOM (future-proofing for per-page search scopes).
+ *
+ * Z-index: z-[100] — sits above LabTerminal (z-50) so the modal can open
+ * while the terminal is still visible without awkward stacking.
+ */
+---
+
+<!-- Modal backdrop: full-screen blur, dismissable via click or Escape.
+     Hidden by default (opacity-0 pointer-events-none); shown by openSearchModal(). -->
+<div
+  id="search-modal-backdrop"
+  class="fixed inset-0 z-[100] bg-bg-base/80 backdrop-blur-xl opacity-0 pointer-events-none transition-opacity duration-300 flex items-start justify-center pt-[15vh]"
+  aria-hidden="true"
+>
+  <div
+    id="search-modal-content"
+    class="w-full max-w-2xl mx-4 bg-bg-surface border border-border rounded-2xl shadow-2xl shadow-accent/5 overflow-hidden"
+  >
+    <!-- Header bar: "Search" label + Escape hint -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      <span class="text-xs font-mono uppercase tracking-widest text-text-muted">Search</span>
+      <div class="flex items-center gap-2">
+        <kbd class="text-[10px] font-mono text-text-muted bg-bg-elevated border border-border-subtle px-1.5 py-0.5 rounded">ESC</kbd>
+        <span class="text-[10px] text-text-muted">to close</span>
+      </div>
+    </div>
+
+    <!-- PagefindUI mounts into this container on first open -->
+    <div id="search-modal-pagefind" class="p-4 max-h-[60vh] overflow-y-auto"></div>
+
+    <!-- Dev-mode / pre-build fallback — shown when the Pagefind probe fails -->
+    <p id="search-modal-unavailable" class="hidden text-sm text-text-muted font-mono text-center py-8">
+      Search is available after a production build.
+    </p>
+  </div>
+</div>
+
+<!-- Pagefind's own stylesheet — same path as SearchWidget uses -->
+<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+
+<style>
+  /* Override Pagefind UI CSS variables so results match the site design system.
+     Pagefind expects these via CSS custom properties — not @theme tokens. */
+  #search-modal-pagefind {
+    --pagefind-ui-scale: 0.9;
+    --pagefind-ui-primary: var(--color-accent, #3fb1ff);
+    --pagefind-ui-text: var(--color-text-primary, #fafafa);
+    --pagefind-ui-background: var(--color-bg-surface, #121214);
+    --pagefind-ui-border: var(--color-border, #27272a);
+    --pagefind-ui-tag: var(--color-bg-elevated, #18181b);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 12px;
+    --pagefind-ui-font: inherit;
+  }
+</style>
+
+<script is:inline>
+  /**
+   * Using is:inline so this script runs on initial page load AND re-executes
+   * on astro:after-swap (inline scripts re-run on each navigation target).
+   * The module-level flags (searchModalOpen, pagefindLoaded) live on the
+   * window scope to persist across swaps; see the bottom of the script.
+   */
+  (function () {
+    // Module-scoped flags — hoisted to window so re-execution doesn't reset them
+    if (!window.__gekroSearchModal) {
+      window.__gekroSearchModal = { open: false, loaded: false };
+    }
+    const state = window.__gekroSearchModal;
+
+    /**
+     * openSearchModal — reveal the overlay, lazy-load Pagefind on first open,
+     * and autofocus the search input.
+     */
+    const openSearchModal = async () => {
+      const backdrop = document.getElementById('search-modal-backdrop');
+      if (!backdrop || state.open) return;
+
+      state.open = true;
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      backdrop.classList.add('opacity-100');
+      backdrop.style.pointerEvents = 'auto';
+      backdrop.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+
+      // Lazy-load Pagefind on first open (mirrors SearchWidget's probe pattern)
+      if (!state.loaded) {
+        try {
+          const response = await fetch('/pagefind/pagefind-ui.js');
+          if (!response.ok) throw new Error('not built');
+
+          const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+          new PagefindUI({
+            element: '#search-modal-pagefind',
+            showSubResults: true,
+            showImages: false,
+            resetStyles: false,
+            excerptLength: 25,
+            autofocus: true,
+            translations: {
+              placeholder: 'Search posts, experiments, topics...',
+            }
+          });
+          state.loaded = true;
+        } catch (e) {
+          // Build isn't running with Pagefind yet — show the fallback message
+          const fallback = document.getElementById('search-modal-unavailable');
+          if (fallback) fallback.classList.remove('hidden');
+        }
+      }
+
+      // Focus the input — Pagefind autofocus:true should handle it, but add
+      // a fallback for cases where the input mounts after a brief delay
+      setTimeout(() => {
+        const input = document.querySelector('#search-modal-pagefind .pagefind-ui__search-input');
+        if (input) input.focus();
+      }, 100);
+    };
+
+    /** closeSearchModal — hide the overlay and restore page scroll */
+    const closeSearchModal = () => {
+      const backdrop = document.getElementById('search-modal-backdrop');
+      if (!backdrop || !state.open) return;
+
+      state.open = false;
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0', 'pointer-events-none');
+      backdrop.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    };
+
+    /**
+     * handleKeydown — listens for Cmd+K / Ctrl+K (toggle) and Escape (close).
+     * Prevents default so the browser's location-bar shortcut doesn't fire.
+     */
+    const handleKeydown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        state.open ? closeSearchModal() : openSearchModal();
+      } else if (e.key === 'Escape' && state.open) {
+        e.preventDefault();
+        closeSearchModal();
+      }
+    };
+
+    /** handleBackdropClick — close when clicking the backdrop (not the content) */
+    const handleBackdropClick = (e) => {
+      if (e.target === document.getElementById('search-modal-backdrop')) {
+        closeSearchModal();
+      }
+    };
+
+    /**
+     * initSearchModal — (re-)attach listeners. Safe to call multiple times
+     * because we remove previous listeners first (stored on window for
+     * cross-execution reference).
+     */
+    const initSearchModal = () => {
+      // Remove any previous listeners attached by an earlier init pass
+      if (window.__gekroSearchKeydown) {
+        document.removeEventListener('keydown', window.__gekroSearchKeydown);
+      }
+      if (window.__gekroSearchBackdropClick) {
+        const prevBackdrop = document.getElementById('search-modal-backdrop');
+        if (prevBackdrop) prevBackdrop.removeEventListener('click', window.__gekroSearchBackdropClick);
+      }
+
+      window.__gekroSearchKeydown = handleKeydown;
+      window.__gekroSearchBackdropClick = handleBackdropClick;
+
+      document.addEventListener('keydown', handleKeydown);
+      const backdrop = document.getElementById('search-modal-backdrop');
+      if (backdrop) backdrop.addEventListener('click', handleBackdropClick);
+    };
+
+    initSearchModal();
+    document.addEventListener('astro:after-swap', () => {
+      // State resets on nav — the new DOM needs a fresh Pagefind instance so
+      // the search index is re-built against the new page's PagefindUI container
+      state.open = false;
+      state.loaded = false;
+      initSearchModal();
+    });
+  })();
+</script>

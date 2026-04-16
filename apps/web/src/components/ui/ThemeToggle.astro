@@ -71,6 +71,17 @@
     if (btn.hasAttribute('data-initialized')) return;
     btn.setAttribute('data-initialized', 'true');
 
+    // One-time pulse hint — 3 soft accent pulses on first session visit to a
+    // reading page, so new users notice the toggle exists. Gated by
+    // sessionStorage so it doesn't replay on every navigation.
+    if (!sessionStorage.getItem('theme-toggle-hinted')) {
+      sessionStorage.setItem('theme-toggle-hinted', '1');
+      btn.classList.add('pulse-hint');
+      // Animation is 2s × 3 iterations = 6s; remove class after so it doesn't
+      // interfere with future hover box-shadow states
+      setTimeout(() => btn.classList.remove('pulse-hint'), 6000);
+    }
+
     const iconSun = document.getElementById('icon-sun');
     const iconMoon = document.getElementById('icon-moon');
     const defaultArticle = document.querySelector('article');
@@ -130,3 +141,29 @@
   setupThemeToggle();
   document.addEventListener('astro:after-swap', setupThemeToggle);
 </script>
+
+<style>
+  /* One-time pulse hint on first session visit — 3 soft accent-coloured
+     rings emanate from the button to signal that it's interactive.
+     Ring grows from 0px to 6px then fades to transparent. Triggered by
+     adding .pulse-hint via JS; removed after 6s (2s × 3 iterations). */
+  @keyframes theme-toggle-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 40%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-accent) 0%, transparent);
+    }
+  }
+
+  #theme-toggle.pulse-hint {
+    animation: theme-toggle-pulse 2s ease-in-out 3;
+  }
+
+  /* Respect reduced motion — no pulse for users who prefer less movement */
+  @media (prefers-reduced-motion: reduce) {
+    #theme-toggle.pulse-hint {
+      animation: none;
+    }
+  }
+</style>

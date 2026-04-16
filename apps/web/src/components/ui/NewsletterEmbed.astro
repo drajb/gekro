@@ -1,31 +1,37 @@
 ---
 /**
- * NewsletterEmbed.astro — Beehiiv newsletter signup (real or fallback)
+ * NewsletterEmbed.astro — Native dark-styled Beehiiv subscribe form
  *
  * Used in: index.astro (sidebar), BlogLayout.astro (below article body)
  *
- * Two modes:
- *  - Real embed: when PUBLIC_BEEHIIV_PUBLICATION_ID is set in .env.local,
- *    renders a Beehiiv iframe + attribution script (official embed pattern).
- *  - Fallback form: shown in dev / when the env var is missing. The form
- *    collects the email client-side and shows a success message inline.
- *    It does NOT submit to any backend — it's a pure UX placeholder.
- *    A dev note prompts adding the real publication ID.
+ * Why a native form instead of Beehiiv's iframe embed:
+ *  Beehiiv's iframe is cross-origin and renders with a white background that
+ *  can't be overridden from outside (their internal CSS wins). That looked
+ *  jarring against the site's dark theme. A native form gives us total
+ *  visual control and submits directly to Beehiiv's subscribe endpoint.
+ *
+ * Subscription flow:
+ *  Form POSTs via fetch() with mode: 'no-cors' to Beehiiv's public subscribe
+ *  URL (the same endpoint the iframe uses internally). no-cors gives an opaque
+ *  response we can't inspect, so we optimistically show a success message
+ *  on any non-thrown response. If the fetch throws (network error), we show
+ *  an error instead.
+ *
+ * Fallback state:
+ *  When PUBLIC_BEEHIIV_PUBLICATION_ID is missing, the form submits to
+ *  nowhere but still shows a success message (pure UX placeholder for dev).
+ *  A dev note surfaces the env var requirement.
  *
  * Finding the publication ID:
  *  app.beehiiv.com → Settings → Publication → Publication ID (format: pub_xxxxx)
- *
- * The iframe src conditionally appends ?slim=true for pub_ IDs, which removes
- * the Beehiiv header from the embed for a cleaner integration.
  */
 
 // Resolve the Beehiiv publication ID from env (undefined in local dev without .env.local)
 const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
-const useEmbed = !!publicationId;
 ---
 
 <section class="relative rounded-2xl border border-border bg-bg-surface overflow-hidden">
-  <!-- Subtle accent gradient -->
+  <!-- Subtle accent gradient backdrop — reinforces the "lab signal" aesthetic -->
   <div class="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent pointer-events-none" />
 
   <div class="relative p-8 md:p-12 space-y-6">
@@ -39,67 +45,106 @@ const useEmbed = !!publicationId;
       </p>
     </div>
 
-    {useEmbed ? (
-      <!-- Real Beehiiv embed -->
-      <div class="beehiiv-embed-wrapper">
-        <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script>
-        <iframe
-          src={`https://subscribe-forms.beehiiv.com/${publicationId}${publicationId.includes('pub_') ? '?slim=true' : ''}`}
-          data-test-id="beehiiv-embed"
-          width="100%"
-          height="339"
-          frameborder="0"
-          scrolling="no"
-          style="border-radius: 0px !important; border: none; overflow: hidden; background-color: transparent;"
-          loading="lazy"
-          title="Subscribe to the gekro newsletter"
-        />
-        <script type="text/javascript" async src="https://subscribe-forms.beehiiv.com/attribution.js"></script>
-      </div>
-    ) : (
-      <>
-        <!-- Fallback form for local dev / when Beehiiv not configured -->
-        <form
-        id="newsletter-form"
-        class="flex flex-col sm:flex-row gap-3 max-w-md"
-        onsubmit="handleSubmit(event)"
+    <!-- Native dark-styled form — replaces Beehiiv's white iframe embed.
+         data-publication-id is read by the submit handler to POST to the
+         right Beehiiv endpoint. Absent in dev mode → handler falls back to
+         showing a local-only success message. -->
+    <form
+      id="newsletter-form"
+      class="flex flex-col sm:flex-row gap-3 max-w-md"
+      data-publication-id={publicationId || ''}
+    >
+      <input
+        type="email"
+        name="email"
+        id="newsletter-email"
+        placeholder="your@email.com"
+        required
+        class="flex-1 px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 transition-colors font-body text-sm"
+        aria-label="Email address"
+      />
+      <button
+        type="submit"
+        class="px-6 py-3 bg-accent text-bg-base font-heading font-medium rounded-xl hover:bg-accent/90 active:scale-95 transition-all duration-200 text-sm whitespace-nowrap"
       >
-        <input
-          type="email"
-          name="email"
-          id="newsletter-email"
-          placeholder="your@email.com"
-          required
-          class="flex-1 px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 transition-colors font-body text-sm"
-          aria-label="Email address"
-        />
-        <button
-          type="submit"
-          class="px-6 py-3 bg-accent text-bg-base font-heading font-medium rounded-xl hover:bg-accent/90 active:scale-95 transition-all duration-200 text-sm whitespace-nowrap"
-        >
-          Subscribe →
-        </button>
-      </form>
-      <p id="newsletter-state" class="hidden text-sm text-text-secondary font-mono" aria-live="polite"></p>
-      {import.meta.env.DEV && (
-        <p class="text-xs text-text-muted">
-          Add <code class="font-mono bg-bg-elevated px-1 rounded">PUBLIC_BEEHIIV_PUBLICATION_ID</code> to .env.local to enable the real Beehiiv embed.
-        </p>
-      )}
+        Subscribe →
+      </button>
+    </form>
 
-      <script is:inline>
-        function handleSubmit(e) {
-          e.preventDefault();
-          const form = document.getElementById('newsletter-form');
-          const state = document.getElementById('newsletter-state');
-          const email = document.getElementById('newsletter-email').value;
-          if (!email) return;
-          form.classList.add('hidden');
-          state.classList.remove('hidden');
-          state.textContent = `✓ Got it — we'll reach out to ${email} when there's something worth sharing.`;
-        }
-      </script>
-      </>
+    <!-- Live status region — populated by the submit handler. aria-live="polite"
+         so screen readers announce the result without interrupting current speech. -->
+    <p id="newsletter-state" class="hidden text-sm text-text-secondary font-mono" aria-live="polite"></p>
+
+    {!publicationId && import.meta.env.DEV && (
+      <p class="text-xs text-text-muted">
+        Add <code class="font-mono bg-bg-elevated px-1 rounded">PUBLIC_BEEHIIV_PUBLICATION_ID</code> to .env.local to wire this form to Beehiiv.
+      </p>
     )}
+
+    <script is:inline>
+      /**
+       * Newsletter submit handler.
+       *
+       * POSTs the email to Beehiiv's subscribe endpoint using no-cors mode
+       * (same URL their iframe uses internally). no-cors means we get an
+       * opaque response we can't inspect — we optimistically treat any
+       * non-thrown completion as success. Network errors (offline, DNS fail)
+       * still produce a catch and we surface an error state.
+       *
+       * The listener is bound once per DOM instance via a data-attribute guard
+       * so re-running on astro:after-swap doesn't stack listeners.
+       */
+      (function () {
+        const initNewsletter = () => {
+          const form = document.getElementById('newsletter-form');
+          if (!form || form.hasAttribute('data-wired')) return;
+          form.setAttribute('data-wired', 'true');
+
+          const state = document.getElementById('newsletter-state');
+          const input = document.getElementById('newsletter-email');
+
+          form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!state || !input) return;
+
+            const email = input.value.trim();
+            if (!email) return;
+
+            const publicationId = form.getAttribute('data-publication-id');
+
+            // Show a pending state so the user knows something's happening
+            state.classList.remove('hidden');
+            state.textContent = 'Subscribing...';
+
+            if (publicationId) {
+              // Real submit to Beehiiv. no-cors because their endpoint
+              // doesn't set Access-Control-Allow-Origin for subscribe posts —
+              // we can't read the response, but the subscription goes through.
+              try {
+                const body = new URLSearchParams();
+                body.append('email', email);
+                await fetch(`https://subscribe-forms.beehiiv.com/${publicationId}/submissions`, {
+                  method: 'POST',
+                  mode: 'no-cors',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: body.toString(),
+                });
+                form.classList.add('hidden');
+                state.textContent = `✓ Got it — confirmation email sent to ${email}. Check your inbox.`;
+              } catch (err) {
+                state.textContent = 'Network error — try again or reach out on LinkedIn.';
+              }
+            } else {
+              // Dev / no publication ID configured — local-only success
+              form.classList.add('hidden');
+              state.textContent = `✓ Got it — we'll reach out to ${email} when there's something worth sharing.`;
+            }
+          });
+        };
+
+        initNewsletter();
+        document.addEventListener('astro:after-swap', initNewsletter);
+      })();
+    </script>
   </div>
 </section>

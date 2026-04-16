@@ -15,9 +15,9 @@
  *  otherwise uses 'dark_dimmed'. This ensures Giscus matches the reader mode.
  *
  * View Transitions:
- *  loadGiscus() clears container.innerHTML and injects a fresh <script> tag on
- *  every astro:after-swap. This is required because each post slug maps to a
- *  different GitHub Discussion thread — the Giscus iframe must reload.
+ *  loadGiscus() clears container.innerHTML and injects a fresh script tag
+ *  on every astro:after-swap. This is required because each post slug maps to
+ *  a different GitHub Discussion thread — the Giscus iframe must reload.
  *
  * Setup guide (one-time):
  *  1. GitHub repo must be PUBLIC with Discussions enabled

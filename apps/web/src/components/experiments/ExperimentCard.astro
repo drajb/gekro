@@ -43,11 +43,14 @@ const statusColors = {
 };
 ---
 
-<a 
+<a
   href={`/experiments/${slug}`}
-  class="experiment-card group relative block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent/50 opacity-100"
+  class="experiment-card group relative block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/5 opacity-100"
 >
-  <div class="flex flex-col h-full justify-between gap-6">
+  <!-- Mouse-tracking glow layer, mirrors PostCard; radial gradient defined in <style> below -->
+  <div class="glow-layer pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+
+  <div class="relative z-10 flex flex-col h-full justify-between gap-6">
     <div class="space-y-4">
       <div class="flex justify-between items-center">
         <span class={`text-[10px] uppercase tracking-widest font-mono border px-2 py-1 rounded-md ${statusColors[experiment.status]}`}>
@@ -78,3 +81,91 @@ const statusColors = {
     </div>
   </div>
 </a>
+
+<script>
+  /**
+   * initExperimentCards — entrance animation, mouse glow, and 3D tilt.
+   *
+   * Mirrors PostCard's pattern so both card types feel identical on interaction.
+   * ExperimentCard had no JS previously — this adds parity with PostCard:
+   *  1. Motion One inView() fade-up entrance (once per element via _animated guard)
+   *  2. CSS-var-driven radial gradient glow following the cursor (.glow-layer)
+   *  3. 3D perspective tilt (up to ±8°) following the cursor
+   *
+   * Bound to astro:after-swap so re-queried after View Transitions; _animated
+   * and _tiltInitialized flags prevent double-binding.
+   */
+  import { animate, inView } from "motion";
+
+  const initExperimentCards = () => {
+    const cards = document.querySelectorAll(".experiment-card");
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    cards.forEach((card) => {
+      // 1. Entrance animation — fade + slide up once per element
+      if (!isReducedMotion && !(card as any)._animated) {
+        (card as any)._animated = true;
+        inView(card, () => {
+          animate(
+            card,
+            { opacity: [0, 1], y: [20, 0] },
+            { duration: 0.6, easing: [0.22, 1, 0.36, 1] }
+          );
+        });
+      }
+
+      // 2 + 3. Glow tracking and 3D tilt — both on mousemove
+      if (!(card as any)._tiltInitialized) {
+        (card as any)._tiltInitialized = true;
+
+        card.addEventListener("mousemove", (e: any) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Glow: set CSS vars consumed by .glow-layer radial gradient
+          (card as HTMLElement).style.setProperty("--mouse-x", `${x}px`);
+          (card as HTMLElement).style.setProperty("--mouse-y", `${y}px`);
+
+          // 3D tilt: cursor position → ±8° rotation
+          if (!isReducedMotion) {
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateY = ((x - centerX) / centerX) * 8;
+            const rotateX = ((centerY - y) / centerY) * 8;
+            (card as HTMLElement).style.transform =
+              `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+          }
+        });
+
+        card.addEventListener("mouseleave", () => {
+          if (!isReducedMotion) {
+            (card as HTMLElement).style.transform = '';
+          }
+        });
+      }
+    });
+  };
+
+  initExperimentCards();
+  document.addEventListener('astro:after-swap', initExperimentCards);
+</script>
+
+<style>
+  .experiment-card {
+    /* 3D tilt setup — preserve-3d enables rotateX/rotateY perspective;
+       will-change hints the browser to promote the card to its own GPU layer */
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  /* Radial gradient glow following --mouse-x / --mouse-y (updated by JS).
+     Defaults to (0, 0) so there's no flash before the first mousemove. */
+  .experiment-card .glow-layer {
+    background: radial-gradient(
+      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+      rgba(255, 255, 255, 0.05),
+      transparent 40%
+    );
+  }
+</style>

@@ -67,6 +67,14 @@
   const CONNECT_DIST = 15;
   const BOX_SIZE = 40;
 
+  // ── Cursor repulsion: particles scatter away from the cursor in world space ──
+  // REPULSION_RADIUS: distance in world units within which a particle feels force
+  // REPULSION_STRENGTH: max displacement (world units) per frame when closest
+  // The force uses inverse-square falloff, clamped by REPULSION_STRENGTH so
+  // very-close particles don't fly out of the bounding box in a single frame.
+  const REPULSION_RADIUS = 8;
+  const REPULSION_STRENGTH = 0.15;
+
   /**
    * destroyThree — full teardown of the WebGL context and event listeners.
    *
@@ -156,9 +164,36 @@
     let targetX = 0;
     let targetY = 0;
 
+    // Cursor repulsion state — projected world-space position of the cursor
+    // and a flag so the repulsion block only runs after the first mousemove
+    // (avoids particles flocking to (0,0,0) at page load).
+    const mouseWorld = new THREE.Vector3(0, 0, 0);
+    let isMouseActive = false;
+
     onMouseMoveRef = (e: MouseEvent) => {
+      // Existing scene-rotation values (whole field tilts toward the cursor)
       mouseX = (e.clientX - window.innerWidth / 2) / 100;
       mouseY = (e.clientY - window.innerHeight / 2) / 100;
+
+      // Project mouse to world-space z=0 plane for per-particle repulsion.
+      // Unproject NDC through the camera, then intersect the resulting ray
+      // with z=0. z=0 is the median of the particle field ([-20, +20] per axis),
+      // so particles at different depths feel proportionally different force —
+      // produces a natural depth parallax.
+      if (camera) {
+        const ndcX = (e.clientX / window.innerWidth) * 2 - 1;
+        const ndcY = -(e.clientY / window.innerHeight) * 2 + 1;
+        const vec = new THREE.Vector3(ndcX, ndcY, 0.5);
+        vec.unproject(camera);
+        const dir = vec.sub(camera.position).normalize();
+        const t = -camera.position.z / dir.z;
+        mouseWorld.set(
+          camera.position.x + dir.x * t,
+          camera.position.y + dir.y * t,
+          0
+        );
+        isMouseActive = true;
+      }
     };
 
     window.addEventListener('mousemove', onMouseMoveRef);
@@ -187,6 +222,35 @@
         if (Math.abs(posAttr.getX(i)) > BOX_SIZE / 2) velocities[i * 3] *= -1;
         if (Math.abs(posAttr.getY(i)) > BOX_SIZE / 2) velocities[i * 3 + 1] *= -1;
         if (Math.abs(posAttr.getZ(i)) > BOX_SIZE / 2) velocities[i * 3 + 2] *= -1;
+
+        // ── Cursor repulsion ──
+        // Particles within REPULSION_RADIUS of the projected cursor get pushed
+        // away with an inverse-square force (capped by REPULSION_STRENGTH so a
+        // single-frame displacement can't exceed the box size). After the push
+        // we clamp to the bounding box so nothing escapes. No velocity is
+        // modified — particles naturally drift back into place via their
+        // existing velocity field, giving a "water ripple" feel.
+        if (isMouseActive) {
+          const px = posAttr.getX(i);
+          const py = posAttr.getY(i);
+          const pz = posAttr.getZ(i);
+          const rdx = px - mouseWorld.x;
+          const rdy = py - mouseWorld.y;
+          const rdz = pz - mouseWorld.z;
+          const rDist = Math.sqrt(rdx * rdx + rdy * rdy + rdz * rdz);
+
+          if (rDist < REPULSION_RADIUS && rDist > 0.01) {
+            const force = REPULSION_STRENGTH / (rDist * rDist);
+            const cappedForce = Math.min(force, REPULSION_STRENGTH);
+            const nx = rdx / rDist;
+            const ny = rdy / rDist;
+            const nz = rdz / rDist;
+            const half = BOX_SIZE / 2;
+            posAttr.setX(i, Math.max(-half, Math.min(half, px + nx * cappedForce)));
+            posAttr.setY(i, Math.max(-half, Math.min(half, py + ny * cappedForce)));
+            posAttr.setZ(i, Math.max(-half, Math.min(half, pz + nz * cappedForce)));
+          }
+        }
 
         // Connections
         for (let j = i + 1; j < PARTICLE_COUNT; j++) {

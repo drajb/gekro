@@ -54,7 +54,7 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
 
 <a 
   href={`/blog/${post.slug.current}`}
-  class="post-card group block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-accent/5"
+  class="post-card group relative block p-5 md:p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:shadow-2xl hover:shadow-accent/5"
 >
   <!-- Glow layer — follows the mouse via --mouse-x/--mouse-y CSS vars set by JS.
        Gradient is defined entirely in the <style> block below; no inline style needed. -->
@@ -110,15 +110,38 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
         });
       }
 
-      // Mouse glow effect
+      // Mouse glow + 3D tilt — both driven by the same mousemove handler
+      // The tilt gives cards a tactile physical feel: cursor position maps to
+      // up to ±8° rotation. translateY(-4px) mirrors the old Tailwind hover
+      // lift (removed from the class list to avoid conflicting with JS transform).
       if (!(card as any)._glowInitialized) {
         (card as any)._glowInitialized = true;
+
         card.addEventListener("mousemove", (e: any) => {
           const rect = card.getBoundingClientRect();
           const x = e.clientX - rect.left;
           const y = e.clientY - rect.top;
+
+          // Glow: set CSS vars consumed by .glow-layer radial gradient
           (card as HTMLElement).style.setProperty("--mouse-x", `${x}px`);
           (card as HTMLElement).style.setProperty("--mouse-y", `${y}px`);
+
+          // 3D tilt: rotateX inverted so tilt goes toward the cursor
+          if (!isReducedMotion) {
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateY = ((x - centerX) / centerX) * 8;
+            const rotateX = ((centerY - y) / centerY) * 8;
+            (card as HTMLElement).style.transform =
+              `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+          }
+        });
+
+        card.addEventListener("mouseleave", () => {
+          if (!isReducedMotion) {
+            // Reset transform — CSS transition handles the smooth return
+            (card as HTMLElement).style.transform = '';
+          }
         });
       }
     });
@@ -132,6 +155,11 @@ const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   .post-card {
     /* CSS variable used internally — keeps glow intensity in one place */
     --color-glow: color-mix(in srgb, var(--color-accent) 15%, transparent);
+
+    /* 3D tilt setup — preserve-3d enables rotateX/rotateY perspective;
+       will-change hints the browser to promote the card to its own layer */
+    transform-style: preserve-3d;
+    will-change: transform;
   }
 
   /* Radial gradient glow that follows the cursor.

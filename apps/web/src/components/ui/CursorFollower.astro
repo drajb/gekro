@@ -1,0 +1,218 @@
+---
+/**
+ * CursorFollower.astro — Custom trailing cursor dot (desktop only)
+ *
+ * Mounted in: BaseLayout.astro (global, every page, outside #swup so it
+ * persists across View Transitions).
+ *
+ * What it does:
+ *  A 12px accent-colored dot with a soft glow trails the cursor with a
+ *  lerp factor of 0.15 (gentle spring lag). When the cursor hovers over
+ *  interactive elements (links, buttons, cards, the menu/theme toggles),
+ *  the dot morphs into a 40px ring with a translucent center — a subtle
+ *  cue that the element is clickable.
+ *
+ * Mobile / touch devices:
+ *  Hidden entirely via CSS (@media (pointer: coarse) and max-width: 767px)
+ *  AND JS guard — if the media queries don't match, we bail out early and
+ *  never attach any listeners, so there's zero per-frame cost on mobile.
+ *
+ * Reduced motion:
+ *  Dot is hidden entirely (no trailing animation needed; the native cursor
+ *  is already fine). Respects prefers-reduced-motion both in CSS and JS.
+ *
+ * View Transitions:
+ *  destroyCursor() on astro:before-swap detaches listeners and cancels the
+ *  RAF. initCursor() on astro:after-swap re-queries the dot and re-attaches.
+ *  Without this, navigating away and back would leave the old listeners
+ *  attached to a dead DOM element and the RAF running indefinitely.
+ *
+ * Performance:
+ *  Uses translate3d() for GPU compositing. The RAF runs continuously (not
+ *  only on mousemove) to produce smooth trailing — the cost is one lerp +
+ *  one style.transform per frame, both sub-microsecond on modern hardware.
+ *
+ * Interactive element detection:
+ *  On mouseover/mouseout, we check if the target.closest() matches any of
+ *  the known interactive selectors. Using event delegation on document
+ *  avoids needing to walk the DOM tree on each View Transition to attach
+ *  per-element listeners (View-Transition-friendly by default).
+ */
+---
+
+<!-- 12px dot — hidden until JS confirms fine pointer + wide viewport + no reduced-motion -->
+<div
+  id="cursor-follower"
+  class="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full mix-blend-screen"
+  aria-hidden="true"
+  style="display: none;"
+></div>
+
+<style>
+  #cursor-follower {
+    width: 12px;
+    height: 12px;
+    background: var(--color-accent);
+    box-shadow:
+      0 0 12px 2px color-mix(in srgb, var(--color-accent) 40%, transparent);
+    /* Smooth width/height/bg/shadow transitions on the :hover state swap */
+    transition:
+      width 0.25s cubic-bezier(0.33, 1, 0.68, 1),
+      height 0.25s cubic-bezier(0.33, 1, 0.68, 1),
+      background 0.25s,
+      box-shadow 0.25s,
+      opacity 0.25s;
+    will-change: transform;
+  }
+
+  /* Ring state when hovering interactive elements */
+  #cursor-follower.hovering {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    box-shadow:
+      0 0 0 1.5px var(--color-accent),
+      0 0 20px 4px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
+
+  /* Hide on any touch device — even if pointer:fine is also true (hybrid) */
+  @media (pointer: coarse) {
+    #cursor-follower { display: none !important; }
+  }
+
+  /* Hide on mobile widths as a secondary guard */
+  @media (max-width: 767px) {
+    #cursor-follower { display: none !important; }
+  }
+
+  /* Replace the native cursor ONLY when our dot is active.
+     The body gets .custom-cursor added by JS when the follower mounts. */
+  @media (pointer: fine) and (min-width: 768px) {
+    :global(body.custom-cursor),
+    :global(body.custom-cursor a),
+    :global(body.custom-cursor button),
+    :global(body.custom-cursor [role="button"]),
+    :global(body.custom-cursor input[type="submit"]),
+    :global(body.custom-cursor .post-card),
+    :global(body.custom-cursor .experiment-card) {
+      cursor: none;
+    }
+  }
+
+  /* Users who prefer reduced motion get the native cursor back */
+  @media (prefers-reduced-motion: reduce) {
+    #cursor-follower { display: none !important; }
+  }
+</style>
+
+<script>
+  /**
+   * initCursor / destroyCursor — mount/unmount logic
+   *
+   * initCursor feature-detects fine pointer + wide viewport + no reduced motion.
+   * If any guard fails, it removes .custom-cursor from body (returning the
+   * native cursor) and bails out without attaching listeners.
+   *
+   * Event delegation on document (mouseover/mouseout + .closest()) keeps the
+   * interactive-element detection View-Transition-friendly: no need to
+   * re-query elements after each swap.
+   */
+  const CURSOR_SELECTORS =
+    'a, button, [role="button"], input[type="submit"], .post-card, .experiment-card, .magnetic-btn, #menu-toggle, #theme-toggle';
+
+  const initCursor = () => {
+    const dot = document.getElementById('cursor-follower');
+    if (!dot) return;
+
+    // Guards — must be fine pointer, wide enough, and not reduced-motion
+    const isFinePointer = window.matchMedia('(pointer: fine)').matches;
+    const isWideEnough = window.matchMedia('(min-width: 768px)').matches;
+    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!isFinePointer || !isWideEnough || isReducedMotion) {
+      dot.style.display = 'none';
+      document.body.classList.remove('custom-cursor');
+      return;
+    }
+
+    dot.style.display = 'block';
+    document.body.classList.add('custom-cursor');
+
+    let mouseX = 0;
+    let mouseY = 0;
+    let cursorX = 0;
+    let cursorY = 0;
+    let rafId: number | null = null;
+    let isHovering = false;
+
+    // Lower LERP_FACTOR = more trailing lag (0.15 = gentle, 1.0 = locked to cursor)
+    const LERP_FACTOR = 0.15;
+
+    const onMouseMove = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
+
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest(CURSOR_SELECTORS)) {
+        if (!isHovering) {
+          isHovering = true;
+          dot.classList.add('hovering');
+        }
+      }
+    };
+
+    const onMouseOut = (e: MouseEvent) => {
+      // relatedTarget is the element being entered — if it's still interactive,
+      // stay in hovering state; otherwise drop back to the small dot
+      const related = e.relatedTarget as HTMLElement | null;
+      if (!related?.closest(CURSOR_SELECTORS)) {
+        if (isHovering) {
+          isHovering = false;
+          dot.classList.remove('hovering');
+        }
+      }
+    };
+
+    const render = () => {
+      // Lerp toward the mouse position — smooth trailing
+      cursorX += (mouseX - cursorX) * LERP_FACTOR;
+      cursorY += (mouseY - cursorY) * LERP_FACTOR;
+
+      // Offset by half the current dot size so it centers on the cursor point
+      const size = isHovering ? 40 : 12;
+      const offset = size / 2;
+
+      dot.style.transform = `translate3d(${cursorX - offset}px, ${cursorY - offset}px, 0)`;
+
+      rafId = requestAnimationFrame(render);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseover', onMouseOver);
+    document.addEventListener('mouseout', onMouseOut);
+    rafId = requestAnimationFrame(render);
+
+    // Store cleanup fn on the element so destroyCursor can find it later
+    (dot as any)._cursorCleanup = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseover', onMouseOver);
+      document.removeEventListener('mouseout', onMouseOut);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      document.body.classList.remove('custom-cursor');
+    };
+  };
+
+  const destroyCursor = () => {
+    const dot = document.getElementById('cursor-follower');
+    if (dot && (dot as any)._cursorCleanup) {
+      (dot as any)._cursorCleanup();
+      (dot as any)._cursorCleanup = null;
+    }
+  };
+
+  initCursor();
+  document.addEventListener('astro:before-swap', destroyCursor);
+  document.addEventListener('astro:after-swap', initCursor);
+</script>
