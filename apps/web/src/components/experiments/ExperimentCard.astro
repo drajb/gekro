@@ -121,10 +121,12 @@ const statusColors = {
 
         let rect = card.getBoundingClientRect();
         let rafPending = false;
+        let isHovered = false;
         let pendingX = 0;
         let pendingY = 0;
 
         card.addEventListener("mouseenter", () => {
+          isHovered = true;
           rect = card.getBoundingClientRect();
         });
 
@@ -135,14 +137,17 @@ const statusColors = {
           if (!rafPending) {
             rafPending = true;
             requestAnimationFrame(() => {
-              (card as HTMLElement).style.setProperty("--mouse-x", `${pendingX}px`);
-              (card as HTMLElement).style.setProperty("--mouse-y", `${pendingY}px`);
+              // Guard: mouseleave may have fired in the 16ms window before this runs.
+              if (isHovered) {
+                (card as HTMLElement).style.setProperty("--mouse-x", `${pendingX}px`);
+                (card as HTMLElement).style.setProperty("--mouse-y", `${pendingY}px`);
 
-              if (!isReducedMotion) {
-                const rotateY = ((pendingX - rect.width / 2) / (rect.width / 2)) * 8;
-                const rotateX = ((rect.height / 2 - pendingY) / (rect.height / 2)) * 8;
-                (card as HTMLElement).style.transform =
-                  `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+                if (!isReducedMotion) {
+                  const rotateY = ((pendingX - rect.width / 2) / (rect.width / 2)) * 8;
+                  const rotateX = ((rect.height / 2 - pendingY) / (rect.height / 2)) * 8;
+                  (card as HTMLElement).style.transform =
+                    `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+                }
               }
               rafPending = false;
             });
@@ -150,6 +155,7 @@ const statusColors = {
         }, { passive: true });
 
         card.addEventListener("mouseleave", () => {
+          isHovered = false;
           if (!isReducedMotion) {
             (card as HTMLElement).style.transform = '';
           }

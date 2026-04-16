@@ -168,7 +168,7 @@ const navItems = [
         header?.classList.add('bg-bg-base/80', 'backdrop-blur-xl', 'border-b', 'border-border/50');
       }
       lastScroll = currentScroll;
-    }, { signal: scrollController.signal });
+    }, { signal: scrollController.signal, passive: true });
   };
 
   initMenu();

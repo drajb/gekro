@@ -28,9 +28,9 @@
  *  attached to a dead DOM element and the RAF running indefinitely.
  *
  * Performance:
- *  Uses translate3d() for GPU compositing. The RAF runs continuously (not
- *  only on mousemove) to produce smooth trailing — the cost is one lerp +
- *  one style.transform per frame, both sub-microsecond on modern hardware.
+ *  Uses translate3d() for GPU compositing. The RAF is self-terminating:
+ *  it wakes on mousemove and sleeps once residual delta < 0.1px, so it
+ *  only runs when the dot is visibly moving — zero idle cost.
  *
  * Interactive element detection:
  *  On mouseover/mouseout, we check if the target.closest() matches any of

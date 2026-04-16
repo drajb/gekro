@@ -196,7 +196,7 @@
       }
     };
 
-    window.addEventListener('mousemove', onMouseMoveRef);
+    window.addEventListener('mousemove', onMouseMoveRef, { passive: true });
 
     const animate = () => {
       if (!points || !scene || !camera || !renderer) return;
