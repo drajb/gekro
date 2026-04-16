@@ -51,7 +51,7 @@ const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
          showing a local-only success message. -->
     <form
       id="newsletter-form"
-      class="flex flex-col sm:flex-row gap-3 max-w-md"
+      class="flex flex-col gap-3 max-w-md"
       data-publication-id={publicationId || ''}
     >
       <input
@@ -60,12 +60,12 @@ const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
         id="newsletter-email"
         placeholder="your@email.com"
         required
-        class="flex-1 px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 transition-colors font-body text-sm"
+        class="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 transition-colors font-body text-sm"
         aria-label="Email address"
       />
       <button
         type="submit"
-        class="px-6 py-3 bg-accent text-bg-base font-heading font-medium rounded-xl hover:bg-accent/90 active:scale-95 transition-all duration-200 text-sm whitespace-nowrap"
+        class="w-full px-6 py-3 bg-accent text-bg-base font-heading font-medium rounded-xl hover:bg-accent/90 active:scale-95 transition-all duration-200 text-sm"
       >
         Subscribe →
       </button>
