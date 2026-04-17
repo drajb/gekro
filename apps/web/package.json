@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.0",
-    "@astrojs/sitemap": "^3.0.0",
+    "@astrojs/sitemap": "3.2.1",
     "@astrojs/tailwind": "^5.0.0",
     "@sanity/astro": "^3.0.0",
     "@sanity/client": "^6.0.0",
