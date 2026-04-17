@@ -24,6 +24,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import ExperimentCard from '../../components/experiments/ExperimentCard.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
 import { getAllPosts } from '../../lib/utils/posts';
 
 export async function getStaticPaths() {
@@ -43,14 +44,51 @@ export async function getStaticPaths() {
 }
 
 const { topicName } = Astro.props;
+const topicSlug = topicName.toLowerCase().replace(/\s+/g, '-');
+const topicURL = `https://gekro.com/topics/${topicSlug}/`;
 
 // Filter posts: case-insensitive match against the raw topic name
 const allPosts = await getAllPosts();
 const relatedPosts = allPosts
   .filter(post => post.topics.some((t: string) => t.toLowerCase() === topicName.toLowerCase()));
+
+// CollectionPage schema — tells Google this page is an index of related
+// articles. Paired with ItemList of the posts so AI answer engines can
+// enumerate what's in the topic cluster without scraping the DOM.
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": topicURL,
+  "name": `${topicName} — gekro topic cluster`,
+  "description": `Curated collection of articles and experiments on ${topicName} from gekro.com.`,
+  "url": topicURL,
+  "isPartOf": { "@id": "https://gekro.com/#website" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": relatedPosts.length,
+    "itemListElement": relatedPosts.map((post, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://gekro.com/blog/${post.slug.current}/`,
+      "name": post.title,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Topics", "item": "https://gekro.com/blog/" },
+    { "@type": "ListItem", "position": 3, "name": topicName, "item": topicURL },
+  ],
+};
 ---
 
 <BaseLayout title={`${topicName} | gekro`} description={`Explore all articles and experiments related to ${topicName}.`}>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-24">
 
     <!-- ── Topic cluster header ── -->

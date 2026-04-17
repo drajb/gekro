@@ -39,11 +39,14 @@ import ThemeToggle from '../components/ui/ThemeToggle.astro';
 interface ExperimentMeta {
   title: string;
   summary: string;
+  aiSummary?: string;
   status: 'active' | 'completed' | 'archived';
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   stack: string[];
+  topics?: string[];
   startDate: string;
   githubUrl?: string;
+  slug?: string;
 }
 
 interface Props {
@@ -52,21 +55,70 @@ interface Props {
 
 const { experiment } = Astro.props;
 
-// JSON-LD TechArticle schema for structured data
+const seoDescription = experiment.aiSummary || experiment.summary;
+const slug = experiment.slug;
+const ogImage = slug ? `/og/experiments/${slug}.png` : '/og/default.png';
+const pageURL = slug ? `https://gekro.com/experiments/${slug}/` : 'https://gekro.com/experiments/';
+const absoluteOgImage = `https://gekro.com${ogImage}`;
+const primaryTopic = experiment.topics?.[0];
+
+// JSON-LD TechArticle schema — expanded per 2026-04-17 SEO pass
 const schema = {
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": experiment.title,
-  "description": experiment.summary,
+  "description": seoDescription,
+  "image": [absoluteOgImage],
+  "datePublished": experiment.startDate,
+  "dateModified": experiment.startDate,
+  "proficiencyLevel": experiment.difficulty,
   "author": {
     "@type": "Person",
-    "name": "Rohit"
-  }
+    "name": "Rohit Burani",
+    "url": "https://gekro.com/about"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "gekro",
+    "url": "https://gekro.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://gekro.com/favicon.svg"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": pageURL
+  },
+  ...(experiment.stack?.length ? { "keywords": experiment.stack.join(', ') } : {}),
+  ...(primaryTopic ? { "articleSection": primaryTopic } : {}),
+};
+
+// BreadcrumbList: Home → Experiments → <experiment title>
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Experiments", "item": "https://gekro.com/experiments/" },
+    { "@type": "ListItem", "position": 3, "name": experiment.title, "item": pageURL },
+  ],
 };
 ---
 
-<BaseLayout title={`${experiment.title} | Labs`} description={experiment.summary}>
+<BaseLayout
+  title={`${experiment.title} | Labs`}
+  description={seoDescription}
+  ogImage={ogImage}
+  ogType="article"
+  publishedTime={experiment.startDate}
+  modifiedTime={experiment.startDate}
+  author="Rohit Burani"
+  section={primaryTopic}
+  tags={experiment.stack}
+>
   <JsonLD data={schema} />
+  <JsonLD data={breadcrumbs} />
   <ReadingProgress />
 
   <article class="max-w-6xl mx-auto px-6 py-32 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">

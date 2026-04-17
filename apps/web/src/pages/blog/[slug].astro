@@ -82,7 +82,10 @@ if (isLocal) {
     difficulty: post.data.difficulty,
     description: post.data.description,
     readingTime: post.data.readingTime,
-    tldr: post.data.tldr || post.data.description || post.data.summary
+    tldr: post.data.tldr || post.data.description || post.data.summary,
+    // Preserve slug in both string and {current} shapes so BlogLayout
+    // (which handles Sanity posts too) can derive URLs regardless of path.
+    slug: { current: post.slug },
   };
 } else {
   // Sanity posts don't have extracted headings; use a stub for the TOC

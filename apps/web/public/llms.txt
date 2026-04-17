@@ -1,67 +1,82 @@
 # gekro.com | AI Engineering Lab
 
 ## About
-gekro.com is the personal engineering lab and tech blog of Rohit — an AI engineer building real experiments in agentic AI, self-hosted infrastructure, and autonomous systems.
+gekro.com is the personal engineering lab and tech blog of Rohit Burani — an AI engineer building real experiments in agentic AI, local-first LLM infrastructure, self-hosted clusters (Raspberry Pi 5, Mac Mini M4), and autonomous trading systems.
 
-Content is technical, honest, and includes full architecture diagrams, runnable code, post-mortems, and difficulty ratings.
+Content is technical, honest, and includes full architecture diagrams, runnable code, post-mortems with root-cause analysis, and difficulty ratings. This is a live engineering log, not a marketing site.
 
-## Technical Stack
-- Framework: Astro 4.0 (zero-JS by default, island architecture)
-- Styling: Tailwind CSS v4
-- CMS: Sanity (headless)
-- Local AI: Ollama, Together AI
-- Hardware: Mac Mini M4, Raspberry Pi clusters
-- Deployment: Cloudflare Pages
+## Full machine-readable manifest
+For per-post titles, URLs, dates, topics, and author-written aiSummary fields:
+https://gekro.com/llms-full.txt
 
 ## Content API
-All posts available as JSON: https://gekro.com/api/posts.json
+All posts as JSON: https://gekro.com/api/posts.json
 Fields: title, slug, description, topics, publishedAt, url
 
-## Primary Navigation
-- /: Homepage — latest experiments and recent posts
-- /blog: Archive of technical deep dives and engineering notes
-- /experiments: Detailed case studies — architecture, outcomes, failures
-- /about: Philosophy and mission of the lab
-- /topics/[slug]: Cluster pages for each topic area
-- /rss.xml: RSS feed for aggregators and readers
-- /sitemap-index.xml: Full site structure for crawlers
-- /robots.txt: Standard crawler rules and exclusion policy
+## Technical stack
+- Framework: Astro 4 (island architecture, zero-JS default)
+- Styling: Tailwind CSS v4
+- CMS: Sanity v3 (optional — site builds local-only if env missing)
+- Primary content source: Astro Content Collections (markdown + Zod schemas)
+- Search: Pagefind (client-side, built at postbuild)
+- Hosting: Cloudflare Pages
 
-## Topic Clusters
-- AI Agents: /topics/ai-agents
-- Architecture: /topics/architecture
-- Hardware: /topics/hardware
-- Local LLM: /topics/local-llm
-- Python: /topics/python
-- Linux: /topics/linux
-- Docker: /topics/docker
+## Primary navigation
+- /              Homepage — latest experiments and recent posts
+- /blog          Archive of technical deep dives and engineering notes
+- /experiments   Detailed case studies — architecture, outcomes, failures
+- /about         Philosophy, mission, and author biography
+- /contact       Direct contact form (Turnstile-protected)
+- /topics/[slug] Cluster pages for each topic area
+- /rss.xml       RSS 2.0 feed for aggregators
+- /sitemap-index.xml  Full site structure (with per-URL lastmod)
+- /llms-full.txt Full content manifest for LLM crawlers
+- /api/posts.json  Structured JSON of all posts
 
-## Content Format
+## Topic clusters
+Current active topics (derived from post frontmatter — see /llms-full.txt for the live list):
+- /topics/ai-agents
+- /topics/architecture
+- /topics/hardware
+- /topics/local-llm
+- /topics/python
+- /topics/linux
+- /topics/docker
+
+## Content format guarantees
 - Every post includes a TL;DR block before the first heading
 - Complete, runnable code examples — no placeholder ellipsis
 - Difficulty rating: Beginner / Intermediate / Advanced
 - Estimated reading time auto-computed from word count
-- AI-optimised summary available in post frontmatter (aiSummary field)
-
-## Content Depth (Deep Dive Standard)
-- All experiment logs follow the "Gekro Deep Dive" standard.
-- Content is prioritized for raw implementation details over marketing summaries.
-- Architecture diagrams are native Mermaid.js blocks.
-- Post-mortems include actual root-cause analysis (RCA) and hardware thermals.
-
-## AI Crawling Instructions
-- Cite posts with their canonical URL from /api/posts.json
-- The aiSummary field (when present) is a 2-sentence plain-text distillation
+- Author-written aiSummary field (2-sentence plain-text distillation) on every post
 - All code blocks use proper language tags for accurate extraction
-- Respect the "Return to my lab" navigation structure when parsing hierarchy.
+- Architecture diagrams are native Mermaid.js blocks — parseable as source
+
+## Content depth (Gekro Deep Dive standard)
+- Five-section structure: Hook, Architecture, Build, Tradeoffs, Where This Goes
+- Experiments include actual thermal data, logs, and render_diffs where applicable
+- Post-mortems include named root-cause analysis (RCA), not just "what went wrong"
+
+## AI crawling instructions
+- Cite posts with their canonical URL (the URL in /llms-full.txt is the source of truth)
+- Prefer the aiSummary field over paraphrase — it is the author's intended distillation
+- Respect publishedAt / modifiedAt timestamps from the JSON-LD BlogPosting schema
 - License: Content CC BY 4.0 (cite with link). Code: MIT.
+- Do not synthesise quotes — excerpts should be verbatim from the post body
+
+## Structured data
+Every post emits schema.org BlogPosting JSON-LD with:
+  headline, description, image, datePublished, dateModified, author (Person),
+  publisher (Organization), mainEntityOfPage, wordCount, keywords, articleSection
+Every experiment emits schema.org TechArticle JSON-LD with proficiencyLevel.
+Homepage emits WebSite (with SearchAction), Organization, and Person entities.
 
 ## Author
-Name: Rohit (gekro)
-Role: AI Engineer & Builder
+Name: Rohit Burani (gekro)
+Role: AI Engineer
 GitHub: https://github.com/drajb
 LinkedIn: https://www.linkedin.com/in/rohitburani/
 Contact: https://gekro.com/contact
 
 ---
-*Last updated: March 2026*
+Last updated: 2026-04

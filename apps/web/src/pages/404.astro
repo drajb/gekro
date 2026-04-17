@@ -1,0 +1,71 @@
+---
+/**
+ * 404.astro — Custom not-found page (served by Cloudflare Pages when no route matches)
+ *
+ * Layout: BaseLayout (no hero canvas — we want this to render instantly).
+ *
+ * Why custom:
+ *  Cloudflare Pages serves /404.html verbatim when a route misses. Astro
+ *  generates that file from this page at build time. Replacing the default
+ *  generic 404 with a branded page that suggests recent posts keeps visitors
+ *  on-site when they land on a stale link (e.g. from an old social share or
+ *  a renamed slug).
+ *
+ * Sections:
+ *  1. Big "404" mark + tagline + back-home CTA
+ *  2. Three most-recent posts via PostCard (getAllPosts — merged source)
+ *  3. Link to /blog archive for full browsing
+ *
+ * SEO: <noindex> is set via SEOHead's default meta robots when status is 404.
+ *  We don't emit JSON-LD here — a 404 page has no canonical entity to describe.
+ */
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/blog/PostCard.astro';
+import { getAllPosts } from '../lib/utils/posts';
+
+// Pull the 3 most recent posts to offer as "maybe you wanted one of these"
+const recentPosts = (await getAllPosts()).slice(0, 3);
+---
+
+<BaseLayout
+  title="404 — Lost in the Lab | gekro"
+  description="This page doesn't exist. Try the archive or one of the recent posts below."
+>
+  <main class="max-w-4xl mx-auto px-6 py-32 space-y-24">
+
+    <!-- ── Big 404 mark + CTA ── -->
+    <section class="space-y-8">
+      <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">Error // 404</span>
+      <h1 class="text-6xl lg:text-9xl font-heading font-medium text-text-primary tracking-tighter">
+        Signal lost.
+      </h1>
+      <p class="text-xl text-text-secondary max-w-xl leading-relaxed">
+        The URL you followed doesn't point to a post in the lab. It may have been renamed, or it never existed. Try one of the options below.
+      </p>
+
+      <div class="flex flex-wrap gap-4 pt-4">
+        <a href="/" class="px-6 py-3 bg-accent text-bg-base font-mono text-sm rounded-lg hover:opacity-90 transition-opacity">
+          ← Back to homepage
+        </a>
+        <a href="/blog" class="px-6 py-3 border border-border text-text-primary font-mono text-sm rounded-lg hover:border-accent transition-colors">
+          Browse archive →
+        </a>
+      </div>
+    </section>
+
+    <!-- ── Recent posts — only render if any exist ── -->
+    {recentPosts.length > 0 && (
+      <section class="space-y-8">
+        <div class="flex justify-between items-end border-b border-border-subtle pb-4">
+          <h2 class="text-2xl font-heading text-text-primary">Try a recent post</h2>
+          <a href="/blog" class="text-sm font-mono text-accent hover:underline">View all →</a>
+        </div>
+        <div class="space-y-6">
+          {recentPosts.map(post => <PostCard post={post} />)}
+        </div>
+      </section>
+    )}
+
+  </main>
+</BaseLayout>

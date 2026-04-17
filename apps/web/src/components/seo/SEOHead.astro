@@ -5,10 +5,18 @@
  * Used in: BaseLayout.astro (rendered inside <head> on every page)
  *
  * Props:
- *  title        — page title; auto-appends "| gekro" unless already present
- *  description  — meta description; defaults to the site tagline
- *  ogImage      — OG image path relative to site root (default: /og/default.png)
- *  canonicalURL — canonical href (default: Astro.url.href for the current page)
+ *  title         — page title; auto-appends "| gekro" unless already present
+ *  description   — meta description; defaults to the site tagline
+ *  ogImage       — OG image path (absolute URL or site-relative path;
+ *                  default: /og/default.png)
+ *  canonicalURL  — canonical href (default: Astro.url.href for the current page)
+ *  ogType        — OG type; 'website' (default) or 'article' for posts
+ *  publishedTime — ISO date, emitted as <meta property="article:published_time">
+ *  modifiedTime  — ISO date, emitted as <meta property="article:modified_time">
+ *  author        — author name, emitted as <meta property="article:author">
+ *  section       — article section / primary topic (<meta property="article:section">)
+ *  tags          — array of tags, one <meta property="article:tag"> per entry
+ *  twitterCreator— @handle override for twitter:creator (defaults to @rohitburani)
  *
  * Font loading strategy:
  *  Inter (body) is loaded via Google Fonts with a print→all media swap trick
@@ -17,12 +25,19 @@
  *  here — per project rules: max 2 web font families. Currently Inter only.
  *
  * AI discoverability:
- *  Two <link rel="alternate"> tags expose the JSON posts API and llms.txt
- *  manifest for AI crawlers / LLM training pipelines (GEO strategy).
+ *  Three <link rel="alternate"> tags expose the JSON posts API, llms.txt
+ *  manifest, and llms-full.txt full-content dump for AI crawlers / LLM
+ *  training pipelines (GEO strategy).
  *
  * Title normalisation:
  *  `title.includes('gekro')` check prevents double-appending the site name
  *  on pages like "Blog | gekro" that already include it.
+ *
+ * Canonical URL convention (see decision-log 2026-04-17):
+ *  Uses Astro.url.href which produces trailing-slash form, matching Astro's
+ *  directory build output (dist/blog/slug/index.html) and Cloudflare Pages'
+ *  native canonicalisation. Do NOT strip trailing slashes — that created an
+ *  infinite redirect loop previously.
  */
 
 interface Props {
@@ -30,6 +45,13 @@ interface Props {
   description?: string;
   ogImage?: string;
   canonicalURL?: string;
+  ogType?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  section?: string;
+  tags?: string[];
+  twitterCreator?: string;
 }
 
 const {
@@ -37,15 +59,21 @@ const {
   description = "gekro.com — personal AI engineering lab and tech blog. Building at the edge of what's possible.",
   ogImage = "/og/default.png",
   canonicalURL: canonicalProp,
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  section,
+  tags,
+  twitterCreator = '@rohitburani',
 } = Astro.props;
 
-// Canonical URL uses the natural trailing-slash form that matches Astro's
-// directory-format build output (dist/blog/slug/index.html) and Cloudflare
-// Pages' own canonicalisation behaviour. A previous attempt to strip
-// trailing slashes caused ERR_TOO_MANY_REDIRECTS in production because CF
-// Pages auto-redirects non-slash URLs back to the slash form (see
-// decision-log 2026-04-17).
+const SITE_ORIGIN = 'https://gekro.com';
+// Canonical = natural trailing-slash form served by CF Pages.
 const canonicalURL = canonicalProp ?? Astro.url.href;
+// Absolutise OG image: a relative path becomes a full URL so social scrapers
+// (which don't always resolve relative URLs) always get a valid target.
+const ogImageURL = ogImage.startsWith('http') ? ogImage : `${SITE_ORIGIN}${ogImage}`;
 
 const siteTitle = title.includes('gekro') ? title : `${title} | gekro`;
 ---
@@ -57,8 +85,6 @@ const siteTitle = title.includes('gekro') ? title : `${title} | gekro`;
 <meta name="generator" content={Astro.generator} />
 
 <!-- Font Loading (Inter body font from Google Fonts) -->
-<!-- NOTE: Cabinet Grotesk (heading) needs Fontshare CDN; Syne (display) available on Google Fonts -->
-<!-- Per project rules, limit to 2 web font families. Currently loading Inter only. -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
@@ -74,21 +100,48 @@ const siteTitle = title.includes('gekro') ? title : `${title} | gekro`;
 <title>{siteTitle}</title>
 <meta name="title" content={siteTitle} />
 <meta name="description" content={description} />
+<meta name="author" content={author ?? 'Rohit Burani'} />
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content={Astro.url} />
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content="gekro" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={siteTitle} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(ogImage, Astro.url)} />
+<meta property="og:image" content={ogImageURL} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={title} />
+
+{ogType === 'article' && publishedTime && (
+  <meta property="article:published_time" content={publishedTime} />
+)}
+{ogType === 'article' && modifiedTime && (
+  <meta property="article:modified_time" content={modifiedTime} />
+)}
+{ogType === 'article' && (
+  <meta property="article:author" content={author ?? 'Rohit Burani'} />
+)}
+{ogType === 'article' && section && (
+  <meta property="article:section" content={section} />
+)}
+{ogType === 'article' && tags && tags.map((tag) => (
+  <meta property="article:tag" content={tag} />
+))}
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content={Astro.url} />
+<meta property="twitter:site" content="@rohitburani" />
+<meta property="twitter:creator" content={twitterCreator} />
+<meta property="twitter:url" content={canonicalURL} />
 <meta property="twitter:title" content={siteTitle} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(ogImage, Astro.url)} />
+<meta property="twitter:image" content={ogImageURL} />
+<meta property="twitter:image:alt" content={title} />
 
 <!-- AI Discoverability -->
 <link rel="alternate" type="application/json" title="Posts API" href="/api/posts.json" />
 <link rel="alternate" type="text/plain" title="LLM Manifest" href="/llms.txt" />
+<link rel="alternate" type="text/plain" title="LLM Full Content" href="/llms-full.txt" />
+<link rel="alternate" type="application/rss+xml" title="gekro RSS Feed" href="/rss.xml" />

@@ -24,15 +24,49 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import Tag from '../../components/ui/Tag.astro';
 import SearchWidget from '../../components/ui/SearchWidget.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
 import { getAllPosts, getTopicCounts } from '../../lib/utils/posts';
 
 // Merge local + Sanity posts, sorted newest-first
 const posts = await getAllPosts();
 // Derive topic counts for sidebar chips (all topics, no slice limit on archive)
 const topics = getTopicCounts(posts);
+
+// CollectionPage + ItemList — tells search engines this is an archive index
+// and enumerates every post so AI crawlers can hit each URL directly.
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "https://gekro.com/blog/",
+  "name": "gekro Blog Archive",
+  "description": "Complete archive of deep-dive technical posts from gekro.com — AI engineering, local-first systems, and self-hosted infrastructure.",
+  "url": "https://gekro.com/blog/",
+  "isPartOf": { "@id": "https://gekro.com/#website" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": posts.length,
+    "itemListElement": posts.map((post, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://gekro.com/blog/${post.slug.current}/`,
+      "name": post.title,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://gekro.com/blog/" },
+  ],
+};
 ---
 
 <BaseLayout title="Blog | gekro" description="Thoughts on engineering, AI, and systems build for a better future.">
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-16">
 
     <!-- ── Archive header ── -->

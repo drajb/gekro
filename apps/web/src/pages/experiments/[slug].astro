@@ -37,8 +37,9 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 // Render markdown content to the Content component
 const { Content } = await entry.render();
-// Flatten frontmatter for ExperimentLayout props
-const experiment = entry.data;
+// Flatten frontmatter for ExperimentLayout props; preserve the slug so the
+// layout can derive canonical URLs, per-post OG images, and JSON-LD @id.
+const experiment = { ...entry.data, slug: entry.slug };
 ---
 
 <ExperimentLayout experiment={experiment}>

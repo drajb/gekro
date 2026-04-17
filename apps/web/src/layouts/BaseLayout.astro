@@ -41,9 +41,26 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  section?: string;
+  tags?: string[];
 }
 
-const { title, description } = Astro.props;
+const {
+  title,
+  description,
+  ogImage,
+  ogType,
+  publishedTime,
+  modifiedTime,
+  author,
+  section,
+  tags,
+} = Astro.props;
 // GA4 is env-var driven and silently omitted when missing (unlike GTM/CF)
 const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
 ---
@@ -76,7 +93,17 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
     <!-- ─── End GTM ──────────────────────────────────────────────────────────── -->
 
     <!-- SEO meta, OG tags, canonical, font loading, AI-discoverability links -->
-    <SEOHead title={title} description={description} />
+    <SEOHead
+      title={title}
+      description={description}
+      ogImage={ogImage}
+      ogType={ogType}
+      publishedTime={publishedTime}
+      modifiedTime={modifiedTime}
+      author={author}
+      section={section}
+      tags={tags}
+    />
 
     <!-- Enables SPA-style page transitions using the View Transitions API -->
     <ViewTransitions />

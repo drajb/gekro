@@ -1,0 +1,91 @@
+---
+/**
+ * GlobalSchema.astro — Site-wide JSON-LD entity declarations
+ *
+ * Used in: index.astro (homepage only — declaring these on every page would
+ *          be redundant, and search engines expect the WebSite + Organization
+ *          entity root on the root URL).
+ *
+ * Emits three structured-data blocks:
+ *
+ *  WebSite
+ *    Declares gekro.com as a named WebSite entity. Crucially, the
+ *    potentialAction/SearchAction lets Google render a sitelinks search box
+ *    in the SERP (query hits gekro.com/?q=<query>; since Pagefind is
+ *    client-side the box falls back to loading the search page, which is
+ *    sufficient for Google's validator).
+ *
+ *  Organization
+ *    Declares the brand "gekro". Paired with WebSite via @id references so
+ *    the entities link together in Google's knowledge graph interpretation.
+ *
+ *  Person (Rohit Burani)
+ *    Author authority — every article's author field references this
+ *    Person by URL. Giving the Person its own schema on the homepage
+ *    anchors the identity (jobTitle, sameAs social profiles, etc.).
+ *
+ * References:
+ *  https://developers.google.com/search/docs/appearance/structured-data/sitelinks-searchbox
+ *  https://developers.google.com/search/docs/appearance/structured-data/article
+ */
+
+const SITE = 'https://gekro.com';
+
+const webSite = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE}/#website`,
+  "url": SITE,
+  "name": "gekro",
+  "description": "Personal AI engineering lab and tech blog. Authoritative engineering notes on local-first AI, self-hosted infrastructure, and autonomous systems.",
+  "publisher": { "@id": `${SITE}/#organization` },
+  "inLanguage": "en-US",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": `${SITE}/?q={search_term_string}`
+    },
+    "query-input": "required name=search_term_string"
+  }
+};
+
+const organization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE}/#organization`,
+  "name": "gekro",
+  "url": SITE,
+  "logo": {
+    "@type": "ImageObject",
+    "url": `${SITE}/favicon.svg`,
+    "width": 256,
+    "height": 256
+  },
+  "founder": { "@id": `${SITE}/about/#person` },
+  "sameAs": [
+    "https://github.com/drajb",
+    "https://www.linkedin.com/in/rohitburani/"
+  ]
+};
+
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": `${SITE}/about/#person`,
+  "name": "Rohit Burani",
+  "alternateName": "gekro",
+  "url": `${SITE}/about/`,
+  "jobTitle": "AI Engineer",
+  "description": "AI engineer building local-first agentic systems, self-hosted infrastructure (Raspberry Pi 5 cluster, Mac Mini M4), and autonomous trading systems.",
+  "sameAs": [
+    "https://github.com/drajb",
+    "https://www.linkedin.com/in/rohitburani/"
+  ],
+  "worksFor": { "@id": `${SITE}/#organization` }
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(webSite)} />
+<script type="application/ld+json" set:html={JSON.stringify(organization)} />
+<script type="application/ld+json" set:html={JSON.stringify(person)} />

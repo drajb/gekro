@@ -24,12 +24,48 @@
 
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroCanvasNeural from '../components/hero/HeroCanvasNeural.astro';
+import JsonLD from '../components/seo/JsonLD.astro';
 import { Image } from 'astro:assets';
 import biographySystems from '../assets/about/biography-systems.png';
 import beyondTheLab from '../assets/about/beyond-the-lab.png';
+
+// ProfilePage + Person schema — anchors the Person @id that every BlogPosting
+// references via author. Declared here because /about is the canonical
+// identity URL.
+const profileSchema = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "mainEntity": {
+    "@type": "Person",
+    "@id": "https://gekro.com/about/#person",
+    "name": "Rohit Burani",
+    "alternateName": "gekro",
+    "url": "https://gekro.com/about/",
+    "jobTitle": "AI Engineer",
+    "description": "AI engineer building local-first agentic systems, self-hosted infrastructure (Raspberry Pi 5 cluster, Mac Mini M4), and autonomous trading systems.",
+    "sameAs": [
+      "https://github.com/drajb",
+      "https://www.linkedin.com/in/rohitburani/"
+    ],
+    "knowsAbout": [
+      "Large Language Models",
+      "Local AI Inference",
+      "Self-Hosted Infrastructure",
+      "Agentic Systems",
+      "Raspberry Pi",
+      "Apple Silicon",
+      "Autonomous Trading Systems"
+    ],
+    "worksFor": { "@id": "https://gekro.com/#organization" }
+  }
+};
 ---
 
 <BaseLayout title="About | Rohit Burani" description="Engineering, management, and the commitment to sustainable systems behind Gekro Lab.">
+  <!-- Person/ProfilePage structured data — anchors the Person @id that every
+       BlogPosting author references. /about is the canonical identity URL. -->
+  <JsonLD data={profileSchema} />
+
   <!-- Full-bleed Three.js particle field (z-0, behind all content) -->
   <HeroCanvasNeural />
 

@@ -32,6 +32,7 @@ import PostCard from '../components/blog/PostCard.astro';
 import ExperimentCard from '../components/experiments/ExperimentCard.astro';
 import Tag from '../components/ui/Tag.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
+import GlobalSchema from '../components/seo/GlobalSchema.astro';
 import { getCollection } from 'astro:content';
 import { getAllPosts, getTopicCounts } from '../lib/utils/posts';
 
@@ -50,6 +51,10 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
 ---
 
 <BaseLayout title="gekro | Building at the edge of what's possible">
+  <!-- Site-wide JSON-LD entities (WebSite + Organization + Person).
+       Declared on the homepage only — other pages reference by @id. -->
+  <GlobalSchema />
+
   <!-- Full-bleed Three.js particle hero (z-0, behind all content) -->
   <HeroCanvasNeural />
 

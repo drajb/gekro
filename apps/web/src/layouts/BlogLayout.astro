@@ -56,29 +56,86 @@ const { post, headings } = Astro.props;
 // SEO description: prefer richer AI-optimised summary over the short description field
 const seoDescription = post.aiSummary || post.tldr || post.description || '';
 
-// JSON-LD BlogPosting schema for search engine + AI crawler structured data
+// Resolve the post slug in a shape-agnostic way — FormattedPost wraps it in
+// {current}, but the local-flatten path in [slug].astro may pass a string.
+const postSlug =
+  typeof post.slug === 'string' ? post.slug : post.slug?.current;
+
+// Per-post OG image endpoint. The /og/blog/[slug].png route is a prerendered
+// endpoint that generates a branded PNG at build time. If the post declared
+// its own mainImage, prefer that; otherwise use the dynamic endpoint.
+const ogImage =
+  post.mainImage
+    ? post.mainImage
+    : postSlug ? `/og/blog/${postSlug}.png` : '/og/default.png';
+
+const pageURL = `https://gekro.com/blog/${postSlug}/`;
+// Primary topic becomes the OG article:section — used by LinkedIn / FB / some
+// feed readers for content categorisation.
+const primaryTopic = post.topics?.[0];
+
+// JSON-LD BlogPosting schema — expanded per 2026-04-17 SEO pass to include
+// image, wordCount, keywords, mainEntityOfPage, dateModified (falls back to
+// datePublished if the frontmatter doesn't track modifications separately).
+const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `https://gekro.com${ogImage}`;
+const wordCount = post.readingTime ? post.readingTime * 200 : undefined;
 const schema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": post.title,
   "description": seoDescription,
+  "image": [absoluteOgImage],
   "datePublished": post.publishedAt,
+  "dateModified": post.publishedAt,
   "author": {
     "@type": "Person",
-    "name": "Rohit",
+    "name": "Rohit Burani",
     "url": "https://gekro.com/about"
   },
   "publisher": {
     "@type": "Organization",
     "name": "gekro",
-    "url": "https://gekro.com"
-  }
+    "url": "https://gekro.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://gekro.com/favicon.svg"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": pageURL
+  },
+  ...(wordCount ? { "wordCount": wordCount } : {}),
+  ...(post.topics?.length ? { "keywords": post.topics.join(', ') } : {}),
+  ...(primaryTopic ? { "articleSection": primaryTopic } : {}),
+};
+
+// BreadcrumbList: Home → Blog → <post title>
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://gekro.com/blog/" },
+    { "@type": "ListItem", "position": 3, "name": post.title, "item": pageURL },
+  ],
 };
 ---
 
-<BaseLayout title={post.title} description={seoDescription}>
+<BaseLayout
+  title={post.title}
+  description={seoDescription}
+  ogImage={ogImage}
+  ogType="article"
+  publishedTime={post.publishedAt}
+  modifiedTime={post.publishedAt}
+  author="Rohit Burani"
+  section={primaryTopic}
+  tags={post.topics}
+>
   <!-- Structured data injected into <head> via a <script type="application/ld+json"> -->
   <JsonLD data={schema} />
+  <JsonLD data={breadcrumbs} />
 
   <!-- Thin accent-coloured bar that grows as you scroll through the article -->
   <ReadingProgress />
