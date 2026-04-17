@@ -1,14 +1,24 @@
 # Cloudflare Pages redirect rules
 #
-# Strip trailing slashes — 301-redirect every path ending in "/" to the
-# canonical no-trailing-slash form so Google sees a single authoritative URL.
-# This pairs with the canonical normalisation in SEOHead.astro and the
-# sitemap serializer in astro.config.mjs.
+# Strip trailing slashes so canonical URLs match across sitemap, <link rel="canonical">,
+# and the actual URLs Google indexes.
 #
-# Pattern  /*/  matches /blog/, /about/, /blog/some-post/, etc.
-# :splat   captures everything before the final "/" and reuses it as the target.
-# The root path "/" is NOT matched — it has no leading segment before the slash.
-#
+# NOTE on pattern syntax: Cloudflare Pages only supports `*` as a splat at the
+# END of a source path. Patterns like `/*/` (wildcard in the middle) are NOT
+# reliably supported and previously caused a redirect loop on every blog post.
+# Use explicit `:placeholder` rules instead — they match one path segment and
+# work per the documented syntax.
 # Reference: https://developers.cloudflare.com/pages/configuration/redirects/
 
-/*/  /:splat  301
+# Top-level routes
+/blog/          /blog           301
+/experiments/   /experiments    301
+/about/         /about          301
+/contact/       /contact        301
+/now/           /now            301
+/slides/        /slides         301
+
+# Dynamic single-segment routes
+/blog/:slug/          /blog/:slug           301
+/experiments/:slug/   /experiments/:slug    301
+/topics/:slug/        /topics/:slug         301
