@@ -12,9 +12,16 @@
  *
  * Tests: apps/web/src/lib/utils/reading-time.test.ts (vitest)
  */
+
+/**
+ * WORDS_PER_MINUTE — shared constant. Single source of truth for the reading
+ * pace assumption. Exported so any future consumer (e.g. a Sanity data loader)
+ * uses the same baseline without redefining the number.
+ */
+export const WORDS_PER_MINUTE = 200;
+
 export function calculateReadingTime(text: string): number {
-  const wordsPerMinute = 200;
   const noOfWords = text.split(/\s/g).length;
-  const minutes = noOfWords / wordsPerMinute;
+  const minutes = noOfWords / WORDS_PER_MINUTE;
   return Math.ceil(minutes);
 }

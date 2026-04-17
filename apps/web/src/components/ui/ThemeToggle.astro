@@ -109,6 +109,12 @@
           iconMoon.classList.remove('hidden');
         }
       }
+      // Notify anything downstream that cares about the reader theme — the
+      // Giscus iframe, primarily, since it can't read document.body.classList
+      // once mounted. detail.theme is a human-readable string ('light'|'dark').
+      document.dispatchEvent(new CustomEvent('gekro:theme-change', {
+        detail: { theme: light ? 'light' : 'dark' },
+      }));
     };
 
     // Apply immediately on mount to prevent FOUC for cached users

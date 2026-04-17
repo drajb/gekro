@@ -70,17 +70,6 @@
   document.addEventListener('astro:after-swap', initSearch);
 </script>
 
-<style>
-  /* Restyle Pagefind UI to match the site design system */
-  :root {
-    --pagefind-ui-scale: 0.85;
-    --pagefind-ui-primary: var(--color-accent, #3fb1ff);
-    --pagefind-ui-text: var(--color-text-primary, #fafafa);
-    --pagefind-ui-background: var(--color-bg-surface, #121214);
-    --pagefind-ui-border: var(--color-border, #27272a);
-    --pagefind-ui-tag: var(--color-bg-elevated, #18181b);
-    --pagefind-ui-border-width: 1px;
-    --pagefind-ui-border-radius: 12px;
-    --pagefind-ui-font: inherit;
-  }
-</style>
+<!-- Pagefind UI variables live in global.css (scoped to #pagefind-search
+     and #search-modal-pagefind). Kept there to avoid duplication between
+     this widget and the Cmd+K SearchModal. -->

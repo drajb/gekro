@@ -12,9 +12,10 @@
  *  - "Copy Link" button wired via initCopyLink() + astro:after-swap
  *
  * Props:
- *  post     — FormattedPost-shaped object (title, publishedAt, topics, tldr,
- *             readingTime, aiSummary, description, difficulty). Typed `any` for
- *             Sanity/local union compatibility — be careful adding new fields.
+ *  post     — FormattedPost (local markdown + Sanity union, defined in
+ *             `lib/utils/posts.ts`). Includes optional aiSummary/summary so
+ *             the local-flattening path in `[slug].astro` keeps full type
+ *             information through the layout.
  *  headings — Array of { depth, text, slug } extracted from the post markdown.
  *             Used by PostTOC in the sidebar.
  *
@@ -30,10 +31,24 @@ import JsonLD from '../components/seo/JsonLD.astro';
 import GiscusComments from '../components/blog/GiscusComments.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
+import type { FormattedPost } from '../lib/utils/posts';
+
+/**
+ * Accepts a `FormattedPost`-shaped object — the flattened union of local
+ * Content Collection posts and Sanity posts built by `[slug].astro`. The
+ * concrete object may also carry extra pass-through fields from the
+ * original Zod-validated frontmatter (summary, etc.) which are already
+ * declared as optional on FormattedPost.
+ */
+interface Heading {
+  depth: number;
+  text: string;
+  slug: string;
+}
 
 interface Props {
-  post: any; // FormattedPost union (local markdown + Sanity) — strict typing deferred
-  headings: any[];
+  post: FormattedPost;
+  headings: Heading[];
 }
 
 const { post, headings } = Astro.props;

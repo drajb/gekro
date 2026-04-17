@@ -9,7 +9,9 @@
  *  FormattedPost  — canonical post shape consumed by all pages and components
  *  getAllPosts()   — merge + sort posts from local Content Collections + Sanity
  *  getTopicCounts() — derive [{title, count}] sorted by count desc
- *  calculateReadingTime() — rough WPM estimate (also in reading-time.ts)
+ *  (reading time lives exclusively in lib/utils/reading-time.ts — the duplicate
+ *   calculateReadingTime that used to live here was removed 2026-04-17 as part
+ *   of the code-review sweep; no consumer was importing it from this module.)
  *
  * Topic consolidation:
  *  TOPIC_MAP normalises raw topic strings from frontmatter/Sanity into a
@@ -39,6 +41,12 @@ export interface FormattedPost {
   isLocal?: boolean;
   body?: unknown;
   mainImage?: string;
+  // GEO-optimised 2-sentence summary. Preferred over description/tldr by
+  // SEOHead and BlogLayout when present; falls back to tldr → description.
+  aiSummary?: string;
+  // Some older posts use `summary` as an alias for description — preserved
+  // in the union so local post flattening doesn't lose the field.
+  summary?: string;
 }
 
 /**
@@ -136,9 +144,3 @@ export function getTopicCounts(posts: Pick<FormattedPost, 'topics'>[]): { title:
     .sort((a, b) => b.count - a.count);
 }
 
-export function calculateReadingTime(text: string): number {
-  const wordsPerMinute = 200;
-  const noOfWords = text.split(/\s/g).length;
-  const minutes = noOfWords / wordsPerMinute;
-  return Math.ceil(minutes);
-}

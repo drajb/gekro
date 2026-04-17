@@ -65,21 +65,9 @@
 <!-- Pagefind's own stylesheet — same path as SearchWidget uses -->
 <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
 
-<style>
-  /* Override Pagefind UI CSS variables so results match the site design system.
-     Pagefind expects these via CSS custom properties — not @theme tokens. */
-  #search-modal-pagefind {
-    --pagefind-ui-scale: 0.9;
-    --pagefind-ui-primary: var(--color-accent, #3fb1ff);
-    --pagefind-ui-text: var(--color-text-primary, #fafafa);
-    --pagefind-ui-background: var(--color-bg-surface, #121214);
-    --pagefind-ui-border: var(--color-border, #27272a);
-    --pagefind-ui-tag: var(--color-bg-elevated, #18181b);
-    --pagefind-ui-border-width: 1px;
-    --pagefind-ui-border-radius: 12px;
-    --pagefind-ui-font: inherit;
-  }
-</style>
+<!-- Pagefind UI variables live in global.css (scoped to #pagefind-search
+     and #search-modal-pagefind). Kept there to avoid duplication between
+     this modal and the inline SearchWidget on /blog. -->
 
 <script is:inline>
   /**

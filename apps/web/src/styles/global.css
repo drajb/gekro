@@ -104,6 +104,26 @@ body {
   }
 }
 
+/* ── Pagefind UI theming — shared between SearchWidget (blog index) and
+   SearchModal (global Cmd+K overlay). Scoped to the two mount containers so
+   we don't leak Pagefind's custom properties into the global cascade.
+   If you add a third Pagefind mount point, just extend the selector list. */
+#pagefind-search,
+#search-modal-pagefind {
+  --pagefind-ui-primary: var(--color-accent, #3fb1ff);
+  --pagefind-ui-text: var(--color-text-primary, #fafafa);
+  --pagefind-ui-background: var(--color-bg-surface, #121214);
+  --pagefind-ui-border: var(--color-border, #27272a);
+  --pagefind-ui-tag: var(--color-bg-elevated, #18181b);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: 12px;
+  --pagefind-ui-font: inherit;
+}
+
+/* Per-mount scale override — the sidebar widget is denser than the modal */
+#pagefind-search    { --pagefind-ui-scale: 0.85; }
+#search-modal-pagefind { --pagefind-ui-scale: 0.9;  }
+
 /* ── Prose spacing overrides — supplements @tailwindcss/typography defaults ── */
 .prose {
   @apply text-text-secondary leading-relaxed;

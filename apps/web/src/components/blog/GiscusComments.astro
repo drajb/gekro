@@ -14,6 +14,12 @@
  *  Uses 'light' when .theme-light is present (ThemeToggle has been activated),
  *  otherwise uses 'dark_dimmed'. This ensures Giscus matches the reader mode.
  *
+ *  Re-sync on in-page toggle:
+ *  ThemeToggle dispatches a `gekro:theme-change` CustomEvent whenever the
+ *  user flips the theme without navigating. We listen for it and call
+ *  loadGiscus() to rebuild the iframe with the correct theme — otherwise
+ *  the comments would stay in their original theme for the rest of the session.
+ *
  * View Transitions:
  *  loadGiscus() clears container.innerHTML and injects a fresh script tag
  *  on every astro:after-swap. This is required because each post slug maps to
@@ -103,6 +109,10 @@
   loadGiscus();
   // Re-init after View Transitions (new slug = new Giscus thread)
   document.addEventListener('astro:after-swap', loadGiscus);
+  // Re-init when the user toggles theme on the current page (no navigation).
+  // Without this, Giscus would keep its boot-time theme for the rest of the
+  // session — dark comments on a light page, or vice-versa.
+  document.addEventListener('gekro:theme-change', loadGiscus);
 </script>
 
 <style>

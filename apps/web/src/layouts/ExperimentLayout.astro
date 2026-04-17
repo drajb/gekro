@@ -30,8 +30,24 @@ import ReadingProgress from '../components/blog/ReadingProgress.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
 
+/**
+ * ExperimentMeta — the subset of experiment frontmatter this layout reads.
+ * Mirrors the `experiments` Zod schema in `content/config.ts`; kept as a
+ * local type (rather than re-exporting the Zod-inferred type) so Sanity-fed
+ * experiments can satisfy the same shape without importing astro:content.
+ */
+interface ExperimentMeta {
+  title: string;
+  summary: string;
+  status: 'active' | 'completed' | 'archived';
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  stack: string[];
+  startDate: string;
+  githubUrl?: string;
+}
+
 interface Props {
-  experiment: any;
+  experiment: ExperimentMeta;
 }
 
 const { experiment } = Astro.props;
@@ -81,7 +97,7 @@ const schema = {
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Stack</span>
           <div class="flex flex-wrap gap-2 pt-1">
-            {experiment.stack.map((s: string) => (
+            {experiment.stack.map((s) => (
               <span class="text-[10px] bg-bg-elevated px-2 py-0.5 border border-border rounded">{s}</span>
             ))}
           </div>

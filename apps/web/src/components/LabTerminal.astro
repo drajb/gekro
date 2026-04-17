@@ -123,6 +123,22 @@
       this.output.scrollTop = this.output.scrollHeight;
     }
 
+    /**
+     * escapeHtml — escape HTML special chars before interpolating user-typed
+     * text into an innerHTML template. Prevents self-XSS when echoing the
+     * user's command back (e.g. typing `<img src=x onerror=alert(1)>`).
+     * The terminal has no server component, so the threat is the user
+     * attacking their own session — but escaping costs nothing.
+     */
+    escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     async slowPrint(lines, delayMs = 120) {
       for (const line of lines) {
         this.printLine(line);
@@ -221,8 +237,9 @@
       const trimmed = cmd.trim();
       if (!trimmed) return;
 
-      // Echo typed command back to output (mimics a real terminal)
-      this.printLine(`<span class="text-accent">rohit@gekro:~$</span> ${trimmed}`, true);
+      // Echo typed command back to output (mimics a real terminal).
+      // escapeHtml guards against self-XSS — user input never hits innerHTML raw.
+      this.printLine(`<span class="text-accent">rohit@gekro:~$</span> ${this.escapeHtml(trimmed)}`, true);
 
       // Command history (max 20 entries, oldest dropped from front)
       this.history.push(trimmed);
