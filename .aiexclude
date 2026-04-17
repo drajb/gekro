@@ -1,0 +1,5 @@
+# Google Gemini / Antigravity / Firebase Studio — .aiexclude convention.
+# Blocks the listed paths from being sent to Google AI models or modified
+# by the agent. See .content-backup/README.md for the full protocol.
+
+.content-backup/

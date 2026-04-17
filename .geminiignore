@@ -1,0 +1,5 @@
+# Gemini CLI (google-gemini/gemini-cli) honours .geminiignore the same way
+# git honours .gitignore. Files matched here are invisible to the agent's
+# filesystem tools. See .content-backup/README.md for the full protocol.
+
+.content-backup/

@@ -17,6 +17,14 @@
    - `conventions.md` — distilled rules
    - `history.md` — decision + issue highlights
 
+## Content Protection Protocol — applies to Gemini identically
+
+Published article markdown and the `.content-backup/` snapshot are off-limits without explicit user instruction. See **[CLAUDE.md §6a](CLAUDE.md)** and **[.agents/rules/content-protection.md](.agents/rules/content-protection.md)** — the rules are agent-agnostic and bind Gemini CLI, Antigravity, and any other Google-family agent equally.
+
+The override phrase for refreshing `.content-backup/` is literally **`cross sync content backup`**. No paraphrase counts. Full procedure: [.content-backup/AGENT_PROTOCOL.md](.content-backup/AGENT_PROTOCOL.md).
+
+Supporting enforcement for Gemini/Antigravity: **`.aiexclude`** and **`.geminiignore`** at repo root block the directory at the file-visibility layer. Honour both.
+
 ## Dual-agent coordination
 
 This repo is worked on by both Claude Code and Gemini CLI. Treat `.gekro/logs/decision-log.md` and `.gekro/logs/issue-tracker.md` as **shared mutable state** — append in real time, commit in batches, so the other agent picks up your context at the start of their next session.

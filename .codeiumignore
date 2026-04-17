@@ -1,0 +1,4 @@
+# Codeium / Windsurf ignore file — blocks the listed paths from indexing
+# and edit suggestions. See .content-backup/README.md for the full protocol.
+
+.content-backup/

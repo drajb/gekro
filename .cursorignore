@@ -1,0 +1,5 @@
+# Cursor — ignore rules for agent context & edits.
+# Keeps protected directories out of AI completion context and refuses
+# edits against them. See .content-backup/README.md for the full protocol.
+
+.content-backup/

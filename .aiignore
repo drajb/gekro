@@ -1,0 +1,5 @@
+# Generic .aiignore — Codeium, Continue, Aider and other agents that
+# honour this convention. Mirrors .cursorignore and .aiexclude.
+# See .content-backup/README.md for the full protocol.
+
+.content-backup/

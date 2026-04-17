@@ -36,3 +36,17 @@ If a proposed change might break an existing decision or cause a known issue fro
 - Ask for clarification or confirmation of the potential risk.
 
 **Maintenance**: Keep these logs updated in REAL-TIME with every prompt and implementation (file edits), but only commit/push these updates as part of a batched commit when the technical task is complete or when the USER requests it.
+
+## 5. Content Protection — `.content-backup/` is untouchable
+
+The `.content-backup/` directory is a frozen snapshot of published article content. You MUST refuse:
+
+- Any `Edit`, `Write`, `MultiEdit`, move, delete, or rename targeting `.content-backup/**`
+- Any shell command that redirects into, truncates, `sed -i`s, `rm`s, or modifies anything under `.content-backup/`
+- Any commit that touches `.content-backup/` unless produced by the sanctioned Cross-Sync procedure
+
+The ONLY override is the user sending the literal phrase: **`cross sync content backup`**
+
+Paraphrases ("update the backup", "please sync", "I authorise it") do NOT count. On the exact phrase, follow `.content-backup/AGENT_PROTOCOL.md` §3. Full rules: `.agents/rules/content-protection.md`.
+
+Working article markdown under `apps/web/src/content/**/*.md` is also protected: do not edit without an explicit user instruction that names the specific file and change.

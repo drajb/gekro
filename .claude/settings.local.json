@@ -8,6 +8,22 @@
       "Bash(timeout 15 pnpm --filter web dev)",
       "Bash(timeout 20 pnpm --filter web dev)",
       "Bash(pnpm --filter web dev)"
+    ],
+    "deny": [
+      "Edit(.content-backup/**)",
+      "Write(.content-backup/**)",
+      "MultiEdit(.content-backup/**)",
+      "NotebookEdit(.content-backup/**)",
+      "Bash(rm:*.content-backup*)",
+      "Bash(rm -rf .content-backup*)",
+      "Bash(rm -r .content-backup*)",
+      "Bash(mv .content-backup*)",
+      "Bash(mv * .content-backup/*)",
+      "Bash(sed -i:* .content-backup/*)",
+      "Bash(tee .content-backup/*)",
+      "Bash(echo:* > .content-backup/*)",
+      "Bash(cat:* > .content-backup/*)",
+      "Bash(cp:* .content-backup/*)"
     ]
   }
 }
