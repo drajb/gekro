@@ -40,18 +40,7 @@ export default defineConfig({
   site: 'https://gekro.com',
   integrations: [
     ...sanityIntegration,
-    sitemap({
-      // Strip trailing slashes from sitemap URLs so they match the canonical
-      // URLs emitted by SEOHead.astro (no trailing slash, except root "/").
-      // Without this, the sitemap would list /blog/ while the canonical tag
-      // says /blog — a mismatch that confuses search engine crawlers.
-      serialize(item) {
-        if (item.url !== 'https://gekro.com/' && item.url.endsWith('/')) {
-          item.url = item.url.slice(0, -1);
-        }
-        return item;
-      },
-    })
+    sitemap()
   ],
   image: {
     domains: ['deepwiki.com'],

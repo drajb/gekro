@@ -39,15 +39,13 @@ const {
   canonicalURL: canonicalProp,
 } = Astro.props;
 
-// Build a normalised canonical URL from the known site origin + pathname.
-// Convention: no trailing slash on any path except the root ("/").
-// This prevents the "Alternate page with proper canonical tag" issue in
-// Google Search Console caused by Cloudflare Pages serving both /blog and
-// /blog/ as identical pages while the canonical pointed to only one form.
-const SITE_ORIGIN = 'https://gekro.com';
-const rawPath = Astro.url.pathname;
-const normPath = rawPath === '/' ? '/' : rawPath.replace(/\/$/, '');
-const canonicalURL = canonicalProp ?? `${SITE_ORIGIN}${normPath}`;
+// Canonical URL uses the natural trailing-slash form that matches Astro's
+// directory-format build output (dist/blog/slug/index.html) and Cloudflare
+// Pages' own canonicalisation behaviour. A previous attempt to strip
+// trailing slashes caused ERR_TOO_MANY_REDIRECTS in production because CF
+// Pages auto-redirects non-slash URLs back to the slash form (see
+// decision-log 2026-04-17).
+const canonicalURL = canonicalProp ?? Astro.url.href;
 
 const siteTitle = title.includes('gekro') ? title : `${title} | gekro`;
 ---

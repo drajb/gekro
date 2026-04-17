@@ -1,24 +1,9 @@
 # Cloudflare Pages redirect rules
 #
-# Strip trailing slashes so canonical URLs match across sitemap, <link rel="canonical">,
-# and the actual URLs Google indexes.
+# Intentionally empty. Astro builds in directory format
+# (dist/blog/slug/index.html), and Cloudflare Pages serves those with
+# trailing slashes as the canonical URL. Any trailing-slash-stripping rule
+# here conflicts with CF's built-in directory canonicalisation and creates
+# an infinite redirect loop. See decision-log 2026-04-17.
 #
-# NOTE on pattern syntax: Cloudflare Pages only supports `*` as a splat at the
-# END of a source path. Patterns like `/*/` (wildcard in the middle) are NOT
-# reliably supported and previously caused a redirect loop on every blog post.
-# Use explicit `:placeholder` rules instead — they match one path segment and
-# work per the documented syntax.
 # Reference: https://developers.cloudflare.com/pages/configuration/redirects/
-
-# Top-level routes
-/blog/          /blog           301
-/experiments/   /experiments    301
-/about/         /about          301
-/contact/       /contact        301
-/now/           /now            301
-/slides/        /slides         301
-
-# Dynamic single-segment routes
-/blog/:slug/          /blog/:slug           301
-/experiments/:slug/   /experiments/:slug    301
-/topics/:slug/        /topics/:slug         301
