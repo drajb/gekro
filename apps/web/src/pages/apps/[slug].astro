@@ -1,0 +1,63 @@
+---
+/**
+ * apps/[slug].astro — Individual app page (/apps/[slug])
+ *
+ * Static generation: one page per entry in the `apps` content collection.
+ * Each app maps to a Calculator component via CALCULATOR_MAP.
+ * The markdown body (methodology + sources + limitations) is rendered below
+ * the calculator via the AppLayout "methodology" named slot.
+ *
+ * Adding a new app:
+ *  1. Create apps/web/src/content/apps/{slug}.md
+ *  2. Create apps/web/src/components/apps/{slug}/Calculator.astro
+ *  3. Add one import + one entry to CALCULATOR_MAP below
+ */
+
+import { getCollection } from 'astro:content';
+import AppLayout from '../../layouts/AppLayout.astro';
+import AppShell from '../../components/apps/AppShell.astro';
+
+import LLMCostCalculator from '../../components/apps/llm-cost-calculator/Calculator.astro';
+
+const CALCULATOR_MAP: Record<string, any> = {
+  'llm-cost-calculator': LLMCostCalculator,
+};
+
+export async function getStaticPaths() {
+  const apps = await getCollection('apps');
+  return apps.map(app => ({ params: { slug: app.slug }, props: { app } }));
+}
+
+const { app } = Astro.props;
+const { Content } = await app.render();
+
+const today = new Date().toISOString().split('T')[0];
+const exportFilename = `${app.slug}-${today}.csv`;
+
+const Calculator = CALCULATOR_MAP[app.slug];
+---
+
+<AppLayout app={app}>
+  <AppShell
+    title={app.data.title}
+    job={app.data.job}
+    category={app.data.category}
+    slug={app.slug}
+    lastVerified={app.data.lastVerified}
+    companionPostSlug={app.data.companionPostSlug}
+    license={app.data.license}
+    exportFilename={exportFilename}
+  >
+    {Calculator ? (
+      <Calculator />
+    ) : (
+      <div class="py-16 text-center border border-dashed border-border rounded-xl">
+        <p class="text-text-muted font-mono text-sm">Calculator coming soon.</p>
+      </div>
+    )}
+  </AppShell>
+
+  <div slot="methodology">
+    <Content />
+  </div>
+</AppLayout>

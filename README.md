@@ -30,6 +30,21 @@ Gekro is a personal engineering lab and tech blog dedicated to the intersection 
 
 I am **Rohit Burani**. My background — an engineering bachelors followed by a Masters in Management — informs my approach to building: where analytical rigour meets operational reality. While my professional life is spent navigating the complexities of large, regulated organizations, Gekro is my workshop for building, breaking, and documenting production-grade experiments in a local lab environment.
 
+## Apps
+
+`/apps` is a collection of free, single-session tools built for personal use and made public. Each app ships with sourced data, no login required, and nothing stored server-side. Source code for every app lives under `apps/web/src/components/apps/`.
+
+If you fork or use an app, include the MIT copyright notice and link back to gekro.com.
+
+## Licensing
+
+This repository is dual-licensed:
+
+- **Code** (`*.ts`, `*.astro`, `*.js`, `*.json`, `*.css`) — [MIT License](LICENSE). Attribution required: include the copyright notice in any fork or redistribution.
+- **Content** (blog posts, experiment case studies, app methodology copy in `apps/web/src/content/`) — [CC BY-NC 4.0](LICENSE-CONTENT). Attribution required; commercial reuse not permitted.
+
+Per-app license is declared in each app's frontmatter (`license` field) and defaults to MIT. Any non-MIT app license has its full text in `LICENSES/`.
+
 ---
 
 *EST. 2024 // Built for Depth*

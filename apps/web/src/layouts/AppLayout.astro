@@ -1,0 +1,77 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import JsonLD from '../components/seo/JsonLD.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  app: CollectionEntry<'apps'>;
+}
+
+const { app } = Astro.props;
+const { data } = app;
+
+const seoDescription = data.aiSummary || data.description;
+const pageURL = `https://gekro.com/apps/${app.slug}/`;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: data.title,
+  description: seoDescription,
+  url: pageURL,
+  applicationCategory: 'WebApplication',
+  operatingSystem: 'Any',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  author: {
+    '@type': 'Person',
+    name: 'Rohit Burani',
+    url: 'https://gekro.com/about',
+  },
+};
+
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Apps', item: 'https://gekro.com/apps/' },
+    { '@type': 'ListItem', position: 3, name: data.title, item: pageURL },
+  ],
+};
+---
+
+<BaseLayout
+  title={`${data.title} | gekro`}
+  description={seoDescription}
+  ogType="website"
+>
+  <JsonLD data={schema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-5xl mx-auto px-6 py-32">
+    <slot />
+
+    <!-- Methodology content from markdown body -->
+    <div class="mt-16 pt-12 border-t border-border-subtle">
+      <h2 class="text-xs font-mono uppercase tracking-widest text-text-muted mb-8">Methodology</h2>
+      <div class="prose prose-invert max-w-none
+                  prose-headings:font-heading prose-headings:font-medium
+                  prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6
+                  prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-4
+                  prose-p:text-text-secondary prose-p:leading-relaxed prose-p:mb-6
+                  prose-li:text-text-secondary
+                  prose-strong:text-text-primary prose-strong:font-semibold
+                  prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+                  prose-code:text-accent prose-code:bg-accent/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
+        <slot name="methodology" />
+      </div>
+    </div>
+
+    <div class="mt-12">
+      <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
+        <span class="group-hover:-translate-x-1 transition-transform">←</span>
+        All apps
+      </a>
+    </div>
+  </main>
+</BaseLayout>

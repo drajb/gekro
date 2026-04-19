@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppCard from '../../components/apps/AppCard.astro';
+import AppFilters from '../../components/apps/AppFilters.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
+import { getCollection } from 'astro:content';
+
+const apps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+apps.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': 'https://gekro.com/apps/',
+  name: 'gekro Apps',
+  description: 'Free tools I built for myself. Sourced data. No login.',
+  url: 'https://gekro.com/apps/',
+  isPartOf: { '@id': 'https://gekro.com/#website' },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: apps.length,
+    itemListElement: apps.map((app, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://gekro.com/apps/${app.slug}/`,
+      name: app.data.title,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Apps', item: 'https://gekro.com/apps/' },
+  ],
+};
+---
+
+<BaseLayout
+  title="Apps | gekro"
+  description="Free tools I built for myself. Sourced data. No login. Single-session calculators and utilities from an AI engineer's bench."
+>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-6xl mx-auto px-6 py-32 space-y-20">
+
+    <!-- Hero -->
+    <header class="space-y-6 max-w-3xl">
+      <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Free Tools</span>
+      <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tighter">Apps</h1>
+      <p class="text-xl text-text-secondary leading-relaxed">
+        Free tools I built for myself. Sourced data. No login.
+      </p>
+      <p class="text-sm text-text-muted max-w-xl leading-relaxed">
+        Each app is a public version of something I use in my own workflow — cost calculators, AI utilities, EV planning tools.
+        Open-source, client-only, nothing stored on a server.
+      </p>
+    </header>
+
+    <!-- Filters -->
+    <AppFilters />
+
+    <!-- Card grid -->
+    {apps.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {apps.map(app => (
+          <div data-card-wrapper data-category-val={app.data.category}>
+            <AppCard
+              title={app.data.title}
+              job={app.data.job}
+              category={app.data.category}
+              icon={app.data.icon}
+              status={app.data.status}
+              slug={app.slug}
+              publishedAt={app.data.publishedAt}
+            />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="py-24 text-center border border-dashed border-border rounded-xl">
+        <p class="text-text-muted">First app is being calibrated. Check back soon.</p>
+      </div>
+    )}
+
+    <!-- Empty state for filters -->
+    <div id="apps-empty" style="display:none" class="py-16 text-center border border-dashed border-border rounded-xl">
+      <p class="text-text-muted font-mono text-sm">No apps match that filter.</p>
+    </div>
+
+  </main>
+</BaseLayout>

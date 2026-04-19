@@ -69,4 +69,23 @@ const experiments = defineCollection({
   }),
 });
 
-export const collections = { blog, experiments };
+const apps = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    // slug is auto-derived from filename by Astro — do not add it here
+    category: z.enum(['ai', 'infra', 'ev', 'trading', 'dev', 'finance']),
+    job: z.string(),
+    description: z.string(),
+    aiSummary: z.string().optional(),
+    personalUse: z.string(),
+    status: z.enum(['active', 'beta', 'archived']).default('active'),
+    publishedAt: z.string(),
+    lastVerified: z.string().optional(),
+    companionPostSlug: z.string().optional(),
+    license: z.string().default('MIT'),
+    icon: z.string().optional(),
+  }),
+});
+
+export const collections = { blog, experiments, apps };

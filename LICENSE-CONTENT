@@ -1,0 +1,25 @@
+Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+
+Copyright (c) 2026 Rohit Burani — gekro.com
+
+This license applies to all written content in this repository, including but
+not limited to:
+  - Blog posts (apps/web/src/content/blog/**/*.md)
+  - Experiment case studies (apps/web/src/content/experiments/**/*.md)
+  - App methodology copy (apps/web/src/content/apps/**/*.md)
+
+You are free to:
+  Share — copy and redistribute the material in any medium or format
+
+Under the following terms:
+  Attribution — You must give appropriate credit to Rohit Burani and gekro.com,
+                provide a link to the license, and indicate if changes were made.
+  NonCommercial — You may not use the material for commercial purposes.
+
+No additional restrictions — You may not apply legal terms or technological
+measures that legally restrict others from doing anything the license permits.
+
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+All code in this repository (*.ts, *.astro, *.js, *.json, *.css files) is
+licensed under the MIT License. See LICENSE for details.

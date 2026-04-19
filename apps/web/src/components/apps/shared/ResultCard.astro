@@ -1,0 +1,24 @@
+---
+interface Props {
+  label: string;
+  id?: string;
+  value?: string;
+  suffix?: string;
+  accent?: boolean;
+  muted?: boolean;
+  sublabel?: string;
+}
+
+const { label, id, value = '—', suffix, accent = false, muted = false, sublabel } = Astro.props;
+---
+
+<div class={`p-5 rounded-xl border ${accent ? 'border-accent/30 bg-accent/5' : 'border-border bg-bg-elevated'} space-y-1`}>
+  <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">{label}</p>
+  <p
+    id={id}
+    class={`text-2xl font-heading font-medium tabular-nums ${accent ? 'text-accent' : muted ? 'text-text-muted' : 'text-text-primary'}`}
+  >
+    {value}{suffix && <span class="text-sm font-mono ml-1">{suffix}</span>}
+  </p>
+  {sublabel && <p class="text-[10px] text-text-muted">{sublabel}</p>}
+</div>

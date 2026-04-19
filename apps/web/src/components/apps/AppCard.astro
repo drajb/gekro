@@ -1,0 +1,121 @@
+---
+interface Props {
+  title: string;
+  job: string;
+  category: string;
+  icon?: string;
+  status: string;
+  slug: string;
+  publishedAt: string;
+}
+
+const { title, job, category, icon, status, slug, publishedAt } = Astro.props;
+
+const categoryColors: Record<string, string> = {
+  ai:      'border-accent/20 bg-accent/5 text-accent',
+  infra:   'border-blue-500/20 bg-blue-500/5 text-blue-400',
+  ev:      'border-green-500/20 bg-green-500/5 text-green-400',
+  trading: 'border-yellow-500/20 bg-yellow-500/5 text-yellow-400',
+  dev:     'border-purple-500/20 bg-purple-500/5 text-purple-400',
+  finance: 'border-orange-500/20 bg-orange-500/5 text-orange-400',
+};
+
+const categoryColor = categoryColors[category] ?? categoryColors.dev;
+---
+
+<a
+  href={`/apps/${slug}/`}
+  class="app-card group relative block p-6 bg-bg-surface border border-border rounded-xl
+         transition-all duration-300 hover:border-accent hover:shadow-2xl hover:shadow-accent/5"
+>
+  <div class="glow-layer pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+
+  <div class="relative z-10 space-y-4">
+    <div class="flex items-start justify-between gap-3">
+      {icon && <span class="text-3xl leading-none">{icon}</span>}
+      <div class="flex flex-wrap gap-2 ml-auto">
+        <span class={`text-[10px] uppercase tracking-wider font-mono border px-2 py-0.5 rounded-full ${categoryColor}`}>
+          {category}
+        </span>
+        {status !== 'active' && (
+          <span class="text-[10px] uppercase tracking-wider font-mono border border-text-muted/20 bg-text-muted/5 text-text-muted px-2 py-0.5 rounded-full">
+            {status}
+          </span>
+        )}
+      </div>
+    </div>
+
+    <div class="space-y-1.5">
+      <h3 class="text-lg font-heading font-medium text-text-primary group-hover:text-accent transition-colors">
+        {title}
+      </h3>
+      <p class="text-sm text-text-secondary leading-relaxed">{job}</p>
+    </div>
+
+    <div class="pt-4 border-t border-border-subtle flex justify-between items-center text-xs text-text-muted">
+      <time datetime={publishedAt} class="font-mono">
+        {new Date(publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+      </time>
+      <span class="group-hover:translate-x-1 transition-transform text-accent inline-flex items-center gap-1">
+        Open <span class="text-base">→</span>
+      </span>
+    </div>
+  </div>
+</a>
+
+<script>
+  const initAppCards = () => {
+    document.querySelectorAll<HTMLElement>('.app-card').forEach(card => {
+      if ((card as any)._glowInit) return;
+      (card as any)._glowInit = true;
+
+      const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let rect = card.getBoundingClientRect();
+      let rafPending = false;
+      let isHovered = false;
+      let px = 0, py = 0;
+
+      card.addEventListener('mouseenter', () => { isHovered = true; rect = card.getBoundingClientRect(); });
+      card.addEventListener('mousemove', (e: MouseEvent) => {
+        px = e.clientX - rect.left;
+        py = e.clientY - rect.top;
+        if (!rafPending) {
+          rafPending = true;
+          requestAnimationFrame(() => {
+            if (isHovered) {
+              card.style.setProperty('--mouse-x', `${px}px`);
+              card.style.setProperty('--mouse-y', `${py}px`);
+              if (!isReducedMotion) {
+                const ry = ((px - rect.width / 2) / (rect.width / 2)) * 8;
+                const rx = ((rect.height / 2 - py) / (rect.height / 2)) * 8;
+                card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+              }
+            }
+            rafPending = false;
+          });
+        }
+      }, { passive: true });
+      card.addEventListener('mouseleave', () => {
+        isHovered = false;
+        if (!isReducedMotion) card.style.transform = '';
+      });
+    });
+  };
+
+  initAppCards();
+  document.addEventListener('astro:after-swap', initAppCards);
+</script>
+
+<style>
+  .app-card {
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .glow-layer {
+    background: radial-gradient(
+      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+      rgba(255, 255, 255, 0.05),
+      transparent 40%
+    );
+  }
+</style>

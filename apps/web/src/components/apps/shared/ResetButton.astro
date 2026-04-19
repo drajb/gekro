@@ -1,0 +1,32 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = 'Reset' } = Astro.props;
+---
+
+<button
+  class="reset-btn inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bg-elevated border border-border
+         text-[10px] font-mono uppercase tracking-widest text-text-muted
+         hover:border-border-subtle hover:text-text-secondary transition-all"
+  aria-label={label}
+>
+  ↺ <span>{label}</span>
+</button>
+
+<script>
+  const initResetButtons = () => {
+    document.querySelectorAll<HTMLButtonElement>('.reset-btn').forEach(btn => {
+      if ((btn as any)._resetInit) return;
+      (btn as any)._resetInit = true;
+
+      btn.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('app:reset'));
+      });
+    });
+  };
+
+  initResetButtons();
+  document.addEventListener('astro:after-swap', initResetButtons);
+</script>

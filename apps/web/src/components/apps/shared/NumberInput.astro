@@ -1,0 +1,40 @@
+---
+interface Props {
+  label: string;
+  id: string;
+  name: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  suffix?: string;
+  mode?: 'decimal' | 'numeric';
+  helpText?: string;
+}
+
+const { label, id, name, value, min, max, step = 1, suffix, mode = 'decimal', helpText } = Astro.props;
+---
+
+<div class="space-y-1.5">
+  <label for={id} class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">{label}</label>
+  <div class="relative">
+    <input
+      type="number"
+      id={id}
+      name={name}
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      inputmode={mode}
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm
+             focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
+             hover:border-border-subtle transition-colors
+             [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+    />
+    {suffix && (
+      <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">{suffix}</span>
+    )}
+  </div>
+  {helpText && <p class="text-[10px] text-text-muted">{helpText}</p>}
+</div>

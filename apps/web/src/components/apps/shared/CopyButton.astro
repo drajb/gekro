@@ -1,0 +1,56 @@
+---
+interface Props {
+  targetId?: string;
+  label?: string;
+  eventName?: string;
+}
+
+const { targetId, label = 'Copy', eventName = 'app:copy' } = Astro.props;
+---
+
+<button
+  class="copy-btn inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bg-elevated border border-border
+         text-[10px] font-mono uppercase tracking-widest text-text-secondary
+         hover:border-accent hover:text-accent transition-all"
+  data-target={targetId}
+  data-event={eventName}
+  aria-label={label}
+>
+  <span class="copy-icon">⎘</span>
+  <span class="copy-label">{label}</span>
+</button>
+
+<script>
+  const initCopyButtons = () => {
+    document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach(btn => {
+      if ((btn as any)._copyInit) return;
+      (btn as any)._copyInit = true;
+
+      btn.addEventListener('click', () => {
+        const eventName = btn.dataset.event || 'app:copy';
+        const targetId = btn.dataset.target;
+        const label = btn.querySelector('.copy-label');
+        const icon = btn.querySelector('.copy-icon');
+
+        // If a targetId is provided, copy that element's text directly
+        if (targetId) {
+          const el = document.getElementById(targetId);
+          if (el) navigator.clipboard.writeText(el.textContent?.trim() || '');
+        } else {
+          // Otherwise dispatch event for the calculator to handle
+          document.dispatchEvent(new CustomEvent(eventName));
+        }
+
+        if (label) { label.textContent = 'Copied!'; }
+        if (icon) { icon.textContent = '✓'; }
+        setTimeout(() => {
+          if (label) label.textContent = btn.getAttribute('aria-label') || 'Copy';
+          if (icon) icon.textContent = '⎘';
+        }, 1500);
+      });
+    });
+  };
+
+  initCopyButtons();
+  document.addEventListener('astro:after-swap', initCopyButtons);
+</script>

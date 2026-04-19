@@ -1,0 +1,64 @@
+---
+interface Tab {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  tabs: Tab[];
+  activeId: string;
+  groupId: string;
+}
+
+const { tabs, activeId, groupId } = Astro.props;
+---
+
+<div class="flex gap-1 bg-bg-elevated p-1 rounded-xl border border-border" role="tablist" data-tab-group={groupId}>
+  {tabs.map(tab => (
+    <button
+      role="tab"
+      aria-selected={tab.id === activeId ? 'true' : 'false'}
+      aria-controls={`panel-${tab.id}`}
+      data-tab={tab.id}
+      class={`tab-btn flex-1 py-2.5 px-3 text-[10px] font-mono uppercase tracking-widest rounded-lg transition-all
+              ${tab.id === activeId
+                ? 'bg-bg-surface text-accent border border-border shadow-sm'
+                : 'text-text-muted hover:text-text-secondary'}`}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+
+<script>
+  const initTabGroups = () => {
+    document.querySelectorAll('[data-tab-group]').forEach(group => {
+      if ((group as any)._tabInit) return;
+      (group as any)._tabInit = true;
+
+      group.querySelectorAll<HTMLButtonElement>('[role="tab"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tabId = btn.dataset.tab;
+          if (!tabId) return;
+
+          // Update tab button states
+          group.querySelectorAll<HTMLButtonElement>('[role="tab"]').forEach(b => {
+            const active = b.dataset.tab === tabId;
+            b.setAttribute('aria-selected', String(active));
+            b.className = b.className
+              .replace(/bg-bg-surface text-accent border border-border shadow-sm|text-text-muted hover:text-text-secondary/g, '')
+              .trim() + ' ' + (active
+                ? 'bg-bg-surface text-accent border border-border shadow-sm'
+                : 'text-text-muted hover:text-text-secondary');
+          });
+
+          // Dispatch event for the calculator to handle panel switching
+          document.dispatchEvent(new CustomEvent('app:tab-change', { detail: { tabId } }));
+        });
+      });
+    });
+  };
+
+  initTabGroups();
+  document.addEventListener('astro:after-swap', initTabGroups);
+</script>
