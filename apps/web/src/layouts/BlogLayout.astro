@@ -143,8 +143,11 @@ const breadcrumbs = {
   <!-- Max-width container with rounded corners; light theme applies here when toggled -->
   <article class="max-w-6xl mx-auto px-6 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
 
-    <!-- Theme toggle floated to top-right — only active on reading pages -->
-    <div class="absolute top-8 right-6 md:right-10 z-50">
+    <!-- Theme toggle floated to top-right — only active on reading pages.
+         Mobile uses top-20 (80px) to clear the fixed header's menu-toggle
+         button (~76px tall with py-4 padding) which lives at the same
+         right-6 position and would otherwise stack on top of this button. -->
+    <div class="absolute top-20 md:top-8 right-6 md:right-10 z-50">
       <ThemeToggle />
     </div>
 

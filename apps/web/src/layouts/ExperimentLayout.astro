@@ -122,8 +122,10 @@ const breadcrumbs = {
   <ReadingProgress />
 
   <article class="max-w-6xl mx-auto px-6 py-32 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
-    <!-- Theme toggle: top-right, mirrors BlogLayout placement -->
-    <div class="absolute top-8 right-6 md:right-10 z-50">
+    <!-- Theme toggle: top-right, mirrors BlogLayout placement.
+         Mobile top-20 clears the fixed header's menu-toggle button that
+         lives at the same right-6 / top-4 area on small screens. -->
+    <div class="absolute top-20 md:top-8 right-6 md:right-10 z-50">
       <ThemeToggle />
     </div>
 
