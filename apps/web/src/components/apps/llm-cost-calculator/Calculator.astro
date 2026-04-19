@@ -4,7 +4,6 @@ import {
   ELECTRICITY_RATE_DEFAULT_USD_KWH,
 } from './data';
 
-// Default model selections for API tab (cheapest across all three providers)
 const DEFAULT_SELECTED = ['claude-haiku-4-5', 'gpt-5-4-mini', 'gemini-2-5-flash'];
 const DEFAULT_INPUT_PER_DAY = 500_000;
 const DEFAULT_OUTPUT_PER_DAY = 100_000;
@@ -12,7 +11,7 @@ const DEFAULT_CACHE_HIT = 30;
 const DEFAULT_HARDWARE = 'rtx-5060ti-16gb';
 const DEFAULT_LOCAL_MODEL = 'llama-3-1-8b';
 const DEFAULT_AMORT_YEARS = 3;
-const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as cents in UI
+const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
 ---
 
 <div id="llm-calc" class="space-y-6">
@@ -20,15 +19,15 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
   <!-- Tab bar -->
   <div class="flex gap-1 bg-bg-elevated p-1 rounded-xl border border-border" role="tablist">
     {[
-      { id: 'api',     label: 'API Cost' },
-      { id: 'local',   label: 'Local Hardware' },
-      { id: 'compare', label: 'Break-even' },
+      { id: 'api',     label: 'API Pricing' },
+      { id: 'local',   label: 'Run Locally' },
+      { id: 'compare', label: 'Break-Even' },
     ].map(tab => (
       <button
         role="tab"
         aria-selected={tab.id === 'api' ? 'true' : 'false'}
         data-tab={tab.id}
-        class={`calc-tab flex-1 py-2.5 px-3 text-[10px] font-mono uppercase tracking-widest rounded-lg transition-all
+        class={`calc-tab flex-1 py-2.5 px-3 text-sm font-medium rounded-lg transition-all
                 ${tab.id === 'api'
                   ? 'bg-bg-surface text-accent border border-border shadow-sm'
                   : 'text-text-muted hover:text-text-secondary'}`}
@@ -38,26 +37,29 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
     ))}
   </div>
 
-  <!-- ── API Cost panel ───────────────────────────────────────────────────── -->
+  <!-- ── API Pricing panel ──────────────────────────────────────────────────── -->
   <div id="panel-api" class="space-y-8">
 
     <!-- Model selection -->
     <div class="space-y-3">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Select Models to Compare</p>
-      <div class="flex flex-wrap gap-2">
+      <div>
+        <p class="text-sm font-medium text-text-secondary">Which models do you want to price?</p>
+        <p class="text-xs text-text-muted mt-0.5">Pick the providers you're considering. Results sort cheapest first.</p>
+      </div>
+      <div class="flex flex-wrap gap-6">
         {['Anthropic', 'OpenAI', 'Google'].map(provider => (
-          <div class="space-y-2 mr-2">
-            <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted/60">{provider}</p>
-            <div class="flex flex-col gap-1.5">
+          <div class="space-y-2">
+            <p class="text-xs font-mono uppercase tracking-wider text-text-muted">{provider}</p>
+            <div class="flex flex-col gap-2">
               {CLOUD_MODELS.filter(m => m.provider === provider).map(model => (
-                <label class="flex items-center gap-2 cursor-pointer group">
+                <label class="flex items-center gap-2.5 cursor-pointer group">
                   <input
                     type="checkbox"
-                    class="model-check accent-[color:var(--color-accent)] w-3.5 h-3.5 rounded cursor-pointer"
+                    class="model-check accent-[color:var(--color-accent)] w-4 h-4 rounded cursor-pointer"
                     data-model={model.id}
                     checked={DEFAULT_SELECTED.includes(model.id)}
                   />
-                  <span class="text-xs font-mono text-text-secondary group-hover:text-text-primary transition-colors">
+                  <span class="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
                     {model.label}
                   </span>
                 </label>
@@ -68,24 +70,51 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
       </div>
     </div>
 
-    <!-- Inputs -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Input Tokens / Day</label>
-        <input id="api-input-tokens" type="number" value={DEFAULT_INPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
-          class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+    <!-- Usage inputs -->
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="text-sm font-medium text-text-secondary">How much do you use per day?</p>
+          <p class="text-xs text-text-muted mt-0.5">Not sure of your numbers? Pick a quick preset below to get started.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {[
+            { label: 'Hobbyist',      input: 50000,   output: 10000   },
+            { label: 'Small project', input: 500000,  output: 100000  },
+            { label: 'Production',    input: 5000000, output: 1000000 },
+          ].map(p => (
+            <button
+              class="preset-btn text-xs px-3 py-1.5 rounded-full border border-border text-text-muted hover:border-accent hover:text-accent transition-all"
+              data-preset-input={p.input}
+              data-preset-output={p.output}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Output Tokens / Day</label>
-        <input id="api-output-tokens" type="number" value={DEFAULT_OUTPUT_PER_DAY} min="0" step="1000" inputmode="numeric"
-          class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Cache Hit Rate</label>
-        <div class="relative">
-          <input id="api-cache-hit" type="number" value={DEFAULT_CACHE_HIT} min="0" max="100" step="5" inputmode="numeric"
-            class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-8 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
-          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">%</span>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-secondary">Input tokens / day</label>
+          <input id="api-input-tokens" type="number" value={DEFAULT_INPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
+            class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+          <p class="text-xs text-text-muted">System prompt + user message combined</p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-secondary">Output tokens / day</label>
+          <input id="api-output-tokens" type="number" value={DEFAULT_OUTPUT_PER_DAY} min="0" step="1000" inputmode="numeric"
+            class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+          <p class="text-xs text-text-muted">The model's response — usually 5–20% of input</p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-secondary">Cache hit rate</label>
+          <div class="relative">
+            <input id="api-cache-hit" type="number" value={DEFAULT_CACHE_HIT} min="0" max="100" step="5" inputmode="numeric"
+              class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-8 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">%</span>
+          </div>
+          <p class="text-xs text-text-muted">Repeated prompts served from cache — use 0% if unsure</p>
         </div>
       </div>
     </div>
@@ -99,57 +128,69 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
   <!-- ── Local Hardware panel ─────────────────────────────────────────────── -->
   <div id="panel-local" class="space-y-8 hidden">
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="space-y-1.5">
-        <label for="local-hardware" class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Hardware</label>
-        <div class="relative">
-          <select id="local-hardware" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
-            {LOCAL_HARDWARE.map(hw => (
-              <option value={hw.id} selected={hw.id === DEFAULT_HARDWARE}>{hw.shortLabel}</option>
-            ))}
-          </select>
-          <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
-        </div>
+    <div class="space-y-3">
+      <div>
+        <p class="text-sm font-medium text-text-secondary">What hardware are you running?</p>
+        <p class="text-xs text-text-muted mt-0.5">Only combinations with published benchmarks produce results. Unsupported pairs show a notice below.</p>
       </div>
-      <div class="space-y-1.5">
-        <label for="local-model" class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Model</label>
-        <div class="relative">
-          <select id="local-model" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
-            {LOCAL_MODELS.map(m => (
-              <option value={m.id} selected={m.id === DEFAULT_LOCAL_MODEL}>{m.label}</option>
-            ))}
-          </select>
-          <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label for="local-hardware" class="block text-sm font-medium text-text-secondary">Hardware</label>
+          <div class="relative">
+            <select id="local-hardware" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
+              {LOCAL_HARDWARE.map(hw => (
+                <option value={hw.id} selected={hw.id === DEFAULT_HARDWARE}>{hw.shortLabel}</option>
+              ))}
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label for="local-model" class="block text-sm font-medium text-text-secondary">Model to run</label>
+          <div class="relative">
+            <select id="local-model" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
+              {LOCAL_MODELS.map(m => (
+                <option value={m.id} selected={m.id === DEFAULT_LOCAL_MODEL}>{m.label}</option>
+              ))}
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Tokens / Day</label>
-        <input id="local-tokens" type="number" value={DEFAULT_INPUT_PER_DAY + DEFAULT_OUTPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
-          class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Electricity Rate</label>
-        <div class="relative">
-          <input id="local-electricity" type="number" value={DEFAULT_ELECTRICITY} min="0" step="0.5" inputmode="decimal"
-            class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-14 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
-          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">¢/kWh</span>
+    <div class="space-y-3">
+      <p class="text-sm font-medium text-text-secondary">Usage & running costs</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-secondary">Tokens / day</label>
+          <input id="local-tokens" type="number" value={DEFAULT_INPUT_PER_DAY + DEFAULT_OUTPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
+            class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+          <p class="text-xs text-text-muted">Input + output combined</p>
         </div>
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Amortize Over</label>
-        <div class="relative">
-          <input id="local-amort" type="number" value={DEFAULT_AMORT_YEARS} min="1" max="10" step="1" inputmode="numeric"
-            class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-12 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
-          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">yrs</span>
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-secondary">Electricity rate</label>
+          <div class="relative">
+            <input id="local-electricity" type="number" value={DEFAULT_ELECTRICITY} min="0" step="0.5" inputmode="decimal"
+              class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-14 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">¢/kWh</span>
+          </div>
+          <p class="text-xs text-text-muted">US average is 17.45¢ — check your electricity bill</p>
+        </div>
+        <div class="space-y-1.5">
+          <label class="block text-sm font-medium text-text-secondary">Amortize hardware over</label>
+          <div class="relative">
+            <input id="local-amort" type="number" value={DEFAULT_AMORT_YEARS} min="1" max="10" step="1" inputmode="numeric"
+              class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-12 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">yrs</span>
+          </div>
+          <p class="text-xs text-text-muted">Spreads the upfront purchase cost across this period</p>
         </div>
       </div>
     </div>
 
     <!-- Hardware note -->
-    <div id="local-hw-note" class="text-[10px] font-mono text-text-muted px-1"></div>
+    <div id="local-hw-note" class="text-xs text-text-muted px-1 italic"></div>
 
     <!-- Results -->
     <div id="local-results" class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -158,42 +199,48 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
 
     <!-- Null state -->
     <div id="local-null-state" class="hidden py-10 text-center border border-dashed border-border rounded-xl">
-      <p class="text-sm font-mono text-text-muted">No published benchmark for this hardware/model combination.</p>
+      <p class="text-sm text-text-muted">No published benchmark for this hardware + model combination.</p>
       <p class="text-xs text-text-muted/60 mt-2">Try Llama 3.1 8B on RTX hardware, or Llama 3.2 3B on Pi AI HAT+ 2.</p>
     </div>
   </div>
 
-  <!-- ── Break-even panel ─────────────────────────────────────────────────── -->
+  <!-- ── Break-Even panel ─────────────────────────────────────────────────── -->
   <div id="panel-compare" class="space-y-8 hidden">
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="space-y-1.5">
-        <label for="cmp-cloud" class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Cloud Model</label>
-        <div class="relative">
-          <select id="cmp-cloud" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
-            {CLOUD_MODELS.map(m => (
-              <option value={m.id} selected={m.id === 'claude-haiku-4-5'}>{m.label}</option>
-            ))}
-          </select>
-          <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
-        </div>
+    <div class="space-y-3">
+      <div>
+        <p class="text-sm font-medium text-text-secondary">When does buying hardware pay off?</p>
+        <p class="text-xs text-text-muted mt-0.5">Compare your current cloud spend against owning the hardware. See the exact month you break even.</p>
       </div>
-      <div class="space-y-1.5">
-        <label for="cmp-hardware" class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Local Hardware</label>
-        <div class="relative">
-          <select id="cmp-hardware" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
-            {LOCAL_HARDWARE.map(hw => (
-              <option value={hw.id} selected={hw.id === DEFAULT_HARDWARE}>{hw.shortLabel}</option>
-            ))}
-          </select>
-          <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label for="cmp-cloud" class="block text-sm font-medium text-text-secondary">Cloud model you're paying for</label>
+          <div class="relative">
+            <select id="cmp-cloud" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
+              {CLOUD_MODELS.map(m => (
+                <option value={m.id} selected={m.id === 'claude-haiku-4-5'}>{m.label}</option>
+              ))}
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <label for="cmp-hardware" class="block text-sm font-medium text-text-secondary">Hardware you'd buy instead</label>
+          <div class="relative">
+            <select id="cmp-hardware" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
+              {LOCAL_HARDWARE.map(hw => (
+                <option value={hw.id} selected={hw.id === DEFAULT_HARDWARE}>{hw.shortLabel}</option>
+              ))}
+            </select>
+            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="space-y-1.5">
-        <label for="cmp-hw-model" class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Local Model</label>
+        <label for="cmp-hw-model" class="block text-sm font-medium text-text-secondary">Local model to run</label>
         <div class="relative">
           <select id="cmp-hw-model" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
             {LOCAL_MODELS.map(m => (
@@ -204,21 +251,23 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
         </div>
       </div>
       <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Total Tokens / Day</label>
+        <label class="block text-sm font-medium text-text-secondary">Total tokens / day</label>
         <input id="cmp-tokens" type="number" value={DEFAULT_INPUT_PER_DAY + DEFAULT_OUTPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
           class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
+        <p class="text-xs text-text-muted">Input + output combined</p>
       </div>
       <div class="space-y-1.5">
-        <label class="block text-[10px] font-mono uppercase tracking-widest text-text-muted">Electricity Rate</label>
+        <label class="block text-sm font-medium text-text-secondary">Electricity rate</label>
         <div class="relative">
           <input id="cmp-electricity" type="number" value={DEFAULT_ELECTRICITY} min="0" step="0.5" inputmode="decimal"
             class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-14 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
           <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">¢/kWh</span>
         </div>
+        <p class="text-xs text-text-muted">US average 17.45¢. Check your electricity bill.</p>
       </div>
     </div>
 
-    <!-- Break-even summary — the LinkedIn punchline -->
+    <!-- Break-even summary -->
     <div id="cmp-summary" class="space-y-4">
       <!-- Populated by JS -->
     </div>
@@ -229,9 +278,9 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
         <thead>
           <tr class="border-b border-border-subtle text-text-muted text-[10px] uppercase tracking-widest">
             <th class="text-left py-2 pr-4">Month</th>
-            <th class="text-right py-2 pr-4">Cloud Cumulative</th>
-            <th class="text-right py-2 pr-4">Local Cumulative</th>
-            <th class="text-right py-2">Δ Savings</th>
+            <th class="text-right py-2 pr-4">Cloud cumulative</th>
+            <th class="text-right py-2 pr-4">Local cumulative</th>
+            <th class="text-right py-2">Savings</th>
           </tr>
         </thead>
         <tbody id="cmp-table-body" class="divide-y divide-border-subtle/30">
@@ -310,7 +359,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
     const selectedModels = CLOUD_MODELS.filter(m => selectedIds.includes(m.id));
 
     if (selectedModels.length === 0) {
-      resultsEl.innerHTML = `<div class="col-span-full py-8 text-center text-sm font-mono text-text-muted">Select at least one model above.</div>`;
+      resultsEl.innerHTML = `<div class="col-span-full py-8 text-center text-sm text-text-muted">Select at least one model above.</div>`;
       return;
     }
 
@@ -323,21 +372,21 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
     resultsEl.innerHTML = results.map((r, i) => `
       <div class="p-5 rounded-xl border ${i === 0 ? 'border-accent/30 bg-accent/5' : 'border-border bg-bg-elevated'} space-y-3">
         <div class="flex items-center justify-between gap-2">
-          <p class="text-[10px] font-mono uppercase tracking-widest ${i === 0 ? 'text-accent' : 'text-text-muted'}">${r.model.provider}</p>
-          ${i === 0 ? '<span class="text-[9px] font-mono uppercase tracking-widest text-accent border border-accent/30 px-1.5 py-0.5 rounded-full">Cheapest</span>' : ''}
+          <p class="text-xs font-medium ${i === 0 ? 'text-accent' : 'text-text-muted'}">${r.model.provider}</p>
+          ${i === 0 ? '<span class="text-[10px] font-mono uppercase tracking-widest text-accent border border-accent/30 px-1.5 py-0.5 rounded-full">Cheapest</span>' : ''}
         </div>
-        <p class="text-sm font-mono text-text-secondary">${r.model.label}</p>
+        <p class="text-sm text-text-secondary">${r.model.label}</p>
         <p class="${i === 0 ? 'text-accent' : 'text-text-primary'} text-3xl font-heading font-medium tabular-nums">${fmtUSD(r.perMonth)}<span class="text-sm font-mono ml-1 text-text-muted">/mo</span></p>
         <div class="space-y-1 pt-2 border-t border-border-subtle/50">
-          <div class="flex justify-between text-xs font-mono text-text-muted">
-            <span>Per day</span><span>${fmtUSD(r.perDay)}</span>
+          <div class="flex justify-between text-xs text-text-muted">
+            <span>Per day</span><span class="font-mono">${fmtUSD(r.perDay)}</span>
           </div>
-          <div class="flex justify-between text-xs font-mono text-text-muted">
-            <span>Per year</span><span>${fmtUSD(r.perYear)}</span>
+          <div class="flex justify-between text-xs text-text-muted">
+            <span>Per year</span><span class="font-mono">${fmtUSD(r.perYear)}</span>
           </div>
           ${results.length > 1 && i > 0 ? `
-          <div class="flex justify-between text-xs font-mono text-text-muted">
-            <span>vs cheapest</span><span class="text-orange-400">+${fmtUSD(r.perMonth - cheapest.perMonth)}/mo</span>
+          <div class="flex justify-between text-xs text-text-muted">
+            <span>vs cheapest</span><span class="font-mono text-orange-400">+${fmtUSD(r.perMonth - cheapest.perMonth)}/mo</span>
           </div>` : ''}
         </div>
       </div>
@@ -372,24 +421,24 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
 
     resultsEl.innerHTML = `
       <div class="p-5 rounded-xl border border-accent/30 bg-accent/5 space-y-1 col-span-2 md:col-span-1">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Total / Month</p>
+        <p class="text-xs font-medium text-text-muted">Total / Month</p>
         <p class="text-3xl font-heading font-medium text-accent tabular-nums">${fmtUSD(tco.totalPerMonth)}<span class="text-sm font-mono ml-1 text-text-muted">/mo</span></p>
-        <p class="text-[10px] font-mono text-text-muted">${fmtUSD(tco.totalPerMonth * 12)}/yr</p>
+        <p class="text-xs text-text-muted font-mono">${fmtUSD(tco.totalPerMonth * 12)}/yr</p>
       </div>
       <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Hardware Cost</p>
+        <p class="text-xs font-medium text-text-muted">Hardware cost</p>
         <p class="text-xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(tco.hardwarePerMonth)}<span class="text-sm font-mono ml-1 text-text-muted">/mo</span></p>
-        <p class="text-[10px] font-mono text-text-muted">${fmtUSD(hardware.msrpUSD)} over ${state.localAmort}yr</p>
+        <p class="text-xs text-text-muted">${fmtUSD(hardware.msrpUSD)} over ${state.localAmort}yr</p>
       </div>
       <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Electricity</p>
+        <p class="text-xs font-medium text-text-muted">Electricity</p>
         <p class="text-xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(tco.electricityPerMonth)}<span class="text-sm font-mono ml-1 text-text-muted">/mo</span></p>
-        <p class="text-[10px] font-mono text-text-muted">${fmt(tco.inferenceHoursPerDay, 1)}h inference/day · ${hardware.tdpWatts}W</p>
+        <p class="text-xs text-text-muted">${fmt(tco.inferenceHoursPerDay, 1)}h inference/day · ${hardware.tdpWatts}W</p>
       </div>
       <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Effective Rate</p>
+        <p class="text-xs font-medium text-text-muted">Effective rate</p>
         <p class="text-xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(tco.effectiveCostPerMTok)}</p>
-        <p class="text-[10px] font-mono text-text-muted">per 1M tokens · ${fmt(tco.tokPerSec, 0)} tok/s</p>
+        <p class="text-xs text-text-muted">per 1M tokens · ${fmt(tco.tokPerSec, 0)} tok/s</p>
       </div>
     `;
   };
@@ -406,15 +455,14 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
     const localModel = LOCAL_MODELS.find(m => m.id === state.cmpHwModel);
     if (!cloudModel || !hardware || !localModel) return;
 
-    // Cloud cost assumes equal input/output split for simplicity in compare tab
     const totalTokens = state.cmpTokens;
-    const inputTokens = totalTokens * 0.83; // ~83% input, 17% output (typical)
+    const inputTokens = totalTokens * 0.83;
     const outputTokens = totalTokens * 0.17;
     const cloudResult = calcApiCost(cloudModel, inputTokens, outputTokens, 0);
     const localTCO = calcLocalTCO(hardware, localModel, totalTokens, state.cmpElec / 100, 3);
 
     if (!localTCO) {
-      summaryEl.innerHTML = `<div class="py-10 text-center border border-dashed border-border rounded-xl"><p class="text-sm font-mono text-text-muted">No published benchmark for this hardware/model combination.</p></div>`;
+      summaryEl.innerHTML = `<div class="py-10 text-center border border-dashed border-border rounded-xl"><p class="text-sm text-text-muted">No published benchmark for this hardware + model combination.</p></div>`;
       tbodyEl.innerHTML = '';
       return;
     }
@@ -427,33 +475,32 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="sm:col-span-3 p-6 rounded-xl border ${savingsPositive ? 'border-accent/30 bg-accent/5' : 'border-border bg-bg-elevated'} space-y-2">
           ${breakEven.breaksEven
-            ? `<p class="text-[10px] font-mono uppercase tracking-widest ${savingsPositive ? 'text-accent' : 'text-text-muted'}">Break-even</p>
+            ? `<p class="text-xs font-medium ${savingsPositive ? 'text-accent' : 'text-text-muted'}">Break-even point</p>
                <p class="${savingsPositive ? 'text-accent' : 'text-text-primary'} text-4xl font-heading font-medium">Month ${breakEven.breakEvenMonth}</p>
                <p class="text-sm text-text-secondary">${savingsPositive ? `Save <strong class="text-accent">${fmtUSD(savings)}</strong> over 3 years after hardware pays off.` : 'Cloud is cheaper for this workload size.'}</p>`
-            : `<p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">No break-even point</p>
+            : `<p class="text-xs font-medium text-text-muted">No break-even in 3 years</p>
                <p class="text-2xl font-heading font-medium text-text-primary">Cloud is cheaper</p>
-               <p class="text-sm text-text-secondary">At this workload, the local hardware running cost exceeds cloud. Increase your token volume to find the crossover.</p>`
+               <p class="text-sm text-text-secondary">At this usage level, local running costs exceed cloud. Increase your daily token volume to find the crossover.</p>`
           }
         </div>
         <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
-          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Cloud / Month</p>
+          <p class="text-xs font-medium text-text-muted">Cloud / month</p>
           <p class="text-2xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(cloudResult.perMonth)}</p>
-          <p class="text-[10px] font-mono text-text-muted">${cloudModel.label}</p>
+          <p class="text-xs text-text-muted">${cloudModel.label}</p>
         </div>
         <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
-          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Local / Month</p>
+          <p class="text-xs font-medium text-text-muted">Local / month</p>
           <p class="text-2xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(localTCO.totalPerMonth)}</p>
-          <p class="text-[10px] font-mono text-text-muted">${hardware.shortLabel} · electricity + amort</p>
+          <p class="text-xs text-text-muted">${hardware.shortLabel} · electricity + amort</p>
         </div>
         <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
-          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">3-Year Savings</p>
+          <p class="text-xs font-medium text-text-muted">3-year savings</p>
           <p class="text-2xl font-heading font-medium ${savingsPositive ? 'text-accent' : 'text-orange-400'} tabular-nums">${savingsPositive ? '+' : ''}${fmtUSD(savings)}</p>
-          <p class="text-[10px] font-mono text-text-muted">${fmtUSD(breakEven.totalCloud36mo)} cloud vs ${fmtUSD(breakEven.totalLocal36mo)} local</p>
+          <p class="text-xs text-text-muted">${fmtUSD(breakEven.totalCloud36mo)} cloud vs ${fmtUSD(breakEven.totalLocal36mo)} local</p>
         </div>
       </div>
     `;
 
-    // Render table (first 24 months, then just show break-even rows)
     const rows = breakEven.monthlyRows.slice(0, 24);
     tbodyEl.innerHTML = rows.map(r => {
       const delta = r.cloudCumulative - r.localCumulative;
@@ -590,11 +637,9 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
     if (!calc || (calc as any)._calcInit) return;
     (calc as any)._calcInit = true;
 
-    // Apply URL state (or defaults)
     const urlState = readState(DEFAULTS as any);
     applyState(urlState as any);
 
-    // Tab buttons
     calc.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         showPanel(btn.dataset.tab!);
@@ -602,13 +647,22 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
       });
     });
 
-    // All inputs trigger recalc
     calc.querySelectorAll('input, select').forEach(input => {
       input.addEventListener('input', recalculate);
       input.addEventListener('change', recalculate);
     });
 
-    // Toolbar events
+    // Quick-set preset buttons
+    calc.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const inp = el<HTMLInputElement>('api-input-tokens');
+        const out = el<HTMLInputElement>('api-output-tokens');
+        if (inp) inp.value = btn.dataset.presetInput!;
+        if (out) out.value = btn.dataset.presetOutput!;
+        recalculate();
+      });
+    });
+
     document.addEventListener('app:export', ((e: CustomEvent) => {
       const rows = buildExportRows();
       const filename = (e.detail?.filename as string) || 'llm-cost-calculator.csv';
@@ -630,13 +684,11 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100; // store as 
       navigator.clipboard.writeText(summary);
     });
 
-    // Initial render
     recalculate();
   };
 
   initCalc();
   document.addEventListener('astro:after-swap', () => {
-    // Reset init flag so the calc re-initializes on new page
     const calc = document.getElementById('llm-calc');
     if (calc) (calc as any)._calcInit = false;
     initCalc();

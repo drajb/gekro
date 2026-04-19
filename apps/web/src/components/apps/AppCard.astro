@@ -28,8 +28,6 @@ const categoryColor = categoryColors[category] ?? categoryColors.dev;
   class="app-card group relative block p-6 bg-bg-surface border border-border rounded-xl
          transition-all duration-300 hover:border-accent hover:shadow-2xl hover:shadow-accent/5"
 >
-  <div class="glow-layer pointer-events-none absolute -inset-px rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-
   <div class="relative z-10 space-y-4">
     <div class="flex items-start justify-between gap-3">
       {icon && <span class="text-3xl leading-none">{icon}</span>}
@@ -63,59 +61,3 @@ const categoryColor = categoryColors[category] ?? categoryColors.dev;
   </div>
 </a>
 
-<script>
-  const initAppCards = () => {
-    document.querySelectorAll<HTMLElement>('.app-card').forEach(card => {
-      if ((card as any)._glowInit) return;
-      (card as any)._glowInit = true;
-
-      const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      let rect = card.getBoundingClientRect();
-      let rafPending = false;
-      let isHovered = false;
-      let px = 0, py = 0;
-
-      card.addEventListener('mouseenter', () => { isHovered = true; rect = card.getBoundingClientRect(); });
-      card.addEventListener('mousemove', (e: MouseEvent) => {
-        px = e.clientX - rect.left;
-        py = e.clientY - rect.top;
-        if (!rafPending) {
-          rafPending = true;
-          requestAnimationFrame(() => {
-            if (isHovered) {
-              card.style.setProperty('--mouse-x', `${px}px`);
-              card.style.setProperty('--mouse-y', `${py}px`);
-              if (!isReducedMotion) {
-                const ry = ((px - rect.width / 2) / (rect.width / 2)) * 8;
-                const rx = ((rect.height / 2 - py) / (rect.height / 2)) * 8;
-                card.style.transform = `perspective(800px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
-              }
-            }
-            rafPending = false;
-          });
-        }
-      }, { passive: true });
-      card.addEventListener('mouseleave', () => {
-        isHovered = false;
-        if (!isReducedMotion) card.style.transform = '';
-      });
-    });
-  };
-
-  initAppCards();
-  document.addEventListener('astro:after-swap', initAppCards);
-</script>
-
-<style>
-  .app-card {
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-  .glow-layer {
-    background: radial-gradient(
-      400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
-      rgba(255, 255, 255, 0.05),
-      transparent 40%
-    );
-  }
-</style>
