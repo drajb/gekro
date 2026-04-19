@@ -12,6 +12,7 @@ const DEFAULT_HARDWARE = 'rtx-5060ti-16gb';
 const DEFAULT_LOCAL_MODEL = 'llama-3-1-8b';
 const DEFAULT_AMORT_YEARS = 3;
 const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
+const DEFAULT_HW_PRICE = LOCAL_HARDWARE.find(h => h.id === DEFAULT_HARDWARE)?.msrpUSD ?? 429;
 ---
 
 <div id="llm-calc" class="space-y-6">
@@ -44,7 +45,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     <div class="space-y-3">
       <div>
         <p class="text-sm font-medium text-text-secondary">Which models do you want to price?</p>
-        <p class="text-xs text-text-muted mt-0.5">Pick the providers you're considering. Results sort cheapest first.</p>
+        <p class="text-xs text-text-muted mt-0.5">Select the providers you're considering. Results sort cheapest first.</p>
       </div>
       <div class="flex flex-wrap gap-6">
         {['Anthropic', 'OpenAI', 'Google'].map(provider => (
@@ -75,7 +76,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p class="text-sm font-medium text-text-secondary">How much do you use per day?</p>
-          <p class="text-xs text-text-muted mt-0.5">Not sure of your numbers? Pick a quick preset below to get started.</p>
+          <p class="text-xs text-text-muted mt-0.5">Not sure? Pick a preset — you can fine-tune from there.</p>
         </div>
         <div class="flex flex-wrap gap-2">
           {[
@@ -128,10 +129,10 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
   <!-- ── Local Hardware panel ─────────────────────────────────────────────── -->
   <div id="panel-local" class="space-y-8 hidden">
 
-    <div class="space-y-3">
+    <div class="space-y-4">
       <div>
-        <p class="text-sm font-medium text-text-secondary">What hardware are you running?</p>
-        <p class="text-xs text-text-muted mt-0.5">Only combinations with published benchmarks produce results. Unsupported pairs show a notice below.</p>
+        <p class="text-sm font-medium text-text-secondary">What hardware are you running (or considering)?</p>
+        <p class="text-xs text-text-muted mt-0.5">Only combinations with published benchmarks produce results.</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-1.5">
@@ -146,16 +147,29 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
           </div>
         </div>
         <div class="space-y-1.5">
-          <label for="local-model" class="block text-sm font-medium text-text-secondary">Model to run</label>
+          <label class="block text-sm font-medium text-text-secondary">
+            Hardware price
+            <span class="ml-1.5 text-xs font-normal text-text-muted">(MSRP auto-filled — change if buying used)</span>
+          </label>
           <div class="relative">
-            <select id="local-model" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
-              {LOCAL_MODELS.map(m => (
-                <option value={m.id} selected={m.id === DEFAULT_LOCAL_MODEL}>{m.label}</option>
-              ))}
-            </select>
-            <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">$</span>
+            <input id="local-hw-price" type="number" value={DEFAULT_HW_PRICE} min="0" step="10" inputmode="numeric"
+              class="w-full bg-bg-elevated border border-accent/20 rounded-xl pl-8 pr-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
           </div>
         </div>
+      </div>
+      <div class="space-y-1.5">
+        <label for="local-model" class="block text-sm font-medium text-text-secondary">Model to run</label>
+        <div class="relative">
+          <select id="local-model" class="w-full appearance-none bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors cursor-pointer pr-10">
+            {LOCAL_MODELS.map(m => (
+              <option value={m.id} selected={m.id === DEFAULT_LOCAL_MODEL}>{m.label}</option>
+            ))}
+          </select>
+          <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+        </div>
+        <!-- Model links: populated by JS -->
+        <div id="local-model-links" class="flex gap-3 text-xs text-text-muted"></div>
       </div>
     </div>
 
@@ -200,17 +214,17 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     <!-- Null state -->
     <div id="local-null-state" class="hidden py-10 text-center border border-dashed border-border rounded-xl">
       <p class="text-sm text-text-muted">No published benchmark for this hardware + model combination.</p>
-      <p class="text-xs text-text-muted/60 mt-2">Try Llama 3.1 8B on RTX hardware, or Llama 3.2 3B on Pi AI HAT+ 2.</p>
+      <p class="text-xs text-text-muted/60 mt-2">Try Llama 3.1 8B on RTX or Mac Mini, or Llama 3.2 3B on Pi AI HAT+ 2.</p>
     </div>
   </div>
 
   <!-- ── Break-Even panel ─────────────────────────────────────────────────── -->
   <div id="panel-compare" class="space-y-8 hidden">
 
-    <div class="space-y-3">
+    <div class="space-y-4">
       <div>
         <p class="text-sm font-medium text-text-secondary">When does buying hardware pay off?</p>
-        <p class="text-xs text-text-muted mt-0.5">Compare your current cloud spend against owning the hardware. See the exact month you break even.</p>
+        <p class="text-xs text-text-muted mt-0.5">See exactly which month your hardware investment breaks even against cloud spend.</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-1.5">
@@ -238,7 +252,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
       </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="space-y-1.5">
         <label for="cmp-hw-model" class="block text-sm font-medium text-text-secondary">Local model to run</label>
         <div class="relative">
@@ -248,6 +262,17 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
             ))}
           </select>
           <span class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted text-xs">▾</span>
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="block text-sm font-medium text-text-secondary">
+          Hardware price
+          <span class="ml-1 text-xs font-normal text-text-muted">(MSRP auto-filled)</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">$</span>
+          <input id="cmp-hw-price" type="number" value={DEFAULT_HW_PRICE} min="0" step="10" inputmode="numeric"
+            class="w-full bg-bg-elevated border border-accent/20 rounded-xl pl-8 pr-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
         </div>
       </div>
       <div class="space-y-1.5">
@@ -263,7 +288,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
             class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-14 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
           <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono text-text-muted pointer-events-none">¢/kWh</span>
         </div>
-        <p class="text-xs text-text-muted">US average 17.45¢. Check your electricity bill.</p>
+        <p class="text-xs text-text-muted">US average 17.45¢</p>
       </div>
     </div>
 
@@ -302,6 +327,8 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
 
   // ── Defaults ────────────────────────────────────────────────────────────────
 
+  const DEFAULT_HW = LOCAL_HARDWARE.find(h => h.id === 'rtx-5060ti-16gb')!;
+
   const DEFAULTS = {
     tab: 'api',
     apiInput: 500000,
@@ -309,12 +336,14 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     apiCache: 30,
     apiSelected: 'claude-haiku-4-5,gpt-5-4-mini,gemini-2-5-flash',
     localHardware: 'rtx-5060ti-16gb',
+    localHwPrice: DEFAULT_HW?.msrpUSD ?? 429,
     localModel: 'llama-3-1-8b',
     localTokens: 600000,
     localElec: 17.45,
     localAmort: 3,
     cmpCloud: 'claude-haiku-4-5',
     cmpHardware: 'rtx-5060ti-16gb',
+    cmpHwPrice: DEFAULT_HW?.msrpUSD ?? 429,
     cmpHwModel: 'llama-3-1-8b',
     cmpTokens: 600000,
     cmpElec: 17.45,
@@ -347,6 +376,20 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
             : 'text-text-muted hover:text-text-secondary');
       }
     });
+  };
+
+  // ── Model links ──────────────────────────────────────────────────────────────
+
+  const updateModelLinks = () => {
+    const modelId = val('local-model') || DEFAULTS.localModel;
+    const model = LOCAL_MODELS.find(m => m.id === modelId);
+    const linksEl = el('local-model-links');
+    if (!linksEl) return;
+    if (!model) { linksEl.innerHTML = ''; return; }
+    const parts: string[] = [];
+    if (model.ollamaUrl) parts.push(`<a href="${model.ollamaUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-accent underline underline-offset-2 transition-colors">Ollama ↗</a>`);
+    if (model.hfUrl) parts.push(`<a href="${model.hfUrl}" target="_blank" rel="noopener noreferrer" class="hover:text-accent underline underline-offset-2 transition-colors">HuggingFace ↗</a>`);
+    linksEl.innerHTML = parts.join('<span class="mx-1.5">·</span>');
   };
 
   // ── API Cost calculations ────────────────────────────────────────────────────
@@ -407,7 +450,11 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
 
     if (noteEl) noteEl.textContent = hardware.note;
 
-    const tco = calcLocalTCO(hardware, localModel, state.localTokens, state.localElec / 100, state.localAmort);
+    const tco = calcLocalTCO(
+      hardware, localModel, state.localTokens,
+      state.localElec / 100, state.localAmort,
+      state.localHwPrice,
+    );
 
     if (!tco) {
       resultsEl.innerHTML = '';
@@ -419,6 +466,10 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     resultsEl.classList.remove('hidden');
     nullEl?.classList.add('hidden');
 
+    const priceNote = tco.effectivePriceUSD !== hardware.msrpUSD
+      ? `${fmtUSD(tco.effectivePriceUSD)} (custom) over ${state.localAmort}yr`
+      : `${fmtUSD(tco.effectivePriceUSD)} MSRP over ${state.localAmort}yr`;
+
     resultsEl.innerHTML = `
       <div class="p-5 rounded-xl border border-accent/30 bg-accent/5 space-y-1 col-span-2 md:col-span-1">
         <p class="text-xs font-medium text-text-muted">Total / Month</p>
@@ -428,7 +479,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
       <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
         <p class="text-xs font-medium text-text-muted">Hardware cost</p>
         <p class="text-xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(tco.hardwarePerMonth)}<span class="text-sm font-mono ml-1 text-text-muted">/mo</span></p>
-        <p class="text-xs text-text-muted">${fmtUSD(hardware.msrpUSD)} over ${state.localAmort}yr</p>
+        <p class="text-xs text-text-muted">${priceNote}</p>
       </div>
       <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
         <p class="text-xs font-medium text-text-muted">Electricity</p>
@@ -459,7 +510,11 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     const inputTokens = totalTokens * 0.83;
     const outputTokens = totalTokens * 0.17;
     const cloudResult = calcApiCost(cloudModel, inputTokens, outputTokens, 0);
-    const localTCO = calcLocalTCO(hardware, localModel, totalTokens, state.cmpElec / 100, 3);
+    const localTCO = calcLocalTCO(
+      hardware, localModel, totalTokens,
+      state.cmpElec / 100, 3,
+      state.cmpHwPrice,
+    );
 
     if (!localTCO) {
       summaryEl.innerHTML = `<div class="py-10 text-center border border-dashed border-border rounded-xl"><p class="text-sm text-text-muted">No published benchmark for this hardware + model combination.</p></div>`;
@@ -470,6 +525,9 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     const breakEven = calcBreakEven(cloudResult.perMonth, localTCO);
     const savings = breakEven.savings36mo;
     const savingsPositive = savings > 0;
+    const hwPriceNote = localTCO.effectivePriceUSD !== hardware.msrpUSD
+      ? `${fmtUSD(localTCO.effectivePriceUSD)} custom`
+      : `${fmtUSD(localTCO.effectivePriceUSD)} MSRP`;
 
     summaryEl.innerHTML = `
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -491,7 +549,7 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
         <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
           <p class="text-xs font-medium text-text-muted">Local / month</p>
           <p class="text-2xl font-heading font-medium text-text-primary tabular-nums">${fmtUSD(localTCO.totalPerMonth)}</p>
-          <p class="text-xs text-text-muted">${hardware.shortLabel} · electricity + amort</p>
+          <p class="text-xs text-text-muted">${hardware.shortLabel} · ${hwPriceNote}</p>
         </div>
         <div class="p-5 rounded-xl border border-border bg-bg-elevated space-y-1">
           <p class="text-xs font-medium text-text-muted">3-year savings</p>
@@ -529,12 +587,14 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
       apiCache: numVal('api-cache-hit'),
       apiSelected: selectedIds || DEFAULTS.apiSelected,
       localHardware: val('local-hardware') || DEFAULTS.localHardware,
+      localHwPrice: numVal('local-hw-price'),
       localModel: val('local-model') || DEFAULTS.localModel,
       localTokens: numVal('local-tokens'),
       localElec: numVal('local-electricity'),
       localAmort: numVal('local-amort'),
       cmpCloud: val('cmp-cloud') || DEFAULTS.cmpCloud,
       cmpHardware: val('cmp-hardware') || DEFAULTS.cmpHardware,
+      cmpHwPrice: numVal('cmp-hw-price'),
       cmpHwModel: val('cmp-hw-model') || DEFAULTS.cmpHwModel,
       cmpTokens: numVal('cmp-tokens'),
       cmpElec: numVal('cmp-electricity'),
@@ -563,12 +623,14 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     if (state.apiOutput !== undefined) setInput('api-output-tokens', state.apiOutput);
     if (state.apiCache !== undefined) setInput('api-cache-hit', state.apiCache);
     if (state.localHardware) setSelect('local-hardware', state.localHardware);
+    if (state.localHwPrice !== undefined) setInput('local-hw-price', state.localHwPrice);
     if (state.localModel) setSelect('local-model', state.localModel);
     if (state.localTokens !== undefined) setInput('local-tokens', state.localTokens);
     if (state.localElec !== undefined) setInput('local-electricity', state.localElec);
     if (state.localAmort !== undefined) setInput('local-amort', state.localAmort);
     if (state.cmpCloud) setSelect('cmp-cloud', state.cmpCloud);
     if (state.cmpHardware) setSelect('cmp-hardware', state.cmpHardware);
+    if (state.cmpHwPrice !== undefined) setInput('cmp-hw-price', state.cmpHwPrice);
     if (state.cmpHwModel) setSelect('cmp-hw-model', state.cmpHwModel);
     if (state.cmpTokens !== undefined) setInput('cmp-tokens', state.cmpTokens);
     if (state.cmpElec !== undefined) setInput('cmp-electricity', state.cmpElec);
@@ -608,12 +670,13 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
     const hw = LOCAL_HARDWARE.find(h => h.id === state.localHardware);
     const lm = LOCAL_MODELS.find(m => m.id === state.localModel);
     if (hw && lm) {
-      const tco = calcLocalTCO(hw, lm, state.localTokens, state.localElec / 100, state.localAmort);
+      const tco = calcLocalTCO(hw, lm, state.localTokens, state.localElec / 100, state.localAmort, state.localHwPrice);
       if (tco) {
         rows.push({
           type: 'Local TCO',
           hardware: hw.label,
           model: lm.label,
+          hardware_price_usd: tco.effectivePriceUSD,
           tokens_per_day: state.localTokens,
           electricity_cents_kwh: state.localElec,
           amort_years: state.localAmort,
@@ -647,10 +710,26 @@ const DEFAULT_ELECTRICITY = ELECTRICITY_RATE_DEFAULT_USD_KWH * 100;
       });
     });
 
+    // Auto-fill hardware price when hardware dropdown changes (fires before global recalc)
+    const syncHwPrice = (hwId: string, priceId: string) => {
+      el<HTMLSelectElement>(hwId)?.addEventListener('change', (e) => {
+        const hw = LOCAL_HARDWARE.find(h => h.id === (e.target as HTMLSelectElement).value);
+        const priceEl = el<HTMLInputElement>(priceId);
+        if (hw && priceEl) priceEl.value = String(hw.msrpUSD);
+      });
+    };
+    syncHwPrice('local-hardware', 'local-hw-price');
+    syncHwPrice('cmp-hardware', 'cmp-hw-price');
+
+    // All inputs/selects trigger recalc
     calc.querySelectorAll('input, select').forEach(input => {
       input.addEventListener('input', recalculate);
       input.addEventListener('change', recalculate);
     });
+
+    // Model links update on model change
+    el('local-model')?.addEventListener('change', updateModelLinks);
+    updateModelLinks();
 
     // Quick-set preset buttons
     calc.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach(btn => {

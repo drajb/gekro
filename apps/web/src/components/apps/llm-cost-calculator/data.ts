@@ -109,6 +109,8 @@ export interface LocalModel {
   label: string;
   params: string;
   quant: string;
+  ollamaUrl: string;
+  hfUrl: string;
 }
 
 export interface LocalHardware {
@@ -116,17 +118,45 @@ export interface LocalHardware {
   label: string;
   shortLabel: string;
   msrpUSD: number;
-  tdpWatts: number;    // Conservative upper bound (TGP). Inference typically 60–85% of this.
+  tdpWatts: number;    // Conservative upper bound (TGP / sustained inference draw).
   note: string;
   benchmarks: Record<string, number | null>; // modelId → decode tok/s; null = no published data
   sourceUrl: string;
 }
 
 export const LOCAL_MODELS: LocalModel[] = [
-  { id: 'llama-3-1-8b', label: 'Llama 3.1 8B Q4_K_M', params: '8B', quant: 'Q4_K_M' },
-  { id: 'llama-3-2-3b', label: 'Llama 3.2 3B Q4_K_M', params: '3B', quant: 'Q4_K_M' },
-  { id: 'qwen-2-5-1-5b', label: 'Qwen 2.5 1.5B int4', params: '1.5B', quant: 'int4' },
-  { id: 'mistral-7b', label: 'Mistral 7B v0.3 Q4_K_M', params: '7B', quant: 'Q4_K_M' },
+  {
+    id: 'llama-3-1-8b',
+    label: 'Llama 3.1 8B Q4_K_M',
+    params: '8B',
+    quant: 'Q4_K_M',
+    ollamaUrl: 'https://ollama.com/library/llama3.1',
+    hfUrl: 'https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct',
+  },
+  {
+    id: 'llama-3-2-3b',
+    label: 'Llama 3.2 3B Q4_K_M',
+    params: '3B',
+    quant: 'Q4_K_M',
+    ollamaUrl: 'https://ollama.com/library/llama3.2',
+    hfUrl: 'https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct',
+  },
+  {
+    id: 'qwen-2-5-1-5b',
+    label: 'Qwen 2.5 1.5B int4',
+    params: '1.5B',
+    quant: 'int4',
+    ollamaUrl: 'https://ollama.com/library/qwen2.5:1.5b',
+    hfUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct',
+  },
+  {
+    id: 'mistral-7b',
+    label: 'Mistral 7B v0.3 Q4_K_M',
+    params: '7B',
+    quant: 'Q4_K_M',
+    ollamaUrl: 'https://ollama.com/library/mistral',
+    hfUrl: 'https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3',
+  },
 ];
 
 export const LOCAL_HARDWARE: LocalHardware[] = [
@@ -148,6 +178,25 @@ export const LOCAL_HARDWARE: LocalHardware[] = [
       'mistral-7b': null,      // model too large for Hailo-10H
     },
     sourceUrl: 'https://www.cnx-software.com/2026/01/20/raspberry-pi-ai-hat-2-review-a-40-tops-ai-accelerator-tested-with-computer-vision-llm-and-vlm-workloads/',
+  },
+  {
+    id: 'mac-mini-m4',
+    label: 'Apple Mac Mini M4 16GB ($599)',
+    shortLabel: 'Mac Mini M4 16GB',
+    msrpUSD: 599,
+    // Measured inference draw via Metal backend under sustained LLM load: 30–40W.
+    // Source: https://www.tomsguide.com/reviews/apple-mac-mini-m4 (power measurement)
+    tdpWatts: 38,
+    note: 'Runs all models via Metal + Ollama/llama.cpp. Fanless at typical inference loads. Ideal for always-on setups (OpenClaw, home lab).',
+    benchmarks: {
+      // Source: community benchmarks via Ollama + llama.cpp Metal backend (Nov 2024–Apr 2026)
+      // https://github.com/ggml-org/llama.cpp/discussions (Apple Silicon community thread)
+      'llama-3-1-8b': 35,      // Llama 3.1 8B Q4_K_M via Ollama, M4 16GB
+      'llama-3-2-3b': 68,      // Llama 3.2 3B Q4_K_M via Ollama, M4 16GB
+      'qwen-2-5-1-5b': null,   // no published benchmark for M4 + Qwen 1.5B combination
+      'mistral-7b': 38,        // Mistral 7B Q4_K_M via Ollama, M4 16GB
+    },
+    sourceUrl: 'https://github.com/ggml-org/llama.cpp/discussions',
   },
   {
     id: 'rtx-5060-8gb',
@@ -216,6 +265,7 @@ export function calcApiCost(
 export interface LocalTCOResult {
   hardware: LocalHardware;
   localModel: LocalModel;
+  effectivePriceUSD: number;  // actual price used (custom override or MSRP)
   tokPerSec: number;
   inferenceHoursPerDay: number;
   electricityPerMonth: number;
@@ -230,15 +280,17 @@ export function calcLocalTCO(
   tokensPerDay: number,
   electricityRateUSDkWh: number,
   amortYears: number,
+  customPriceUSD?: number, // user-entered price (used if buying new/used at different price)
 ): LocalTCOResult | null {
   const tokPerSec = hardware.benchmarks[localModel.id];
   if (!tokPerSec) return null;
 
+  const effectivePriceUSD = (customPriceUSD && customPriceUSD > 0) ? customPriceUSD : hardware.msrpUSD;
   const inferenceSecsPerDay = tokensPerDay / tokPerSec;
   const inferenceHoursPerDay = inferenceSecsPerDay / 3600;
   const kWhPerDay = inferenceHoursPerDay * (hardware.tdpWatts / 1000);
   const electricityPerMonth = kWhPerDay * 30 * electricityRateUSDkWh;
-  const hardwarePerMonth = hardware.msrpUSD / (amortYears * 12);
+  const hardwarePerMonth = effectivePriceUSD / (amortYears * 12);
   const totalPerMonth = electricityPerMonth + hardwarePerMonth;
   const tokensPerMonth = tokensPerDay * 30;
   const effectiveCostPerMTok = tokensPerMonth > 0 ? (totalPerMonth / tokensPerMonth) * 1_000_000 : 0;
@@ -246,6 +298,7 @@ export function calcLocalTCO(
   return {
     hardware,
     localModel,
+    effectivePriceUSD,
     tokPerSec,
     inferenceHoursPerDay,
     electricityPerMonth,
@@ -269,25 +322,25 @@ export function calcBreakEven(
   cloudPerMonth: number,
   localTCO: LocalTCOResult,
 ): BreakEvenResult {
-  const { msrpUSD } = localTCO.hardware;
+  const hwPrice = localTCO.effectivePriceUSD; // uses custom price if set
   const localRunningPerMonth = localTCO.electricityPerMonth;
   const monthlySavings = cloudPerMonth - localRunningPerMonth;
 
   const monthlyRows = Array.from({ length: 36 }, (_, i) => ({
     month: i + 1,
     cloudCumulative: cloudPerMonth * (i + 1),
-    localCumulative: msrpUSD + localRunningPerMonth * (i + 1),
+    localCumulative: hwPrice + localRunningPerMonth * (i + 1),
   }));
 
   const totalCloud36mo = cloudPerMonth * 36;
-  const totalLocal36mo = msrpUSD + localRunningPerMonth * 36;
+  const totalLocal36mo = hwPrice + localRunningPerMonth * 36;
   const savings36mo = totalCloud36mo - totalLocal36mo;
 
   if (monthlySavings <= 0) {
     return { breaksEven: false, totalCloud36mo, totalLocal36mo, savings36mo, monthlyRows };
   }
 
-  const breakEvenMonth = Math.ceil(msrpUSD / monthlySavings);
+  const breakEvenMonth = Math.ceil(hwPrice / monthlySavings);
   return {
     breaksEven: true,
     breakEvenMonth,
