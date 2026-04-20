@@ -15,6 +15,8 @@ const categories = [
   { id: 'trading', label: 'Trading', count: apps.filter(a => a.data.category === 'trading').length },
   { id: 'ev',      label: 'EV',      count: apps.filter(a => a.data.category === 'ev').length },
   { id: 'infra',   label: 'Infra',   count: apps.filter(a => a.data.category === 'infra').length },
+  { id: 'fun',     label: 'Fun',     count: apps.filter(a => a.data.category === 'fun').length },
+  { id: 'health',  label: 'Health',  count: apps.filter(a => a.data.category === 'health').length },
 ].filter(c => c.id === 'all' || c.count > 0);
 
 const uniqueCategories = new Set(apps.map(a => a.data.category)).size;
@@ -158,6 +160,12 @@ const breadcrumbs = {
     <div id="apps-empty" style="display:none" class="mt-6 py-16 text-center border border-dashed border-border rounded-xl">
       <p class="text-text-muted font-mono text-sm">No apps match that filter.</p>
     </div>
+
+    <!-- Disclaimer -->
+    <p class="mt-12 text-[10px] font-mono text-text-muted/50 leading-relaxed text-center max-w-2xl mx-auto">
+      These tools are for informational purposes only. Results are not financial, medical, or legal advice.
+      You are solely responsible for how you use them. I am not liable for any decisions made based on these outputs.
+    </p>
 
   </main>
 </BaseLayout>

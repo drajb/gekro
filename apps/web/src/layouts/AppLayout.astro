@@ -14,9 +14,9 @@ const { data } = app;
 const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
 allApps.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 
-const CATEGORY_ORDER = ['ai', 'finance', 'trading', 'dev', 'ev', 'infra'];
+const CATEGORY_ORDER = ['ai', 'finance', 'trading', 'dev', 'ev', 'infra', 'fun', 'health'];
 const CATEGORY_LABELS: Record<string, string> = {
-  ai: 'AI', finance: 'Finance', trading: 'Trading', dev: 'Dev', ev: 'EV', infra: 'Infra',
+  ai: 'AI', finance: 'Finance', trading: 'Trading', dev: 'Dev', ev: 'EV', infra: 'Infra', fun: 'Fun', health: 'Health',
 };
 const grouped = CATEGORY_ORDER
   .map(cat => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, apps: allApps.filter(a => a.data.category === cat) }))
@@ -164,7 +164,12 @@ const breadcrumbs = {
           </div>
         </div>
 
-        <div class="mt-12 lg:hidden">
+        <!-- Disclaimer -->
+        <p class="mt-12 text-[10px] font-mono text-text-muted/40 leading-relaxed">
+          For informational purposes only. Not financial, medical, or legal advice. You are solely responsible for how you use these tools.
+        </p>
+
+        <div class="mt-6 lg:hidden">
           <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
             <span class="group-hover:-translate-x-1 transition-transform">←</span>
             All apps
