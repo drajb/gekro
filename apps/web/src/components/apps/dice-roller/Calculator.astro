@@ -65,31 +65,32 @@
 
 </div>
 
-<style>
-  .dr-count-btn {
+<style is:global>
+  /* Count buttons (template elements — scoping would work, but keeping global for consistency) */
+  #dr-app .dr-count-btn {
     background: var(--color-bg-elevated);
     border-color: var(--color-border-subtle);
     color: var(--color-text-muted);
   }
-  .dr-count-btn.active {
+  #dr-app .dr-count-btn.active {
     background: color-mix(in srgb, var(--color-accent) 12%, transparent);
     border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
     color: var(--color-accent);
   }
-  .dr-count-btn:hover:not(.active) {
+  #dr-app .dr-count-btn:hover:not(.active) {
     border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
     color: var(--color-text-secondary);
   }
 
-  /* 3-D scene */
-  .die-scene { perspective: 420px; width: 90px; height: 90px; }
-  .die-cube {
+  /* 3-D scene — these elements are created via JS innerHTML so they need is:global */
+  #dr-app .die-scene { perspective: 420px; width: 90px; height: 90px; }
+  #dr-app .die-cube {
     width: 90px; height: 90px;
     position: relative;
     transform-style: preserve-3d;
     transform: rotateX(-20deg) rotateY(25deg);
   }
-  .die-cube.rolling {
+  #dr-app .die-cube.rolling {
     animation: diceRoll var(--roll-dur, 0.7s) cubic-bezier(0.2,0,0.4,1) forwards;
   }
   @keyframes diceRoll {
@@ -100,41 +101,41 @@
     85%  { transform: rotateX(1260deg) rotateY(990deg)  rotateZ(540deg);  }
     100% { transform: rotateX(1440deg) rotateY(1080deg) rotateZ(720deg);  }
   }
-  .die-face {
+  #dr-app .die-face {
     position: absolute; width: 90px; height: 90px; border-radius: 14px;
     backface-visibility: hidden; display: grid; place-items: center;
     background: var(--color-bg-surface);
     border: 2px solid var(--color-border-subtle);
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.06), inset 0 -2px 6px rgba(0,0,0,0.35);
   }
-  .die-face.face-front  { transform: translateZ(45px); }
-  .die-face.face-back   { transform: rotateY(180deg)  translateZ(45px); }
-  .die-face.face-right  { transform: rotateY(90deg)   translateZ(45px); }
-  .die-face.face-left   { transform: rotateY(-90deg)  translateZ(45px); }
-  .die-face.face-top    { transform: rotateX(90deg)   translateZ(45px); }
-  .die-face.face-bottom { transform: rotateX(-90deg)  translateZ(45px); }
+  #dr-app .die-face.face-front  { transform: translateZ(45px); }
+  #dr-app .die-face.face-back   { transform: rotateY(180deg)  translateZ(45px); }
+  #dr-app .die-face.face-right  { transform: rotateY(90deg)   translateZ(45px); }
+  #dr-app .die-face.face-left   { transform: rotateY(-90deg)  translateZ(45px); }
+  #dr-app .die-face.face-top    { transform: rotateX(90deg)   translateZ(45px); }
+  #dr-app .die-face.face-bottom { transform: rotateX(-90deg)  translateZ(45px); }
 
   /* Pips */
-  .pip-grid {
+  #dr-app .pip-grid {
     display: grid; width: 68px; height: 68px;
     grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
     place-items: center;
   }
-  .pip { width: 11px; height: 11px; border-radius: 50%; background: var(--color-text-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-  .pip.invisible { visibility: hidden; }
-  .pip.accent { background: var(--color-accent); }
+  #dr-app .pip { width: 11px; height: 11px; border-radius: 50%; background: var(--color-text-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  #dr-app .pip.invisible { visibility: hidden; }
+  #dr-app .pip.accent { background: var(--color-accent); }
 
   /* Player name input */
-  .dr-name-input {
+  #dr-app .dr-name-input {
     background: transparent; border: none; border-bottom: 1px solid var(--color-border-subtle);
     color: var(--color-text-muted); font-size: 0.7rem; font-family: monospace;
     text-align: center; width: 90px; outline: none; padding: 2px 0;
     transition: border-color 0.2s, color 0.2s;
   }
-  .dr-name-input:focus { border-color: var(--color-accent); color: var(--color-text-primary); }
+  #dr-app .dr-name-input:focus { border-color: var(--color-accent); color: var(--color-text-primary); }
 
   /* Die value display */
-  .dr-die-value {
+  #dr-app .dr-die-value {
     font-size: 2.5rem; font-weight: 700; font-family: var(--font-heading, sans-serif);
     line-height: 1; min-height: 2.5rem; color: var(--color-text-muted); text-align: center;
     transition: color 0.3s;
