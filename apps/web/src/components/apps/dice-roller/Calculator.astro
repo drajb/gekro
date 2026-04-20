@@ -162,15 +162,11 @@
     5: [0,  -90,   0],
     6: [0,  180,   0],
   };
-  // What value shows on each physical face given the front face
-  const FACE_VALUES: Record<number,Record<string,number>> = {
-    1: {front:1,back:6,right:2,left:5,top:3,bottom:4},
-    2: {front:2,back:5,right:6,left:1,top:3,bottom:4},
-    3: {front:3,back:4,right:2,left:5,top:1,bottom:6},
-    4: {front:4,back:3,right:2,left:5,top:6,bottom:1},
-    5: {front:5,back:2,right:1,left:6,top:3,bottom:4},
-    6: {front:6,back:1,right:5,left:2,top:3,bottom:4},
-  };
+  // Physical die face layout (fixed — same for every roll)
+  // 1 opp 6, 2 opp 5, 3 opp 4; FACE_ROTATIONS[val] brings val's face to the viewer
+  const FACE_LAYOUT: Record<string,number> = {front:1, back:6, left:2, right:5, top:3, bottom:4};
+  // Which face is visible after applying FACE_ROTATIONS[val]
+  const VISIBLE_FACE: Record<number,string> = {1:'front', 2:'left', 3:'top', 4:'bottom', 5:'right', 6:'back'};
   const COLORS = ['var(--color-accent)','#22c55e','#f59e0b','#a855f7'];
   const FACES  = ['front','back','right','left','top','bottom'];
 
@@ -178,10 +174,10 @@
     `<div class="pip-grid">${(PIPS[val]||PIPS[1]).map(v=>`<div class="pip${v?(accent?' accent':''):' invisible'}"></div>`).join('')}</div>`;
 
   const setDieFaces = (id: number, val: number) => {
-    const fv = FACE_VALUES[val] || FACE_VALUES[1];
+    const vis = VISIBLE_FACE[val] || 'front';
     FACES.forEach(face => {
       const el = document.getElementById(`dr-face-${face}-${id}`);
-      if (el) el.innerHTML = makePips(fv[face], face === 'front');
+      if (el) el.innerHTML = makePips(FACE_LAYOUT[face], face === vis);
     });
   };
 
@@ -259,28 +255,30 @@
         // After animation, we snap to face rotation via inline style
         const dur = 0.55 + Math.random() * 0.2 + i * 0.06;
 
+        // Reset: clear any inline overrides, reflow, then let class drive the animation
+        cube.classList.remove('rolling');
+        cube.style.animation  = '';  // clear inline so class can take over
         cube.style.transition = 'none';
-        cube.style.transform  = 'rotateX(-20deg) rotateY(25deg)';
-        cube.style.animation  = 'none';
+        cube.style.transform  = 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
         void cube.offsetWidth; // force reflow
         cube.style.setProperty('--roll-dur', dur + 's');
         cube.classList.add('rolling');
 
         setTimeout(() => {
+          // Lock inline transform to animation-end equivalent before removing class
+          cube.style.animation  = 'none'; // inline wins — freezes the cube
+          cube.style.transition = 'none';
+          cube.style.transform  = 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
           cube.classList.remove('rolling');
-          // The animation ends at 1440,1080,720 ≡ 0,0,0
-          // Now snap to face with a brief settle transition
-          cube.style.transition = 'transform 0.15s ease-out';
-          cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
-          setDieFaces(i, val);
-
-          // Show individual result with color
-          const valEl = document.getElementById(`dr-val-${i}`);
-          if (valEl) {
-            valEl.textContent = String(val);
-            valEl.style.color = COLORS[i % COLORS.length];
-          }
-        }, dur * 1000 + 20);
+          // Two rAF frames ensure the locked state is painted before we transition
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            cube.style.transition = 'transform 0.15s ease-out';
+            cube.style.transform  = `rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+            setDieFaces(i, val);
+            const valEl = document.getElementById(`dr-val-${i}`);
+            if (valEl) { valEl.textContent = String(val); valEl.style.color = COLORS[i % COLORS.length]; }
+          }));
+        }, dur * 1000);
       });
 
       const maxDur = 0.55 + 0.2 + (diceCount - 1) * 0.06 + 0.25;
