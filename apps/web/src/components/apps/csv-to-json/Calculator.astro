@@ -315,6 +315,10 @@
       statusEl.textContent = '';
       clearError();
     }, { once: false });
+
+    document.addEventListener('app:copy', async () => {
+      if (outputEl.value) { try { await navigator.clipboard.writeText(outputEl.value); } catch {} }
+    });
   };
 
   initCtj();

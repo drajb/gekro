@@ -428,14 +428,16 @@
     recordBtn.addEventListener('click', toggleRecording);
 
     // Keyboard shortcut: R (when not typing in an input/textarea)
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
+    const onKeydown = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') {
         const tag = (e.target as HTMLElement).tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
         e.preventDefault();
         toggleRecording();
       }
-    });
+    };
+    document.addEventListener('keydown', onKeydown);
+    document.addEventListener('astro:before-swap', () => document.removeEventListener('keydown', onKeydown), { once: true });
 
     // ── Download session ───────────────────────────────────────────────────────
 

@@ -352,7 +352,17 @@
 
     document.addEventListener('app:reset', () => {
       inputEl.value = '';
+      langEl.value = 'javascript';
+      themeEl.value = 'github-dark';
+      padEl.value = '32';
+      padValEl.textContent = '32px';
+      fontsizeEl.value = '14px';
+      chromeCb.checked = true;
+      roundedCb.checked = true;
+      activeBg = 'aurora';
+      bgSwatches.forEach(b => b.classList.toggle('active', b.dataset.bgId === 'aurora'));
       previewCode.innerHTML = '<span style="color:#666;font-style:italic;font-size:12px">Paste code above to see a preview…</span>';
+      applySettings();
     });
 
     // Pre-fill an example TypeScript snippet so users see the tool in action

@@ -156,6 +156,8 @@
     const refresh = () => populate();
     document.getElementById('di-refresh')!.addEventListener('click', refresh);
 
+    document.addEventListener('app:reset', populate);
+
     populate();
   };
 

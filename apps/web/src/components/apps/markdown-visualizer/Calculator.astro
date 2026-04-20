@@ -177,8 +177,12 @@ _Use **Copy HTML** to grab the rendered output, or **Download .md** to save this
 
     const inline = (s: string): string =>
       esc(s)
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g,  '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) =>
+          `<img src="${/^javascript:/i.test(src.trim()) ? '' : src}" alt="${alt}">`)
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, href) => {
+          const safe = /^javascript:/i.test(href.trim()) ? '#' : href;
+          return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        })
         .replace(/`([^`]+)`/g,                '<code>$1</code>')
         .replace(/\*\*\*([^*\n]+)\*\*\*/g,   '<strong><em>$1</em></strong>')
         .replace(/__([^_\n]+)__/g,            '<strong>$1</strong>')
