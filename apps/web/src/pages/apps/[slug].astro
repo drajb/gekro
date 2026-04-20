@@ -18,9 +18,13 @@ import AppLayout from '../../layouts/AppLayout.astro';
 import AppShell from '../../components/apps/AppShell.astro';
 
 import LLMCostCalculator from '../../components/apps/llm-cost-calculator/Calculator.astro';
+import MarkdownVisualizer from '../../components/apps/markdown-visualizer/Calculator.astro';
+import VoiceTranscriber from '../../components/apps/voice-transcriber/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
+  'markdown-visualizer': MarkdownVisualizer,
+  'voice-transcriber': VoiceTranscriber,
 };
 
 export async function getStaticPaths() {

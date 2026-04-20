@@ -1,0 +1,504 @@
+---
+// Voice Transcriber — Web Speech API, WisprFlow-like UX
+// No server data. All processing in-browser.
+---
+
+<div id="vt-app" class="space-y-5">
+
+  <!-- Privacy disclaimer -->
+  <div
+    id="vt-disclaimer"
+    class="flex items-start gap-3 p-4 bg-bg-elevated border border-border rounded-xl text-sm text-text-secondary"
+  >
+    <span class="text-lg mt-0.5 shrink-0">🔒</span>
+    <div class="flex-1 min-w-0">
+      <p class="font-medium text-text-primary mb-0.5">Audio privacy notice</p>
+      <p class="text-xs text-text-muted leading-relaxed">
+        In Chrome/Edge, audio is sent to Google's speech servers (same as voice search). In Safari, it goes to Apple.
+        No audio or text is stored on our servers — we have none. All session data stays in your browser.
+      </p>
+    </div>
+    <button
+      id="vt-dismiss-disclaimer"
+      class="shrink-0 text-text-muted hover:text-text-secondary transition-colors text-xs font-mono px-2 py-1 rounded border border-border hover:border-accent/40"
+    >
+      Got it
+    </button>
+  </div>
+
+  <!-- No-support fallback (shown via JS if needed) -->
+  <div
+    id="vt-no-support"
+    class="hidden p-6 border border-border-subtle border-dashed rounded-xl text-center space-y-2"
+  >
+    <p class="text-text-primary font-medium">Speech recognition not available</p>
+    <p class="text-sm text-text-muted">
+      This app requires the Web Speech API. Use Chrome, Edge, or Safari.
+      Firefox requires enabling <code class="text-accent text-xs">media.webspeech.recognition.enable</code> in about:config.
+    </p>
+  </div>
+
+  <!-- Main UI (hidden until support confirmed) -->
+  <div id="vt-ui" class="space-y-4">
+
+    <!-- Controls row -->
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Language selector -->
+      <select
+        id="vt-lang"
+        class="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-secondary
+               focus:outline-none focus:border-accent/40 transition-colors font-mono text-[12px]"
+      >
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="es-ES">Español</option>
+        <option value="fr-FR">Français</option>
+        <option value="de-DE">Deutsch</option>
+        <option value="it-IT">Italiano</option>
+        <option value="pt-BR">Português (BR)</option>
+        <option value="ja-JP">日本語</option>
+        <option value="ko-KR">한국어</option>
+        <option value="zh-CN">中文 (简体)</option>
+        <option value="ar-SA">العربية</option>
+        <option value="hi-IN">हिन्दी</option>
+      </select>
+
+      <!-- Record button -->
+      <button
+        id="vt-record-btn"
+        class="vt-record-btn inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full
+               border border-border bg-bg-elevated
+               text-sm font-medium text-text-secondary
+               hover:border-accent/60 hover:text-text-primary transition-all"
+        aria-label="Start recording (R)"
+      >
+        <span class="vt-dot w-2.5 h-2.5 rounded-full bg-text-muted transition-colors"></span>
+        <span class="vt-btn-label">Record</span>
+        <kbd class="text-[9px] font-mono bg-bg-base border border-border px-1.5 py-0.5 rounded text-text-muted">R</kbd>
+      </button>
+
+      <!-- Copied indicator (shown briefly) -->
+      <span
+        id="vt-copied-badge"
+        class="hidden text-[10px] font-mono uppercase tracking-widest text-accent px-2 py-1 border border-accent/30 rounded-full"
+      >
+        ✓ Copied
+      </span>
+
+      <!-- Spacer -->
+      <div class="flex-1"></div>
+
+      <!-- Clear session -->
+      <button
+        id="vt-clear-btn"
+        class="text-[10px] font-mono uppercase tracking-widest text-text-muted hover:text-accent-danger transition-colors px-2 py-1"
+      >
+        ✕ Clear session
+      </button>
+    </div>
+
+    <!-- Live transcription area -->
+    <div
+      id="vt-live-wrap"
+      class="relative min-h-[140px] bg-bg-surface border border-border-subtle rounded-xl p-5 transition-all"
+    >
+      <!-- Recording pulse ring -->
+      <div id="vt-pulse-ring" class="hidden absolute top-4 right-4 w-2 h-2">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 vt-ping"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+      </div>
+
+      <!-- Placeholder / interim text -->
+      <div
+        id="vt-live-text"
+        class="text-base leading-relaxed min-h-[80px]"
+        style="color: var(--color-text-muted); font-style: italic;"
+      >
+        Press <strong style="font-style:normal;color:var(--color-text-secondary)">Record</strong> or
+        <kbd style="font-style:normal;font-family:var(--font-mono);font-size:0.75rem;color:var(--color-accent);border:1px solid var(--color-border);padding:0.1em 0.4em;border-radius:0.25rem;">R</kbd>
+        to start transcribing…
+      </div>
+    </div>
+
+    <!-- Session stats -->
+    <div class="flex items-center gap-4 px-1 text-[11px] font-mono text-text-muted">
+      <span id="vt-stats">0 segments · 0 words</span>
+      <div class="flex-1"></div>
+      <button
+        id="vt-download-btn"
+        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg-elevated border border-border
+               text-[10px] font-mono uppercase tracking-widest text-text-secondary
+               hover:border-accent hover:text-accent transition-all"
+      >
+        ↓ Download session
+      </button>
+    </div>
+
+    <!-- Session history -->
+    <div id="vt-history" class="space-y-2">
+      <!-- Segments rendered by JS -->
+    </div>
+
+  </div><!-- /vt-ui -->
+</div>
+
+<style>
+  .vt-record-btn.recording {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+  }
+  .vt-record-btn.recording .vt-dot {
+    background: #ef4444;
+  }
+  #vt-live-wrap.recording {
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+  #vt-live-text.active {
+    color: var(--color-text-primary);
+    font-style: normal;
+  }
+  #vt-live-text .interim {
+    color: var(--color-text-muted);
+  }
+  @keyframes vt-ping {
+    75%, 100% { transform: scale(2); opacity: 0; }
+  }
+  .vt-ping { animation: vt-ping 1s cubic-bezier(0,0,.2,1) infinite; }
+
+  .vt-segment {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .vt-segment:hover {
+    border-color: rgba(63, 177, 255, 0.3);
+    background: var(--color-bg-elevated);
+  }
+  .vt-segment.flash {
+    border-color: var(--color-accent);
+  }
+  .vt-segment-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.375rem;
+  }
+  .vt-segment-ts {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+  }
+  .vt-segment-words {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+  }
+  .vt-segment-text {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+</style>
+
+<script>
+  interface Segment { id: string; text: string; ts: string; words: number; }
+
+  const STORAGE_KEY = 'vt-history-v1';
+  const DISCLAIMER_KEY = 'vt-disclaimer-dismissed';
+
+  const initVt = () => {
+    const app = document.getElementById('vt-app');
+    if (!app || (app as any)._vtInit) return;
+    (app as any)._vtInit = true;
+
+    // Elements
+    const disclaimer    = document.getElementById('vt-disclaimer')!;
+    const dismissBtn    = document.getElementById('vt-dismiss-disclaimer')!;
+    const noSupport     = document.getElementById('vt-no-support')!;
+    const ui            = document.getElementById('vt-ui')!;
+    const langEl        = document.getElementById('vt-lang') as HTMLSelectElement;
+    const recordBtn     = document.getElementById('vt-record-btn')!;
+    const btnLabel      = recordBtn.querySelector('.vt-btn-label')!;
+    const pulseRing     = document.getElementById('vt-pulse-ring')!;
+    const liveText      = document.getElementById('vt-live-text')!;
+    const liveWrap      = document.getElementById('vt-live-wrap')!;
+    const copiedBadge   = document.getElementById('vt-copied-badge')!;
+    const statsEl       = document.getElementById('vt-stats')!;
+    const historyEl     = document.getElementById('vt-history')!;
+    const downloadBtn   = document.getElementById('vt-download-btn')!;
+    const clearBtn      = document.getElementById('vt-clear-btn')!;
+
+    // Disclaimer
+    if (localStorage.getItem(DISCLAIMER_KEY)) disclaimer.classList.add('hidden');
+    dismissBtn.addEventListener('click', () => {
+      localStorage.setItem(DISCLAIMER_KEY, '1');
+      disclaimer.classList.add('hidden');
+    });
+
+    // Check API support
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      noSupport.classList.remove('hidden');
+      ui.classList.add('hidden');
+      return;
+    }
+
+    // ── State ──────────────────────────────────────────────────────────────────
+
+    let segments: Segment[] = [];
+    let recognition: any = null;
+    let isRecording = false;
+    let stopIntentional = false;
+    let finalBuffer = '';
+
+    // Load from localStorage
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) segments = JSON.parse(stored);
+    } catch {}
+
+    // ── Render helpers ─────────────────────────────────────────────────────────
+
+    const saveStorage = () => {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(segments.slice(0, 100))); } catch {}
+    };
+
+    const updateStats = () => {
+      const totalWords = segments.reduce((s, seg) => s + seg.words, 0);
+      statsEl.textContent = `${segments.length} segment${segments.length !== 1 ? 's' : ''} · ${totalWords.toLocaleString()} words`;
+    };
+
+    const renderHistory = () => {
+      historyEl.innerHTML = '';
+      if (!segments.length) return;
+      segments.forEach(seg => {
+        const card = document.createElement('div');
+        card.className = 'vt-segment';
+        card.dataset.id = seg.id;
+        card.innerHTML = `
+          <div class="vt-segment-meta">
+            <span class="vt-segment-ts">${seg.ts}</span>
+            <span class="vt-segment-words">${seg.words} word${seg.words !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="vt-segment-text">${seg.text}</div>`;
+        card.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(seg.text);
+            card.classList.add('flash');
+            setTimeout(() => card.classList.remove('flash'), 800);
+            showCopied();
+          } catch {}
+        });
+        historyEl.appendChild(card);
+      });
+      updateStats();
+    };
+
+    renderHistory();
+
+    // ── Copied badge ───────────────────────────────────────────────────────────
+
+    let copiedTimer: ReturnType<typeof setTimeout> | null = null;
+    const showCopied = () => {
+      copiedBadge.classList.remove('hidden');
+      if (copiedTimer) clearTimeout(copiedTimer);
+      copiedTimer = setTimeout(() => copiedBadge.classList.add('hidden'), 1800);
+    };
+
+    // ── Recording state UI ─────────────────────────────────────────────────────
+
+    const setRecordingUI = (active: boolean) => {
+      recordBtn.classList.toggle('recording', active);
+      liveWrap.classList.toggle('recording', active);
+      pulseRing.classList.toggle('hidden', !active);
+      btnLabel.textContent = active ? 'Stop' : 'Record';
+      if (!active && !finalBuffer.trim()) {
+        liveText.style.cssText = 'color: var(--color-text-muted); font-style: italic;';
+        liveText.innerHTML = `Press <strong style="font-style:normal;color:var(--color-text-secondary)">Record</strong> or
+          <kbd style="font-style:normal;font-family:var(--font-mono);font-size:0.75rem;color:var(--color-accent);border:1px solid var(--color-border);padding:0.1em 0.4em;border-radius:0.25rem;">R</kbd>
+          to start transcribing…`;
+      }
+    };
+
+    // ── Finalize segment ───────────────────────────────────────────────────────
+
+    const finalizeSegment = () => {
+      const text = finalBuffer.trim();
+      finalBuffer = '';
+      if (!text) { setRecordingUI(false); liveText.classList.remove('active'); return; }
+
+      const seg: Segment = {
+        id: Date.now().toString(),
+        text,
+        ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        words: text.split(/\s+/).filter(Boolean).length,
+      };
+
+      segments.unshift(seg); // newest first
+      saveStorage();
+      renderHistory();
+      setRecordingUI(false);
+      liveText.classList.remove('active');
+      liveText.style.cssText = 'color: var(--color-text-muted); font-style: italic;';
+      liveText.innerHTML = `Press <strong style="font-style:normal;color:var(--color-text-secondary)">Record</strong> or
+        <kbd style="font-style:normal;font-family:var(--font-mono);font-size:0.75rem;color:var(--color-accent);border:1px solid var(--color-border);padding:0.1em 0.4em;border-radius:0.25rem;">R</kbd>
+        to start transcribing…`;
+
+      // Auto-copy to clipboard
+      navigator.clipboard.writeText(text).then(showCopied).catch(() => {});
+    };
+
+    // ── Speech recognition ─────────────────────────────────────────────────────
+
+    const startRecording = () => {
+      if (isRecording) return;
+      recognition = new SR();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = langEl.value;
+
+      recognition.onresult = (e: any) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            finalBuffer += e.results[i][0].transcript;
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+        liveText.classList.add('active');
+        liveText.style.cssText = '';
+        liveText.innerHTML =
+          `<span style="color:var(--color-text-primary)">${finalBuffer}</span>` +
+          (interim ? `<span class="interim">${interim}</span>` : '');
+      };
+
+      recognition.onerror = (e: any) => {
+        if (e.error === 'aborted') return;
+        if (e.error === 'not-allowed') {
+          liveText.classList.remove('active');
+          liveText.style.cssText = 'color:var(--color-accent-danger);font-style:italic;';
+          liveText.textContent = 'Microphone access denied. Allow microphone in your browser settings.';
+        } else {
+          liveText.style.cssText = 'color:var(--color-text-muted);font-style:italic;';
+          liveText.textContent = `Recognition error: ${e.error}`;
+        }
+        isRecording = false;
+        stopIntentional = true;
+        setRecordingUI(false);
+      };
+
+      recognition.onend = () => {
+        if (stopIntentional) {
+          stopIntentional = false;
+          finalizeSegment();
+        } else if (isRecording) {
+          // Unexpected stop (e.g. silence timeout) — restart
+          try { recognition.start(); } catch {}
+        }
+      };
+
+      stopIntentional = false;
+      finalBuffer = '';
+      isRecording = true;
+      try {
+        recognition.start();
+        setRecordingUI(true);
+        liveText.classList.add('active');
+        liveText.style.cssText = 'color:var(--color-text-muted);font-style:italic;';
+        liveText.textContent = 'Listening…';
+      } catch {
+        isRecording = false;
+      }
+    };
+
+    const stopRecording = () => {
+      if (!isRecording || !recognition) return;
+      isRecording = false;
+      stopIntentional = true;
+      try { recognition.stop(); } catch {}
+    };
+
+    const toggleRecording = () => { isRecording ? stopRecording() : startRecording(); };
+
+    recordBtn.addEventListener('click', toggleRecording);
+
+    // Keyboard shortcut: R (when not typing in an input/textarea)
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        e.preventDefault();
+        toggleRecording();
+      }
+    });
+
+    // ── Download session ───────────────────────────────────────────────────────
+
+    const buildTranscript = (): string => {
+      if (!segments.length) return '(Empty session)';
+      const header = [
+        'Voice Transcription Session',
+        `Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+        `Segments: ${segments.length}`,
+        `Total words: ${segments.reduce((s, seg) => s + seg.words, 0)}`,
+        '',
+      ].join('\n');
+      const body = [...segments].reverse().map(seg =>
+        `────────────────────────────\n[${seg.ts}] (${seg.words} word${seg.words !== 1 ? 's' : ''})\n${seg.text}`
+      ).join('\n\n');
+      return header + body;
+    };
+
+    const downloadSession = () => {
+      const blob = new Blob([buildTranscript()], { type: 'text/plain;charset=utf-8' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `voice-session-${new Date().toISOString().split('T')[0]}.txt`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+
+    downloadBtn.addEventListener('click', downloadSession);
+
+    // ── Clear session ──────────────────────────────────────────────────────────
+
+    clearBtn.addEventListener('click', () => {
+      if (isRecording) stopRecording();
+      if (!segments.length) return;
+      segments = [];
+      saveStorage();
+      renderHistory();
+      liveText.classList.remove('active');
+      liveText.style.cssText = 'color: var(--color-text-muted); font-style: italic;';
+      liveText.innerHTML = `Press <strong style="font-style:normal;color:var(--color-text-secondary)">Record</strong> or
+        <kbd style="font-style:normal;font-family:var(--font-mono);font-size:0.75rem;color:var(--color-accent);border:1px solid var(--color-border);padding:0.1em 0.4em;border-radius:0.25rem;">R</kbd>
+        to start transcribing…`;
+    });
+
+    // ── AppShell events ────────────────────────────────────────────────────────
+
+    document.addEventListener('app:export', downloadSession);
+    document.addEventListener('app:copy', async () => {
+      if (!segments.length) return;
+      try { await navigator.clipboard.writeText(segments[0].text); showCopied(); } catch {}
+    });
+    document.addEventListener('app:reset', () => {
+      if (isRecording) stopRecording();
+      segments = [];
+      saveStorage();
+      renderHistory();
+      finalBuffer = '';
+      liveText.classList.remove('active');
+      setRecordingUI(false);
+    });
+  };
+
+  initVt();
+  document.addEventListener('astro:after-swap', initVt);
+</script>

@@ -1,0 +1,358 @@
+---
+// Markdown Visualizer — zero-dep client-side micro-tool
+// No server data needed.
+---
+
+<div id="md-app" class="space-y-3">
+
+  <!-- Stats + actions bar -->
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+    <span class="text-[11px] font-mono text-text-muted">
+      <span id="md-words">0</span> words
+    </span>
+    <span class="text-text-muted opacity-30 text-xs">·</span>
+    <span class="text-[11px] font-mono text-text-muted">
+      <span id="md-chars">0</span> chars
+    </span>
+    <div class="flex items-center gap-2 ml-auto">
+      <button
+        id="md-copy-html"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated border border-border
+               text-[10px] font-mono uppercase tracking-widest text-text-secondary
+               hover:border-accent hover:text-accent transition-all"
+      >
+        ⧉ Copy HTML
+      </button>
+      <button
+        id="md-download-md"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-elevated border border-border
+               text-[10px] font-mono uppercase tracking-widest text-text-secondary
+               hover:border-accent hover:text-accent transition-all"
+      >
+        ↓ Download .md
+      </button>
+    </div>
+  </div>
+
+  <!-- Split pane -->
+  <div class="md-split-pane grid grid-cols-1 gap-4" style="min-height: 560px;">
+
+    <!-- Editor pane -->
+    <div class="flex flex-col gap-1.5">
+      <div class="text-[10px] font-mono uppercase tracking-widest text-text-muted px-1">Markdown source</div>
+      <textarea
+        id="md-input"
+        class="flex-1 w-full bg-bg-elevated border border-border-subtle rounded-xl p-4
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors placeholder:text-text-muted"
+        placeholder="# Start writing…&#10;&#10;Paste or write your Markdown here."
+        spellcheck="false"
+        style="min-height: 260px;"
+      ></textarea>
+    </div>
+
+    <!-- Preview pane -->
+    <div class="flex flex-col gap-1.5">
+      <div class="text-[10px] font-mono uppercase tracking-widest text-text-muted px-1">Rendered preview</div>
+      <div
+        id="md-preview"
+        class="flex-1 bg-bg-surface border border-border-subtle rounded-xl p-6 overflow-y-auto md-prose"
+        style="min-height: 260px;"
+      >
+        <p class="empty-hint" style="color: var(--color-text-muted); font-style: italic; font-size: 0.875rem;">
+          Preview will appear here…
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  /* ── Split pane: side-by-side on md+ screens ──────────────────────────────── */
+  @media (min-width: 768px) {
+    .md-split-pane {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ── Preview prose styles ─────────────────────────────────────────────────── */
+  .md-prose h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.25; margin: 0 0 0.75rem; color: var(--color-text-primary); }
+  .md-prose h2 { font-size: 1.375rem; font-weight: 600; line-height: 1.3; margin: 1.25rem 0 0.5rem; color: var(--color-text-primary); }
+  .md-prose h3 { font-size: 1.125rem; font-weight: 600; margin: 1rem 0 0.4rem; color: var(--color-text-primary); }
+  .md-prose h4, .md-prose h5, .md-prose h6 { font-size: 1rem; font-weight: 600; margin: 0.75rem 0 0.3rem; color: var(--color-text-primary); }
+  .md-prose p { margin: 0 0 0.75rem; color: var(--color-text-secondary); line-height: 1.7; }
+  .md-prose ul { list-style: disc; padding-left: 1.5rem; margin: 0 0 0.75rem; color: var(--color-text-secondary); }
+  .md-prose ol { list-style: decimal; padding-left: 1.5rem; margin: 0 0 0.75rem; color: var(--color-text-secondary); }
+  .md-prose li { margin-bottom: 0.25rem; line-height: 1.6; }
+  .md-prose code {
+    background: var(--color-bg-elevated); border: 1px solid var(--color-border);
+    border-radius: 0.25rem; padding: 0.1em 0.35em;
+    font-family: var(--font-mono); font-size: 0.8125em; color: var(--color-accent);
+  }
+  .md-prose pre {
+    background: var(--color-bg-elevated); border: 1px solid var(--color-border-subtle);
+    border-radius: 0.75rem; padding: 1rem; overflow-x: auto; margin: 0 0 1rem;
+  }
+  .md-prose pre code { background: none; border: none; padding: 0; color: var(--color-text-primary); font-size: 0.875em; }
+  .md-prose blockquote {
+    border-left: 3px solid var(--color-accent); padding-left: 1rem; margin: 0.75rem 0;
+    color: var(--color-text-muted); font-style: italic;
+  }
+  .md-prose blockquote p { color: var(--color-text-muted); margin: 0; }
+  .md-prose hr { border: none; border-top: 1px solid var(--color-border-subtle); margin: 1.5rem 0; }
+  .md-prose a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 2px; }
+  .md-prose a:hover { opacity: 0.8; }
+  .md-prose strong { font-weight: 700; color: var(--color-text-primary); }
+  .md-prose em { font-style: italic; }
+  .md-prose del { text-decoration: line-through; color: var(--color-text-muted); }
+  .md-prose img { max-width: 100%; border-radius: 0.5rem; margin: 0.5rem 0; display: block; }
+  .md-prose table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.875rem; }
+  .md-prose th {
+    background: var(--color-bg-elevated); padding: 0.5rem 0.75rem;
+    text-align: left; font-weight: 600; border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+  .md-prose td { padding: 0.5rem 0.75rem; border: 1px solid var(--color-border-subtle); color: var(--color-text-secondary); }
+  .md-prose tr:nth-child(even) td { background: var(--color-bg-elevated); }
+</style>
+
+<script>
+  const DEFAULT_MD = `# Hello, Markdown
+
+Write or paste your **Markdown** here and see a live preview.
+
+## Formatting
+
+*Italic*, **bold**, ~~strikethrough~~, and \`inline code\` all work.
+
+> Blockquotes render with an accent border.
+
+## Lists
+
+- Item one
+- Item two
+
+1. First
+2. Second
+
+## Code block
+
+\`\`\`typescript
+const greet = (name: string) => \`Hello, \${name}!\`;
+console.log(greet('Gekro'));
+\`\`\`
+
+## Table
+
+| Feature | Status |
+|---------|--------|
+| Live preview | ✓ |
+| Word count | ✓ |
+| Copy HTML | ✓ |
+| Shareable URL | ✓ |
+
+[Open Gekro Lab](https://gekro.com) — link syntax works too.
+
+---
+
+_Use **Copy HTML** to grab the rendered output, or **Download .md** to save this file._`;
+
+  const initMdApp = () => {
+    const app = document.getElementById('md-app');
+    if (!app || (app as any)._mdInit) return;
+    (app as any)._mdInit = true;
+
+    const input    = document.getElementById('md-input') as HTMLTextAreaElement;
+    const preview  = document.getElementById('md-preview') as HTMLDivElement;
+    const wordsEl  = document.getElementById('md-words') as HTMLElement;
+    const charsEl  = document.getElementById('md-chars') as HTMLElement;
+    const copyBtn  = document.getElementById('md-copy-html') as HTMLButtonElement;
+    const dlBtn    = document.getElementById('md-download-md') as HTMLButtonElement;
+
+    // ── Micro Markdown parser ──────────────────────────────────────────────────
+
+    const esc = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const inline = (s: string): string =>
+      esc(s)
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g,  '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/`([^`]+)`/g,                '<code>$1</code>')
+        .replace(/\*\*\*([^*\n]+)\*\*\*/g,   '<strong><em>$1</em></strong>')
+        .replace(/__([^_\n]+)__/g,            '<strong>$1</strong>')
+        .replace(/\*\*([^*\n]+)\*\*/g,        '<strong>$1</strong>')
+        .replace(/_([^_\n]+)_/g,              '<em>$1</em>')
+        .replace(/\*([^*\n]+)\*/g,            '<em>$1</em>')
+        .replace(/~~([^~\n]+)~~/g,            '<del>$1</del>');
+
+    const parse = (md: string): string => {
+      const lines = md.split('\n');
+      const out: string[] = [];
+      let listType = '';
+      let listItems: string[] = [];
+      let paraLines: string[] = [];
+      let inCode = false;
+      let codeLang = '';
+      let codeLines: string[] = [];
+      let tableRows: string[] = [];
+      let inTable = false;
+
+      const flushList = () => {
+        if (!listItems.length) return;
+        const tag = listType === 'ol' ? 'ol' : 'ul';
+        out.push(`<${tag}>${listItems.map(li => `<li>${li}</li>`).join('')}</${tag}>`);
+        listItems = []; listType = '';
+      };
+      const flushPara = () => {
+        if (!paraLines.length) return;
+        out.push(`<p>${paraLines.join(' ')}</p>`);
+        paraLines = [];
+      };
+      const flushTable = () => {
+        if (tableRows.length < 2) { tableRows.forEach(r => out.push(`<p>${inline(r)}</p>`)); tableRows = []; inTable = false; return; }
+        const [header, , ...body] = tableRows;
+        const ths = header.split('|').slice(1, -1).map(h => `<th>${inline(h.trim())}</th>`).join('');
+        const trs = body.map(r => {
+          const tds = r.split('|').slice(1, -1).map(c => `<td>${inline(c.trim())}</td>`).join('');
+          return `<tr>${tds}</tr>`;
+        }).join('');
+        out.push(`<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`);
+        tableRows = []; inTable = false;
+      };
+
+      for (const line of lines) {
+        // Fenced code block
+        if (inCode) {
+          if (line.trimStart().startsWith('```')) {
+            out.push(`<pre><code${codeLang ? ` class="language-${esc(codeLang)}"` : ''}>${esc(codeLines.join('\n'))}</code></pre>`);
+            codeLines = []; codeLang = ''; inCode = false;
+          } else { codeLines.push(line); }
+          continue;
+        }
+        if (line.trimStart().startsWith('```')) {
+          flushList(); flushPara(); if (inTable) flushTable();
+          codeLang = line.trimStart().slice(3).trim(); inCode = true; continue;
+        }
+
+        // GFM table (line starts with |)
+        if (line.trim().startsWith('|') && line.includes('|')) {
+          flushList(); flushPara();
+          inTable = true; tableRows.push(line); continue;
+        } else if (inTable) { flushTable(); }
+
+        // Blank line
+        if (line.trim() === '') { flushList(); flushPara(); continue; }
+
+        // Heading
+        const hm = line.match(/^(#{1,6})\s+(.+)/);
+        if (hm) {
+          flushList(); flushPara();
+          const lvl = hm[1].length;
+          const slug = hm[2].toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+          out.push(`<h${lvl} id="${slug}">${inline(hm[2])}</h${lvl}>`); continue;
+        }
+
+        // HR
+        if (/^[-*_]{3,}$/.test(line.trim())) { flushList(); flushPara(); out.push('<hr>'); continue; }
+
+        // Blockquote
+        if (line.startsWith('> ')) { flushList(); flushPara(); out.push(`<blockquote><p>${inline(line.slice(2))}</p></blockquote>`); continue; }
+
+        // Unordered list
+        const ulm = line.match(/^[ \t]*[-*+]\s+(.+)/);
+        if (ulm) { flushPara(); if (listType && listType !== 'ul') flushList(); listType = 'ul'; listItems.push(inline(ulm[1])); continue; }
+
+        // Ordered list
+        const olm = line.match(/^[ \t]*\d+\.\s+(.+)/);
+        if (olm) { flushPara(); if (listType && listType !== 'ol') flushList(); listType = 'ol'; listItems.push(inline(olm[1])); continue; }
+
+        // Paragraph
+        flushList();
+        paraLines.push(inline(line));
+      }
+
+      flushList(); flushPara(); if (inTable) flushTable();
+      if (inCode && codeLines.length) out.push(`<pre><code>${esc(codeLines.join('\n'))}</code></pre>`);
+      return out.join('\n');
+    };
+
+    // ── URL state ──────────────────────────────────────────────────────────────
+
+    const loadFromUrl = (): string | null => {
+      try {
+        const p = new URLSearchParams(location.search).get('md');
+        return p ? decodeURIComponent(atob(p)) : null;
+      } catch { return null; }
+    };
+
+    const syncUrl = (md: string) => {
+      try {
+        const encoded = md ? btoa(encodeURIComponent(md)) : '';
+        const url = new URL(location.href);
+        if (encoded && encoded.length < 6000) {
+          url.searchParams.set('md', encoded);
+        } else {
+          url.searchParams.delete('md');
+        }
+        history.replaceState(null, '', url.toString());
+      } catch {}
+    };
+
+    // ── Render + update ────────────────────────────────────────────────────────
+
+    const update = () => {
+      const md = input.value;
+      const html = parse(md);
+      preview.innerHTML = html || '<p class="empty-hint" style="color:var(--color-text-muted);font-style:italic;font-size:.875rem;">Preview will appear here…</p>';
+      const words = md.trim() ? md.trim().split(/\s+/).length : 0;
+      wordsEl.textContent = words.toLocaleString();
+      charsEl.textContent = md.length.toLocaleString();
+      syncUrl(md);
+    };
+
+    // Load
+    input.value = loadFromUrl() ?? DEFAULT_MD;
+    update();
+    input.addEventListener('input', update);
+
+    // ── Button feedback helper ─────────────────────────────────────────────────
+
+    const flash = (btn: HTMLButtonElement, msg: string) => {
+      const orig = btn.textContent!;
+      btn.textContent = msg;
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    };
+
+    // Copy HTML
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(preview.innerHTML);
+        flash(copyBtn, '✓ Copied!');
+      } catch { flash(copyBtn, '✗ Failed'); }
+    });
+
+    // Download .md
+    const downloadMd = () => {
+      const blob = new Blob([input.value], { type: 'text/markdown;charset=utf-8' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `document-${new Date().toISOString().split('T')[0]}.md`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    };
+    dlBtn.addEventListener('click', downloadMd);
+
+    // AppShell events
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(preview.innerHTML); } catch {}
+    });
+    document.addEventListener('app:export', downloadMd);
+    document.addEventListener('app:reset', () => { input.value = ''; update(); input.focus(); });
+  };
+
+  initMdApp();
+  document.addEventListener('astro:after-swap', initMdApp);
+</script>
