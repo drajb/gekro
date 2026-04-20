@@ -15,7 +15,7 @@
     <div class="space-y-1.5">
       <label class="text-sm font-medium text-text-secondary">Base currency</label>
       <div class="flex gap-1.5 flex-wrap">
-        {(['USD','EUR','GBP','INR'] as const).map(c => (
+        {(['USD','INR','EUR','GBP'] as const).map(c => (
           <button class="fx-base-btn flex-1 py-2 text-xs font-mono border rounded-lg transition-all" data-base={c}>{c}</button>
         ))}
       </div>

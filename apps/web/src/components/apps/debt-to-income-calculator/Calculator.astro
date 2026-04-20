@@ -109,7 +109,103 @@
     </div>
   </div>
 
+  <!-- Scenario Simulation -->
+  <details class="group border border-border-subtle rounded-xl overflow-hidden">
+    <summary class="flex items-center justify-between px-4 py-3 bg-bg-elevated cursor-pointer select-none list-none">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Scenario Simulation</p>
+      <span class="text-text-muted text-xs font-mono group-open:rotate-180 transition-transform">▾</span>
+    </summary>
+
+    <div class="p-4 space-y-4 bg-bg-surface">
+      <!-- Scenario tabs -->
+      <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl">
+        <button class="dti-sim-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all active" data-sim="loan">Personal Loan</button>
+        <button class="dti-sim-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-sim="mortgage2">2nd Mortgage</button>
+        <button class="dti-sim-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-sim="refi">Refinance</button>
+      </div>
+
+      <!-- Personal Loan sim -->
+      <div id="dti-sim-loan" class="space-y-3">
+        <p class="text-xs text-text-muted">Add a new personal loan and see how it affects your DTI.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">Loan amount ($)</label>
+            <input id="dti-sim-loan-amt" type="number" min="0" step="1000" value="10000"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">Interest rate (%/yr)</label>
+            <input id="dti-sim-loan-rate" type="number" min="0" step="0.1" value="8.5"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">Term (months)</label>
+            <input id="dti-sim-loan-term" type="number" min="1" step="6" value="60"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+        </div>
+        <div id="dti-sim-loan-result" class="text-sm font-mono text-text-muted"></div>
+      </div>
+
+      <!-- 2nd Mortgage sim -->
+      <div id="dti-sim-mortgage2" class="space-y-3 hidden">
+        <p class="text-xs text-text-muted">Simulate adding a home equity loan or HELOC.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">Loan amount ($)</label>
+            <input id="dti-sim-m2-amt" type="number" min="0" step="5000" value="50000"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">Interest rate (%/yr)</label>
+            <input id="dti-sim-m2-rate" type="number" min="0" step="0.1" value="7.5"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">Term (months)</label>
+            <input id="dti-sim-m2-term" type="number" min="1" step="12" value="180"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+        </div>
+        <div id="dti-sim-m2-result" class="text-sm font-mono text-text-muted"></div>
+      </div>
+
+      <!-- Refinance sim -->
+      <div id="dti-sim-refi" class="space-y-3 hidden">
+        <p class="text-xs text-text-muted">See how refinancing your primary mortgage changes your DTI.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">New payment ($/mo)</label>
+            <input id="dti-sim-refi-pmt" type="number" min="0" step="50" value="1200"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">New rate (%/yr) — info</label>
+            <input id="dti-sim-refi-rate" type="number" min="0" step="0.1" value="6.5"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-text-secondary">New term (months)</label>
+            <input id="dti-sim-refi-term" type="number" min="1" step="12" value="360"
+              class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"/>
+          </div>
+        </div>
+        <div id="dti-sim-refi-result" class="text-sm font-mono text-text-muted"></div>
+      </div>
+
+    </div>
+  </details>
+
 </div>
+
+<style>
+  .dti-sim-tab { color: var(--color-text-muted); background: var(--color-bg-elevated); }
+  .dti-sim-tab.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+  }
+  details summary::-webkit-details-marker { display: none; }
+</style>
 
 <script>
   const fmt = (n: number, dec = 0) =>
@@ -144,6 +240,29 @@
     if (pct <= 0.36) return '#22c55e';
     if (pct <= 0.43) return 'var(--color-accent-warm)';
     return 'var(--color-accent-danger, #ef4444)';
+  };
+
+  // Monthly payment: standard amortisation formula PMT = P*r*(1+r)^n / ((1+r)^n - 1)
+  const calcPmt = (principal: number, annualRate: number, months: number): number => {
+    if (annualRate <= 0) return principal / months;
+    const r = annualRate / 100 / 12;
+    return principal * r * Math.pow(1+r, months) / (Math.pow(1+r, months) - 1);
+  };
+
+  const simResult = (label: string, addedPmt: number, monthlyIncome: number, currentBeDTI: number, currentTotalDebt: number): string => {
+    const newTotal = currentTotalDebt + addedPmt;
+    const newBeDTI = newTotal / monthlyIncome;
+    const delta = newBeDTI - currentBeDTI;
+    const color = newBeDTI <= 0.43 ? '#22c55e' : newBeDTI <= 0.50 ? '#f59e0b' : '#ef4444';
+    return `<div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${label} payment</p>
+      <p class="text-lg font-semibold text-text-primary">${fmt(addedPmt, 2)}/mo</p>
+      <div class="flex items-center gap-4 text-xs font-mono">
+        <span class="text-text-muted">New back-end DTI: <span style="color:${color}" class="font-bold">${fmtPct(newBeDTI)}</span></span>
+        <span class="text-text-muted">Change: <span class="${delta>0?'text-red-400':'text-green-400'}">${delta>0?'+':''}${fmtPct(delta)}</span></span>
+      </div>
+      <p class="text-[10px] text-text-muted">${newBeDTI<=0.43?'✓ Within conventional limit (43%)':newBeDTI<=0.50?'⚠ Exceeds conventional, within FHA (50%)':'✗ Exceeds FHA limit — may not qualify'}</p>
+    </div>`;
   };
 
   const initDti = () => {
@@ -270,6 +389,75 @@
       el.addEventListener('change', recalc);
     });
     recalc();
+
+    // ── Simulation ──────────────────────────────────────────────────────
+    const simTabs  = app.querySelectorAll<HTMLButtonElement>('.dti-sim-tab');
+    const simPanels: Record<string, HTMLElement> = {
+      loan:      document.getElementById('dti-sim-loan')!,
+      mortgage2: document.getElementById('dti-sim-mortgage2')!,
+      refi:      document.getElementById('dti-sim-refi')!,
+    };
+    let activeSim = 'loan';
+
+    simTabs.forEach(btn => btn.addEventListener('click', () => {
+      activeSim = btn.dataset.sim!;
+      simTabs.forEach(b => b.classList.toggle('active', b.dataset.sim === activeSim));
+      Object.entries(simPanels).forEach(([k,el]) => el.classList.toggle('hidden', k !== activeSim));
+      runSim();
+    }));
+
+    const runSim = () => {
+      const monthlyIncome = num(incomeEl) / 12;
+      if (monthlyIncome <= 0) return;
+      const housingCost = num(mortgageEl) + num(taxesEl) + num(insuranceEl) + num(hoaEl);
+      const otherDebt   = num(carEl) + num(studentEl) + num(ccEl) + num(otherEl);
+      const totalDebt   = housingCost + otherDebt;
+      const beDTI       = totalDebt / monthlyIncome;
+
+      if (activeSim === 'loan') {
+        const P = num(document.getElementById('dti-sim-loan-amt') as HTMLInputElement);
+        const r = parseFloat((document.getElementById('dti-sim-loan-rate') as HTMLInputElement).value) || 0;
+        const n = parseInt((document.getElementById('dti-sim-loan-term') as HTMLInputElement).value) || 60;
+        const pmt = calcPmt(P, r, n);
+        document.getElementById('dti-sim-loan-result')!.innerHTML = simResult('Personal loan', pmt, monthlyIncome, beDTI, totalDebt);
+      }
+      if (activeSim === 'mortgage2') {
+        const P = num(document.getElementById('dti-sim-m2-amt') as HTMLInputElement);
+        const r = parseFloat((document.getElementById('dti-sim-m2-rate') as HTMLInputElement).value) || 0;
+        const n = parseInt((document.getElementById('dti-sim-m2-term') as HTMLInputElement).value) || 180;
+        const pmt = calcPmt(P, r, n);
+        document.getElementById('dti-sim-m2-result')!.innerHTML = simResult('2nd mortgage', pmt, monthlyIncome, beDTI, totalDebt);
+      }
+      if (activeSim === 'refi') {
+        const newPmt = num(document.getElementById('dti-sim-refi-pmt') as HTMLInputElement);
+        const oldHousing = num(mortgageEl);
+        const delta = newPmt - oldHousing;
+        const newTotal = totalDebt + delta;
+        const newBeDTI = newTotal / monthlyIncome;
+        const color = newBeDTI <= 0.43 ? '#22c55e' : newBeDTI <= 0.50 ? '#f59e0b' : '#ef4444';
+        const change = newBeDTI - beDTI;
+        document.getElementById('dti-sim-refi-result')!.innerHTML = `
+          <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-1.5">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">After refinance</p>
+            <p class="text-lg font-semibold text-text-primary">${fmt(newPmt, 2)}/mo vs current ${fmt(oldHousing, 2)}/mo
+              <span class="text-sm ml-2 ${delta < 0 ? 'text-green-400' : 'text-red-400'}">${delta < 0 ? '▼ saving' : '▲ adding'} ${fmt(Math.abs(delta), 0)}/mo</span>
+            </p>
+            <div class="flex items-center gap-4 text-xs font-mono">
+              <span class="text-text-muted">New DTI: <span style="color:${color}" class="font-bold">${fmtPct(newBeDTI)}</span></span>
+              <span class="text-text-muted">Change: <span class="${change > 0 ? 'text-red-400' : 'text-green-400'}">${change > 0 ? '+' : ''}${fmtPct(change)}</span></span>
+            </div>
+          </div>`;
+      }
+    };
+
+    // Wire sim inputs
+    ['dti-sim-loan-amt','dti-sim-loan-rate','dti-sim-loan-term',
+     'dti-sim-m2-amt','dti-sim-m2-rate','dti-sim-m2-term',
+     'dti-sim-refi-pmt','dti-sim-refi-rate','dti-sim-refi-term'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', runSim);
+    });
+    runSim();
 
     document.addEventListener('app:copy', async () => {
       const annualIncome = num(incomeEl);

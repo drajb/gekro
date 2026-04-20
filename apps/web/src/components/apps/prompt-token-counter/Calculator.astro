@@ -6,12 +6,16 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
 
   <!-- Prompt textarea -->
   <div class="space-y-1.5">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-2">
       <label for="ptc-input" class="text-sm font-medium text-text-secondary">Prompt / message content</label>
-      <div class="flex items-center gap-3 text-[11px] font-mono text-text-muted">
+      <div class="flex items-center gap-2 text-[11px] font-mono text-text-muted flex-wrap">
         <span id="ptc-chars">0 chars</span>
         <span class="opacity-30">·</span>
         <span id="ptc-words">0 words</span>
+        <span class="opacity-30">·</span>
+        <span id="ptc-md-chars">0 md chars</span>
+        <span class="opacity-30">·</span>
+        <span id="ptc-paras">0 paragraphs</span>
       </div>
     </div>
     <textarea
@@ -36,9 +40,25 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Characters</p>
       <p id="ptc-char-count" class="text-2xl font-heading font-semibold text-text-primary">0</p>
     </div>
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Markdown chars</p>
+      <p id="ptc-md-count" class="text-2xl font-heading font-semibold text-text-secondary">0</p>
+    </div>
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Paragraphs</p>
+      <p id="ptc-para-count" class="text-2xl font-heading font-semibold text-text-secondary">0</p>
+    </div>
     <div class="ml-auto text-right">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Method</p>
       <p class="text-sm font-mono text-text-secondary">chars ÷ 4</p>
+    </div>
+  </div>
+
+  <!-- Markdown breakdown -->
+  <div id="ptc-md-breakdown" class="hidden p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Markdown structure</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="ptc-md-grid">
+      <!-- Rendered by JS -->
     </div>
   </div>
 
@@ -100,14 +120,33 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
     if (!app || (app as any)._ptcInit) return;
     (app as any)._ptcInit = true;
 
-    const inputEl     = document.getElementById('ptc-input') as HTMLTextAreaElement;
+    const inputEl      = document.getElementById('ptc-input') as HTMLTextAreaElement;
     const tokenCountEl = document.getElementById('ptc-token-count')!;
-    const charCountEl = document.getElementById('ptc-char-count')!;
-    const charsEl     = document.getElementById('ptc-chars')!;
-    const wordsEl     = document.getElementById('ptc-words')!;
-    const scaleEl     = document.getElementById('ptc-scale')!;
+    const charCountEl  = document.getElementById('ptc-char-count')!;
+    const mdCountEl    = document.getElementById('ptc-md-count')!;
+    const paraCountEl  = document.getElementById('ptc-para-count')!;
+    const charsEl      = document.getElementById('ptc-chars')!;
+    const wordsEl      = document.getElementById('ptc-words')!;
+    const mdCharsEl    = document.getElementById('ptc-md-chars')!;
+    const parasEl      = document.getElementById('ptc-paras')!;
+    const scaleEl      = document.getElementById('ptc-scale')!;
+    const mdBreakdown  = document.getElementById('ptc-md-breakdown')!;
+    const mdGrid       = document.getElementById('ptc-md-grid')!;
 
     const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
+
+    const countMarkdown = (text: string) => {
+      const headings   = (text.match(/^#{1,6}\s/gm) || []).length;
+      const bold       = (text.match(/\*\*[^*]+\*\*/g) || []).length;
+      const italic     = (text.match(/(?<!\*)\*(?!\*)[^*]+(?<!\*)\*(?!\*)/g) || []).length;
+      const codeInline = (text.match(/`[^`]+`/g) || []).length;
+      const codeBlocks = (text.match(/```[\s\S]*?```/g) || []).length;
+      const links      = (text.match(/\[[^\]]+\]\([^)]+\)/g) || []).length;
+      const lists      = (text.match(/^[\s]*[-*+]\s/gm) || []).length;
+      const blockquote = (text.match(/^>\s/gm) || []).length;
+      const total      = (text.match(/[#*_`\[\]()!>~|\\^]/g) || []).length;
+      return { headings, bold, italic, codeInline, codeBlocks, links, lists, blockquote, total };
+    };
 
     const fmtCost = (n: number): string => {
       if (n === 0) return '$0.000000';
@@ -122,18 +161,47 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
         <p class="text-[10px] text-text-muted">via ${model}</p>
       </div>`;
 
+    const mdStat = (label: string, val: number) =>
+      `<div class="text-center">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${label}</p>
+        <p class="text-lg font-semibold text-text-primary mt-0.5">${val}</p>
+      </div>`;
+
     const update = () => {
       const text = inputEl.value;
       const chars = text.length;
       const words = text.trim() ? text.trim().split(/\s+/).length : 0;
       const tokens = estimateTokens(text);
+      const md = countMarkdown(text);
+      const paras = text.trim() ? text.trim().split(/\n\n+/).filter(p => p.trim()).length : 0;
 
-      charsEl.textContent = `${chars.toLocaleString()} chars`;
-      wordsEl.textContent = `${words.toLocaleString()} words`;
+      charsEl.textContent    = `${chars.toLocaleString()} chars`;
+      wordsEl.textContent    = `${words.toLocaleString()} words`;
+      mdCharsEl.textContent  = `${md.total.toLocaleString()} md chars`;
+      parasEl.textContent    = `${paras} paragraph${paras !== 1 ? 's' : ''}`;
+
       tokenCountEl.textContent = tokens.toLocaleString();
-      charCountEl.textContent = chars.toLocaleString();
+      charCountEl.textContent  = chars.toLocaleString();
+      mdCountEl.textContent    = md.total.toLocaleString();
+      paraCountEl.textContent  = paras.toLocaleString();
 
-      // Update each model row
+      // Markdown breakdown panel — only show when there is markdown
+      const hasMd = md.headings + md.bold + md.italic + md.codeInline + md.codeBlocks + md.links + md.lists + md.blockquote > 0;
+      mdBreakdown.classList.toggle('hidden', !hasMd);
+      if (hasMd) {
+        mdGrid.innerHTML = [
+          md.headings   > 0 ? mdStat('Headings',   md.headings)   : '',
+          md.bold       > 0 ? mdStat('Bold',        md.bold)       : '',
+          md.italic     > 0 ? mdStat('Italic',      md.italic)     : '',
+          md.codeInline > 0 ? mdStat('Code spans',  md.codeInline) : '',
+          md.codeBlocks > 0 ? mdStat('Code blocks', md.codeBlocks) : '',
+          md.links      > 0 ? mdStat('Links',        md.links)      : '',
+          md.lists      > 0 ? mdStat('List items',   md.lists)      : '',
+          md.blockquote > 0 ? mdStat('Blockquotes',  md.blockquote) : '',
+        ].filter(Boolean).join('');
+      }
+
+      // Per-model rows
       CLOUD_MODELS.forEach(model => {
         const row = app.querySelector(`[data-model-id="${model.id}"]`);
         if (!row) return;
@@ -143,22 +211,17 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
         (row.querySelector('.ptc-ctx-bar') as HTMLElement).style.width = ctxPct.toFixed(2) + '%';
         (row.querySelector('.ptc-ctx-pct') as HTMLElement).textContent =
           ctxPct < 0.01 ? '<0.01%' : ctxPct.toFixed(ctxPct < 1 ? 2 : 1) + '%';
-        // Colour bar red if > 80%
         (row.querySelector('.ptc-ctx-bar') as HTMLElement).style.background =
           ctxPct > 80 ? 'var(--color-accent-danger)' : ctxPct > 50 ? 'var(--color-accent-warm)' : 'var(--color-accent)';
       });
 
-      // Scale cards — cheapest model overall
       const cheapest = [...CLOUD_MODELS].sort((a, b) => a.inputPerMTok - b.inputPerMTok)[0];
       const costPer = (tokens * cheapest.inputPerMTok) / 1_000_000;
       scaleEl.innerHTML =
-        scaleCard('100 requests/day', costPer * 100 * 30, cheapest.label) +
-        scaleCard('1 000 req/day', costPer * 1000 * 30, cheapest.label) +
-        scaleCard('10 000 req/day', costPer * 10000 * 30, cheapest.label) +
-        scaleCard('100 000 req/day', costPer * 100000 * 30, cheapest.label);
-      scaleEl.querySelectorAll('.p-3 > p:nth-child(3)').forEach(el => {
-        (el as HTMLElement).textContent = `(${cheapest.label}, 30 days)`;
-      });
+        scaleCard('100 req/day · 30d', costPer * 100 * 30, cheapest.label) +
+        scaleCard('1 000 req/day · 30d', costPer * 1000 * 30, cheapest.label) +
+        scaleCard('10 000 req/day · 30d', costPer * 10000 * 30, cheapest.label) +
+        scaleCard('100 000 req/day · 30d', costPer * 100000 * 30, cheapest.label);
     };
 
     inputEl.addEventListener('input', update);

@@ -148,6 +148,11 @@
     try {
       const s = expr
         .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+        // Implicit multiplication: 2x → 2*x, 2( → 2*(, )( → )*(, )x → )*x
+        .replace(/(\d)([a-zA-Z])/g, '$1*$2')
+        .replace(/(\d)\(/g, '$1*(')
+        .replace(/\)\(/g, ')*(')
+        .replace(/\)([a-zA-Z])/g, ')*$1')
         .replace(/\^/g, '**')
         .replace(/\bpi\b/g, 'Math.PI').replace(/\bPI\b/g, 'Math.PI')
         .replace(/\be\b(?!\s*\()/g, 'Math.E')
