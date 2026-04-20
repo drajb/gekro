@@ -1,0 +1,182 @@
+---
+// Currency Converter — hardcoded rates, offline, zero deps
+// Rates vs USD, last verified 2026-04-19
+---
+
+<div id="fx-app" class="space-y-5">
+
+  <!-- Amount + base currency -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="space-y-1.5">
+      <label for="fx-amount" class="text-sm font-medium text-text-secondary">Amount</label>
+      <input id="fx-amount" type="number" min="0" step="1" value="100"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm font-medium text-text-secondary">Base currency</label>
+      <div class="flex gap-1.5 flex-wrap">
+        {(['USD','EUR','GBP','INR'] as const).map(c => (
+          <button class="fx-base-btn flex-1 py-2 text-xs font-mono border rounded-lg transition-all" data-base={c}>{c}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Data disclaimer -->
+  <div class="flex items-start gap-2 p-3 bg-amber-950/20 border border-amber-500/20 rounded-xl">
+    <span class="text-amber-400 text-sm shrink-0 mt-0.5">⚠</span>
+    <p class="text-xs text-amber-200/70 leading-relaxed">
+      Rates are <strong class="text-amber-200/90">hardcoded approximations</strong>, last verified <strong class="text-amber-200/90">2026-04-19</strong>.
+      Not live — will drift over time. For transactions, always verify at
+      <a href="https://xe.com" target="_blank" rel="noopener" class="text-amber-400 hover:underline">xe.com</a> or your bank.
+    </p>
+  </div>
+
+  <!-- Search -->
+  <div class="relative">
+    <input id="fx-search" type="search" placeholder="Filter currencies…" autocomplete="off"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-lg pl-8 pr-4 py-2 text-sm font-mono text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/40 transition-colors" />
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none">⌕</span>
+  </div>
+
+  <!-- Rates table -->
+  <div class="overflow-x-auto rounded-xl border border-border-subtle">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-border-subtle bg-bg-elevated">
+          <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Currency</th>
+          <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Rate</th>
+          <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Converted</th>
+          <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted hidden sm:table-cell">1 unit → base</th>
+        </tr>
+      </thead>
+      <tbody id="fx-tbody" class="divide-y divide-border-subtle">
+        <!-- filled by JS -->
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  // All rates as: 1 USD = X currency
+  const RATES: { code: string; name: string; symbol: string; usdRate: number; flag: string }[] = [
+    { code:'USD', name:'US Dollar',           symbol:'$',   usdRate:1,        flag:'🇺🇸' },
+    { code:'EUR', name:'Euro',                symbol:'€',   usdRate:0.922,    flag:'🇪🇺' },
+    { code:'GBP', name:'British Pound',       symbol:'£',   usdRate:0.791,    flag:'🇬🇧' },
+    { code:'INR', name:'Indian Rupee',         symbol:'₹',   usdRate:84.40,    flag:'🇮🇳' },
+    { code:'JPY', name:'Japanese Yen',         symbol:'¥',   usdRate:142.50,   flag:'🇯🇵' },
+    { code:'CAD', name:'Canadian Dollar',      symbol:'C$',  usdRate:1.386,    flag:'🇨🇦' },
+    { code:'AUD', name:'Australian Dollar',    symbol:'A$',  usdRate:1.574,    flag:'🇦🇺' },
+    { code:'CHF', name:'Swiss Franc',          symbol:'Fr',  usdRate:0.884,    flag:'🇨🇭' },
+    { code:'CNY', name:'Chinese Yuan',         symbol:'¥',   usdRate:7.255,    flag:'🇨🇳' },
+    { code:'MXN', name:'Mexican Peso',         symbol:'$',   usdRate:20.45,    flag:'🇲🇽' },
+    { code:'BRL', name:'Brazilian Real',       symbol:'R$',  usdRate:5.78,     flag:'🇧🇷' },
+    { code:'KRW', name:'South Korean Won',     symbol:'₩',   usdRate:1358.0,   flag:'🇰🇷' },
+    { code:'SGD', name:'Singapore Dollar',     symbol:'S$',  usdRate:1.338,    flag:'🇸🇬' },
+    { code:'HKD', name:'Hong Kong Dollar',     symbol:'HK$', usdRate:7.778,    flag:'🇭🇰' },
+    { code:'NOK', name:'Norwegian Krone',      symbol:'kr',  usdRate:10.68,    flag:'🇳🇴' },
+    { code:'SEK', name:'Swedish Krona',        symbol:'kr',  usdRate:10.32,    flag:'🇸🇪' },
+    { code:'DKK', name:'Danish Krone',         symbol:'kr',  usdRate:6.875,    flag:'🇩🇰' },
+    { code:'NZD', name:'New Zealand Dollar',   symbol:'NZ$', usdRate:1.718,    flag:'🇳🇿' },
+    { code:'ZAR', name:'South African Rand',   symbol:'R',   usdRate:18.55,    flag:'🇿🇦' },
+    { code:'AED', name:'UAE Dirham',           symbol:'د.إ', usdRate:3.673,    flag:'🇦🇪' },
+    { code:'SAR', name:'Saudi Riyal',          symbol:'﷼',  usdRate:3.750,    flag:'🇸🇦' },
+    { code:'THB', name:'Thai Baht',            symbol:'฿',   usdRate:33.80,    flag:'🇹🇭' },
+    { code:'PLN', name:'Polish Zloty',         symbol:'zł',  usdRate:3.935,    flag:'🇵🇱' },
+    { code:'HUF', name:'Hungarian Forint',     symbol:'Ft',  usdRate:362.0,    flag:'🇭🇺' },
+    { code:'TRY', name:'Turkish Lira',         symbol:'₺',   usdRate:38.20,    flag:'🇹🇷' },
+  ];
+
+  const fmt = (n: number, code: string): string => {
+    const dec = ['JPY','KRW','HUF','IDR','VND'].includes(code) ? 0 : 2;
+    return n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  };
+
+  const initFx = () => {
+    const app = document.getElementById('fx-app');
+    if (!app || (app as any)._fxInit) return;
+    (app as any)._fxInit = true;
+
+    const amountEl  = document.getElementById('fx-amount') as HTMLInputElement;
+    const baseBtns  = app.querySelectorAll<HTMLButtonElement>('.fx-base-btn');
+    const searchEl  = document.getElementById('fx-search') as HTMLInputElement;
+    const tbody     = document.getElementById('fx-tbody')!;
+
+    let base = 'USD';
+    let query = '';
+
+    const setBase = (code: string) => {
+      base = code;
+      baseBtns.forEach(b => {
+        const active = b.dataset.base === code;
+        b.className = `fx-base-btn flex-1 py-2 text-xs font-mono border rounded-lg transition-all ${
+          active ? 'bg-accent/15 border-accent/40 text-accent' : 'bg-bg-elevated border-border-subtle text-text-muted hover:text-accent hover:border-accent/30'
+        }`;
+      });
+      render();
+    };
+
+    const render = () => {
+      const amount = Math.max(0, parseFloat(amountEl.value) || 0);
+      const baseRate = RATES.find(r => r.code === base)!.usdRate; // base→USD multiplier = 1/usdRate
+      // 1 base = (1/baseRate) USD → then × targetRate for target
+
+      const filtered = query ? RATES.filter(r =>
+        r.code.toLowerCase().includes(query) || r.name.toLowerCase().includes(query)
+      ) : RATES;
+
+      tbody.innerHTML = filtered.map((r, i) => {
+        const converted = amount * (r.usdRate / baseRate);
+        const inverse   = 1 / (r.usdRate / baseRate);
+        const isBase    = r.code === base;
+        return `<tr class="${i%2===0?'bg-bg-surface':'bg-bg-elevated'} hover:bg-accent/5 transition-colors ${isBase?'ring-1 ring-inset ring-accent/20':''}">
+          <td class="px-4 py-3">
+            <span class="text-base mr-2">${r.flag}</span>
+            <span class="font-medium text-text-primary">${r.code}</span>
+            <span class="ml-2 text-xs text-text-muted hidden sm:inline">${r.name}</span>
+          </td>
+          <td class="px-4 py-3 text-right font-mono text-xs text-text-muted">${fmt(r.usdRate/baseRate, r.code)} ${r.code}/${base}</td>
+          <td class="px-4 py-3 text-right font-mono font-medium text-text-primary">${r.symbol}${fmt(converted, r.code)}</td>
+          <td class="px-4 py-3 text-right font-mono text-xs text-text-muted hidden sm:table-cell">1 ${r.code} = ${fmt(inverse, base)} ${base}</td>
+        </tr>`;
+      }).join('');
+    };
+
+    amountEl.addEventListener('input', render);
+    baseBtns.forEach(b => b.addEventListener('click', () => setBase(b.dataset.base!)));
+    searchEl.addEventListener('input', () => { query = searchEl.value.toLowerCase().trim(); render(); });
+
+    setBase('USD');
+
+    document.addEventListener('app:reset', () => {
+      amountEl.value = '100'; query = ''; searchEl.value = ''; setBase('USD');
+    });
+    document.addEventListener('app:copy', async () => {
+      const amount = parseFloat(amountEl.value) || 0;
+      const baseRate = RATES.find(r => r.code === base)!.usdRate;
+      const text = RATES.slice(0,8).map(r => {
+        const v = amount * (r.usdRate / baseRate);
+        return `${amount} ${base} = ${r.symbol}${fmt(v, r.code)} ${r.code}`;
+      }).join('\n');
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const amount = parseFloat(amountEl.value) || 0;
+      const baseRate = RATES.find(r => r.code === base)!.usdRate;
+      const csv = ['Code,Name,Rate,Converted', ...RATES.map(r => {
+        const v = amount * (r.usdRate / baseRate);
+        return `${r.code},"${r.name}",${(r.usdRate/baseRate).toFixed(6)},${v.toFixed(4)}`;
+      })].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `fx-${base}-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  };
+
+  initFx();
+  document.addEventListener('astro:after-swap', initFx);
+</script>

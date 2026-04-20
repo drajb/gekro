@@ -30,6 +30,11 @@ import UnixTimestampConverter from '../../components/apps/unix-timestamp-convert
 import DebtToIncomeCalculator from '../../components/apps/debt-to-income-calculator/Calculator.astro';
 import GraphingCalculator from '../../components/apps/graphing-calculator/Calculator.astro';
 
+import BmiCalculator from '../../components/apps/bmi-calculator/Calculator.astro';
+import CoinFlipper from '../../components/apps/coin-flipper/Calculator.astro';
+import CurrencyConverter from '../../components/apps/currency-converter/Calculator.astro';
+import GlobalClock from '../../components/apps/global-clock/Calculator.astro';
+import RichTextToMarkdown from '../../components/apps/rich-text-to-markdown/Calculator.astro';
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
   'markdown-visualizer': MarkdownVisualizer,
@@ -43,6 +48,11 @@ const CALCULATOR_MAP: Record<string, any> = {
   'unix-timestamp-converter': UnixTimestampConverter,
   'debt-to-income-calculator': DebtToIncomeCalculator,
   'graphing-calculator': GraphingCalculator,
+  'bmi-calculator': BmiCalculator,
+  'coin-flipper': CoinFlipper,
+  'currency-converter': CurrencyConverter,
+  'global-clock': GlobalClock,
+  'rich-text-to-markdown': RichTextToMarkdown,
 };
 
 export async function getStaticPaths() {

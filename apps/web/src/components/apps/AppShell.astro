@@ -68,7 +68,14 @@ const categoryLabels: Record<string, string> = {
   </div>
 
   <!-- Calculator island slot -->
-  <slot />
+  <div class="relative py-4" id="calculator-island" style="opacity: 0;">
+    <!-- Ambient Underglow -->
+    <div class="absolute inset-x-0 -top-20 -bottom-20 bg-[radial-gradient(ellipse_at_center,var(--color-accent)_0%,transparent_60%)] opacity-5 pointer-events-none" aria-hidden="true"></div>
+    
+    <div class="relative z-10 glass-island">
+      <slot />
+    </div>
+  </div>
 
   <!-- Methodology link -->
   {companionPostSlug && (
@@ -101,6 +108,35 @@ const categoryLabels: Record<string, string> = {
     });
   };
 
+  const initAppAnimations = async () => {
+    const island = document.getElementById('calculator-island');
+    if (!island || (island as any)._animInit) return;
+    (island as any)._animInit = true;
+
+    try {
+      const { gsap } = await import('gsap');
+      gsap.to(island, { opacity: 1, duration: 0.1 });
+      
+      const targets = island.querySelectorAll('.glass-island > div > *, .glass-island > * > div, input, select, button');
+      if(targets.length > 0) {
+        gsap.from(targets, {
+          y: 20,
+          opacity: 0,
+          stagger: 0.02,
+          ease: "power2.out",
+          duration: 0.4,
+          clearProps: "all"
+        });
+      }
+    } catch (e) {
+      if(island) island.style.opacity = '1';
+    }
+  };
+
   initShareButton();
-  document.addEventListener('astro:after-swap', initShareButton);
+  initAppAnimations();
+  document.addEventListener('astro:after-swap', () => {
+    initShareButton();
+    initAppAnimations();
+  });
 </script>

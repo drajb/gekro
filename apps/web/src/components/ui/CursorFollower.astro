@@ -129,9 +129,9 @@
     const isWideEnough = window.matchMedia('(min-width: 768px)').matches;
     const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Disable on /apps/[slug] pages — inputs need native cursor for usability
-    const isAppDetail = /^\/apps\/.+/.test(location.pathname);
-    if (!isFinePointer || !isWideEnough || isReducedMotion || isAppDetail) {
+    // Disable on all /apps routes — inputs need native cursor for usability
+    const isAppRoute = location.pathname.startsWith('/apps');
+    if (!isFinePointer || !isWideEnough || isReducedMotion || isAppRoute) {
       dot.style.display = 'none';
       document.body.classList.remove('custom-cursor');
       return;

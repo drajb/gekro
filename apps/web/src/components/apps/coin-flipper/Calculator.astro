@@ -1,0 +1,239 @@
+---
+// Coin Flipper — crypto.getRandomValues, CSS 3D animation, zero deps
+---
+
+<div id="cf-app" class="space-y-6">
+
+  <!-- Coin arena -->
+  <div class="flex flex-col items-center gap-6 py-6">
+    <div class="coin-scene">
+      <div id="cf-coin" class="coin">
+        <div class="coin-face coin-heads">
+          <span class="text-5xl select-none">🪙</span>
+          <p class="text-xs font-mono font-bold text-amber-300 mt-1 tracking-widest">HEADS</p>
+        </div>
+        <div class="coin-face coin-tails">
+          <span class="text-5xl select-none">🌕</span>
+          <p class="text-xs font-mono font-bold text-amber-300 mt-1 tracking-widest">TAILS</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center space-y-1 min-h-[3rem]">
+      <p id="cf-result-text" class="text-2xl font-heading font-bold text-text-primary">&nbsp;</p>
+      <p id="cf-streak-text" class="text-xs font-mono text-text-muted">&nbsp;</p>
+    </div>
+
+    <!-- Flip button -->
+    <button id="cf-flip-btn"
+      class="px-10 py-4 bg-accent/20 border border-accent/40 rounded-2xl text-accent font-mono font-bold text-lg
+             hover:bg-accent/30 active:scale-95 transition-all select-none">
+      Flip
+    </button>
+
+    <!-- Keyboard hint -->
+    <p class="text-[10px] font-mono text-text-muted">Press <kbd class="px-1.5 py-0.5 bg-bg-elevated border border-border-subtle rounded text-[10px]">Space</kbd> to flip</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-3">
+    <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl text-center space-y-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Heads</p>
+      <p id="cf-heads" class="text-2xl font-heading font-bold text-text-primary">0</p>
+      <p id="cf-heads-pct" class="text-xs font-mono text-text-muted">—</p>
+    </div>
+    <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl text-center space-y-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Total</p>
+      <p id="cf-total" class="text-2xl font-heading font-bold text-accent">0</p>
+      <p class="text-xs font-mono text-text-muted">flips</p>
+    </div>
+    <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl text-center space-y-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Tails</p>
+      <p id="cf-tails" class="text-2xl font-heading font-bold text-text-primary">0</p>
+      <p id="cf-tails-pct" class="text-xs font-mono text-text-muted">—</p>
+    </div>
+  </div>
+
+  <!-- Streak + longest -->
+  <div class="grid grid-cols-2 gap-3">
+    <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
+      <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Current streak</p>
+      <p id="cf-streak" class="text-lg font-semibold text-text-primary mt-1">—</p>
+    </div>
+    <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
+      <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Longest streak</p>
+      <p id="cf-longest" class="text-lg font-semibold text-text-primary mt-1">—</p>
+    </div>
+  </div>
+
+  <!-- Multi-flip -->
+  <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Simulate many flips</p>
+    <div class="flex gap-2 flex-wrap">
+      {[10, 100, 1000, 10000].map(n => (
+        <button class="cf-multi px-4 py-2 text-xs font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-muted hover:text-accent hover:border-accent/40 transition-all" data-n={n}>
+          Flip {n.toLocaleString()}×
+        </button>
+      ))}
+    </div>
+    <div id="cf-multi-result" class="text-xs font-mono text-text-muted min-h-[1.2rem]"></div>
+  </div>
+
+</div>
+
+<style>
+  .coin-scene {
+    perspective: 600px;
+    width: 140px;
+    height: 140px;
+  }
+  .coin {
+    width: 140px;
+    height: 140px;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateY(0deg);
+    transition: transform 0.05s;
+  }
+  .coin.flipping {
+    animation: coinFlip var(--flip-duration, 0.7s) ease-out forwards;
+  }
+  @keyframes coinFlip {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(var(--flip-end, 1800deg)); }
+  }
+  .coin-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 35% 35%, #f8cc6a, #c9922a);
+    box-shadow: 0 0 0 4px #a07020, 0 8px 32px rgba(200,150,30,0.3), inset 0 2px 4px rgba(255,255,255,0.3);
+  }
+  .coin-tails {
+    transform: rotateY(180deg);
+    background: radial-gradient(circle at 65% 35%, #e8b840, #b07818);
+  }
+</style>
+
+<script>
+  const initCf = () => {
+    const app = document.getElementById('cf-app');
+    if (!app || (app as any)._cfInit) return;
+    (app as any)._cfInit = true;
+
+    const coin        = document.getElementById('cf-coin')!;
+    const flipBtn     = document.getElementById('cf-flip-btn')!;
+    const resultText  = document.getElementById('cf-result-text')!;
+    const streakText  = document.getElementById('cf-streak-text')!;
+    const headsEl     = document.getElementById('cf-heads')!;
+    const tailsEl     = document.getElementById('cf-tails')!;
+    const totalEl     = document.getElementById('cf-total')!;
+    const headsPct    = document.getElementById('cf-heads-pct')!;
+    const tailsPct    = document.getElementById('cf-tails-pct')!;
+    const streakEl    = document.getElementById('cf-streak')!;
+    const longestEl   = document.getElementById('cf-longest')!;
+    const multiResult = document.getElementById('cf-multi-result')!;
+
+    let heads = 0, tails = 0, curStreak = 0, curSide = '', longestStreak = 0, longestSide = '';
+    let flipping = false;
+
+    const secureRand = (): boolean => {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return (arr[0] % 2) === 0;
+    };
+
+    const updateStats = () => {
+      const total = heads + tails;
+      headsEl.textContent = heads.toLocaleString();
+      tailsEl.textContent = tails.toLocaleString();
+      totalEl.textContent = total.toLocaleString();
+      headsPct.textContent = total ? (heads/total*100).toFixed(1) + '%' : '—';
+      tailsPct.textContent = total ? (tails/total*100).toFixed(1) + '%' : '—';
+      streakEl.textContent = curStreak > 0 ? `${curStreak}× ${curSide}` : '—';
+      longestEl.textContent = longestStreak > 0 ? `${longestStreak}× ${longestSide}` : '—';
+    };
+
+    const recordFlip = (isHeads: boolean) => {
+      const side = isHeads ? 'Heads' : 'Tails';
+      isHeads ? heads++ : tails++;
+      if (side === curSide) { curStreak++; }
+      else { curStreak = 1; curSide = side; }
+      if (curStreak > longestStreak) { longestStreak = curStreak; longestSide = curSide; }
+      updateStats();
+      if (curStreak >= 5) streakText.textContent = `🔥 ${curStreak} ${curSide.toLowerCase()} in a row!`;
+      else if (curStreak >= 3) streakText.textContent = `${curStreak}× ${curSide.toLowerCase()} streak`;
+      else streakText.textContent = '';
+    };
+
+    const flip = () => {
+      if (flipping) return;
+      flipping = true;
+      flipBtn.disabled = true;
+
+      const isHeads = secureRand();
+      // Rotations: end on 0° (heads) or 180° (tails), with at least 3 full spins
+      const baseSpins = 3 + Math.floor(secureRand() ? 2 : 1);
+      const endAngle = isHeads ? baseSpins * 360 : baseSpins * 360 + 180;
+      const duration = 0.65 + Math.random() * 0.2;
+
+      coin.style.setProperty('--flip-end', endAngle + 'deg');
+      coin.style.setProperty('--flip-duration', duration + 's');
+      coin.classList.add('flipping');
+
+      setTimeout(() => {
+        coin.classList.remove('flipping');
+        coin.style.transform = `rotateY(${endAngle % 360}deg)`;
+        resultText.textContent = isHeads ? '🪙 Heads!' : '🌕 Tails!';
+        resultText.style.color = isHeads ? 'var(--color-accent)' : 'var(--color-accent-warm, #f59e0b)';
+        recordFlip(isHeads);
+        flipping = false;
+        flipBtn.disabled = false;
+      }, duration * 1000 + 50);
+    };
+
+    flipBtn.addEventListener('click', flip);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === ' ' && !['INPUT','TEXTAREA','SELECT','BUTTON'].includes((e.target as HTMLElement).tagName)) {
+        e.preventDefault(); flip();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('astro:before-swap', () => document.removeEventListener('keydown', onKey), { once: true });
+
+    app.querySelectorAll<HTMLButtonElement>('.cf-multi').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const n = parseInt(btn.dataset.n || '10');
+        let h = 0;
+        for (let i = 0; i < n; i++) { if (secureRand()) h++; }
+        const t = n - h;
+        heads += h; tails += t;
+        curStreak = 0; curSide = ''; // reset streak after bulk
+        updateStats();
+        multiResult.textContent = `${n.toLocaleString()} flips: ${h.toLocaleString()} heads (${(h/n*100).toFixed(1)}%), ${t.toLocaleString()} tails (${(t/n*100).toFixed(1)}%)`;
+      });
+    });
+
+    document.addEventListener('app:reset', () => {
+      heads = 0; tails = 0; curStreak = 0; curSide = ''; longestStreak = 0; longestSide = '';
+      resultText.textContent = '\u00a0'; resultText.style.color = '';
+      streakText.textContent = '\u00a0'; multiResult.textContent = '';
+      coin.style.transform = 'rotateY(0deg)';
+      updateStats();
+    });
+    document.addEventListener('app:copy', async () => {
+      const total = heads + tails;
+      const text = `Coin Flipper: ${total} flips — ${heads} heads (${total?((heads/total)*100).toFixed(1):'0'}%), ${tails} tails`;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+  };
+
+  initCf();
+  document.addEventListener('astro:after-swap', initCf);
+</script>

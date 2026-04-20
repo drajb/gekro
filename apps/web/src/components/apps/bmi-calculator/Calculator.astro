@@ -1,0 +1,294 @@
+---
+// BMI & Health Metrics — Mifflin-St Jeor BMR, TDEE, ideal weight, zero deps
+---
+
+<div id="bmi-app" class="space-y-5">
+
+  <!-- Medical disclaimer at top -->
+  <div class="flex items-start gap-2 p-3 bg-blue-950/20 border border-blue-500/20 rounded-xl">
+    <span class="text-blue-400 text-sm shrink-0 mt-0.5">ℹ</span>
+    <p class="text-xs text-blue-200/70 leading-relaxed">
+      For informational use only. BMI has known limitations for athletes, elderly individuals, and diverse body types.
+      Consult a qualified healthcare provider before making medical or dietary decisions.
+    </p>
+  </div>
+
+  <!-- Unit toggle -->
+  <div class="flex items-center gap-3">
+    <p class="text-sm font-medium text-text-secondary shrink-0">Units:</p>
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+      <button id="bmi-unit-imperial" class="bmi-unit-btn px-3 py-1.5 text-xs font-mono rounded transition-all active">Imperial (lbs / ft)</button>
+      <button id="bmi-unit-metric"   class="bmi-unit-btn px-3 py-1.5 text-xs font-mono rounded transition-all">Metric (kg / cm)</button>
+    </div>
+  </div>
+
+  <!-- Inputs grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <!-- Age -->
+    <div class="space-y-1.5">
+      <label for="bmi-age" class="text-sm font-medium text-text-secondary">Age (years)</label>
+      <input id="bmi-age" type="number" min="2" max="120" step="1" value="30"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <!-- Sex -->
+    <div class="space-y-1.5">
+      <label class="text-sm font-medium text-text-secondary">Biological sex</label>
+      <div class="flex gap-2">
+        <label class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-bg-elevated border border-border-subtle rounded-lg cursor-pointer text-sm text-text-muted hover:border-accent/40 transition-all has-[:checked]:border-accent/40 has-[:checked]:text-accent">
+          <input type="radio" name="bmi-sex" value="male" checked class="sr-only" />Male
+        </label>
+        <label class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-bg-elevated border border-border-subtle rounded-lg cursor-pointer text-sm text-text-muted hover:border-accent/40 transition-all has-[:checked]:border-accent/40 has-[:checked]:text-accent">
+          <input type="radio" name="bmi-sex" value="female" class="sr-only" />Female
+        </label>
+      </div>
+      <p class="text-xs text-text-muted">Used only for BMR calculation.</p>
+    </div>
+
+    <!-- Weight -->
+    <div class="space-y-1.5">
+      <label class="text-sm font-medium text-text-secondary">Weight</label>
+      <div class="flex gap-2">
+        <input id="bmi-weight" type="number" min="0" step="0.5" value="165"
+          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <span id="bmi-weight-unit" class="flex items-center px-3 bg-bg-elevated border border-border-subtle rounded-lg text-xs font-mono text-text-muted">lbs</span>
+      </div>
+    </div>
+
+    <!-- Height -->
+    <div class="space-y-1.5">
+      <label class="text-sm font-medium text-text-secondary">Height</label>
+      <div id="bmi-height-imperial" class="flex gap-2">
+        <input id="bmi-feet" type="number" min="0" max="9" step="1" value="5"
+          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <span class="flex items-center px-2 text-xs font-mono text-text-muted">ft</span>
+        <input id="bmi-inches" type="number" min="0" max="11" step="0.5" value="9"
+          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <span class="flex items-center px-2 text-xs font-mono text-text-muted">in</span>
+      </div>
+      <div id="bmi-height-metric" class="hidden">
+        <input id="bmi-cm" type="number" min="0" step="0.5" value="175"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <span class="text-xs text-text-muted">cm</span>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="space-y-1.5 sm:col-span-2">
+      <label for="bmi-activity" class="text-sm font-medium text-text-secondary">Activity level</label>
+      <select id="bmi-activity"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
+        <option value="1.2">Sedentary — desk job, little or no exercise</option>
+        <option value="1.375">Lightly active — 1–3 days/week exercise</option>
+        <option value="1.55" selected>Moderately active — 3–5 days/week</option>
+        <option value="1.725">Very active — 6–7 days/week</option>
+        <option value="1.9">Extremely active — physical job + daily exercise</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- Results -->
+  <div id="bmi-results" class="space-y-4">
+    <!-- Filled by JS -->
+  </div>
+
+</div>
+
+<script>
+  const fmt = (n: number, dec = 1) => n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+  const bmiCategory = (bmi: number): { label: string; color: string } => {
+    if (bmi < 18.5) return { label: 'Underweight', color: '#60a5fa' };
+    if (bmi < 25)   return { label: 'Normal weight', color: '#22c55e' };
+    if (bmi < 30)   return { label: 'Overweight', color: '#f59e0b' };
+    return { label: 'Obese', color: '#ef4444' };
+  };
+
+  const bmiGauge = (bmi: number): string => {
+    const capped = Math.min(Math.max(bmi, 10), 45);
+    const pct = (capped - 10) / 35; // 10–45 range
+    const { color } = bmiCategory(bmi);
+    const markers = [
+      { val: 18.5, label: '18.5' },
+      { val: 25,   label: '25' },
+      { val: 30,   label: '30' },
+    ];
+    const w = 300, h = 24, r = 6;
+    const x = (v: number) => Math.min(Math.max((v - 10) / 35 * w, 0), w);
+    return `<svg viewBox="0 0 ${w} 48" class="w-full max-w-sm">
+      <!-- Track -->
+      <defs>
+        <linearGradient id="bmiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#60a5fa"/>
+          <stop offset="24%"  stop-color="#22c55e"/>
+          <stop offset="57%"  stop-color="#f59e0b"/>
+          <stop offset="100%" stop-color="#ef4444"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="8" width="${w}" height="${h}" rx="${r}" fill="url(#bmiGrad)" opacity="0.3"/>
+      <!-- Fill -->
+      <rect x="0" y="8" width="${x(capped)}" height="${h}" rx="${r}" fill="${color}" opacity="0.7"/>
+      <!-- Needle -->
+      <rect x="${x(capped)-1}" y="4" width="2" height="32" rx="1" fill="${color}"/>
+      <!-- Markers -->
+      ${markers.map(m => `
+        <line x1="${x(m.val)}" y1="8" x2="${x(m.val)}" y2="32" stroke="var(--color-bg-base)" stroke-width="1" opacity="0.7"/>
+        <text x="${x(m.val)}" y="46" text-anchor="middle" font-size="9" font-family="monospace" fill="var(--color-text-muted)">${m.label}</text>
+      `).join('')}
+    </svg>`;
+  };
+
+  const initBmi = () => {
+    const app = document.getElementById('bmi-app');
+    if (!app || (app as any)._bmiInit) return;
+    (app as any)._bmiInit = true;
+
+    const ageEl      = document.getElementById('bmi-age') as HTMLInputElement;
+    const weightEl   = document.getElementById('bmi-weight') as HTMLInputElement;
+    const feetEl     = document.getElementById('bmi-feet') as HTMLInputElement;
+    const inchesEl   = document.getElementById('bmi-inches') as HTMLInputElement;
+    const cmEl       = document.getElementById('bmi-cm') as HTMLInputElement;
+    const activityEl = document.getElementById('bmi-activity') as HTMLSelectElement;
+    const resultsEl  = document.getElementById('bmi-results')!;
+    const wUnitEl    = document.getElementById('bmi-weight-unit')!;
+    const hImperial  = document.getElementById('bmi-height-imperial')!;
+    const hMetric    = document.getElementById('bmi-height-metric')!;
+    const unitBtns   = app.querySelectorAll<HTMLButtonElement>('.bmi-unit-btn');
+
+    let isImperial = true;
+
+    const setUnits = (imperial: boolean) => {
+      isImperial = imperial;
+      unitBtns.forEach(b => b.classList.toggle('active', b.id === (imperial ? 'bmi-unit-imperial' : 'bmi-unit-metric')));
+      wUnitEl.textContent = imperial ? 'lbs' : 'kg';
+      hImperial.classList.toggle('hidden', !imperial);
+      hMetric.classList.toggle('hidden', imperial);
+      // Convert displayed value
+      const w = parseFloat(weightEl.value) || 0;
+      if (imperial && w > 0) weightEl.value = (w * 2.20462).toFixed(1);
+      else if (!imperial && w > 0) weightEl.value = (w / 2.20462).toFixed(1);
+      recalc();
+    };
+
+    document.getElementById('bmi-unit-imperial')?.addEventListener('click', () => setUnits(true));
+    document.getElementById('bmi-unit-metric')?.addEventListener('click', () => setUnits(false));
+
+    const getKgCm = (): { kg: number; cm: number } => {
+      if (isImperial) {
+        const lbs = parseFloat(weightEl.value) || 0;
+        const ft  = parseFloat(feetEl.value) || 0;
+        const inc = parseFloat(inchesEl.value) || 0;
+        return { kg: lbs * 0.453592, cm: (ft * 12 + inc) * 2.54 };
+      } else {
+        return { kg: parseFloat(weightEl.value) || 0, cm: parseFloat(cmEl.value) || 0 };
+      }
+    };
+
+    const recalc = () => {
+      const { kg, cm } = getKgCm();
+      const age = parseFloat(ageEl.value) || 0;
+      const sex = (app.querySelector<HTMLInputElement>('input[name="bmi-sex"]:checked')?.value) || 'male';
+      const activity = parseFloat(activityEl.value);
+
+      if (kg <= 0 || cm <= 0 || age <= 0) {
+        resultsEl.innerHTML = '<p class="text-text-muted text-sm">Enter valid values to see results.</p>';
+        return;
+      }
+
+      const hm = cm / 100;
+      const bmi = kg / (hm * hm);
+      const { label, color } = bmiCategory(bmi);
+
+      // BMR — Mifflin-St Jeor
+      const bmr = 10 * kg + 6.25 * cm - 5 * age + (sex === 'male' ? 5 : -161);
+      const tdee = bmr * activity;
+
+      // Ideal weight range (BMI 18.5–24.9)
+      const idealLow  = 18.5 * hm * hm;
+      const idealHigh = 24.9 * hm * hm;
+      const toDisplay = (kgv: number) => isImperial ? fmt(kgv * 2.20462) + ' lbs' : fmt(kgv) + ' kg';
+
+      resultsEl.innerHTML = `
+        <!-- BMI hero -->
+        <div class="p-5 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
+          <div class="flex items-end gap-4">
+            <div>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">BMI</p>
+              <p class="text-5xl font-heading font-bold" style="color:${color}">${fmt(bmi)}</p>
+            </div>
+            <div class="pb-1">
+              <p class="text-lg font-semibold" style="color:${color}">${label}</p>
+              <p class="text-xs font-mono text-text-muted">WHO classification</p>
+            </div>
+          </div>
+          ${bmiGauge(bmi)}
+          <div class="flex flex-wrap gap-4 text-xs font-mono text-text-muted pt-1">
+            <span>Underweight &lt;18.5</span><span>Normal 18.5–24.9</span><span>Overweight 25–29.9</span><span>Obese ≥30</span>
+          </div>
+        </div>
+
+        <!-- Metrics grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1 text-center">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">BMR</p>
+            <p class="text-xl font-semibold text-text-primary">${Math.round(bmr)}</p>
+            <p class="text-[10px] text-text-muted">kcal/day at rest</p>
+          </div>
+          <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl space-y-1 text-center">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">TDEE</p>
+            <p class="text-xl font-semibold text-accent">${Math.round(tdee)}</p>
+            <p class="text-[10px] text-text-muted">kcal/day to maintain</p>
+          </div>
+          <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1 text-center">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">To lose 0.5 kg/wk</p>
+            <p class="text-xl font-semibold text-text-primary">${Math.round(tdee - 550)}</p>
+            <p class="text-[10px] text-text-muted">kcal/day (−550)</p>
+          </div>
+          <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1 text-center">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">To gain 0.5 kg/wk</p>
+            <p class="text-xl font-semibold text-text-primary">${Math.round(tdee + 550)}</p>
+            <p class="text-[10px] text-text-muted">kcal/day (+550)</p>
+          </div>
+        </div>
+
+        <!-- Ideal weight -->
+        <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl flex flex-wrap gap-6 items-center">
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Healthy weight range</p>
+            <p class="text-lg font-semibold text-text-primary">${toDisplay(idealLow)} – ${toDisplay(idealHigh)}</p>
+            <p class="text-xs text-text-muted">BMI 18.5–24.9 for your height</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Current weight</p>
+            <p class="text-lg font-semibold" style="color:${color}">${toDisplay(kg)}</p>
+            <p class="text-xs text-text-muted">${kg < idealLow ? toDisplay(idealLow-kg) + ' below range' : kg > idealHigh ? toDisplay(kg-idealHigh) + ' above range' : '✓ within range'}</p>
+          </div>
+        </div>`;
+    };
+
+    [ageEl, weightEl, feetEl, inchesEl, cmEl, activityEl].forEach(el => el.addEventListener('input', recalc));
+    app.querySelectorAll('input[name="bmi-sex"]').forEach(el => el.addEventListener('change', recalc));
+
+    recalc();
+
+    document.addEventListener('app:reset', () => {
+      ageEl.value = '30'; weightEl.value = '165'; feetEl.value = '5'; inchesEl.value = '9'; cmEl.value = '175';
+      activityEl.value = '1.55';
+      const m = app.querySelector<HTMLInputElement>('input[value="male"]');
+      if (m) m.checked = true;
+      setUnits(true);
+    });
+    document.addEventListener('app:copy', async () => {
+      const { kg, cm } = getKgCm();
+      const bmi = kg / Math.pow(cm/100, 2);
+      const { label } = bmiCategory(bmi);
+      const bmr = 10*kg + 6.25*cm - 5*(parseFloat(ageEl.value)||30) + ((app.querySelector<HTMLInputElement>('input[name="bmi-sex"]:checked')?.value||'male')==='male'?5:-161);
+      try { await navigator.clipboard.writeText(`BMI: ${fmt(bmi)} (${label})\nBMR: ${Math.round(bmr)} kcal/day\nTDEE: ${Math.round(bmr*parseFloat(activityEl.value))} kcal/day`); } catch {}
+    });
+  };
+
+  initBmi();
+  document.addEventListener('astro:after-swap', initBmi);
+</script>

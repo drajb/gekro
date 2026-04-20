@@ -1,0 +1,298 @@
+---
+// Rich Text → Markdown — DOM-based HTML-to-MD converter, zero deps
+---
+
+<div id="rtm-app" class="space-y-4">
+
+  <!-- Mode tabs -->
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl">
+    <button class="rtm-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all active" data-mode="paste">Paste Rich Text</button>
+    <button class="rtm-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="html">Raw HTML Input</button>
+  </div>
+
+  <!-- Paste mode: contenteditable -->
+  <div id="rtm-paste-panel" class="space-y-2">
+    <p class="text-xs text-text-muted px-1">Paste rich text from Google Docs, Word, or any web page — formatting is preserved.</p>
+    <div
+      id="rtm-rich-input"
+      contenteditable="true"
+      spellcheck="false"
+      class="min-h-[180px] max-h-[360px] overflow-y-auto w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors prose-sm"
+      data-placeholder="Paste rich text here…"
+    ></div>
+  </div>
+
+  <!-- HTML mode: textarea -->
+  <div id="rtm-html-panel" class="hidden space-y-2">
+    <p class="text-xs text-text-muted px-1">Paste or type raw HTML. Will be converted to Markdown on input.</p>
+    <textarea
+      id="rtm-html-input"
+      rows="8"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary resize-y focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="<h1>Hello</h1><p>Paste <strong>raw HTML</strong> here…"
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Output -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between px-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Markdown output</p>
+      <div class="flex items-center gap-3">
+        <span id="rtm-stats" class="text-[10px] font-mono text-text-muted"></span>
+        <button id="rtm-copy" class="text-xs font-mono text-text-muted hover:text-accent transition-colors">Copy</button>
+        <button id="rtm-clear" class="text-xs font-mono text-text-muted hover:text-red-400 transition-colors">Clear</button>
+      </div>
+    </div>
+    <textarea
+      id="rtm-output"
+      rows="14"
+      readonly
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-secondary resize-y focus:outline-none"
+      placeholder="Markdown will appear here…"
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Quick reference -->
+  <details class="p-4 bg-bg-elevated border border-border-subtle rounded-xl group">
+    <summary class="text-[10px] font-mono uppercase tracking-widest text-text-muted cursor-pointer select-none group-open:mb-3">
+      Supported elements ▾
+    </summary>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 text-xs font-mono text-text-muted">
+      {[
+        ['h1–h6','# Headings'],['strong/b','**bold**'],['em/i','*italic*'],
+        ['del/s','~~strike~~'],['code','`inline`'],['pre code','```block```'],
+        ['a','[text](url)'],['img','![alt](src)'],['ul/li','- list'],
+        ['ol/li','1. list'],['blockquote','> quote'],['table','GFM table'],
+        ['hr','---'],['br','line break'],
+      ].map(([html, md]) => (
+        <div class="flex gap-2"><span class="text-text-muted/60">{html}</span><span>→</span><span class="text-accent/80">{md}</span></div>
+      ))}
+    </div>
+  </details>
+
+</div>
+
+<style>
+  .rtm-tab { color: var(--color-text-muted); }
+  .rtm-tab.active { background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); }
+  #rtm-rich-input:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+  #rtm-rich-input h1 { font-size: 1.4em; font-weight: 700; margin: .5em 0 .25em; }
+  #rtm-rich-input h2 { font-size: 1.2em; font-weight: 600; margin: .5em 0 .25em; }
+  #rtm-rich-input h3 { font-size: 1em; font-weight: 600; margin: .4em 0 .2em; }
+  #rtm-rich-input strong, #rtm-rich-input b { font-weight: 700; }
+  #rtm-rich-input em, #rtm-rich-input i { font-style: italic; }
+  #rtm-rich-input a { color: var(--color-accent); text-decoration: underline; }
+  #rtm-rich-input blockquote { border-left: 3px solid var(--color-accent); padding-left: .75em; color: var(--color-text-secondary); margin: .5em 0; }
+  #rtm-rich-input ul { list-style: disc; padding-left: 1.5em; }
+  #rtm-rich-input ol { list-style: decimal; padding-left: 1.5em; }
+  #rtm-rich-input pre { background: var(--color-bg-base); border-radius: .5em; padding: .75em; font-family: monospace; font-size: .85em; overflow-x: auto; }
+  #rtm-rich-input code { background: var(--color-bg-base); border-radius: .25em; padding: .1em .3em; font-family: monospace; font-size: .85em; }
+  #rtm-rich-input table { border-collapse: collapse; width: 100%; }
+  #rtm-rich-input td, #rtm-rich-input th { border: 1px solid var(--color-border-subtle); padding: .25em .5em; }
+</style>
+
+<script>
+  // HTML → Markdown converter
+  const walkNode = (node: Node, listDepth = 0): string => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return (node.textContent || '').replace(/[\r\n]+/g, ' ');
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+    const el = node as Element;
+    const tag = el.tagName.toLowerCase();
+    const children = () => Array.from(el.childNodes).map(c => walkNode(c, listDepth)).join('');
+
+    switch (tag) {
+      case 'h1': return `\n\n# ${children().trim()}\n\n`;
+      case 'h2': return `\n\n## ${children().trim()}\n\n`;
+      case 'h3': return `\n\n### ${children().trim()}\n\n`;
+      case 'h4': return `\n\n#### ${children().trim()}\n\n`;
+      case 'h5': return `\n\n##### ${children().trim()}\n\n`;
+      case 'h6': return `\n\n###### ${children().trim()}\n\n`;
+      case 'p':  return `\n\n${children().trim()}\n\n`;
+      case 'br': return '\n';
+      case 'hr': return '\n\n---\n\n';
+      case 'strong': case 'b': return `**${children()}**`;
+      case 'em':     case 'i': return `*${children()}*`;
+      case 'del':    case 's': case 'strike': return `~~${children()}~~`;
+      case 'u':  return children(); // no MD equivalent, strip
+      case 'mark': return `==${children()}==`;
+      case 'a': {
+        const href = el.getAttribute('href') || '';
+        const inner = children().trim();
+        return href ? `[${inner}](${href})` : inner;
+      }
+      case 'img': {
+        const src = el.getAttribute('src') || '';
+        const alt = el.getAttribute('alt') || '';
+        return `![${alt}](${src})`;
+      }
+      case 'code': {
+        if (el.closest('pre')) return el.textContent || '';
+        return `\`${el.textContent}\``;
+      }
+      case 'pre': {
+        const codeEl = el.querySelector('code');
+        const lang = (codeEl?.className || '').replace(/.*language-(\w+).*/, '$1');
+        const content = codeEl ? (codeEl.textContent || '').trimEnd() : children().trimEnd();
+        return `\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\n`;
+      }
+      case 'blockquote': {
+        const inner = children().trim().replace(/^/gm, '> ');
+        return `\n\n${inner}\n\n`;
+      }
+      case 'ul': {
+        const indent = '  '.repeat(listDepth);
+        const items = Array.from(el.children)
+          .filter(c => c.tagName === 'LI')
+          .map(li => {
+            const text = Array.from(li.childNodes)
+              .filter(c => !['UL','OL'].includes((c as Element).tagName || ''))
+              .map(c => walkNode(c, listDepth + 1)).join('').trim();
+            const nested = Array.from(li.childNodes)
+              .filter(c => ['UL','OL'].includes((c as Element).tagName || ''))
+              .map(c => walkNode(c, listDepth + 1)).join('');
+            return `${indent}- ${text}${nested ? '\n' + nested.trim() : ''}`;
+          });
+        return `\n\n${items.join('\n')}\n\n`;
+      }
+      case 'ol': {
+        const indent = '  '.repeat(listDepth);
+        const items = Array.from(el.children)
+          .filter(c => c.tagName === 'LI')
+          .map((li, idx) => {
+            const text = Array.from(li.childNodes)
+              .filter(c => !['UL','OL'].includes((c as Element).tagName || ''))
+              .map(c => walkNode(c, listDepth + 1)).join('').trim();
+            const nested = Array.from(li.childNodes)
+              .filter(c => ['UL','OL'].includes((c as Element).tagName || ''))
+              .map(c => walkNode(c, listDepth + 1)).join('');
+            return `${indent}${idx + 1}. ${text}${nested ? '\n' + nested.trim() : ''}`;
+          });
+        return `\n\n${items.join('\n')}\n\n`;
+      }
+      case 'table': {
+        const rows = Array.from(el.querySelectorAll('tr'));
+        if (!rows.length) return children();
+        const toRow = (tr: Element) => '| ' + Array.from(tr.querySelectorAll('th,td'))
+          .map(c => walkNode(c).trim().replace(/\|/g, '\\|')).join(' | ') + ' |';
+        const header = toRow(rows[0]);
+        const sep = '| ' + Array.from(rows[0].querySelectorAll('th,td')).map(() => '---').join(' | ') + ' |';
+        const body = rows.slice(1).map(toRow);
+        return `\n\n${header}\n${sep}\n${body.join('\n')}\n\n`;
+      }
+      case 'div': case 'section': case 'article': case 'main': case 'aside':
+      case 'header': case 'footer': case 'nav': {
+        const inner = children();
+        return inner.trim() ? `\n\n${inner.trim()}\n\n` : '';
+      }
+      case 'span': case 'font': case 'td': case 'th': case 'li': return children();
+      case 'head': case 'script': case 'style': case 'meta': case 'link': return '';
+      default: return children();
+    }
+  };
+
+  const htmlToMd = (html: string): string => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return walkNode(div).replace(/\n{3,}/g, '\n\n').trim();
+  };
+
+  const initRtm = () => {
+    const app = document.getElementById('rtm-app');
+    if (!app || (app as any)._rtmInit) return;
+    (app as any)._rtmInit = true;
+
+    const tabs       = app.querySelectorAll<HTMLButtonElement>('.rtm-tab');
+    const pastePanel = document.getElementById('rtm-paste-panel')!;
+    const htmlPanel  = document.getElementById('rtm-html-panel')!;
+    const richIn     = document.getElementById('rtm-rich-input')!;
+    const htmlIn     = document.getElementById('rtm-html-input') as HTMLTextAreaElement;
+    const output     = document.getElementById('rtm-output') as HTMLTextAreaElement;
+    const statsEl    = document.getElementById('rtm-stats')!;
+    const copyBtn    = document.getElementById('rtm-copy')!;
+    const clearBtn   = document.getElementById('rtm-clear')!;
+
+    let mode = 'paste';
+
+    const setMode = (m: string) => {
+      mode = m;
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === m));
+      pastePanel.classList.toggle('hidden', m !== 'paste');
+      htmlPanel.classList.toggle('hidden', m !== 'html');
+    };
+
+    tabs.forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode!)));
+
+    const setOutput = (md: string) => {
+      output.value = md;
+      const words = md.trim() ? md.trim().split(/\s+/).length : 0;
+      const lines = md.split('\n').length;
+      statsEl.textContent = md ? `${md.length} chars · ${words} words · ${lines} lines` : '';
+    };
+
+    // Rich paste handler
+    richIn.addEventListener('input', () => setOutput(htmlToMd(richIn.innerHTML)));
+    richIn.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const html = e.clipboardData?.getData('text/html');
+      const text = e.clipboardData?.getData('text/plain');
+      if (html) {
+        // Insert via execCommand to trigger input event properly
+        const range = document.getSelection()?.getRangeAt(0);
+        if (range) { range.deleteContents(); }
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        Array.from(div.childNodes).forEach(n => frag.appendChild(n.cloneNode(true)));
+        range?.insertNode(frag);
+        setOutput(htmlToMd(richIn.innerHTML));
+      } else if (text) {
+        document.execCommand('insertText', false, text);
+        setOutput(htmlToMd(richIn.innerHTML));
+      }
+    });
+
+    htmlIn.addEventListener('input', () => setOutput(htmlToMd(htmlIn.value)));
+
+    copyBtn.addEventListener('click', async () => {
+      if (!output.value) return;
+      try { await navigator.clipboard.writeText(output.value); } catch {}
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      richIn.innerHTML = ''; htmlIn.value = ''; setOutput('');
+    });
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(output.value); } catch {}
+    });
+    document.addEventListener('app:reset', () => {
+      richIn.innerHTML = ''; htmlIn.value = ''; setOutput('');
+    });
+    document.addEventListener('app:export', () => {
+      if (!output.value) return;
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([output.value], { type: 'text/markdown' })),
+        download: `converted-${new Date().toISOString().split('T')[0]}.md`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  };
+
+  initRtm();
+  document.addEventListener('astro:after-swap', initRtm);
+</script>

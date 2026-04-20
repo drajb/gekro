@@ -74,7 +74,7 @@ const apps = defineCollection({
   schema: z.object({
     title: z.string(),
     // slug is auto-derived from filename by Astro — do not add it here
-    category: z.enum(['ai', 'infra', 'ev', 'trading', 'dev', 'finance']),
+    category: z.enum(['ai', 'infra', 'ev', 'trading', 'dev', 'finance', 'fun', 'health']),
     job: z.string(),
     description: z.string(),
     aiSummary: z.string().optional(),

@@ -1,0 +1,162 @@
+---
+// Global Clock — Intl.DateTimeFormat, analog + digital, zero deps
+---
+
+<div id="gcl-app" class="space-y-6">
+
+  <!-- Hero clocks: CST + IST -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {[
+      { id: 'cst', zone: 'America/Chicago',  label: 'Chicago',  sub: 'CST / CDT', color: 'var(--color-accent)' },
+      { id: 'ist', zone: 'Asia/Kolkata',     label: 'Mumbai',   sub: 'IST (UTC+5:30)', color: '#f59e0b' },
+    ].map(c => (
+      <div class="p-5 bg-bg-surface border border-border-subtle rounded-2xl space-y-3" data-tz={c.zone} data-clock-id={c.id}>
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-base font-semibold text-text-primary">{c.label}</p>
+            <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest">{c.sub}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-0.5">Date</p>
+            <p class="gcl-date text-xs font-mono text-text-secondary"></p>
+          </div>
+        </div>
+
+        <!-- Analog clock -->
+        <div class="flex justify-center">
+          <svg class="gcl-analog" width="120" height="120" viewBox="0 0 120 120">
+            <!-- Face -->
+            <circle cx="60" cy="60" r="56" fill="var(--color-bg-elevated)" stroke="var(--color-border-subtle)" stroke-width="1.5"/>
+            <!-- Hour ticks -->
+            {Array.from({length:12}, (_,i) => {
+              const a = i*30*Math.PI/180;
+              return <line
+                x1={60+Math.sin(a)*44} y1={60-Math.cos(a)*44}
+                x2={60+Math.sin(a)*52} y2={60-Math.cos(a)*52}
+                stroke="var(--color-border)" stroke-width="1.5" stroke-linecap="round"
+              />;
+            })}
+            <!-- Hour hand -->
+            <line class="gcl-hour-hand" x1="60" y1="60" x2="60" y2="30" stroke={c.color} stroke-width="3.5" stroke-linecap="round" transform-origin="60 60"/>
+            <!-- Minute hand -->
+            <line class="gcl-min-hand" x1="60" y1="60" x2="60" y2="20" stroke={c.color} stroke-width="2" stroke-linecap="round" transform-origin="60 60" opacity="0.8"/>
+            <!-- Second hand -->
+            <line class="gcl-sec-hand" x1="60" y1="68" x2="60" y2="16" stroke="#ef4444" stroke-width="1" stroke-linecap="round" transform-origin="60 60"/>
+            <circle cx="60" cy="60" r="3" fill={c.color}/>
+            <circle cx="60" cy="60" r="1.5" fill="var(--color-bg-elevated)"/>
+          </svg>
+        </div>
+
+        <!-- Digital -->
+        <p class="gcl-time text-4xl font-heading font-bold text-center tabular-nums" style={`color:${c.color}`}></p>
+        <p class="gcl-ampm text-center text-xs font-mono text-text-muted"></p>
+      </div>
+    ))}
+  </div>
+
+  <!-- Secondary clocks grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    {[
+      { zone:'Europe/London',        label:'London',    sub:'GMT/BST'   },
+      { zone:'America/New_York',     label:'New York',  sub:'EST/EDT'   },
+      { zone:'America/Los_Angeles',  label:'Los Angeles', sub:'PST/PDT' },
+      { zone:'Asia/Tokyo',           label:'Tokyo',     sub:'JST'       },
+      { zone:'Australia/Sydney',     label:'Sydney',    sub:'AEST/AEDT' },
+      { zone:'Asia/Dubai',           label:'Dubai',     sub:'GST'       },
+      { zone:'Europe/Paris',         label:'Paris',     sub:'CET/CEST'  },
+      { zone:'Asia/Singapore',       label:'Singapore', sub:'SGT'       },
+    ].map(c => (
+      <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl" data-tz={c.zone}>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">{c.label}</p>
+        <p class="gcl-time text-xl font-heading font-semibold text-text-primary tabular-nums mt-1"></p>
+        <p class="gcl-date text-[10px] font-mono text-text-muted mt-0.5"></p>
+        <p class="gcl-offset text-[9px] font-mono text-text-muted/60 mt-0.5">{c.sub}</p>
+      </div>
+    ))}
+  </div>
+
+  <!-- UTC strip -->
+  <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl flex items-center justify-between">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">UTC / GMT</p>
+    <p id="gcl-utc" class="text-sm font-mono text-text-secondary tabular-nums"></p>
+  </div>
+
+</div>
+
+<script>
+  const initGcl = () => {
+    const app = document.getElementById('gcl-app');
+    if (!app || (app as any)._gclInit) return;
+    (app as any)._gclInit = true;
+
+    const utcEl = document.getElementById('gcl-utc')!;
+
+    const timeFmt  = (tz: string) => new Intl.DateTimeFormat('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true, timeZone:tz });
+    const timeFmt24= (tz: string) => new Intl.DateTimeFormat('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:tz });
+    const dateFmt  = (tz: string) => new Intl.DateTimeFormat('en-US', { weekday:'short', month:'short', day:'numeric', timeZone:tz });
+    const partsFmt = (tz: string) => new Intl.DateTimeFormat('en-US', { hour:'numeric', minute:'numeric', second:'numeric', hour12:false, timeZone:tz });
+
+    // Cache formatters
+    const fmtCache: Record<string, Intl.DateTimeFormat> = {};
+    const pCache:   Record<string, Intl.DateTimeFormat> = {};
+    const dCache:   Record<string, Intl.DateTimeFormat> = {};
+    const t24Cache: Record<string, Intl.DateTimeFormat> = {};
+
+    app.querySelectorAll<HTMLElement>('[data-tz]').forEach(el => {
+      const tz = el.dataset.tz!;
+      fmtCache[tz]  = timeFmt(tz);
+      pCache[tz]    = partsFmt(tz);
+      dCache[tz]    = dateFmt(tz);
+      t24Cache[tz]  = timeFmt24(tz);
+    });
+
+    const rotateHand = (el: Element | null, deg: number) => {
+      if (el) (el as SVGElement).setAttribute('transform', `rotate(${deg}, 60, 60)`);
+    };
+
+    const tick = () => {
+      const now = new Date();
+
+      // UTC strip
+      utcEl.textContent = now.toUTCString().replace(' GMT', ' UTC');
+
+      app.querySelectorAll<HTMLElement>('[data-tz]').forEach(el => {
+        const tz = el.dataset.tz!;
+        const parts = pCache[tz].formatToParts(now);
+        const get = (t: string) => parseInt(parts.find(p => p.type === t)?.value || '0');
+        const h = get('hour') % 12, m = get('minute'), s = get('second');
+        const ms = now.getMilliseconds();
+
+        const timeStr = fmtCache[tz].format(now);
+        const [timePart, ampm] = timeStr.split(' ');
+
+        // Digital display
+        const timeEl = el.querySelector<HTMLElement>('.gcl-time');
+        if (timeEl) timeEl.textContent = timePart;
+
+        const ampmEl = el.querySelector<HTMLElement>('.gcl-ampm');
+        if (ampmEl) ampmEl.textContent = ampm || '';
+
+        const dateEl = el.querySelector<HTMLElement>('.gcl-date');
+        if (dateEl) dateEl.textContent = dCache[tz].format(now);
+
+        // Analog hands - Smooth Sweep Engine
+        const hourDeg = (h + m/60 + s/3600) * 30;
+        const minDeg  = (m + s/60 + ms/60000) * 6;
+        const secDeg  = (s + ms/1000) * 6; 
+
+        rotateHand(el.querySelector('.gcl-hour-hand'), hourDeg);
+        rotateHand(el.querySelector('.gcl-min-hand'),  minDeg);
+        rotateHand(el.querySelector('.gcl-sec-hand'),  secDeg);
+      });
+      
+      (app as any)._gclFrame = requestAnimationFrame(tick);
+    };
+
+    (app as any)._gclFrame = requestAnimationFrame(tick);
+    document.addEventListener('astro:before-swap', () => cancelAnimationFrame((app as any)._gclFrame), { once: true });
+  };
+
+  initGcl();
+  document.addEventListener('astro:after-swap', initGcl);
+</script>
