@@ -104,8 +104,8 @@
   #dr-app .die-face {
     position: absolute; width: 90px; height: 90px; border-radius: 14px;
     backface-visibility: hidden; display: grid; place-items: center;
-    background: var(--color-bg-surface);
-    border: 2px solid var(--color-border-subtle);
+    background: color-mix(in srgb, var(--die-color, var(--color-border-subtle)) 8%, var(--color-bg-surface));
+    border: 2px solid color-mix(in srgb, var(--die-color, var(--color-border-subtle)) 55%, transparent);
     box-shadow: inset 0 1px 3px rgba(255,255,255,0.06), inset 0 -2px 6px rgba(0,0,0,0.35);
   }
   #dr-app .die-face.face-front  { transform: translateZ(45px); }
@@ -125,14 +125,15 @@
   #dr-app .pip.invisible { visibility: hidden; }
   #dr-app .pip.accent { background: var(--color-accent); }
 
-  /* Player name input */
+  /* Player name — looks like editable plain text, not a form input */
   #dr-app .dr-name-input {
-    background: transparent; border: none; border-bottom: 1px solid var(--color-border-subtle);
-    color: var(--color-text-muted); font-size: 0.7rem; font-family: monospace;
-    text-align: center; width: 90px; outline: none; padding: 2px 0;
-    transition: border-color 0.2s, color 0.2s;
+    background: transparent; border: none;
+    color: var(--color-text-secondary); font-size: 0.82rem; font-family: inherit;
+    text-align: center; width: 90px; outline: none; padding: 3px 6px; border-radius: 6px;
+    cursor: text; transition: background 0.15s, color 0.15s;
   }
-  #dr-app .dr-name-input:focus { border-color: var(--color-accent); color: var(--color-text-primary); }
+  #dr-app .dr-name-input:hover { background: color-mix(in srgb, var(--color-text-primary) 6%, transparent); }
+  #dr-app .dr-name-input:focus { background: color-mix(in srgb, var(--color-accent) 10%, transparent); color: var(--color-text-primary); }
 
   /* Die value display */
   #dr-app .dr-die-value {
@@ -182,10 +183,10 @@
     });
   };
 
-  const makeDieHTML = (i: number, name: string): string => `
+  const makeDieHTML = (i: number, name: string, color: string): string => `
     <div class="flex flex-col items-center gap-1" id="dr-slot-${i}">
       <input type="text" class="dr-name-input" id="dr-name-${i}" value="${name}" placeholder="Player ${i+1}" maxlength="16"/>
-      <div class="die-scene">
+      <div class="die-scene" style="--die-color:${color}">
         <div class="die-cube" id="dr-cube-${i}">
           ${FACES.map(f=>`<div class="die-face face-${f}" id="dr-face-${f}-${i}"></div>`).join('')}
         </div>
@@ -234,7 +235,7 @@
       diceCount = n;
       countBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.count||'1') === n));
 
-      tray.innerHTML = Array.from({length:n},(_,i) => makeDieHTML(i, playerNames[i] || `Player ${i+1}`)).join('');
+      tray.innerHTML = Array.from({length:n},(_,i) => makeDieHTML(i, playerNames[i] || `Player ${i+1}`, COLORS[i % COLORS.length])).join('');
       for (let i = 0; i < n; i++) setDieFaces(i, 1);
 
       resultsRow.classList.add('hidden');
@@ -290,16 +291,12 @@
         resultsRow.classList.remove('hidden');
         sumEl.textContent = String(total);
 
-        // Individual breakdown (only show labels if > 1 die)
-        if (diceCount > 1) {
-          indivEl.innerHTML = results.map((v,i) => `
-            <div class="text-center">
-              <p class="text-[9px] font-mono text-text-muted mb-0.5 truncate max-w-[80px]">${getName(i)}</p>
-              <p class="text-4xl font-heading font-bold leading-none" style="color:${COLORS[i%COLORS.length]}">${v}</p>
-            </div>`).join('');
-        } else {
-          indivEl.innerHTML = '';
-        }
+        // Always show per-player results with names
+        indivEl.innerHTML = results.map((v,i) => `
+          <div class="text-center">
+            <p class="text-[9px] font-mono text-text-muted mb-0.5 truncate max-w-[80px]">${getName(i)}</p>
+            <p class="text-4xl font-heading font-bold leading-none" style="color:${COLORS[i%COLORS.length]}">${v}</p>
+          </div>`).join('');
 
         // Stats
         totalRolls++;

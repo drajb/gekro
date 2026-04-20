@@ -28,6 +28,9 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
       spellcheck="false"
     ></textarea>
     <p class="text-xs text-text-muted">Estimate uses 4 chars ≈ 1 token (±10% for English). Actual count varies by tokenizer and content type.</p>
+    <p id="ptc-size-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-500">
+      Large input detected — markdown analysis skipped to keep the UI responsive. Token estimate is still accurate.
+    </p>
   </div>
 
   <!-- Token count hero -->
@@ -132,7 +135,9 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
     const scaleEl      = document.getElementById('ptc-scale')!;
     const mdBreakdown  = document.getElementById('ptc-md-breakdown')!;
     const mdGrid       = document.getElementById('ptc-md-grid')!;
+    const sizeWarning  = document.getElementById('ptc-size-warning')!;
 
+    const SIZE_WARN_BYTES = 500_000; // 500KB — skip regex above this threshold
     const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
 
     const countMarkdown = (text: string) => {
@@ -167,26 +172,32 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
         <p class="text-lg font-semibold text-text-primary mt-0.5">${val}</p>
       </div>`;
 
+    let debounceTimer: ReturnType<typeof setTimeout>;
     const update = () => {
       const text = inputEl.value;
       const chars = text.length;
+      const isLarge = chars > SIZE_WARN_BYTES;
+      sizeWarning.classList.toggle('hidden', !isLarge);
+
       const words = text.trim() ? text.trim().split(/\s+/).length : 0;
       const tokens = estimateTokens(text);
-      const md = countMarkdown(text);
       const paras = text.trim() ? text.trim().split(/\n\n+/).filter(p => p.trim()).length : 0;
+
+      // Skip expensive regex for large inputs to keep UI responsive
+      const md = isLarge ? { headings:0,bold:0,italic:0,codeInline:0,codeBlocks:0,links:0,lists:0,blockquote:0,total:0 } : countMarkdown(text);
 
       charsEl.textContent    = `${chars.toLocaleString()} chars`;
       wordsEl.textContent    = `${words.toLocaleString()} words`;
-      mdCharsEl.textContent  = `${md.total.toLocaleString()} md chars`;
+      mdCharsEl.textContent  = isLarge ? '—' : `${md.total.toLocaleString()} md chars`;
       parasEl.textContent    = `${paras} paragraph${paras !== 1 ? 's' : ''}`;
 
       tokenCountEl.textContent = tokens.toLocaleString();
       charCountEl.textContent  = chars.toLocaleString();
-      mdCountEl.textContent    = md.total.toLocaleString();
+      mdCountEl.textContent    = isLarge ? '—' : md.total.toLocaleString();
       paraCountEl.textContent  = paras.toLocaleString();
 
-      // Markdown breakdown panel — only show when there is markdown
-      const hasMd = md.headings + md.bold + md.italic + md.codeInline + md.codeBlocks + md.links + md.lists + md.blockquote > 0;
+      // Markdown breakdown panel — only show when there is markdown and input is manageable
+      const hasMd = !isLarge && md.headings + md.bold + md.italic + md.codeInline + md.codeBlocks + md.links + md.lists + md.blockquote > 0;
       mdBreakdown.classList.toggle('hidden', !hasMd);
       if (hasMd) {
         mdGrid.innerHTML = [
@@ -224,7 +235,16 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
         scaleCard('100 000 req/day · 30d', costPer * 100000 * 30, cheapest.label);
     };
 
-    inputEl.addEventListener('input', update);
+    inputEl.addEventListener('input', () => {
+      // For large inputs, debounce to avoid blocking the main thread on every keystroke
+      if (inputEl.value.length > SIZE_WARN_BYTES) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(update, 300);
+      } else {
+        clearTimeout(debounceTimer);
+        update();
+      }
+    });
     update();
 
     document.addEventListener('app:copy', async () => {

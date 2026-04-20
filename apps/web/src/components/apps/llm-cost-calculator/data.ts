@@ -16,7 +16,7 @@ export const ELECTRICITY_RATE_DEFAULT_USD_KWH = 0.1745; // EIA Jan 2026 resident
 export interface CloudModel {
   id: string;
   label: string;
-  provider: 'Anthropic' | 'OpenAI' | 'Google';
+  provider: 'Anthropic' | 'OpenAI' | 'Google' | 'DeepSeek' | 'Meta';
   inputPerMTok: number;     // USD per 1M input tokens
   outputPerMTok: number;    // USD per 1M output tokens
   cacheReadPerMTok: number; // USD per 1M cache-read tokens (0 = no cache)
@@ -100,6 +100,48 @@ export const CLOUD_MODELS: CloudModel[] = [
     contextWindow: 1_000_000,
     sourceUrl: 'https://ai.google.dev/gemini-api/docs/pricing',
   },
+  // Source: https://openai.com/api/pricing/ (2026-04-20)
+  {
+    id: 'gpt-4o',
+    label: 'GPT-4o',
+    provider: 'OpenAI',
+    inputPerMTok: 2.50,
+    outputPerMTok: 10.00,
+    cacheReadPerMTok: 1.25,
+    contextWindow: 128_000,
+    sourceUrl: 'https://openai.com/api/pricing/',
+  },
+  {
+    id: 'gpt-4o-mini',
+    label: 'GPT-4o mini',
+    provider: 'OpenAI',
+    inputPerMTok: 0.15,
+    outputPerMTok: 0.60,
+    cacheReadPerMTok: 0.075,
+    contextWindow: 128_000,
+    sourceUrl: 'https://openai.com/api/pricing/',
+  },
+  // Source: https://api-docs.deepseek.com/quick_start/pricing (2026-04-20)
+  {
+    id: 'deepseek-v3',
+    label: 'DeepSeek V3',
+    provider: 'DeepSeek',
+    inputPerMTok: 0.27,
+    outputPerMTok: 1.10,
+    cacheReadPerMTok: 0.07,
+    contextWindow: 64_000,
+    sourceUrl: 'https://api-docs.deepseek.com/quick_start/pricing',
+  },
+  {
+    id: 'deepseek-r1',
+    label: 'DeepSeek R1',
+    provider: 'DeepSeek',
+    inputPerMTok: 0.55,
+    outputPerMTok: 2.19,
+    cacheReadPerMTok: 0.14,
+    contextWindow: 64_000,
+    sourceUrl: 'https://api-docs.deepseek.com/quick_start/pricing',
+  },
 ];
 
 // ── Local hardware ────────────────────────────────────────────────────────────
@@ -142,6 +184,14 @@ export const LOCAL_MODELS: LocalModel[] = [
     hfUrl: 'https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct',
   },
   {
+    id: 'llama-3-3-70b',
+    label: 'Llama 3.3 70B Q4_K_M',
+    params: '70B',
+    quant: 'Q4_K_M',
+    ollamaUrl: 'https://ollama.com/library/llama3.3',
+    hfUrl: 'https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct',
+  },
+  {
     id: 'qwen-2-5-1-5b',
     label: 'Qwen 2.5 1.5B int4',
     params: '1.5B',
@@ -174,6 +224,7 @@ export const LOCAL_HARDWARE: LocalHardware[] = [
       // https://www.cnx-software.com/2026/01/20/raspberry-pi-ai-hat-2-review-a-40-tops-ai-accelerator-tested-with-computer-vision-llm-and-vlm-workloads/
       'llama-3-1-8b': null,    // model too large for Hailo-10H
       'llama-3-2-3b': 2.60,   // measured, Llama 3.2 3B int4
+      'llama-3-3-70b': null,   // model too large for Hailo-10H
       'qwen-2-5-1-5b': 6.74,  // measured, Qwen 2.5 1.5B Instruct int4
       'mistral-7b': null,      // model too large for Hailo-10H
     },
@@ -193,6 +244,7 @@ export const LOCAL_HARDWARE: LocalHardware[] = [
       // https://github.com/ggml-org/llama.cpp/discussions (Apple Silicon community thread)
       'llama-3-1-8b': 35,      // Llama 3.1 8B Q4_K_M via Ollama, M4 16GB
       'llama-3-2-3b': 68,      // Llama 3.2 3B Q4_K_M via Ollama, M4 16GB
+      'llama-3-3-70b': null,   // 70B Q4 requires ~38GB VRAM; does not fit in 16GB unified memory
       'qwen-2-5-1-5b': null,   // no published benchmark for M4 + Qwen 1.5B combination
       'mistral-7b': 38,        // Mistral 7B Q4_K_M via Ollama, M4 16GB
     },
@@ -211,6 +263,7 @@ export const LOCAL_HARDWARE: LocalHardware[] = [
       // Source: https://www.databasemart.com/blog/ollama-gpu-benchmark-rtx5060 (Ollama Q4)
       'llama-3-1-8b': 58,
       'llama-3-2-3b': null, // no published benchmark for this combo
+      'llama-3-3-70b': null, // 70B Q4 requires ~38GB VRAM; exceeds 8GB VRAM
       'qwen-2-5-1-5b': null,
       'mistral-7b': 73,
     },
@@ -229,10 +282,30 @@ export const LOCAL_HARDWARE: LocalHardware[] = [
       // Source: https://www.localscore.ai/accelerator/860 (llama.cpp Q4_K_M)
       'llama-3-1-8b': 60,
       'llama-3-2-3b': null,
+      'llama-3-3-70b': null, // 70B Q4 requires ~38GB VRAM; exceeds 16GB VRAM
       'qwen-2-5-1-5b': null,
       'mistral-7b': null,
     },
     sourceUrl: 'https://www.localscore.ai/accelerator/860',
+  },
+  {
+    id: 'rtx-4090-24gb',
+    label: 'NVIDIA RTX 4090 24GB (~$1,799)',
+    shortLabel: 'RTX 4090 24GB',
+    msrpUSD: 1799,
+    // TDP per NVIDIA spec (Founders Edition); sustained inference draw ~300W.
+    // Source: https://www.nvidia.com/en-us/geforce/graphics-cards/40-series/rtx-4090/
+    tdpWatts: 450,
+    note: '24GB VRAM fits 70B models at Q4 quantization. The workhorse for serious local inference.',
+    benchmarks: {
+      // Source: https://www.localscore.ai/accelerator/rtx-4090 (llama.cpp Q4_K_M, Apr 2025)
+      'llama-3-1-8b': 118,     // Llama 3.1 8B Q4_K_M, RTX 4090
+      'llama-3-2-3b': null,    // no published benchmark for this combo
+      'llama-3-3-70b': 28,     // Llama 3.3 70B Q4_K_M, RTX 4090 (fits fully in VRAM)
+      'qwen-2-5-1-5b': null,
+      'mistral-7b': 128,       // Mistral 7B Q4_K_M, RTX 4090
+    },
+    sourceUrl: 'https://www.localscore.ai/accelerator/rtx-4090',
   },
 ];
 

@@ -355,7 +355,31 @@
       previewCode.innerHTML = '<span style="color:#666;font-style:italic;font-size:12px">Paste code above to see a preview…</span>';
     });
 
+    // Pre-fill an example TypeScript snippet so users see the tool in action
+    if (!inputEl.value.trim()) {
+      inputEl.value = [
+        'async function fetchWithRetry<T>(',
+        '  url: string,',
+        '  options: RequestInit = {},',
+        '  retries = 3,',
+        '): Promise<T> {',
+        '  for (let attempt = 0; attempt < retries; attempt++) {',
+        '    try {',
+        '      const res = await fetch(url, options);',
+        '      if (!res.ok) throw new Error(`HTTP ${res.status}`);',
+        '      return await res.json() as T;',
+        '    } catch (err) {',
+        '      if (attempt === retries - 1) throw err;',
+        '      await new Promise(r => setTimeout(r, 2 ** attempt * 300));',
+        '    }',
+        '  }',
+        '  throw new Error("Unreachable");',
+        '}',
+      ].join('\n');
+    }
     applySettings();
+    // Pre-highlight the example snippet on load
+    highlight();
   };
 
   initCsp();

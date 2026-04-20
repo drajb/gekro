@@ -48,6 +48,7 @@ import GradientGenerator from '../../components/apps/gradient-generator/Calculat
 import ImageCompressor from '../../components/apps/image-compressor/Calculator.astro';
 import CsvToJson from '../../components/apps/csv-to-json/Calculator.astro';
 import DeviceInfo from '../../components/apps/device-info/Calculator.astro';
+import CssButtonGenerator from '../../components/apps/css-button-generator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -79,6 +80,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'image-compressor': ImageCompressor,
   'csv-to-json': CsvToJson,
   'device-info': DeviceInfo,
+  'css-button-generator': CssButtonGenerator,
 };
 
 export async function getStaticPaths() {

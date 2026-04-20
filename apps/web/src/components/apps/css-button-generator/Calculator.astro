@@ -1,0 +1,730 @@
+---
+// CSS Button Generator — Calculator.astro
+// Zero dependencies — all CSS generation is client-side string building.
+---
+
+<div id="cbg-app" class="space-y-6">
+
+  <!-- Two-column layout: controls left, preview + output right -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ── Controls ──────────────────────────────────────────────── -->
+    <div class="space-y-5">
+
+      <!-- Button text -->
+      <div class="space-y-1">
+        <label class="cbg-label">Button text</label>
+        <input id="cbg-text" type="text" value="Click me" maxlength="40"
+          class="cbg-input w-full" />
+      </div>
+
+      <!-- Background -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Background</legend>
+        <div class="flex gap-2">
+          <button class="cbg-tab-btn active" data-bg="solid">Solid</button>
+          <button class="cbg-tab-btn" data-bg="gradient">Gradient</button>
+        </div>
+        <div id="cbg-solid-row" class="flex items-center gap-3">
+          <input type="color" id="cbg-bg-color" value="#6366f1" class="cbg-color-swatch" title="Background color" />
+          <span class="text-xs font-mono text-text-muted" id="cbg-bg-color-val">#6366f1</span>
+        </div>
+        <div id="cbg-gradient-row" class="hidden space-y-2">
+          <div class="flex items-center gap-3">
+            <input type="color" id="cbg-grad-from" value="#6366f1" class="cbg-color-swatch" />
+            <span class="text-[10px] font-mono text-text-muted">→</span>
+            <input type="color" id="cbg-grad-to" value="#a855f7" class="cbg-color-swatch" />
+            <span class="text-[10px] font-mono text-text-muted" id="cbg-grad-from-val">#6366f1</span>
+            <span class="text-[10px] font-mono text-text-muted">/</span>
+            <span class="text-[10px] font-mono text-text-muted" id="cbg-grad-to-val">#a855f7</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="cbg-label shrink-0">Angle</label>
+            <input type="range" id="cbg-grad-angle" min="0" max="360" value="135" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-10 text-right" id="cbg-grad-angle-val">135°</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Text -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Text</legend>
+        <div class="flex flex-wrap gap-3">
+          <div class="flex items-center gap-2">
+            <input type="color" id="cbg-text-color" value="#ffffff" class="cbg-color-swatch" title="Text color" />
+            <span class="text-xs font-mono text-text-muted" id="cbg-text-color-val">#ffffff</span>
+          </div>
+          <select id="cbg-font-size" class="cbg-select">
+            {['12px','13px','14px','15px','16px','18px','20px','24px'].map(s => (
+              <option value={s} selected={s === '15px'}>{s}</option>
+            ))}
+          </select>
+          <select id="cbg-font-weight" class="cbg-select">
+            {[['400','Regular'],['500','Medium'],['600','Semibold'],['700','Bold'],['800','Extrabold']].map(([v,l]) => (
+              <option value={v} selected={v === '600'}>{l}</option>
+            ))}
+          </select>
+          <select id="cbg-letter-spacing" class="cbg-select">
+            {[['0em','Normal'],['0.025em','Wide'],['0.05em','Wider'],['0.1em','Widest'],['-0.025em','Tight']].map(([v,l]) => (
+              <option value={v}>{l}</option>
+            ))}
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- Padding -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Padding</legend>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] font-mono text-text-muted shrink-0">V</label>
+            <input type="range" id="cbg-pad-v" min="4" max="28" value="12" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-pad-v-val">12px</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] font-mono text-text-muted shrink-0">H</label>
+            <input type="range" id="cbg-pad-h" min="8" max="60" value="24" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-pad-h-val">24px</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Border radius -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Border radius</legend>
+        <div class="flex flex-wrap gap-2 mb-1">
+          {[['0px','Square'],['4px','Slight'],['8px','Rounded'],['12px','More'],['24px','Pill'],['9999px','Full']].map(([v,l]) => (
+            <button class="cbg-preset-btn" data-target="cbg-radius" data-value={v}>{l}</button>
+          ))}
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="range" id="cbg-radius" min="0" max="9999" value="8" class="flex-1 accent-[var(--color-accent)]" />
+          <span class="text-xs font-mono text-text-muted w-14 text-right" id="cbg-radius-val">8px</span>
+        </div>
+      </fieldset>
+
+      <!-- Border -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Border</legend>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] font-mono text-text-muted shrink-0">Width</label>
+            <input type="range" id="cbg-border-w" min="0" max="6" value="0" class="w-24 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-6" id="cbg-border-w-val">0</span>
+          </div>
+          <select id="cbg-border-style" class="cbg-select">
+            {['solid','dashed','dotted','double','outset'].map(s => (
+              <option value={s}>{s}</option>
+            ))}
+          </select>
+          <div class="flex items-center gap-2">
+            <input type="color" id="cbg-border-color" value="#ffffff" class="cbg-color-swatch" title="Border color" />
+            <span class="text-xs font-mono text-text-muted" id="cbg-border-color-val">#ffffff</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Shadow -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Box shadow</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex items-center gap-1.5">
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">X</label>
+            <input type="range" id="cbg-sh-x" min="-20" max="20" value="0" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-x-val">0px</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Y</label>
+            <input type="range" id="cbg-sh-y" min="-20" max="20" value="4" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-y-val">4px</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Blur</label>
+            <input type="range" id="cbg-sh-blur" min="0" max="40" value="12" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-blur-val">12px</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Spread</label>
+            <input type="range" id="cbg-sh-spread" min="-10" max="20" value="0" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-spread-val">0px</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <input type="color" id="cbg-sh-color" value="#000000" class="cbg-color-swatch" />
+          <div class="flex items-center gap-2 flex-1">
+            <label class="text-[10px] font-mono text-text-muted shrink-0">Opacity</label>
+            <input type="range" id="cbg-sh-opacity" min="0" max="100" value="25" class="flex-1 accent-[var(--color-accent)]" />
+            <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-opacity-val">25%</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Hover effects -->
+      <fieldset class="space-y-2">
+        <legend class="cbg-label">Hover effects</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cbg-check-label">
+            <input type="checkbox" id="cbg-hover-bg" checked class="cbg-check" />
+            Darken background
+          </label>
+          <label class="cbg-check-label">
+            <input type="checkbox" id="cbg-hover-scale" class="cbg-check" />
+            Scale up
+          </label>
+          <label class="cbg-check-label">
+            <input type="checkbox" id="cbg-hover-shadow" checked class="cbg-check" />
+            Shadow lift
+          </label>
+          <label class="cbg-check-label">
+            <input type="checkbox" id="cbg-hover-brightness" class="cbg-check" />
+            Brightness boost
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="cbg-label shrink-0">Transition</label>
+          <input type="range" id="cbg-transition" min="0" max="600" value="200" step="50" class="flex-1 accent-[var(--color-accent)]" />
+          <span class="text-xs font-mono text-text-muted w-14 text-right" id="cbg-transition-val">200ms</span>
+        </div>
+      </fieldset>
+
+      <!-- Cursor -->
+      <div class="flex items-center gap-3">
+        <label class="cbg-label shrink-0">Cursor</label>
+        <select id="cbg-cursor" class="cbg-select">
+          {['pointer','default','not-allowed','crosshair','grab','zoom-in'].map(c => (
+            <option value={c} selected={c === 'pointer'}>{c}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <!-- ── Preview + Output ───────────────────────────────────────── -->
+    <div class="space-y-5 flex flex-col">
+
+      <!-- Live preview -->
+      <div>
+        <p class="cbg-label mb-2">Preview</p>
+        <div id="cbg-preview-bg" class="rounded-xl border border-border-subtle flex items-center justify-center min-h-32 p-8 transition-colors">
+          <button id="cbg-preview-btn" style="cursor:pointer">Click me</button>
+        </div>
+        <!-- Preview background toggle -->
+        <div class="flex items-center gap-2 mt-2">
+          <p class="text-[10px] font-mono text-text-muted shrink-0">Preview bg</p>
+          <div class="flex gap-1">
+            {[['#ffffff','White'],['#1a1a2e','Dark'],['#f3f4f6','Light gray'],['#0f0f0f','Black']].map(([c,l]) => (
+              <button class="cbg-bg-swatch w-5 h-5 rounded-md border border-border-subtle hover:scale-110 transition-all"
+                data-preview-bg={c} title={l} style={`background:${c}`}></button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="space-y-2">
+        <p class="cbg-label">Quick presets</p>
+        <div class="flex flex-wrap gap-2">
+          <button class="cbg-preset-full" data-preset="primary">Primary</button>
+          <button class="cbg-preset-full" data-preset="danger">Danger</button>
+          <button class="cbg-preset-full" data-preset="ghost">Ghost</button>
+          <button class="cbg-preset-full" data-preset="gradient">Gradient</button>
+          <button class="cbg-preset-full" data-preset="glass">Glass</button>
+          <button class="cbg-preset-full" data-preset="dark">Dark</button>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="flex-1 space-y-2">
+        <div class="flex items-center justify-between">
+          <p class="cbg-label">CSS output</p>
+          <div class="flex gap-2">
+            <button id="cbg-copy-css" class="text-xs font-mono px-3 py-1 rounded-lg border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-all">Copy CSS</button>
+            <button id="cbg-copy-tw" class="text-xs font-mono px-3 py-1 rounded-lg border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary transition-all">Copy Tailwind</button>
+          </div>
+        </div>
+        <textarea id="cbg-output" rows="16" readonly spellcheck="false"
+          class="w-full h-80 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+                 text-xs font-mono text-text-primary leading-relaxed resize-none
+                 focus:outline-none"></textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style is:global>
+  /* Label */
+  #cbg-app .cbg-label {
+    font-size: 0.65rem; font-family: monospace;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  /* Input */
+  #cbg-app .cbg-input {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 10px; padding: 8px 12px;
+    font-size: 0.875rem; font-family: monospace;
+    color: var(--color-text-primary); outline: none;
+    transition: border-color 0.2s;
+  }
+  #cbg-app .cbg-input:focus { border-color: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+
+  /* Select */
+  #cbg-app .cbg-select {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px; padding: 4px 8px;
+    font-size: 0.75rem; font-family: monospace;
+    color: var(--color-text-secondary); outline: none; cursor: pointer;
+  }
+
+  /* Color swatch */
+  #cbg-app .cbg-color-swatch {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: 2px solid var(--color-border-subtle);
+    cursor: pointer; padding: 0; overflow: hidden;
+  }
+
+  /* Tab buttons */
+  #cbg-app .cbg-tab-btn {
+    padding: 5px 14px; border-radius: 8px; font-size: 0.75rem;
+    font-family: monospace; border: 1px solid var(--color-border-subtle);
+    background: transparent; color: var(--color-text-muted); cursor: pointer;
+    transition: all 0.15s;
+  }
+  #cbg-app .cbg-tab-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    color: var(--color-accent);
+  }
+
+  /* Preset buttons (small inline) */
+  #cbg-app .cbg-preset-btn {
+    padding: 3px 10px; border-radius: 6px; font-size: 0.7rem;
+    font-family: monospace; border: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-elevated); color: var(--color-text-muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  #cbg-app .cbg-preset-btn:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    color: var(--color-text-secondary);
+  }
+
+  /* Full preset buttons */
+  #cbg-app .cbg-preset-full {
+    padding: 5px 12px; border-radius: 8px; font-size: 0.75rem;
+    font-family: monospace; border: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-elevated); color: var(--color-text-muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  #cbg-app .cbg-preset-full:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    color: var(--color-text-secondary);
+  }
+
+  /* Checkbox label */
+  #cbg-app .cbg-check-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.75rem; font-family: monospace;
+    color: var(--color-text-muted); cursor: pointer; user-select: none;
+  }
+  #cbg-app .cbg-check { accent-color: var(--color-accent); width: 14px; height: 14px; cursor: pointer; }
+
+  fieldset { border: none; padding: 0; margin: 0; }
+  legend   { float: left; margin-bottom: 6px; }
+  fieldset::after { content: ''; display: block; clear: both; }
+</style>
+
+<script>
+  /* ── Helpers ────────────────────────────────────────────────────*/
+  const hexToRgb = (hex: string): [number,number,number] | null => {
+    const m = hex.replace('#','').match(/^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+    return m ? [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)] : null;
+  };
+  const rgbToHex = (r: number, g: number, b: number): string =>
+    '#' + [r,g,b].map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+  const darken = (hex: string, amount = 0.1): string => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    return rgbToHex(rgb[0]*(1-amount), rgb[1]*(1-amount), rgb[2]*(1-amount));
+  };
+  const lighten = (hex: string, amount = 0.15): string => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return hex;
+    return rgbToHex(rgb[0]+(255-rgb[0])*amount, rgb[1]+(255-rgb[1])*amount, rgb[2]+(255-rgb[2])*amount);
+  };
+  const hexToRgba = (hex: string, alpha: number): string => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return 'transparent';
+    return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha.toFixed(2)})`;
+  };
+
+  /* ── Quick presets ───────────────────────────────────────────────*/
+  interface Preset {
+    bgMode: 'solid'|'gradient'; bgColor?: string; gradFrom?: string; gradTo?: string; gradAngle?: number;
+    textColor: string; fontSize: string; fontWeight: string; letterSpacing: string;
+    padV: number; padH: number; radius: number;
+    borderW: number; borderColor: string; borderStyle: string;
+    shX: number; shY: number; shBlur: number; shSpread: number; shColor: string; shOpacity: number;
+    hoverBg: boolean; hoverScale: boolean; hoverShadow: boolean; hoverBrightness: boolean;
+    transition: number; cursor: string; text: string;
+  }
+  const PRESETS: Record<string, Partial<Preset>> = {
+    primary:  { bgMode:'solid', bgColor:'#6366f1', textColor:'#ffffff', fontSize:'15px', fontWeight:'600', letterSpacing:'0em', padV:12, padH:24, radius:8, borderW:0, shX:0, shY:4, shBlur:12, shSpread:0, shColor:'#000000', shOpacity:25, hoverBg:true, hoverScale:false, hoverShadow:true, hoverBrightness:false, transition:200, cursor:'pointer', text:'Click me' },
+    danger:   { bgMode:'solid', bgColor:'#ef4444', textColor:'#ffffff', fontSize:'15px', fontWeight:'600', letterSpacing:'0em', padV:12, padH:24, radius:8, borderW:0, shX:0, shY:4, shBlur:12, shSpread:0, shColor:'#ef4444', shOpacity:30, hoverBg:true, hoverScale:false, hoverShadow:true, hoverBrightness:false, transition:200, cursor:'pointer', text:'Delete' },
+    ghost:    { bgMode:'solid', bgColor:'#00000000', textColor:'#6366f1', fontSize:'15px', fontWeight:'500', letterSpacing:'0em', padV:10, padH:20, radius:8, borderW:2, borderColor:'#6366f1', borderStyle:'solid', shX:0, shY:0, shBlur:0, shSpread:0, shColor:'#000000', shOpacity:0, hoverBg:true, hoverScale:false, hoverShadow:false, hoverBrightness:false, transition:200, cursor:'pointer', text:'Learn more' },
+    gradient: { bgMode:'gradient', gradFrom:'#6366f1', gradTo:'#a855f7', gradAngle:135, textColor:'#ffffff', fontSize:'15px', fontWeight:'700', letterSpacing:'0.025em', padV:14, padH:28, radius:12, borderW:0, shX:0, shY:6, shBlur:20, shSpread:0, shColor:'#6366f1', shOpacity:40, hoverBg:false, hoverScale:true, hoverShadow:true, hoverBrightness:true, transition:250, cursor:'pointer', text:'Get started →' },
+    glass:    { bgMode:'solid', bgColor:'#ffffff26', textColor:'#ffffff', fontSize:'14px', fontWeight:'500', letterSpacing:'0.025em', padV:12, padH:24, radius:12, borderW:1, borderColor:'#ffffff', borderStyle:'solid', shX:0, shY:4, shBlur:16, shSpread:0, shColor:'#000000', shOpacity:15, hoverBg:true, hoverScale:false, hoverShadow:true, hoverBrightness:true, transition:200, cursor:'pointer', text:'Explore' },
+    dark:     { bgMode:'solid', bgColor:'#0f172a', textColor:'#e2e8f0', fontSize:'14px', fontWeight:'600', letterSpacing:'0.05em', padV:12, padH:28, radius:6, borderW:1, borderColor:'#334155', borderStyle:'solid', shX:0, shY:2, shBlur:8, shSpread:0, shColor:'#000000', shOpacity:30, hoverBg:false, hoverScale:false, hoverShadow:false, hoverBrightness:true, transition:150, cursor:'pointer', text:'Launch' },
+  };
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initCbg = () => {
+    const app = document.getElementById('cbg-app');
+    if (!app || (app as any)._cbgInit) return;
+    (app as any)._cbgInit = true;
+
+    const g = (id: string) => document.getElementById(id)!;
+
+    const textEl      = g('cbg-text')         as HTMLInputElement;
+    const bgColorEl   = g('cbg-bg-color')     as HTMLInputElement;
+    const bgColorVal  = g('cbg-bg-color-val');
+    const gradFromEl  = g('cbg-grad-from')    as HTMLInputElement;
+    const gradToEl    = g('cbg-grad-to')      as HTMLInputElement;
+    const gradFromVal = g('cbg-grad-from-val');
+    const gradToVal   = g('cbg-grad-to-val');
+    const gradAngleEl = g('cbg-grad-angle')   as HTMLInputElement;
+    const gradAngleVal= g('cbg-grad-angle-val');
+    const solidRow    = g('cbg-solid-row');
+    const gradientRow = g('cbg-gradient-row');
+    const textColorEl = g('cbg-text-color')   as HTMLInputElement;
+    const textColorVal= g('cbg-text-color-val');
+    const fontSizeEl  = g('cbg-font-size')    as HTMLSelectElement;
+    const fontWeightEl= g('cbg-font-weight')  as HTMLSelectElement;
+    const letterSpcEl = g('cbg-letter-spacing') as HTMLSelectElement;
+    const padVEl      = g('cbg-pad-v')        as HTMLInputElement;
+    const padVVal     = g('cbg-pad-v-val');
+    const padHEl      = g('cbg-pad-h')        as HTMLInputElement;
+    const padHVal     = g('cbg-pad-h-val');
+    const radiusEl    = g('cbg-radius')       as HTMLInputElement;
+    const radiusVal   = g('cbg-radius-val');
+    const borderWEl   = g('cbg-border-w')     as HTMLInputElement;
+    const borderWVal  = g('cbg-border-w-val');
+    const borderStyleEl = g('cbg-border-style') as HTMLSelectElement;
+    const borderColorEl = g('cbg-border-color') as HTMLInputElement;
+    const borderColorVal= g('cbg-border-color-val');
+    const shXEl       = g('cbg-sh-x')         as HTMLInputElement;
+    const shXVal      = g('cbg-sh-x-val');
+    const shYEl       = g('cbg-sh-y')         as HTMLInputElement;
+    const shYVal      = g('cbg-sh-y-val');
+    const shBlurEl    = g('cbg-sh-blur')      as HTMLInputElement;
+    const shBlurVal   = g('cbg-sh-blur-val');
+    const shSpreadEl  = g('cbg-sh-spread')    as HTMLInputElement;
+    const shSpreadVal = g('cbg-sh-spread-val');
+    const shColorEl   = g('cbg-sh-color')     as HTMLInputElement;
+    const shOpacityEl = g('cbg-sh-opacity')   as HTMLInputElement;
+    const shOpacityVal= g('cbg-sh-opacity-val');
+    const hoverBgEl   = g('cbg-hover-bg')     as HTMLInputElement;
+    const hoverScaleEl= g('cbg-hover-scale')  as HTMLInputElement;
+    const hoverShadEl = g('cbg-hover-shadow') as HTMLInputElement;
+    const hoverBrEl   = g('cbg-hover-brightness') as HTMLInputElement;
+    const transitionEl= g('cbg-transition')   as HTMLInputElement;
+    const transitionVal=g('cbg-transition-val');
+    const cursorEl    = g('cbg-cursor')       as HTMLSelectElement;
+    const previewBtn  = g('cbg-preview-btn');
+    const previewBg   = g('cbg-preview-bg');
+    const outputEl    = g('cbg-output')       as HTMLTextAreaElement;
+    const copyCssBtn  = g('cbg-copy-css');
+    const copyTwBtn   = g('cbg-copy-tw');
+    const tabBtns     = app.querySelectorAll<HTMLButtonElement>('.cbg-tab-btn');
+    const presetBtns  = app.querySelectorAll<HTMLButtonElement>('.cbg-preset-btn');
+    const fullPresets = app.querySelectorAll<HTMLButtonElement>('.cbg-preset-full');
+    const bgSwatches  = app.querySelectorAll<HTMLButtonElement>('[data-preview-bg]');
+
+    let bgMode: 'solid' | 'gradient' = 'solid';
+
+    /* ── Read current state ─────────────────────────────────────*/
+    const state = () => ({
+      text:      textEl.value || 'Button',
+      bgMode,
+      bgColor:   bgColorEl.value,
+      gradFrom:  gradFromEl.value,
+      gradTo:    gradToEl.value,
+      gradAngle: parseInt(gradAngleEl.value),
+      textColor: textColorEl.value,
+      fontSize:  fontSizeEl.value,
+      fontWeight:fontWeightEl.value,
+      letterSpacing: letterSpcEl.value,
+      padV:      parseInt(padVEl.value),
+      padH:      parseInt(padHEl.value),
+      radius:    parseInt(radiusEl.value),
+      borderW:   parseInt(borderWEl.value),
+      borderStyle: borderStyleEl.value,
+      borderColor: borderColorEl.value,
+      shX:       parseInt(shXEl.value),
+      shY:       parseInt(shYEl.value),
+      shBlur:    parseInt(shBlurEl.value),
+      shSpread:  parseInt(shSpreadEl.value),
+      shColor:   shColorEl.value,
+      shOpacity: parseInt(shOpacityEl.value),
+      hoverBg:   hoverBgEl.checked,
+      hoverScale:hoverScaleEl.checked,
+      hoverShadow:hoverShadEl.checked,
+      hoverBrightness:hoverBrEl.checked,
+      transition:parseInt(transitionEl.value),
+      cursor:    cursorEl.value,
+    });
+
+    /* ── Build CSS ──────────────────────────────────────────────*/
+    const buildCss = (s: ReturnType<typeof state>): { css: string; twApprox: string } => {
+      const bg = s.bgMode === 'gradient'
+        ? `linear-gradient(${s.gradAngle}deg, ${s.gradFrom}, ${s.gradTo})`
+        : s.bgColor;
+
+      const shadowVal = s.shX === 0 && s.shY === 0 && s.shBlur === 0 && s.shSpread === 0
+        ? 'none'
+        : `${s.shX}px ${s.shY}px ${s.shBlur}px ${s.shSpread}px ${hexToRgba(s.shColor, s.shOpacity/100)}`;
+
+      const r = s.radius >= 9999 ? '9999px' : `${s.radius}px`;
+      const border = s.borderW > 0
+        ? `${s.borderW}px ${s.borderStyle} ${s.borderColor}`
+        : 'none';
+
+      const transitions: string[] = [];
+      if (s.transition > 0) transitions.push(`all ${s.transition}ms ease`);
+
+      const normalDecl: Record<string,string> = {
+        display: 'inline-flex',
+        'align-items': 'center',
+        'justify-content': 'center',
+        background: bg,
+        color: s.textColor,
+        'font-size': s.fontSize,
+        'font-weight': s.fontWeight,
+        'letter-spacing': s.letterSpacing,
+        padding: `${s.padV}px ${s.padH}px`,
+        'border-radius': r,
+        border,
+        'box-shadow': shadowVal,
+        cursor: s.cursor,
+        'text-decoration': 'none',
+        transition: transitions.length ? transitions.join(', ') : 'none',
+        '-webkit-font-smoothing': 'antialiased',
+      };
+
+      // Build hover overrides
+      const hoverDecl: Record<string,string> = {};
+      if (s.hoverBg) {
+        if (s.bgMode === 'gradient') {
+          hoverDecl.background = `linear-gradient(${s.gradAngle}deg, ${darken(s.gradFrom)}, ${darken(s.gradTo)})`;
+        } else {
+          hoverDecl.background = darken(s.bgColor);
+        }
+      }
+      if (s.hoverScale) hoverDecl.transform = 'scale(1.04)';
+      if (s.hoverShadow && shadowVal !== 'none') {
+        hoverDecl['box-shadow'] = `${s.shX}px ${Math.max(s.shY+2,2)}px ${s.shBlur*2}px ${s.shSpread+2}px ${hexToRgba(s.shColor, Math.min(s.shOpacity/100+0.1,1))}`;
+      }
+      if (s.hoverBrightness) hoverDecl.filter = 'brightness(1.15)';
+
+      const indent = (decls: Record<string,string>, spaces = 2) =>
+        Object.entries(decls).filter(([,v]) => v !== 'none' || ['border','box-shadow','transition'].includes(''))
+          .map(([k,v]) => `${' '.repeat(spaces)}${k}: ${v};`).join('\n');
+
+      let css = `.btn {\n${indent(normalDecl)}\n}`;
+      if (Object.keys(hoverDecl).length > 0) {
+        css += `\n\n.btn:hover {\n${indent(hoverDecl)}\n}`;
+      }
+
+      // Approximate Tailwind (best-effort)
+      const tw: string[] = ['inline-flex','items-center','justify-center'];
+      if (s.bgMode === 'solid') tw.push('bg-[' + s.bgColor + ']');
+      tw.push('text-[' + s.textColor + ']');
+      tw.push('text-[' + s.fontSize + ']');
+      tw.push('font-[' + s.fontWeight + ']');
+      tw.push(`px-[${s.padH}px]`, `py-[${s.padV}px]`);
+      const knownRadii: Record<number,string> = {0:'rounded-none',4:'rounded',8:'rounded-lg',12:'rounded-xl',9999:'rounded-full'};
+      tw.push(knownRadii[s.radius] || `rounded-[${r}]`);
+      if (s.borderW > 0) tw.push(`border-[${s.borderW}px]`, `border-[${s.borderColor}]`);
+      tw.push('cursor-pointer');
+      if (s.transition > 0) tw.push('transition-all', `duration-[${s.transition}ms]`);
+      if (s.hoverScale) tw.push('hover:scale-[1.04]');
+
+      return { css, twApprox: '<button class="' + tw.join(' ') + '">\n  ' + s.text + '\n</button>' };
+    };
+
+    /* ── Apply to preview + output ──────────────────────────────*/
+    const refresh = () => {
+      const s = state();
+      const bg = s.bgMode === 'gradient'
+        ? `linear-gradient(${s.gradAngle}deg, ${s.gradFrom}, ${s.gradTo})`
+        : s.bgColor;
+      const r = s.radius >= 9999 ? '9999px' : `${s.radius}px`;
+      const shadow = s.shX === 0 && s.shY === 0 && s.shBlur === 0 && s.shSpread === 0
+        ? 'none'
+        : `${s.shX}px ${s.shY}px ${s.shBlur}px ${s.shSpread}px ${hexToRgba(s.shColor, s.shOpacity/100)}`;
+
+      Object.assign(previewBtn.style, {
+        background: bg,
+        color: s.textColor,
+        fontSize: s.fontSize,
+        fontWeight: s.fontWeight,
+        letterSpacing: s.letterSpacing,
+        padding: `${s.padV}px ${s.padH}px`,
+        borderRadius: r,
+        border: s.borderW > 0 ? `${s.borderW}px ${s.borderStyle} ${s.borderColor}` : 'none',
+        boxShadow: shadow,
+        cursor: s.cursor,
+        transition: s.transition > 0 ? `all ${s.transition}ms ease` : 'none',
+        outline: 'none',
+      });
+      previewBtn.textContent = s.text;
+
+      // Hover via mouseover/out (can't inject :hover style in inline)
+      previewBtn.onmouseover = () => {
+        if (s.hoverBg) {
+          previewBtn.style.background = s.bgMode === 'gradient'
+            ? `linear-gradient(${s.gradAngle}deg, ${darken(s.gradFrom)}, ${darken(s.gradTo)})`
+            : darken(s.bgColor);
+        }
+        if (s.hoverScale) previewBtn.style.transform = 'scale(1.04)';
+        if (s.hoverShadow && shadow !== 'none') {
+          previewBtn.style.boxShadow = `${s.shX}px ${Math.max(s.shY+2,2)}px ${s.shBlur*2}px ${s.shSpread+2}px ${hexToRgba(s.shColor, Math.min(s.shOpacity/100+0.1,1))}`;
+        }
+        if (s.hoverBrightness) previewBtn.style.filter = 'brightness(1.15)';
+      };
+      previewBtn.onmouseout = () => {
+        previewBtn.style.background = bg;
+        previewBtn.style.transform = '';
+        previewBtn.style.boxShadow = shadow;
+        previewBtn.style.filter = '';
+      };
+
+      // Update value labels
+      bgColorVal.textContent = s.bgColor;
+      gradFromVal.textContent = s.gradFrom;
+      gradToVal.textContent = s.gradTo;
+      gradAngleVal.textContent = s.gradAngle + '°';
+      textColorVal.textContent = s.textColor;
+      padVVal.textContent = s.padV + 'px';
+      padHVal.textContent = s.padH + 'px';
+      radiusVal.textContent = s.radius >= 9999 ? '∞' : s.radius + 'px';
+      borderWVal.textContent = String(s.borderW);
+      borderColorVal.textContent = s.borderColor;
+      shXVal.textContent = s.shX + 'px';
+      shYVal.textContent = s.shY + 'px';
+      shBlurVal.textContent = s.shBlur + 'px';
+      shSpreadVal.textContent = s.shSpread + 'px';
+      shOpacityVal.textContent = s.shOpacity + '%';
+      transitionVal.textContent = s.transition + 'ms';
+
+      // CSS output
+      const { css, twApprox } = buildCss(s);
+      outputEl.value = css + '\n\n/* ─── Approximate Tailwind ─── */\n' + twApprox;
+    };
+
+    /* ── Background mode toggle ─────────────────────────────────*/
+    tabBtns.forEach(btn => btn.addEventListener('click', () => {
+      bgMode = btn.dataset.bg as 'solid' | 'gradient';
+      tabBtns.forEach(b => b.classList.toggle('active', b.dataset.bg === bgMode));
+      solidRow.classList.toggle('hidden', bgMode !== 'solid');
+      gradientRow.classList.toggle('hidden', bgMode !== 'gradient');
+      refresh();
+    }));
+
+    /* ── Preset value buttons (radius) ──────────────────────────*/
+    presetBtns.forEach(btn => btn.addEventListener('click', () => {
+      const target = btn.dataset.target as string;
+      const value  = btn.dataset.value  as string;
+      const el = document.getElementById(target) as HTMLInputElement | null;
+      if (el) { el.value = value.replace('px',''); refresh(); }
+    }));
+
+    /* ── Full presets ───────────────────────────────────────────*/
+    const applyPreset = (name: string) => {
+      const p = PRESETS[name] as Preset;
+      if (!p) return;
+      if (p.bgMode) {
+        bgMode = p.bgMode;
+        tabBtns.forEach(b => b.classList.toggle('active', b.dataset.bg === bgMode));
+        solidRow.classList.toggle('hidden', bgMode !== 'solid');
+        gradientRow.classList.toggle('hidden', bgMode !== 'gradient');
+      }
+      if (p.bgColor)   bgColorEl.value    = p.bgColor;
+      if (p.gradFrom)  gradFromEl.value   = p.gradFrom;
+      if (p.gradTo)    gradToEl.value     = p.gradTo;
+      if (p.gradAngle !== undefined) gradAngleEl.value = String(p.gradAngle);
+      if (p.textColor) textColorEl.value  = p.textColor;
+      if (p.fontSize)  fontSizeEl.value   = p.fontSize;
+      if (p.fontWeight) fontWeightEl.value= p.fontWeight;
+      if (p.letterSpacing) letterSpcEl.value = p.letterSpacing;
+      if (p.padV !== undefined) padVEl.value  = String(p.padV);
+      if (p.padH !== undefined) padHEl.value  = String(p.padH);
+      if (p.radius !== undefined) radiusEl.value = String(p.radius);
+      if (p.borderW !== undefined) borderWEl.value = String(p.borderW);
+      if (p.borderColor) borderColorEl.value = p.borderColor;
+      if (p.borderStyle) borderStyleEl.value = p.borderStyle;
+      if (p.shX !== undefined) shXEl.value = String(p.shX);
+      if (p.shY !== undefined) shYEl.value = String(p.shY);
+      if (p.shBlur !== undefined) shBlurEl.value = String(p.shBlur);
+      if (p.shSpread !== undefined) shSpreadEl.value = String(p.shSpread);
+      if (p.shColor) shColorEl.value = p.shColor;
+      if (p.shOpacity !== undefined) shOpacityEl.value = String(p.shOpacity);
+      if (p.hoverBg !== undefined) hoverBgEl.checked = p.hoverBg;
+      if (p.hoverScale !== undefined) hoverScaleEl.checked = p.hoverScale;
+      if (p.hoverShadow !== undefined) hoverShadEl.checked = p.hoverShadow;
+      if (p.hoverBrightness !== undefined) hoverBrEl.checked = p.hoverBrightness;
+      if (p.transition !== undefined) transitionEl.value = String(p.transition);
+      if (p.cursor) cursorEl.value = p.cursor;
+      if (p.text)   textEl.value  = p.text;
+      refresh();
+    };
+
+    fullPresets.forEach(btn => btn.addEventListener('click', () => applyPreset(btn.dataset.preset!)));
+
+    /* ── Preview background swatches ────────────────────────────*/
+    bgSwatches.forEach(btn => btn.addEventListener('click', () => {
+      previewBg.style.background = btn.dataset.previewBg || '';
+    }));
+
+    /* ── Copy buttons ───────────────────────────────────────────*/
+    copyCssBtn.addEventListener('click', async () => {
+      const { css } = buildCss(state());
+      try { await navigator.clipboard.writeText(css); } catch {}
+      copyCssBtn.textContent = 'Copied!';
+      setTimeout(() => { copyCssBtn.textContent = 'Copy CSS'; }, 1500);
+    });
+
+    copyTwBtn.addEventListener('click', async () => {
+      const { twApprox } = buildCss(state());
+      try { await navigator.clipboard.writeText(twApprox); } catch {}
+      copyTwBtn.textContent = 'Copied!';
+      setTimeout(() => { copyTwBtn.textContent = 'Copy Tailwind'; }, 1500);
+    });
+
+    /* ── Wire all controls to refresh() ────────────────────────*/
+    const inputs = [
+      textEl, bgColorEl, gradFromEl, gradToEl, gradAngleEl,
+      textColorEl, fontSizeEl, fontWeightEl, letterSpcEl,
+      padVEl, padHEl, radiusEl, borderWEl, borderStyleEl, borderColorEl,
+      shXEl, shYEl, shBlurEl, shSpreadEl, shColorEl, shOpacityEl,
+      hoverBgEl, hoverScaleEl, hoverShadEl, hoverBrEl,
+      transitionEl, cursorEl,
+    ];
+    inputs.forEach(el => el.addEventListener('input', refresh));
+    inputs.forEach(el => el.addEventListener('change', refresh));
+
+    document.addEventListener('app:reset', () => applyPreset('primary'));
+    document.addEventListener('app:copy', async () => {
+      const { css } = buildCss(state());
+      try { await navigator.clipboard.writeText(css); } catch {}
+    });
+
+    // Initial render
+    refresh();
+  };
+
+  initCbg();
+  document.addEventListener('astro:after-swap', initCbg);
+</script>

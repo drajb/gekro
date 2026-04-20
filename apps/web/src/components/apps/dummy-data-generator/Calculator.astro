@@ -42,6 +42,7 @@
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
       <button class="ddg-fmt-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="json">JSON</button>
       <button class="ddg-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="csv">CSV</button>
+      <button class="ddg-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="xml">XML</button>
     </div>
     <button id="ddg-generate" class="px-6 py-2 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono font-semibold text-sm hover:bg-accent/30 active:scale-95 transition-all">Generate</button>
   </div>
@@ -230,10 +231,15 @@
   /* ── CSV escape ─────────────────────────────────────────────────*/
   const csvCell = (v: unknown): string => {
     const s = String(v);
-    // Quote if contains comma, quote, or newline
     if (/[,"\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
     return s;
   };
+
+  /* ── XML helpers ─────────────────────────────────────────────────*/
+  const xmlEscape = (s: string): string =>
+    s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+  const xmlTag = (name: string): string =>
+    name.replace(/[^a-zA-Z0-9_.-]/g,'_').replace(/^([^a-zA-Z_])/, '_$1');
 
   /* ── Init ───────────────────────────────────────────────────────*/
   const initDdg = () => {
@@ -253,7 +259,7 @@
     const copyBtn   = document.getElementById('ddg-copy-btn')!;
     const dlBtn     = document.getElementById('ddg-download-btn')!;
 
-    let fmt: 'json' | 'csv' = 'json';
+    let fmt: 'json' | 'csv' | 'xml' = 'json';
     let colIdCounter = 0;
     let lastOutput = '';
     let lastData: Record<string,unknown>[] = [];
@@ -329,10 +335,22 @@
       // Render output
       if (fmt === 'json') {
         lastOutput = JSON.stringify(lastData, null, 2);
-      } else {
+      } else if (fmt === 'csv') {
         const csvRows = [headers.map(csvCell).join(',')];
         for (const row of lastData) csvRows.push(headers.map(h => csvCell(row[h])).join(','));
         lastOutput = csvRows.join('\n');
+      } else {
+        const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<records>'];
+        for (const row of lastData) {
+          lines.push('  <record>');
+          for (const h of headers) {
+            const tag = xmlTag(h);
+            lines.push(`    <${tag}>${xmlEscape(String(row[h]))}</${tag}>`);
+          }
+          lines.push('  </record>');
+        }
+        lines.push('</records>');
+        lastOutput = lines.join('\n');
       }
       outEl.value = lastOutput;
       outWrap.classList.remove('hidden');
@@ -340,7 +358,7 @@
 
     /* Format toggle */
     fmtBtns.forEach(btn => btn.addEventListener('click', () => {
-      fmt = btn.dataset.fmt as 'json' | 'csv';
+      fmt = btn.dataset.fmt as 'json' | 'csv' | 'xml';
       fmtBtns.forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
     }));
 
@@ -355,7 +373,7 @@
 
     dlBtn.addEventListener('click', () => {
       if (!lastOutput) return;
-      const mime = fmt === 'json' ? 'application/json' : 'text/csv';
+      const mime = fmt === 'json' ? 'application/json' : fmt === 'csv' ? 'text/csv' : 'application/xml';
       const ext  = fmt;
       const blob = new Blob([lastOutput], { type: mime });
       const url  = URL.createObjectURL(blob);

@@ -471,9 +471,15 @@
     updateFromRgb([59, 130, 246]);
 
     hexEl.addEventListener('input', () => {
-      const rgb = hexToRgb(hexEl.value.trim());
+      const raw = hexEl.value.trim();
+      const rgb = hexToRgb(raw);
       if (rgb) { updateFromRgb(rgb, 'hex'); hexEl.style.borderColor = ''; }
       else hexEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+    });
+    // Normalize hex to #RRGGBB on blur so the field always shows the canonical form
+    hexEl.addEventListener('blur', () => {
+      const rgb = hexToRgb(hexEl.value.trim());
+      if (rgb) hexEl.value = rgbToHex(rgb).toUpperCase();
     });
 
     rgbEl.addEventListener('input', () => {
