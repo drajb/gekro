@@ -18,9 +18,9 @@
       <select id="tt-model"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
         <option value="25">Model 3 Standard Range — 25 kWh/100mi</option>
-        <option value="23" selected>Model 3 Long Range AWD — 23 kWh/100mi</option>
+        <option value="23">Model 3 Long Range AWD — 23 kWh/100mi</option>
         <option value="26">Model 3 Performance — 26 kWh/100mi</option>
-        <option value="27">Model Y Long Range — 27 kWh/100mi</option>
+        <option value="27" selected>Model Y Long Range — 27 kWh/100mi</option>
         <option value="28">Model Y Performance — 28 kWh/100mi</option>
         <option value="28s">Model S Long Range — 28 kWh/100mi</option>
         <option value="31">Model S Plaid — 31 kWh/100mi</option>
@@ -33,7 +33,7 @@
 
     <div class="space-y-1.5">
       <label for="tt-efficiency" class="text-sm font-medium text-text-secondary">Efficiency override (kWh/100mi)</label>
-      <input id="tt-efficiency" type="number" min="1" step="0.5" value="23"
+      <input id="tt-efficiency" type="number" min="1" step="0.5" value="27"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <p class="text-xs text-text-muted">Auto-filled from model. Adjust for weather, speed, load.</p>
     </div>
@@ -226,7 +226,7 @@
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     });
     document.addEventListener('app:reset', () => {
-      distEl.value = '250'; effEl.value = '23'; homeRateEl.value = '17.45'; scRateEl.value = '0.28';
+      distEl.value = '250'; effEl.value = '27'; homeRateEl.value = '17.45'; scRateEl.value = '0.28';
       const mixed = app.querySelector<HTMLInputElement>('input[value="1.15"]');
       if (mixed) mixed.checked = true;
       recalc();

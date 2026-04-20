@@ -39,10 +39,10 @@
     <!-- Rendered by JS -->
   </div>
 
-  <!-- Interest vs Principal bar -->
+  <!-- Payment composition bar -->
   <div class="space-y-2">
-    <p class="text-xs font-mono uppercase tracking-widest text-text-muted">Payment composition</p>
-    <div class="flex rounded-lg overflow-hidden h-3" id="am-bar">
+    <p class="text-xs font-mono uppercase tracking-widest text-text-muted">Payment composition (lifetime)</p>
+    <div class="flex rounded-lg overflow-hidden h-3">
       <div id="am-bar-principal" class="h-full transition-all" style="background:var(--color-accent)"></div>
       <div id="am-bar-interest" class="h-full transition-all" style="background:var(--color-text-muted)"></div>
     </div>
@@ -53,34 +53,47 @@
     </div>
   </div>
 
-  <!-- Payoff comparison (only shown when extra > 0) -->
-  <div id="am-savings-row" class="hidden p-4 bg-bg-elevated border border-accent/20 rounded-xl text-sm text-text-secondary space-y-1">
+  <!-- Payoff / savings panel — always visible -->
+  <div id="am-payoff-panel" class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
     <!-- Rendered by JS -->
   </div>
 
-  <!-- Yearly schedule -->
-  <div class="space-y-2">
-    <div class="flex items-center justify-between">
-      <p class="text-xs font-mono uppercase tracking-widest text-text-muted">Yearly schedule</p>
-      <button id="am-toggle-table" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">
-        Show full table ↓
-      </button>
+  <!-- Chart + Schedule side by side -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+
+    <!-- Balance chart -->
+    <div class="space-y-1.5">
+      <p class="text-xs font-mono uppercase tracking-widest text-text-muted px-1">Remaining balance over time</p>
+      <div class="bg-bg-surface border border-border-subtle rounded-xl p-4">
+        <svg id="am-chart" viewBox="0 0 500 210" class="w-full" style="overflow:visible;display:block;"></svg>
+      </div>
     </div>
-    <div id="am-table-wrap" class="overflow-x-auto rounded-xl border border-border-subtle">
-      <table class="w-full text-sm" id="am-table">
-        <thead>
-          <tr class="border-b border-border-subtle bg-bg-elevated">
-            <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Year</th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Principal paid</th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Interest paid</th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Balance</th>
-          </tr>
-        </thead>
-        <tbody id="am-tbody" class="divide-y divide-border-subtle">
-          <!-- Rendered by JS -->
-        </tbody>
-      </table>
+
+    <!-- Amortization schedule -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between px-1">
+        <p class="text-xs font-mono uppercase tracking-widest text-text-muted">Schedule</p>
+        <button id="am-toggle-table" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">
+          Show full month-by-month ↓
+        </button>
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-border-subtle">
+        <table class="w-full text-sm" id="am-table">
+          <thead>
+            <tr class="border-b border-border-subtle bg-bg-elevated">
+              <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted" id="am-th-period">Year</th>
+              <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Principal</th>
+              <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Interest</th>
+              <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="am-tbody" class="divide-y divide-border-subtle">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
     </div>
+
   </div>
 
 </div>
@@ -88,6 +101,13 @@
 <script>
   const fmt = (n: number, dec = 2) =>
     n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+  const fmtDuration = (months: number): string => {
+    const yrs = Math.floor(months / 12);
+    const mo  = months % 12;
+    if (mo === 0) return `${yrs} yr${yrs !== 1 ? 's' : ''}`;
+    return `${yrs} yr${yrs !== 1 ? 's' : ''} ${mo} mo`;
+  };
 
   interface YearRow { year: number; principal: number; interest: number; balance: number; }
   interface AmResult {
@@ -117,7 +137,7 @@
       month++;
       const intPart = balance * r;
       const prinPart = Math.min(monthly - intPart, balance);
-      if (prinPart <= 0) return null; // payment doesn't cover interest
+      if (prinPart <= 0) return null;
       balance = Math.max(0, balance - prinPart);
       totalInterest += intPart;
       yearPrincipal += prinPart;
@@ -127,35 +147,141 @@
         yearRows.push({ year: Math.ceil(month / 12), principal: yearPrincipal, interest: yearInterest, balance });
         yearPrincipal = 0; yearInterest = 0;
       }
-      if (month > 600) return null; // safety
+      if (month > 600) return null;
     }
 
     return { monthlyPayment: basePayment, totalInterest, totalPaid: P + totalInterest, months: month, yearRows, csvRows };
   };
 
-  const summaryCard = (label: string, value: string, sub?: string) => `
-    <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-1">
+  const summaryCard = (label: string, value: string, sub?: string, highlight = false) => `
+    <div class="p-4 ${highlight ? 'bg-accent/5 border-accent/20' : 'bg-bg-surface border-border-subtle'} border rounded-xl space-y-1">
       <p class="text-xs font-mono uppercase tracking-widest text-text-muted">${label}</p>
-      <p class="text-xl font-heading font-semibold text-text-primary">${value}</p>
+      <p class="text-xl font-heading font-semibold ${highlight ? 'text-accent' : 'text-text-primary'}">${value}</p>
       ${sub ? `<p class="text-[11px] text-text-muted">${sub}</p>` : ''}
     </div>`;
+
+  // ── SVG balance chart ────────────────────────────────────────────────────────
+
+  const renderChart = (principal: number, res: AmResult, baseRes: AmResult | null) => {
+    const svg = document.getElementById('am-chart');
+    if (!svg) return;
+
+    const W = 500, H = 210;
+    const PL = 68, PR = 12, PT = 14, PB = 36;
+    const CW = W - PL - PR;
+    const CH = H - PT - PB;
+
+    // Data: starting balance + one point per year from yearRows
+    const toPoints = (r: AmResult) => [
+      { yr: 0, bal: principal },
+      ...r.yearRows.map(row => ({ yr: row.year, bal: row.balance })),
+    ];
+    const mainPts = toPoints(res);
+    const basePts = baseRes ? toPoints(baseRes) : null;
+
+    // Scale
+    const maxYr = Math.max(res.months / 12, baseRes ? baseRes.months / 12 : 0);
+    const xS = (yr: number) => PL + (yr / maxYr) * CW;
+    const yS = (bal: number) => PT + CH * (1 - bal / principal);
+
+    // Y ticks: 5 levels
+    const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => principal * f);
+    // X ticks: sensible year intervals
+    const xInterval = maxYr <= 10 ? 2 : maxYr <= 20 ? 5 : maxYr <= 35 ? 5 : 10;
+    const xTicks: number[] = [];
+    for (let y = 0; y <= maxYr; y += xInterval) xTicks.push(y);
+    if (xTicks[xTicks.length - 1] < maxYr - 0.5) xTicks.push(Math.round(maxYr));
+
+    // Path builders
+    const polyline = (pts: { yr: number; bal: number }[]) =>
+      pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${xS(p.yr).toFixed(1)},${yS(p.bal).toFixed(1)}`).join(' ');
+
+    const areaPath = (pts: { yr: number; bal: number }[]) => {
+      const last = pts[pts.length - 1];
+      return `${polyline(pts)} L${xS(last.yr).toFixed(1)},${yS(0).toFixed(1)} L${xS(0).toFixed(1)},${yS(0).toFixed(1)} Z`;
+    };
+
+    const fmtK = (n: number) =>
+      n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M`
+      : n >= 1_000    ? `$${Math.round(n / 1_000)}k`
+      : `$${Math.round(n)}`;
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="amGradMain" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3fb1ff" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#3fb1ff" stop-opacity="0.03"/>
+        </linearGradient>
+        ${basePts ? `<linearGradient id="amGradBase" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#52525b" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#52525b" stop-opacity="0.02"/>
+        </linearGradient>` : ''}
+        <clipPath id="amClip">
+          <rect x="${PL}" y="${PT}" width="${CW}" height="${CH}"/>
+        </clipPath>
+      </defs>
+
+      <!-- Y grid + labels -->
+      ${yTicks.map(v => `
+        <line x1="${PL}" y1="${yS(v).toFixed(1)}" x2="${W - PR}" y2="${yS(v).toFixed(1)}"
+              stroke="#27272a" stroke-width="1"/>
+        <text x="${PL - 7}" y="${yS(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle"
+              font-family="monospace" font-size="10" fill="#52525b">${fmtK(v)}</text>
+      `).join('')}
+
+      <!-- X labels -->
+      ${xTicks.map(yr => `
+        <text x="${xS(yr).toFixed(1)}" y="${(PT + CH + 18).toFixed(1)}" text-anchor="middle"
+              font-family="monospace" font-size="10" fill="#52525b">yr ${yr}</text>
+      `).join('')}
+
+      <!-- Clipped content -->
+      <g clip-path="url(#amClip)">
+        ${basePts ? `
+          <path d="${areaPath(basePts)}" fill="url(#amGradBase)"/>
+          <path d="${polyline(basePts)}" fill="none" stroke="#52525b" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.7"/>
+        ` : ''}
+        <path d="${areaPath(mainPts)}" fill="url(#amGradMain)"/>
+        <path d="${polyline(mainPts)}" fill="none" stroke="#3fb1ff" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <!-- Payoff dots (outside clip so they're fully visible at axis) -->
+      ${basePts ? `<circle cx="${xS(basePts[basePts.length-1].yr).toFixed(1)}" cy="${yS(0).toFixed(1)}"
+        r="4" fill="#52525b" stroke="#121214" stroke-width="2"/>` : ''}
+      <circle cx="${xS(mainPts[mainPts.length-1].yr).toFixed(1)}" cy="${yS(0).toFixed(1)}"
+        r="5" fill="#3fb1ff" stroke="#121214" stroke-width="2"/>
+
+      <!-- Legend (only when two lines) -->
+      ${basePts ? `
+        <rect x="${PL + 6}" y="${PT + 6}" width="14" height="2.5" fill="#3fb1ff" rx="1.5"/>
+        <text x="${PL + 24}" y="${PT + 13}" font-family="monospace" font-size="9.5" fill="#a1a1aa">with extra payment</text>
+        <line x1="${PL + 6}" y1="${PT + 24}" x2="${PL + 20}" y2="${PT + 24}"
+              stroke="#52525b" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="${PL + 24}" y="${PT + 28}" font-family="monospace" font-size="9.5" fill="#71717a">standard</text>
+      ` : ''}
+    `;
+  };
+
+  // ── App init ─────────────────────────────────────────────────────────────────
 
   const initAm = () => {
     const app = document.getElementById('am-app');
     if (!app || (app as any)._amInit) return;
     (app as any)._amInit = true;
 
-    const principalEl = document.getElementById('am-principal') as HTMLInputElement;
-    const rateEl      = document.getElementById('am-rate') as HTMLInputElement;
-    const termEl      = document.getElementById('am-term') as HTMLInputElement;
-    const extraEl     = document.getElementById('am-extra') as HTMLInputElement;
-    const summaryEl   = document.getElementById('am-summary')!;
-    const tbodyEl     = document.getElementById('am-tbody')!;
-    const barPEl      = document.getElementById('am-bar-principal') as HTMLDivElement;
-    const barIEl      = document.getElementById('am-bar-interest') as HTMLDivElement;
-    const barLabel    = document.getElementById('am-bar-label')!;
-    const savingsRow  = document.getElementById('am-savings-row')!;
-    const toggleBtn   = document.getElementById('am-toggle-table') as HTMLButtonElement;
+    const principalEl  = document.getElementById('am-principal') as HTMLInputElement;
+    const rateEl       = document.getElementById('am-rate') as HTMLInputElement;
+    const termEl       = document.getElementById('am-term') as HTMLInputElement;
+    const extraEl      = document.getElementById('am-extra') as HTMLInputElement;
+    const summaryEl    = document.getElementById('am-summary')!;
+    const tbodyEl      = document.getElementById('am-tbody')!;
+    const barPEl       = document.getElementById('am-bar-principal') as HTMLDivElement;
+    const barIEl       = document.getElementById('am-bar-interest') as HTMLDivElement;
+    const barLabel     = document.getElementById('am-bar-label')!;
+    const payoffPanel  = document.getElementById('am-payoff-panel')!;
+    const toggleBtn    = document.getElementById('am-toggle-table') as HTMLButtonElement;
+    const thPeriod     = document.getElementById('am-th-period')!;
 
     let showFull = false;
     let lastResult: AmResult | null = null;
@@ -163,75 +289,100 @@
 
     toggleBtn.addEventListener('click', () => {
       showFull = !showFull;
-      toggleBtn.textContent = showFull ? 'Show yearly only ↑' : 'Show full table ↓';
+      toggleBtn.textContent = showFull ? 'Show yearly only ↑' : 'Show full month-by-month ↓';
+      thPeriod.textContent = showFull ? 'Month' : 'Year';
       if (lastResult) renderTable(lastResult, showFull);
     });
 
     const renderTable = (res: AmResult, full: boolean) => {
-      if (full) {
-        tbodyEl.innerHTML = res.csvRows.map((r, i) => `
-          <tr class="${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'}">
-            <td class="px-4 py-2 text-text-muted font-mono text-xs">${r.month}</td>
-            <td class="px-4 py-2 text-right text-text-secondary">$${fmt(r.principal)}</td>
-            <td class="px-4 py-2 text-right text-text-muted">$${fmt(r.interest)}</td>
-            <td class="px-4 py-2 text-right text-text-secondary">$${fmt(r.balance)}</td>
-          </tr>`).join('');
-      } else {
-        tbodyEl.innerHTML = res.yearRows.map((r, i) => `
-          <tr class="${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'}">
-            <td class="px-4 py-2.5 text-text-muted font-mono text-xs">${r.year}</td>
-            <td class="px-4 py-2.5 text-right text-text-secondary">$${fmt(r.principal)}</td>
-            <td class="px-4 py-2.5 text-right text-text-muted">$${fmt(r.interest)}</td>
-            <td class="px-4 py-2.5 text-right text-text-secondary">$${fmt(r.balance)}</td>
-          </tr>`).join('');
-      }
-      // Update table header for month vs year
-      const firstHeader = document.querySelector('#am-table thead th')!;
-      firstHeader.textContent = full ? 'Month' : 'Year';
+      tbodyEl.innerHTML = (full ? res.csvRows : res.yearRows).map((r, i) => {
+        const period = full ? (r as any).month : (r as any).year;
+        return `<tr class="${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'}">
+          <td class="px-4 py-2 text-text-muted font-mono text-xs">${period}</td>
+          <td class="px-4 py-2 text-right text-text-secondary text-xs">$${fmt(r.principal)}</td>
+          <td class="px-4 py-2 text-right text-text-muted text-xs">$${fmt(r.interest)}</td>
+          <td class="px-4 py-2 text-right text-text-secondary text-xs">$${fmt(r.balance)}</td>
+        </tr>`;
+      }).join('');
     };
 
     const recalc = () => {
-      const P = parseFloat(principalEl.value);
-      const rate = parseFloat(rateEl.value);
-      const term = parseFloat(termEl.value);
+      const P     = parseFloat(principalEl.value);
+      const rate  = parseFloat(rateEl.value);
+      const term  = parseFloat(termEl.value);
       const extra = parseFloat(extraEl.value) || 0;
-      lastExtra = extra;
+      lastExtra   = extra;
 
-      const res = calcAmortization(P, rate, term, extra);
+      const res  = calcAmortization(P, rate, term, extra);
+      const base = extra > 0 ? calcAmortization(P, rate, term, 0) : null;
       lastResult = res;
-      if (!res) { summaryEl.innerHTML = '<p class="text-text-muted text-sm col-span-4">Invalid inputs</p>'; return; }
 
-      // Summary cards
-      const termNote = res.months < term * 12 ? `Paid off in ${Math.ceil(res.months / 12)} yrs ${res.months % 12} mo` : '';
+      if (!res) {
+        summaryEl.innerHTML = '<p class="text-text-muted text-sm col-span-4">Invalid inputs.</p>';
+        return;
+      }
+
+      // ── Summary cards ──────────────────────────────────────────────────────
       summaryEl.innerHTML =
         summaryCard('Monthly payment', `$${fmt(res.monthlyPayment + extra)}`,
-          extra > 0 ? `Base: $${fmt(res.monthlyPayment)} + $${fmt(extra)} extra` : undefined) +
+          extra > 0 ? `Base $${fmt(res.monthlyPayment)} + $${fmt(extra)} extra` : undefined) +
         summaryCard('Total interest', `$${fmt(res.totalInterest)}`) +
-        summaryCard('Total paid', `$${fmt(res.totalPaid)}`) +
-        summaryCard('Payoff', term + ' yrs', termNote || undefined);
+        summaryCard('Total paid',     `$${fmt(res.totalPaid)}`) +
+        summaryCard('Actual payoff',  fmtDuration(res.months),
+          extra > 0 && base ? `Standard: ${fmtDuration(base.months)}` : undefined,
+          extra > 0);
 
-      // Bar
+      // ── Composition bar ────────────────────────────────────────────────────
       const pct = (P / res.totalPaid) * 100;
       barPEl.style.width = pct + '%';
       barIEl.style.width = (100 - pct) + '%';
       barLabel.textContent = `${fmt(pct, 1)}% principal · ${fmt(100 - pct, 1)}% interest`;
 
-      // Savings row (extra payment comparison)
-      if (extra > 0) {
-        const base = calcAmortization(P, rate, term, 0);
-        if (base) {
-          const savedInterest = base.totalInterest - res.totalInterest;
-          const savedMonths = base.months - res.months;
-          savingsRow.classList.remove('hidden');
-          savingsRow.innerHTML = `
-            <p class="font-medium text-text-primary">Extra payment saves you:</p>
-            <p>💰 <strong>$${fmt(savedInterest)}</strong> in total interest</p>
-            <p>📅 <strong>${Math.floor(savedMonths / 12)} years ${savedMonths % 12} months</strong> off your loan</p>`;
-        }
+      // ── Payoff panel (always visible) ──────────────────────────────────────
+      if (extra > 0 && base) {
+        const savedMonths   = base.months - res.months;
+        const savedInterest = base.totalInterest - res.totalInterest;
+        payoffPanel.style.borderColor = 'rgba(63,177,255,0.25)';
+        payoffPanel.innerHTML = `
+          <p class="text-xs font-mono uppercase tracking-widest text-text-muted mb-3">Extra payment impact</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted">Payoff with extra</p>
+              <p class="text-lg font-semibold text-accent">${fmtDuration(res.months)}</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted">Standard payoff</p>
+              <p class="text-lg font-semibold text-text-primary">${fmtDuration(base.months)}</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted">Time saved</p>
+              <p class="text-lg font-semibold text-text-primary">${fmtDuration(savedMonths)} earlier</p>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-border-subtle text-sm text-text-secondary">
+            💰 Saves <strong class="text-text-primary">$${fmt(savedInterest)}</strong> in total interest
+          </div>`;
       } else {
-        savingsRow.classList.add('hidden');
+        payoffPanel.style.borderColor = '';
+        const yrs = Math.floor(res.months / 12);
+        const mo  = res.months % 12;
+        payoffPanel.innerHTML = `
+          <p class="text-xs font-mono uppercase tracking-widest text-text-muted mb-2">Payoff timeline</p>
+          <div class="flex flex-wrap items-end gap-6">
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted">Loan paid off in</p>
+              <p class="text-2xl font-heading font-bold text-text-primary">${yrs} <span class="text-base font-normal text-text-secondary">yr${yrs !== 1 ? 's' : ''}</span> ${mo > 0 ? `${mo} <span class="text-base font-normal text-text-secondary">mo</span>` : ''}</p>
+            </div>
+            <p class="text-sm text-text-muted pb-1">
+              Add an extra monthly payment above to see how much time and interest you can save.
+            </p>
+          </div>`;
       }
 
+      // ── Chart ──────────────────────────────────────────────────────────────
+      renderChart(P, res, base);
+
+      // ── Table ──────────────────────────────────────────────────────────────
       renderTable(res, showFull);
     };
 
@@ -241,14 +392,13 @@
     });
     recalc();
 
-    // Export
+    // AppShell events
     document.addEventListener('app:export', () => {
       if (!lastResult) return;
-      const headers = 'Month,Payment,Principal,Interest,Balance';
-      const rows = lastResult.csvRows.map(r =>
-        `${r.month},${r.payment.toFixed(2)},${r.principal.toFixed(2)},${r.interest.toFixed(2)},${r.balance.toFixed(2)}`
-      );
-      const csv = [headers, ...rows].join('\n');
+      const csv = ['Month,Payment,Principal,Interest,Balance',
+        ...lastResult.csvRows.map(r =>
+          `${r.month},${r.payment.toFixed(2)},${r.principal.toFixed(2)},${r.interest.toFixed(2)},${r.balance.toFixed(2)}`)
+      ].join('\n');
       const a = Object.assign(document.createElement('a'), {
         href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
         download: `amortization-${new Date().toISOString().split('T')[0]}.csv`,
@@ -260,7 +410,7 @@
     document.addEventListener('app:copy', async () => {
       if (!lastResult) return;
       const r = lastResult;
-      const text = `Monthly payment: $${fmt(r.monthlyPayment + lastExtra)}\nTotal interest: $${fmt(r.totalInterest)}\nTotal paid: $${fmt(r.totalPaid)}`;
+      const text = `Monthly payment: $${fmt(r.monthlyPayment + lastExtra)}\nActual payoff: ${fmtDuration(r.months)}\nTotal interest: $${fmt(r.totalInterest)}\nTotal paid: $${fmt(r.totalPaid)}`;
       try { await navigator.clipboard.writeText(text); } catch {}
     });
 
