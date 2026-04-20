@@ -35,6 +35,7 @@ import CoinFlipper from '../../components/apps/coin-flipper/Calculator.astro';
 import CurrencyConverter from '../../components/apps/currency-converter/Calculator.astro';
 import GlobalClock from '../../components/apps/global-clock/Calculator.astro';
 import RichTextToMarkdown from '../../components/apps/rich-text-to-markdown/Calculator.astro';
+import DiceRoller from '../../components/apps/dice-roller/Calculator.astro';
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
   'markdown-visualizer': MarkdownVisualizer,
@@ -53,6 +54,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'currency-converter': CurrencyConverter,
   'global-clock': GlobalClock,
   'rich-text-to-markdown': RichTextToMarkdown,
+  'dice-roller': DiceRoller,
 };
 
 export async function getStaticPaths() {

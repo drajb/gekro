@@ -1,5 +1,5 @@
 ---
-// Coin Flipper — crypto.getRandomValues, CSS 3D animation, zero deps
+// Coin Flipper — crypto.getRandomValues, CSS 3D, SVG coin faces, zero deps
 ---
 
 <div id="cf-app" class="space-y-6">
@@ -8,14 +8,123 @@
   <div class="flex flex-col items-center gap-6 py-6">
     <div class="coin-scene">
       <div id="cf-coin" class="coin">
+
+        <!-- HEADS face — portrait bust -->
         <div class="coin-face coin-heads">
-          <span class="text-5xl select-none">🪙</span>
-          <p class="text-xs font-mono font-bold text-amber-300 mt-1 tracking-widest">HEADS</p>
+          <svg viewBox="0 0 120 120" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="hGold" cx="38%" cy="32%" r="65%">
+                <stop offset="0%"   stop-color="#ffe680"/>
+                <stop offset="40%"  stop-color="#e6a820"/>
+                <stop offset="100%" stop-color="#8a5c00"/>
+              </radialGradient>
+              <radialGradient id="hRim" cx="50%" cy="50%" r="50%">
+                <stop offset="84%"  stop-color="transparent"/>
+                <stop offset="88%"  stop-color="#c8860a"/>
+                <stop offset="93%"  stop-color="#7a4800"/>
+                <stop offset="100%" stop-color="#4a2c00"/>
+              </radialGradient>
+              <clipPath id="hCircle"><circle cx="60" cy="60" r="55"/></clipPath>
+            </defs>
+            <!-- Coin disc -->
+            <circle cx="60" cy="60" r="58" fill="#4a2c00"/>
+            <circle cx="60" cy="60" r="55" fill="url(#hGold)"/>
+            <!-- Rim reeded edge detail -->
+            {Array.from({length:72},(_,i)=>{
+              const a=i*5*Math.PI/180, r1=55, r2=58;
+              return i%2===0 ? null : <line
+                x1={60+Math.cos(a)*r1} y1={60+Math.sin(a)*r1}
+                x2={60+Math.cos(a)*r2} y2={60+Math.sin(a)*r2}
+                stroke="#3a2000" stroke-width="1" opacity="0.6"/>;
+            })}
+            <circle cx="60" cy="60" r="55" fill="url(#hRim)" opacity="0.5"/>
+            <!-- Inner relief ring -->
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#c8860a" stroke-width="0.8" opacity="0.6"/>
+            <!-- Portrait bust (profile facing right) -->
+            <g clip-path="url(#hCircle)" fill="#c8860a" opacity="0.85">
+              <!-- Neck & shoulders -->
+              <ellipse cx="60" cy="105" rx="22" ry="14"/>
+              <!-- Head silhouette -->
+              <ellipse cx="58" cy="68" rx="16" ry="19"/>
+              <!-- Nose bump -->
+              <ellipse cx="72" cy="66" rx="5" ry="3.5" transform="rotate(-15,72,66)"/>
+              <!-- Chin -->
+              <ellipse cx="69" cy="80" rx="6" ry="4" transform="rotate(20,69,80)"/>
+              <!-- Forehead & crown -->
+              <path d="M44 60 Q46 46 58 48 Q70 48 72 58 Q72 46 60 42 Q48 40 44 60Z"/>
+              <!-- Laurel wreath hint -->
+              <ellipse cx="50" cy="50" rx="5" ry="3" transform="rotate(-30,50,50)" opacity="0.7"/>
+              <ellipse cx="44" cy="56" rx="4" ry="2.5" transform="rotate(-50,44,56)" opacity="0.7"/>
+            </g>
+            <!-- HEADS legend -->
+            <text x="60" y="24" text-anchor="middle" font-family="Georgia,serif" font-size="7"
+                  font-weight="bold" letter-spacing="2" fill="#8a5c00">HEADS</text>
+            <!-- Highlight sheen -->
+            <ellipse cx="46" cy="44" rx="14" ry="8" fill="white" opacity="0.08" transform="rotate(-30,46,44)"/>
+          </svg>
         </div>
+
+        <!-- TAILS face — eagle / ornate reverse -->
         <div class="coin-face coin-tails">
-          <span class="text-5xl select-none">🌕</span>
-          <p class="text-xs font-mono font-bold text-amber-300 mt-1 tracking-widest">TAILS</p>
+          <svg viewBox="0 0 120 120" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="tGold" cx="62%" cy="32%" r="65%">
+                <stop offset="0%"   stop-color="#ffe680"/>
+                <stop offset="40%"  stop-color="#d49518"/>
+                <stop offset="100%" stop-color="#7a4800"/>
+              </radialGradient>
+              <clipPath id="tCircle"><circle cx="60" cy="60" r="55"/></clipPath>
+            </defs>
+            <circle cx="60" cy="60" r="58" fill="#4a2c00"/>
+            <circle cx="60" cy="60" r="55" fill="url(#tGold)"/>
+            {Array.from({length:72},(_,i)=>{
+              const a=i*5*Math.PI/180, r1=55, r2=58;
+              return i%2===0 ? null : <line
+                x1={60+Math.cos(a)*r1} y1={60+Math.sin(a)*r1}
+                x2={60+Math.cos(a)*r2} y2={60+Math.sin(a)*r2}
+                stroke="#3a2000" stroke-width="1" opacity="0.6"/>;
+            })}
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#b87818" stroke-width="0.8" opacity="0.6"/>
+            <!-- Eagle body -->
+            <g clip-path="url(#tCircle)" fill="#8a5c00" opacity="0.82">
+              <!-- Body -->
+              <ellipse cx="60" cy="70" rx="14" ry="17"/>
+              <!-- Head -->
+              <circle cx="60" cy="50" r="9"/>
+              <!-- Beak -->
+              <path d="M69 49 L74 52 L69 53Z"/>
+              <!-- Left wing -->
+              <path d="M46 65 Q30 50 36 38 Q44 55 48 62Z"/>
+              <path d="M46 65 Q26 58 28 44 Q40 58 48 64Z"/>
+              <!-- Right wing -->
+              <path d="M74 65 Q90 50 84 38 Q76 55 72 62Z"/>
+              <path d="M74 65 Q94 58 92 44 Q80 58 72 64Z"/>
+              <!-- Tail feathers -->
+              <path d="M52 86 Q60 90 68 86 Q64 80 60 82 Q56 80 52 86Z"/>
+              <path d="M48 84 Q60 92 72 84" fill="none" stroke="#8a5c00" stroke-width="2"/>
+              <!-- Talons -->
+              <path d="M54 86 L50 94 M57 87 L55 96 M63 87 L65 96 M66 86 L70 94"
+                    fill="none" stroke="#7a4800" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- Eye -->
+              <circle cx="63" cy="48" r="2" fill="#4a2c00"/>
+            </g>
+            <!-- Shield on breast -->
+            <path d="M55 68 L65 68 L65 78 Q60 82 55 78Z" fill="#c8860a" opacity="0.5" stroke="#8a5c00" stroke-width="0.5"/>
+            <!-- Stars arc -->
+            {[45,55,65,75,85,95,105,115,125].map((deg,i)=>{
+              const a=(deg-90)*Math.PI/180, r=40;
+              const sx=60+Math.cos(a)*r, sy=60+Math.sin(a)*r;
+              return i<9 ? <text x={sx} y={sy} text-anchor="middle" dominant-baseline="middle"
+                font-size="4" fill="#8a5c00" opacity="0.7">★</text> : null;
+            })}
+            <!-- TAILS legend -->
+            <text x="60" y="24" text-anchor="middle" font-family="Georgia,serif" font-size="7"
+                  font-weight="bold" letter-spacing="2" fill="#7a4800">TAILS</text>
+            <!-- Highlight sheen -->
+            <ellipse cx="74" cy="44" rx="14" ry="8" fill="white" opacity="0.08" transform="rotate(30,74,44)"/>
+          </svg>
         </div>
+
       </div>
     </div>
 
@@ -24,14 +133,12 @@
       <p id="cf-streak-text" class="text-xs font-mono text-text-muted">&nbsp;</p>
     </div>
 
-    <!-- Flip button -->
     <button id="cf-flip-btn"
       class="px-10 py-4 bg-accent/20 border border-accent/40 rounded-2xl text-accent font-mono font-bold text-lg
              hover:bg-accent/30 active:scale-95 transition-all select-none">
       Flip
     </button>
 
-    <!-- Keyboard hint -->
     <p class="text-[10px] font-mono text-text-muted">Press <kbd class="px-1.5 py-0.5 bg-bg-elevated border border-border-subtle rounded text-[10px]">Space</kbd> to flip</p>
   </div>
 
@@ -54,7 +161,7 @@
     </div>
   </div>
 
-  <!-- Streak + longest -->
+  <!-- Streak -->
   <div class="grid grid-cols-2 gap-3">
     <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
       <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Current streak</p>
@@ -83,20 +190,19 @@
 
 <style>
   .coin-scene {
-    perspective: 600px;
-    width: 140px;
-    height: 140px;
+    perspective: 700px;
+    width: 120px;
+    height: 120px;
   }
   .coin {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     position: relative;
     transform-style: preserve-3d;
     transform: rotateY(0deg);
-    transition: transform 0.05s;
   }
   .coin.flipping {
-    animation: coinFlip var(--flip-duration, 0.7s) ease-out forwards;
+    animation: coinFlip var(--flip-duration, 0.7s) cubic-bezier(0.33,0,0.3,1) forwards;
   }
   @keyframes coinFlip {
     0%   { transform: rotateY(0deg); }
@@ -107,16 +213,18 @@
     inset: 0;
     border-radius: 50%;
     backface-visibility: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at 35% 35%, #f8cc6a, #c9922a);
-    box-shadow: 0 0 0 4px #a07020, 0 8px 32px rgba(200,150,30,0.3), inset 0 2px 4px rgba(255,255,255,0.3);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 2px #7a4800,
+      0 10px 40px rgba(160,100,10,0.45),
+      inset 0 1px 2px rgba(255,255,200,0.2);
   }
   .coin-tails {
     transform: rotateY(180deg);
-    background: radial-gradient(circle at 65% 35%, #e8b840, #b07818);
+  }
+  .coin-face svg {
+    display: block;
+    border-radius: 50%;
   }
 </style>
 
@@ -174,13 +282,12 @@
     const flip = () => {
       if (flipping) return;
       flipping = true;
-      flipBtn.disabled = true;
+      (flipBtn as HTMLButtonElement).disabled = true;
 
       const isHeads = secureRand();
-      // Rotations: end on 0° (heads) or 180° (tails), with at least 3 full spins
-      const baseSpins = 3 + Math.floor(secureRand() ? 2 : 1);
-      const endAngle = isHeads ? baseSpins * 360 : baseSpins * 360 + 180;
-      const duration = 0.65 + Math.random() * 0.2;
+      const extraSpins = 3 + Math.floor(Math.random() * 3);
+      const endAngle = extraSpins * 360 + (isHeads ? 0 : 180);
+      const duration = 0.7 + Math.random() * 0.25;
 
       coin.style.setProperty('--flip-end', endAngle + 'deg');
       coin.style.setProperty('--flip-duration', duration + 's');
@@ -189,11 +296,11 @@
       setTimeout(() => {
         coin.classList.remove('flipping');
         coin.style.transform = `rotateY(${endAngle % 360}deg)`;
-        resultText.textContent = isHeads ? '🪙 Heads!' : '🌕 Tails!';
-        resultText.style.color = isHeads ? 'var(--color-accent)' : 'var(--color-accent-warm, #f59e0b)';
+        resultText.textContent = isHeads ? 'Heads!' : 'Tails!';
+        resultText.style.color = 'var(--color-accent)';
         recordFlip(isHeads);
         flipping = false;
-        flipBtn.disabled = false;
+        (flipBtn as HTMLButtonElement).disabled = false;
       }, duration * 1000 + 50);
     };
 
@@ -214,7 +321,7 @@
         for (let i = 0; i < n; i++) { if (secureRand()) h++; }
         const t = n - h;
         heads += h; tails += t;
-        curStreak = 0; curSide = ''; // reset streak after bulk
+        curStreak = 0; curSide = '';
         updateStats();
         multiResult.textContent = `${n.toLocaleString()} flips: ${h.toLocaleString()} heads (${(h/n*100).toFixed(1)}%), ${t.toLocaleString()} tails (${(t/n*100).toFixed(1)}%)`;
       });
