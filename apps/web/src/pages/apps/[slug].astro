@@ -20,11 +20,23 @@ import AppShell from '../../components/apps/AppShell.astro';
 import LLMCostCalculator from '../../components/apps/llm-cost-calculator/Calculator.astro';
 import MarkdownVisualizer from '../../components/apps/markdown-visualizer/Calculator.astro';
 import VoiceTranscriber from '../../components/apps/voice-transcriber/Calculator.astro';
+import AmortizationCalculator from '../../components/apps/amortization-calculator/Calculator.astro';
+import RegexPlayground from '../../components/apps/regex-playground/Calculator.astro';
+import CronBuilder from '../../components/apps/cron-builder/Calculator.astro';
+import PromptTokenCounter from '../../components/apps/prompt-token-counter/Calculator.astro';
+import TeslaTripCalculator from '../../components/apps/tesla-trip-calculator/Calculator.astro';
+import PositionSizer from '../../components/apps/position-sizer/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
   'markdown-visualizer': MarkdownVisualizer,
   'voice-transcriber': VoiceTranscriber,
+  'amortization-calculator': AmortizationCalculator,
+  'regex-playground': RegexPlayground,
+  'cron-builder': CronBuilder,
+  'prompt-token-counter': PromptTokenCounter,
+  'tesla-trip-calculator': TeslaTripCalculator,
+  'position-sizer': PositionSizer,
 };
 
 export async function getStaticPaths() {

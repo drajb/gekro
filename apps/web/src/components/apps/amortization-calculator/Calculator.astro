@@ -1,0 +1,275 @@
+---
+// Amortization Calculator — pure client-side math, no deps
+---
+
+<div id="am-app" class="space-y-6">
+
+  <!-- Inputs -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <div class="space-y-1.5">
+      <label for="am-principal" class="text-sm font-medium text-text-secondary">Loan amount ($)</label>
+      <input id="am-principal" type="number" min="0" step="1000" value="300000"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="am-rate" class="text-sm font-medium text-text-secondary">Annual interest rate (%)</label>
+      <input id="am-rate" type="number" min="0" max="30" step="0.01" value="6.5"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="am-term" class="text-sm font-medium text-text-secondary">Loan term (years)</label>
+      <input id="am-term" type="number" min="1" max="50" step="1" value="30"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="am-extra" class="text-sm font-medium text-text-secondary">Extra monthly payment ($)</label>
+      <input id="am-extra" type="number" min="0" step="50" value="0"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <p class="text-xs text-text-muted">Additional principal per month. Reduces term and total interest.</p>
+    </div>
+
+  </div>
+
+  <!-- Summary cards -->
+  <div id="am-summary" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Interest vs Principal bar -->
+  <div class="space-y-2">
+    <p class="text-xs font-mono uppercase tracking-widest text-text-muted">Payment composition</p>
+    <div class="flex rounded-lg overflow-hidden h-3" id="am-bar">
+      <div id="am-bar-principal" class="h-full transition-all" style="background:var(--color-accent)"></div>
+      <div id="am-bar-interest" class="h-full transition-all" style="background:var(--color-text-muted)"></div>
+    </div>
+    <div class="flex items-center gap-4 text-[11px] font-mono text-text-muted">
+      <span><span style="color:var(--color-accent)">■</span> Principal</span>
+      <span><span style="color:var(--color-text-muted)">■</span> Interest</span>
+      <span id="am-bar-label" class="ml-auto"></span>
+    </div>
+  </div>
+
+  <!-- Payoff comparison (only shown when extra > 0) -->
+  <div id="am-savings-row" class="hidden p-4 bg-bg-elevated border border-accent/20 rounded-xl text-sm text-text-secondary space-y-1">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Yearly schedule -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <p class="text-xs font-mono uppercase tracking-widest text-text-muted">Yearly schedule</p>
+      <button id="am-toggle-table" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">
+        Show full table ↓
+      </button>
+    </div>
+    <div id="am-table-wrap" class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-sm" id="am-table">
+        <thead>
+          <tr class="border-b border-border-subtle bg-bg-elevated">
+            <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Year</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Principal paid</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Interest paid</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Balance</th>
+          </tr>
+        </thead>
+        <tbody id="am-tbody" class="divide-y divide-border-subtle">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fmt = (n: number, dec = 2) =>
+    n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+  interface YearRow { year: number; principal: number; interest: number; balance: number; }
+  interface AmResult {
+    monthlyPayment: number;
+    totalInterest: number;
+    totalPaid: number;
+    months: number;
+    yearRows: YearRow[];
+    csvRows: { month: number; payment: number; principal: number; interest: number; balance: number }[];
+  }
+
+  const calcAmortization = (P: number, annualRate: number, termYears: number, extraMonthly: number): AmResult | null => {
+    if (P <= 0 || termYears <= 0 || annualRate < 0) return null;
+    const r = annualRate / 100 / 12;
+    const n = termYears * 12;
+    const basePayment = r === 0 ? P / n : P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    const monthly = basePayment + extraMonthly;
+
+    let balance = P;
+    let totalInterest = 0;
+    let month = 0;
+    const yearRows: YearRow[] = [];
+    const csvRows: AmResult['csvRows'] = [];
+    let yearPrincipal = 0, yearInterest = 0;
+
+    while (balance > 0.005) {
+      month++;
+      const intPart = balance * r;
+      const prinPart = Math.min(monthly - intPart, balance);
+      if (prinPart <= 0) return null; // payment doesn't cover interest
+      balance = Math.max(0, balance - prinPart);
+      totalInterest += intPart;
+      yearPrincipal += prinPart;
+      yearInterest += intPart;
+      csvRows.push({ month, payment: prinPart + intPart, principal: prinPart, interest: intPart, balance });
+      if (month % 12 === 0 || balance < 0.005) {
+        yearRows.push({ year: Math.ceil(month / 12), principal: yearPrincipal, interest: yearInterest, balance });
+        yearPrincipal = 0; yearInterest = 0;
+      }
+      if (month > 600) return null; // safety
+    }
+
+    return { monthlyPayment: basePayment, totalInterest, totalPaid: P + totalInterest, months: month, yearRows, csvRows };
+  };
+
+  const summaryCard = (label: string, value: string, sub?: string) => `
+    <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-1">
+      <p class="text-xs font-mono uppercase tracking-widest text-text-muted">${label}</p>
+      <p class="text-xl font-heading font-semibold text-text-primary">${value}</p>
+      ${sub ? `<p class="text-[11px] text-text-muted">${sub}</p>` : ''}
+    </div>`;
+
+  const initAm = () => {
+    const app = document.getElementById('am-app');
+    if (!app || (app as any)._amInit) return;
+    (app as any)._amInit = true;
+
+    const principalEl = document.getElementById('am-principal') as HTMLInputElement;
+    const rateEl      = document.getElementById('am-rate') as HTMLInputElement;
+    const termEl      = document.getElementById('am-term') as HTMLInputElement;
+    const extraEl     = document.getElementById('am-extra') as HTMLInputElement;
+    const summaryEl   = document.getElementById('am-summary')!;
+    const tbodyEl     = document.getElementById('am-tbody')!;
+    const barPEl      = document.getElementById('am-bar-principal') as HTMLDivElement;
+    const barIEl      = document.getElementById('am-bar-interest') as HTMLDivElement;
+    const barLabel    = document.getElementById('am-bar-label')!;
+    const savingsRow  = document.getElementById('am-savings-row')!;
+    const toggleBtn   = document.getElementById('am-toggle-table') as HTMLButtonElement;
+
+    let showFull = false;
+    let lastResult: AmResult | null = null;
+    let lastExtra = 0;
+
+    toggleBtn.addEventListener('click', () => {
+      showFull = !showFull;
+      toggleBtn.textContent = showFull ? 'Show yearly only ↑' : 'Show full table ↓';
+      if (lastResult) renderTable(lastResult, showFull);
+    });
+
+    const renderTable = (res: AmResult, full: boolean) => {
+      if (full) {
+        tbodyEl.innerHTML = res.csvRows.map((r, i) => `
+          <tr class="${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'}">
+            <td class="px-4 py-2 text-text-muted font-mono text-xs">${r.month}</td>
+            <td class="px-4 py-2 text-right text-text-secondary">$${fmt(r.principal)}</td>
+            <td class="px-4 py-2 text-right text-text-muted">$${fmt(r.interest)}</td>
+            <td class="px-4 py-2 text-right text-text-secondary">$${fmt(r.balance)}</td>
+          </tr>`).join('');
+      } else {
+        tbodyEl.innerHTML = res.yearRows.map((r, i) => `
+          <tr class="${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'}">
+            <td class="px-4 py-2.5 text-text-muted font-mono text-xs">${r.year}</td>
+            <td class="px-4 py-2.5 text-right text-text-secondary">$${fmt(r.principal)}</td>
+            <td class="px-4 py-2.5 text-right text-text-muted">$${fmt(r.interest)}</td>
+            <td class="px-4 py-2.5 text-right text-text-secondary">$${fmt(r.balance)}</td>
+          </tr>`).join('');
+      }
+      // Update table header for month vs year
+      const firstHeader = document.querySelector('#am-table thead th')!;
+      firstHeader.textContent = full ? 'Month' : 'Year';
+    };
+
+    const recalc = () => {
+      const P = parseFloat(principalEl.value);
+      const rate = parseFloat(rateEl.value);
+      const term = parseFloat(termEl.value);
+      const extra = parseFloat(extraEl.value) || 0;
+      lastExtra = extra;
+
+      const res = calcAmortization(P, rate, term, extra);
+      lastResult = res;
+      if (!res) { summaryEl.innerHTML = '<p class="text-text-muted text-sm col-span-4">Invalid inputs</p>'; return; }
+
+      // Summary cards
+      const termNote = res.months < term * 12 ? `Paid off in ${Math.ceil(res.months / 12)} yrs ${res.months % 12} mo` : '';
+      summaryEl.innerHTML =
+        summaryCard('Monthly payment', `$${fmt(res.monthlyPayment + extra)}`,
+          extra > 0 ? `Base: $${fmt(res.monthlyPayment)} + $${fmt(extra)} extra` : undefined) +
+        summaryCard('Total interest', `$${fmt(res.totalInterest)}`) +
+        summaryCard('Total paid', `$${fmt(res.totalPaid)}`) +
+        summaryCard('Payoff', term + ' yrs', termNote || undefined);
+
+      // Bar
+      const pct = (P / res.totalPaid) * 100;
+      barPEl.style.width = pct + '%';
+      barIEl.style.width = (100 - pct) + '%';
+      barLabel.textContent = `${fmt(pct, 1)}% principal · ${fmt(100 - pct, 1)}% interest`;
+
+      // Savings row (extra payment comparison)
+      if (extra > 0) {
+        const base = calcAmortization(P, rate, term, 0);
+        if (base) {
+          const savedInterest = base.totalInterest - res.totalInterest;
+          const savedMonths = base.months - res.months;
+          savingsRow.classList.remove('hidden');
+          savingsRow.innerHTML = `
+            <p class="font-medium text-text-primary">Extra payment saves you:</p>
+            <p>💰 <strong>$${fmt(savedInterest)}</strong> in total interest</p>
+            <p>📅 <strong>${Math.floor(savedMonths / 12)} years ${savedMonths % 12} months</strong> off your loan</p>`;
+        }
+      } else {
+        savingsRow.classList.add('hidden');
+      }
+
+      renderTable(res, showFull);
+    };
+
+    [principalEl, rateEl, termEl, extraEl].forEach(el => {
+      el.addEventListener('input', recalc);
+      el.addEventListener('change', recalc);
+    });
+    recalc();
+
+    // Export
+    document.addEventListener('app:export', () => {
+      if (!lastResult) return;
+      const headers = 'Month,Payment,Principal,Interest,Balance';
+      const rows = lastResult.csvRows.map(r =>
+        `${r.month},${r.payment.toFixed(2)},${r.principal.toFixed(2)},${r.interest.toFixed(2)},${r.balance.toFixed(2)}`
+      );
+      const csv = [headers, ...rows].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `amortization-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastResult) return;
+      const r = lastResult;
+      const text = `Monthly payment: $${fmt(r.monthlyPayment + lastExtra)}\nTotal interest: $${fmt(r.totalInterest)}\nTotal paid: $${fmt(r.totalPaid)}`;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    document.addEventListener('app:reset', () => {
+      principalEl.value = '300000'; rateEl.value = '6.5'; termEl.value = '30'; extraEl.value = '0';
+      recalc();
+    });
+  };
+
+  initAm();
+  document.addEventListener('astro:after-swap', initAm);
+</script>

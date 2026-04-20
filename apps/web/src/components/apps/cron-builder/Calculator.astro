@@ -1,0 +1,324 @@
+---
+// Cron Expression Builder — zero deps, pure JS cron parsing
+---
+
+<div id="cron-app" class="space-y-5">
+
+  <!-- Expression input -->
+  <div class="space-y-2">
+    <label class="text-sm font-medium text-text-secondary">Cron expression (5 fields)</label>
+    <div class="flex items-center gap-0">
+      <input
+        id="cron-input"
+        type="text"
+        value="0 9 * * 1-5"
+        class="flex-1 bg-bg-elevated border border-border-subtle rounded-l-xl px-4 py-3 text-lg font-mono
+               text-text-primary focus:outline-none focus:border-accent/40 transition-colors"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder="* * * * *"
+      />
+      <div id="cron-valid-badge"
+        class="px-4 py-3 rounded-r-xl border border-l-0 border-border-subtle bg-bg-elevated
+               text-sm font-mono text-text-muted transition-all">
+        —
+      </div>
+    </div>
+    <!-- Field labels -->
+    <div class="grid text-[10px] font-mono text-text-muted px-1" style="grid-template-columns: repeat(5, 1fr); max-width: 400px;">
+      <span>minute</span><span>hour</span><span>day</span><span>month</span><span>weekday</span>
+    </div>
+  </div>
+
+  <!-- Presets -->
+  <div class="flex flex-wrap gap-2">
+    <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted self-center">Presets:</span>
+    {[
+      { label: 'Every minute',  expr: '* * * * *' },
+      { label: 'Every hour',    expr: '0 * * * *' },
+      { label: 'Daily 9 AM',    expr: '0 9 * * *' },
+      { label: 'Weekdays 9 AM', expr: '0 9 * * 1-5' },
+      { label: 'Every 15 min',  expr: '*/15 * * * *' },
+      { label: 'Monday midnight', expr: '0 0 * * 1' },
+      { label: 'Monthly 1st',   expr: '0 0 1 * *' },
+      { label: 'Quarterly',     expr: '0 0 1 1,4,7,10 *' },
+      { label: 'Yearly Jan 1',  expr: '0 0 1 1 *' },
+    ].map(p => (
+      <button
+        data-cron={p.expr}
+        class="cron-preset px-2.5 py-1 text-[10px] font-mono border border-border rounded-full
+               text-text-muted hover:border-accent/40 hover:text-accent transition-all"
+      >{p.label}</button>
+    ))}
+  </div>
+
+  <!-- Human-readable description -->
+  <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">Plain English</p>
+    <p id="cron-description" class="text-base text-text-primary font-medium leading-relaxed">—</p>
+  </div>
+
+  <!-- Field breakdown -->
+  <div id="cron-fields" class="grid grid-cols-1 sm:grid-cols-5 gap-2">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Next run times -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Next 10 run times (local time)</p>
+    <div id="cron-next-runs" class="space-y-1">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+  type FieldDef = { name: string; min: number; max: number; names?: string[] };
+  const FIELDS: FieldDef[] = [
+    { name: 'minute',  min: 0, max: 59 },
+    { name: 'hour',    min: 0, max: 23 },
+    { name: 'day',     min: 1, max: 31 },
+    { name: 'month',   min: 1, max: 12, names: ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'] },
+    { name: 'weekday', min: 0, max: 7,  names: ['SUN','MON','TUE','WED','THU','FRI','SAT','SUN'] },
+  ];
+
+  const DOW_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MON_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const parseCronField = (field: string, def: FieldDef): number[] | null => {
+    let f = field.toUpperCase();
+    if (def.names) {
+      def.names.forEach((n, i) => { f = f.replace(new RegExp(n, 'g'), String(def.min + i)); });
+    }
+    const result = new Set<number>();
+    for (const part of f.split(',')) {
+      if (part === '*') {
+        for (let i = def.min; i <= def.max; i++) result.add(i);
+      } else if (/^\*\/\d+$/.test(part)) {
+        const step = parseInt(part.slice(2));
+        if (step <= 0) return null;
+        for (let i = def.min; i <= def.max; i += step) result.add(i);
+      } else if (/^\d+-\d+\/\d+$/.test(part)) {
+        const [rangePart, stepStr] = part.split('/');
+        const [a, b] = rangePart.split('-').map(Number);
+        const step = parseInt(stepStr);
+        if (step <= 0) return null;
+        for (let i = a; i <= Math.min(b, def.max); i += step) result.add(i);
+      } else if (/^\d+-\d+$/.test(part)) {
+        const [a, b] = part.split('-').map(Number);
+        for (let i = a; i <= Math.min(b, def.max); i++) result.add(i);
+      } else if (/^\d+$/.test(part)) {
+        result.add(parseInt(part));
+      } else {
+        return null;
+      }
+    }
+    // Validate
+    for (const v of result) { if (v < def.min || v > def.max) return null; }
+    return [...result].sort((a, b) => a - b);
+  };
+
+  const describeCron = (parts: string[], parsed: number[][]): string => {
+    const [minF, hourF, domF, monF, dowF] = parts;
+    const [mins, hours, doms, mons, dows] = parsed;
+
+    // Normalize dows (7 → 0)
+    const dowNorm = [...new Set(dows.map(d => d === 7 ? 0 : d))].sort((a, b) => a - b);
+
+    const isAll = (f: string) => f === '*';
+    const isEveryN = (f: string) => /^\*\/(\d+)$/.test(f);
+    const everyN = (f: string) => parseInt(f.slice(2));
+    const isOne = (arr: number[]) => arr.length === 1;
+
+    // Every minute
+    if (isAll(minF) && isAll(hourF) && isAll(domF) && isAll(monF) && isAll(dowF))
+      return 'Every minute';
+
+    // Every N minutes (all hours, all days)
+    if (isEveryN(minF) && isAll(hourF) && isAll(domF) && isAll(monF) && isAll(dowF))
+      return `Every ${everyN(minF)} minutes`;
+
+    // Hourly at specific minute
+    if (isOne(mins) && isAll(hourF) && isAll(domF) && isAll(monF) && isAll(dowF)) {
+      if (mins[0] === 0) return 'Every hour';
+      return `Every hour at minute ${mins[0]}`;
+    }
+
+    // Every N hours
+    if (isEveryN(hourF) && isOne(mins) && isAll(domF) && isAll(monF) && isAll(dowF)) {
+      const h = everyN(hourF);
+      return `Every ${h} hours${mins[0] > 0 ? ` at minute ${mins[0]}` : ''}`;
+    }
+
+    const timeStr = () => {
+      if (!isOne(hours) || !isOne(mins)) return null;
+      const h = hours[0], m = mins[0];
+      const ampm = h < 12 ? 'AM' : 'PM';
+      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      return `${h12}:${m.toString().padStart(2,'0')} ${ampm}`;
+    };
+
+    const time = timeStr();
+
+    // Daily at time
+    if (time && isAll(domF) && isAll(monF) && isAll(dowF))
+      return `Daily at ${time}`;
+
+    // Weekdays at time
+    if (time && isAll(domF) && isAll(monF) && dowF === '1-5')
+      return `Weekdays (Mon–Fri) at ${time}`;
+
+    // Weekends at time
+    if (time && isAll(domF) && isAll(monF) && (dowF === '0,6' || dowF === '6,0'))
+      return `Weekends at ${time}`;
+
+    // Specific weekday
+    if (time && isAll(domF) && isAll(monF) && isOne(dowNorm))
+      return `Every ${DOW_NAMES[dowNorm[0]]} at ${time}`;
+
+    // Multiple weekdays
+    if (time && isAll(domF) && isAll(monF) && dowNorm.length > 1 && dowNorm.length < 7) {
+      const days = dowNorm.map(d => DOW_NAMES[d].slice(0, 3)).join(', ');
+      return `Every ${days} at ${time}`;
+    }
+
+    // Monthly on dom at time
+    if (time && isOne(doms) && isAll(monF) && isAll(dowF)) {
+      const suffix = doms[0] === 1 ? 'st' : doms[0] === 2 ? 'nd' : doms[0] === 3 ? 'rd' : 'th';
+      return `Monthly on the ${doms[0]}${suffix} at ${time}`;
+    }
+
+    // Specific month
+    if (time && isOne(doms) && isOne(mons) && isAll(dowF)) {
+      const suffix = doms[0] === 1 ? 'st' : doms[0] === 2 ? 'nd' : doms[0] === 3 ? 'rd' : 'th';
+      return `Annually on ${MON_NAMES[mons[0] - 1]} ${doms[0]}${suffix} at ${time}`;
+    }
+
+    // Generic fallback
+    const parts2: string[] = [];
+    if (!isAll(minF)) parts2.push(`minute ${minF}`);
+    if (!isAll(hourF)) parts2.push(`hour ${hourF}`);
+    if (!isAll(domF)) parts2.push(`day ${domF}`);
+    if (!isAll(monF)) parts2.push(`month ${monF}`);
+    if (!isAll(dowF)) parts2.push(`weekday ${dowF}`);
+    return `At ${parts2.join(', ')}`;
+  };
+
+  const getNextRuns = (parsed: (number[] | null)[], count: number): Date[] => {
+    if (parsed.some(p => p === null)) return [];
+    const [mins, hours, doms, mons, dows] = parsed as number[][];
+    const dowSet = new Set(dows.map(d => d === 7 ? 0 : d));
+    const runs: Date[] = [];
+
+    const now = new Date();
+    const cur = new Date(now);
+    cur.setSeconds(0, 0);
+    cur.setMinutes(cur.getMinutes() + 1);
+
+    const limit = new Date(now);
+    limit.setFullYear(limit.getFullYear() + 4);
+
+    while (cur < limit && runs.length < count) {
+      const mo = cur.getMonth() + 1;
+      const d = cur.getDate();
+      const h = cur.getHours();
+      const mi = cur.getMinutes();
+      const dow = cur.getDay();
+
+      if (mons.includes(mo) && doms.includes(d) && dowSet.has(dow) && hours.includes(h) && mins.includes(mi))
+        runs.push(new Date(cur));
+
+      cur.setMinutes(cur.getMinutes() + 1);
+    }
+    return runs;
+  };
+
+  const fieldDesc = (name: string, vals: number[] | null, field: string, def: FieldDef): string => {
+    if (!vals) return `<div class="p-2 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-mono text-red-400">${name}<br><span>Invalid</span></div>`;
+    let summary = '';
+    if (field === '*') summary = 'every';
+    else if (/^\*\/\d+$/.test(field)) summary = `every ${field.slice(2)}`;
+    else if (vals.length === 1) summary = String(vals[0]);
+    else summary = `${vals.length} values`;
+    return `<div class="p-2 bg-bg-surface border border-border-subtle rounded-lg text-xs font-mono">
+      <span class="text-text-muted block">${name}</span>
+      <span class="text-text-primary font-medium">${field === '*' ? '*' : field}</span>
+      <span class="text-text-muted block text-[10px]">${summary}</span>
+    </div>`;
+  };
+
+  const initCron = () => {
+    const app = document.getElementById('cron-app');
+    if (!app || (app as any)._cronInit) return;
+    (app as any)._cronInit = true;
+
+    const inputEl  = document.getElementById('cron-input') as HTMLInputElement;
+    const badgeEl  = document.getElementById('cron-valid-badge')!;
+    const descEl   = document.getElementById('cron-description')!;
+    const fieldsEl = document.getElementById('cron-fields')!;
+    const runsEl   = document.getElementById('cron-next-runs')!;
+
+    app.querySelectorAll<HTMLButtonElement>('.cron-preset').forEach(btn => {
+      btn.addEventListener('click', () => { inputEl.value = btn.dataset.cron!; run(); });
+    });
+
+    const run = () => {
+      const parts = inputEl.value.trim().split(/\s+/);
+      if (parts.length !== 5) {
+        badgeEl.textContent = '✗ Need 5 fields';
+        badgeEl.style.color = 'var(--color-accent-danger)';
+        descEl.textContent = '—';
+        fieldsEl.innerHTML = '';
+        runsEl.innerHTML = '';
+        return;
+      }
+
+      const parsed = parts.map((p, i) => parseCronField(p, FIELDS[i]));
+      const valid = parsed.every(p => p !== null);
+
+      badgeEl.textContent = valid ? '✓ Valid' : '✗ Invalid';
+      badgeEl.style.color = valid ? 'var(--color-accent)' : 'var(--color-accent-danger)';
+
+      fieldsEl.innerHTML = parts.map((p, i) => fieldDesc(FIELDS[i].name, parsed[i], p, FIELDS[i])).join('');
+
+      if (!valid) { descEl.textContent = 'Fix the invalid fields above.'; runsEl.innerHTML = ''; return; }
+
+      descEl.textContent = describeCron(parts, parsed as number[][]);
+
+      const runs = getNextRuns(parsed, 10);
+      runsEl.innerHTML = runs.length
+        ? runs.map((d, i) => `
+            <div class="flex items-center gap-3 px-3 py-2 ${i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'} rounded-lg text-xs font-mono">
+              <span class="text-text-muted w-4">${i + 1}</span>
+              <span class="text-text-primary">${d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+              <span class="text-accent ml-auto">${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+            </div>`).join('')
+        : '<p class="text-text-muted text-sm">No runs found in the next 4 years.</p>';
+    };
+
+    inputEl.addEventListener('input', run);
+    run();
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(inputEl.value); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const runs = runsEl.querySelectorAll('.flex.items-center');
+      const csv = ['#,Date,Time', ...[...runs].map((r, i) => {
+        const spans = r.querySelectorAll('span');
+        return `${i + 1},"${spans[1]?.textContent}","${spans[2]?.textContent}"`;
+      })].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `cron-runs-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    document.addEventListener('app:reset', () => { inputEl.value = '* * * * *'; run(); });
+  };
+
+  initCron();
+  document.addEventListener('astro:after-swap', initCron);
+</script>

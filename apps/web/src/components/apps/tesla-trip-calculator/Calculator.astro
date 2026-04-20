@@ -1,0 +1,238 @@
+---
+// Tesla Trip Cost Calculator — EPA efficiency data, zero deps
+---
+
+<div id="tesla-app" class="space-y-6">
+
+  <!-- Inputs -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <div class="space-y-1.5">
+      <label for="tt-distance" class="text-sm font-medium text-text-secondary">Trip distance (miles)</label>
+      <input id="tt-distance" type="number" min="1" step="10" value="250"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="tt-model" class="text-sm font-medium text-text-secondary">Tesla model</label>
+      <select id="tt-model"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
+        <option value="25">Model 3 Standard Range — 25 kWh/100mi</option>
+        <option value="23" selected>Model 3 Long Range AWD — 23 kWh/100mi</option>
+        <option value="26">Model 3 Performance — 26 kWh/100mi</option>
+        <option value="27">Model Y Long Range — 27 kWh/100mi</option>
+        <option value="28">Model Y Performance — 28 kWh/100mi</option>
+        <option value="28s">Model S Long Range — 28 kWh/100mi</option>
+        <option value="31">Model S Plaid — 31 kWh/100mi</option>
+        <option value="34">Model X Long Range — 34 kWh/100mi</option>
+        <option value="37">Model X Plaid — 37 kWh/100mi</option>
+        <option value="44">Cybertruck AWD — 44 kWh/100mi</option>
+        <option value="40">Cybertruck Foundation Series — 40 kWh/100mi</option>
+      </select>
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="tt-efficiency" class="text-sm font-medium text-text-secondary">Efficiency override (kWh/100mi)</label>
+      <input id="tt-efficiency" type="number" min="1" step="0.5" value="23"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <p class="text-xs text-text-muted">Auto-filled from model. Adjust for weather, speed, load.</p>
+    </div>
+
+    <div class="space-y-1.5">
+      <label class="text-sm font-medium text-text-secondary">Conditions adjustment</label>
+      <div class="flex gap-2">
+        {[
+          { id: 'cond-ideal', val: '1.0', label: 'Ideal' },
+          { id: 'cond-mixed', val: '1.15', label: 'Mixed', checked: true },
+          { id: 'cond-cold', val: '1.35', label: 'Cold/Highway' },
+        ].map(o => (
+          <label class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-bg-elevated border border-border-subtle rounded-lg cursor-pointer text-xs font-mono text-text-muted hover:border-accent/40 transition-all has-[:checked]:border-accent/40 has-[:checked]:text-accent">
+            <input type="radio" name="tt-cond" value={o.val} checked={o.id === 'cond-mixed'} class="sr-only" />
+            {o.label}
+          </label>
+        ))}
+      </div>
+      <p class="text-[10px] text-text-muted">Cold/Highway applies ~35% penalty to EPA rating.</p>
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="tt-home-rate" class="text-sm font-medium text-text-secondary">Home electricity (¢/kWh)</label>
+      <input id="tt-home-rate" type="number" min="0" step="0.5" value="17.45"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="tt-sc-rate" class="text-sm font-medium text-text-secondary">Supercharger rate ($/kWh)</label>
+      <input id="tt-sc-rate" type="number" min="0" step="0.01" value="0.28"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <p class="text-xs text-text-muted">Varies by location. Check the Tesla app for your area.</p>
+    </div>
+
+  </div>
+
+  <!-- Results -->
+  <div id="tesla-results" class="space-y-4">
+    <!-- Rendered by JS -->
+  </div>
+
+</div>
+
+<script>
+  const fmt = (n: number, dec = 2) =>
+    n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+  const fmtTime = (hours: number): string => {
+    if (hours < 1/60) return '<1 min';
+    if (hours < 1) {
+      const m = Math.round(hours * 60);
+      return `${m} min`;
+    }
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+  };
+
+  const resultCard = (label: string, value: string, sub?: string, highlight = false) => `
+    <div class="p-4 ${highlight ? 'bg-accent/5 border-accent/20' : 'bg-bg-surface border-border-subtle'} border rounded-xl space-y-1">
+      <p class="text-xs font-mono uppercase tracking-widest text-text-muted">${label}</p>
+      <p class="text-xl font-heading font-semibold ${highlight ? 'text-accent' : 'text-text-primary'}">${value}</p>
+      ${sub ? `<p class="text-[11px] text-text-muted">${sub}</p>` : ''}
+    </div>`;
+
+  const initTesla = () => {
+    const app = document.getElementById('tesla-app');
+    if (!app || (app as any)._teslaInit) return;
+    (app as any)._teslaInit = true;
+
+    const distEl      = document.getElementById('tt-distance') as HTMLInputElement;
+    const modelEl     = document.getElementById('tt-model') as HTMLSelectElement;
+    const effEl       = document.getElementById('tt-efficiency') as HTMLInputElement;
+    const homeRateEl  = document.getElementById('tt-home-rate') as HTMLInputElement;
+    const scRateEl    = document.getElementById('tt-sc-rate') as HTMLInputElement;
+    const resultsEl   = document.getElementById('tesla-results')!;
+
+    // Sync model → efficiency
+    modelEl.addEventListener('change', () => {
+      const val = modelEl.value.replace(/[a-z]/gi, match => match === match.toLowerCase() ? '' : match);
+      effEl.value = modelEl.value.replace(/[a-zA-Z]/g, '');
+      recalc();
+    });
+
+    const getEff = () => parseFloat(modelEl.value.replace(/[a-zA-Z]/g, '')) || parseFloat(effEl.value);
+
+    const getCondMultiplier = (): number => {
+      const checked = app.querySelector<HTMLInputElement>('input[name="tt-cond"]:checked');
+      return parseFloat(checked?.value ?? '1.15');
+    };
+
+    const recalc = () => {
+      const miles = parseFloat(distEl.value);
+      const baseEff = getEff();
+      const cond = getCondMultiplier();
+      const eff = baseEff * cond; // adjusted kWh/100mi
+      const homeRate = parseFloat(homeRateEl.value) / 100; // $/kWh
+      const scRate = parseFloat(scRateEl.value); // $/kWh
+
+      if (isNaN(miles) || miles <= 0 || isNaN(eff) || eff <= 0) {
+        resultsEl.innerHTML = '<p class="text-text-muted text-sm">Enter valid distance and efficiency.</p>';
+        return;
+      }
+
+      const kWh = (miles * eff) / 100;
+      const homeCost = kWh * homeRate;
+      const scCost = kWh * scRate;
+
+      // Charge times
+      const l1kW = 1.4;  // L1 120V
+      const l2kW = 11.5; // L2 240V/48A
+      const scV3kW = 250; // Supercharger V3 peak (used for 10-80% estimate)
+
+      const l1Hours = kWh / l1kW;
+      const l2Hours = kWh / l2kW;
+      // Supercharger: roughly 0.7× of peak due to taper — conservative estimate
+      const scHours = kWh / (scV3kW * 0.55);
+
+      const savings = scCost - homeCost;
+
+      resultsEl.innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          ${resultCard('Energy needed', `${fmt(kWh, 1)} kWh`, `${fmt(eff, 1)} kWh/100mi adjusted`, true)}
+          ${resultCard('Home charge cost', `$${fmt(homeCost)}`, `at ${fmt(homeRate * 100, 2)} ¢/kWh`)}
+          ${resultCard('Supercharger cost', `$${fmt(scCost)}`, `at $${fmt(scRate, 2)}/kWh`)}
+        </div>
+        <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Charge time breakdown</p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted font-mono">L1 (120V / 1.4 kW)</p>
+              <p class="text-text-primary font-semibold">${fmtTime(l1Hours)}</p>
+              <p class="text-[10px] text-text-muted">~5 mi/hr added</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted font-mono">L2 (240V / 11.5 kW)</p>
+              <p class="text-text-primary font-semibold">${fmtTime(l2Hours)}</p>
+              <p class="text-[10px] text-text-muted">~37 mi/hr added</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-xs text-text-muted font-mono">Supercharger V3 (est.)</p>
+              <p class="text-text-primary font-semibold">${fmtTime(scHours)}</p>
+              <p class="text-[10px] text-text-muted">10–80% est., tapers after 80%</p>
+            </div>
+          </div>
+        </div>
+        ${savings > 0 ? `
+          <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl text-sm text-text-secondary">
+            💡 Charging at home saves <strong class="text-text-primary">$${fmt(savings)}</strong> vs Supercharger for this trip.
+          </div>` : ''}`;
+    };
+
+    [distEl, effEl, homeRateEl, scRateEl].forEach(el => el.addEventListener('input', recalc));
+    app.querySelectorAll('input[name="tt-cond"]').forEach(el => el.addEventListener('change', recalc));
+    recalc();
+
+    document.addEventListener('app:copy', async () => {
+      const miles = parseFloat(distEl.value);
+      const eff = getEff() * getCondMultiplier();
+      const kWh = (miles * eff) / 100;
+      const homeRate = parseFloat(homeRateEl.value) / 100;
+      const scRate = parseFloat(scRateEl.value);
+      const text = `Tesla Trip: ${miles} miles\nEnergy: ${fmt(kWh, 1)} kWh\nHome cost: $${fmt(kWh * homeRate)}\nSupercharger cost: $${fmt(kWh * scRate)}`;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const miles = parseFloat(distEl.value);
+      const baseEff = getEff();
+      const cond = getCondMultiplier();
+      const eff = baseEff * cond;
+      const kWh = (miles * eff) / 100;
+      const homeRate = parseFloat(homeRateEl.value) / 100;
+      const scRate = parseFloat(scRateEl.value);
+      const csv = [
+        'Parameter,Value',
+        `Distance (miles),${miles}`,
+        `Base efficiency (kWh/100mi),${baseEff}`,
+        `Adjusted efficiency (kWh/100mi),${fmt(eff)}`,
+        `Energy needed (kWh),${fmt(kWh, 3)}`,
+        `Home electricity rate ($/kWh),${homeRate}`,
+        `Home charging cost ($),${fmt(kWh * homeRate)}`,
+        `Supercharger rate ($/kWh),${scRate}`,
+        `Supercharger cost ($),${fmt(kWh * scRate)}`,
+      ].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `tesla-trip-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    document.addEventListener('app:reset', () => {
+      distEl.value = '250'; effEl.value = '23'; homeRateEl.value = '17.45'; scRateEl.value = '0.28';
+      const mixed = app.querySelector<HTMLInputElement>('input[value="1.15"]');
+      if (mixed) mixed.checked = true;
+      recalc();
+    });
+  };
+
+  initTesla();
+  document.addEventListener('astro:after-swap', initTesla);
+</script>

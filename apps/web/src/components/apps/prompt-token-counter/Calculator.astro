@@ -1,0 +1,190 @@
+---
+import { CLOUD_MODELS } from '../llm-cost-calculator/data';
+---
+
+<div id="ptc-app" class="space-y-5">
+
+  <!-- Prompt textarea -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between">
+      <label for="ptc-input" class="text-sm font-medium text-text-secondary">Prompt / message content</label>
+      <div class="flex items-center gap-3 text-[11px] font-mono text-text-muted">
+        <span id="ptc-chars">0 chars</span>
+        <span class="opacity-30">·</span>
+        <span id="ptc-words">0 words</span>
+      </div>
+    </div>
+    <textarea
+      id="ptc-input"
+      rows="8"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="Paste your system prompt, user message, or full conversation here…"
+      spellcheck="false"
+    ></textarea>
+    <p class="text-xs text-text-muted">Estimate uses 4 chars ≈ 1 token (±10% for English). Actual count varies by tokenizer and content type.</p>
+  </div>
+
+  <!-- Token count hero -->
+  <div class="p-5 bg-bg-elevated border border-accent/20 rounded-xl flex flex-wrap items-end gap-6">
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Estimated tokens</p>
+      <p id="ptc-token-count" class="text-4xl font-heading font-bold text-accent">0</p>
+    </div>
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Characters</p>
+      <p id="ptc-char-count" class="text-2xl font-heading font-semibold text-text-primary">0</p>
+    </div>
+    <div class="ml-auto text-right">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Method</p>
+      <p class="text-sm font-mono text-text-secondary">chars ÷ 4</p>
+    </div>
+  </div>
+
+  <!-- Per-model cost table -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input cost per model (single request)</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-subtle bg-bg-elevated">
+            <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Model</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Input cost</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Context used</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Rate / 1M tok</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border-subtle" id="ptc-tbody">
+          {CLOUD_MODELS.map((m, i) => (
+            <tr class={i % 2 === 0 ? 'bg-bg-surface' : 'bg-bg-elevated'} data-model-id={m.id}>
+              <td class="px-4 py-2.5">
+                <span class="font-medium text-text-secondary">{m.label}</span>
+                <span class="ml-2 text-xs text-text-muted font-mono">{m.provider}</span>
+              </td>
+              <td class="px-4 py-2.5 text-right font-mono text-text-primary ptc-cost">$0.000000</td>
+              <td class="px-4 py-2.5 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <div class="w-16 h-1.5 bg-bg-elevated rounded-full overflow-hidden border border-border-subtle">
+                    <div class="h-full rounded-full ptc-ctx-bar transition-all" style="width:0%;background:var(--color-accent)"></div>
+                  </div>
+                  <span class="font-mono text-text-muted text-xs ptc-ctx-pct w-10 text-right">0%</span>
+                </div>
+              </td>
+              <td class="px-4 py-2.5 text-right font-mono text-xs text-text-muted">${m.inputPerMTok.toFixed(2)}/M</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-[10px] font-mono text-text-muted px-1">
+      Prices from official provider pages. Last verified: 2026-04-19.
+    </p>
+  </div>
+
+  <!-- Cost at scale -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Cost at scale (this prompt, per model cheapest)</p>
+    <div id="ptc-scale" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+  import { CLOUD_MODELS } from '../llm-cost-calculator/data';
+
+  const initPtc = () => {
+    const app = document.getElementById('ptc-app');
+    if (!app || (app as any)._ptcInit) return;
+    (app as any)._ptcInit = true;
+
+    const inputEl     = document.getElementById('ptc-input') as HTMLTextAreaElement;
+    const tokenCountEl = document.getElementById('ptc-token-count')!;
+    const charCountEl = document.getElementById('ptc-char-count')!;
+    const charsEl     = document.getElementById('ptc-chars')!;
+    const wordsEl     = document.getElementById('ptc-words')!;
+    const scaleEl     = document.getElementById('ptc-scale')!;
+
+    const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
+
+    const fmtCost = (n: number): string => {
+      if (n === 0) return '$0.000000';
+      if (n < 0.0001) return `$${n.toExponential(2)}`;
+      return `$${n.toFixed(6)}`;
+    };
+
+    const scaleCard = (label: string, cost: number, model: string) => `
+      <div class="p-3 bg-bg-surface border border-border-subtle rounded-xl space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-wider text-text-muted">${label}</p>
+        <p class="text-lg font-heading font-semibold text-text-primary">${fmtCost(cost)}</p>
+        <p class="text-[10px] text-text-muted">via ${model}</p>
+      </div>`;
+
+    const update = () => {
+      const text = inputEl.value;
+      const chars = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const tokens = estimateTokens(text);
+
+      charsEl.textContent = `${chars.toLocaleString()} chars`;
+      wordsEl.textContent = `${words.toLocaleString()} words`;
+      tokenCountEl.textContent = tokens.toLocaleString();
+      charCountEl.textContent = chars.toLocaleString();
+
+      // Update each model row
+      CLOUD_MODELS.forEach(model => {
+        const row = app.querySelector(`[data-model-id="${model.id}"]`);
+        if (!row) return;
+        const cost = (tokens * model.inputPerMTok) / 1_000_000;
+        const ctxPct = Math.min((tokens / model.contextWindow) * 100, 100);
+        (row.querySelector('.ptc-cost') as HTMLElement).textContent = fmtCost(cost);
+        (row.querySelector('.ptc-ctx-bar') as HTMLElement).style.width = ctxPct.toFixed(2) + '%';
+        (row.querySelector('.ptc-ctx-pct') as HTMLElement).textContent =
+          ctxPct < 0.01 ? '<0.01%' : ctxPct.toFixed(ctxPct < 1 ? 2 : 1) + '%';
+        // Colour bar red if > 80%
+        (row.querySelector('.ptc-ctx-bar') as HTMLElement).style.background =
+          ctxPct > 80 ? 'var(--color-accent-danger)' : ctxPct > 50 ? 'var(--color-accent-warm)' : 'var(--color-accent)';
+      });
+
+      // Scale cards — cheapest model overall
+      const cheapest = [...CLOUD_MODELS].sort((a, b) => a.inputPerMTok - b.inputPerMTok)[0];
+      const costPer = (tokens * cheapest.inputPerMTok) / 1_000_000;
+      scaleEl.innerHTML =
+        scaleCard('100 requests/day', costPer * 100 * 30, cheapest.label) +
+        scaleCard('1 000 req/day', costPer * 1000 * 30, cheapest.label) +
+        scaleCard('10 000 req/day', costPer * 10000 * 30, cheapest.label) +
+        scaleCard('100 000 req/day', costPer * 100000 * 30, cheapest.label);
+      scaleEl.querySelectorAll('.p-3 > p:nth-child(3)').forEach(el => {
+        (el as HTMLElement).textContent = `(${cheapest.label}, 30 days)`;
+      });
+    };
+
+    inputEl.addEventListener('input', update);
+    update();
+
+    document.addEventListener('app:copy', async () => {
+      const tokens = estimateTokens(inputEl.value);
+      try { await navigator.clipboard.writeText(`~${tokens} tokens`); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const rows = CLOUD_MODELS.map(m => {
+        const tokens = estimateTokens(inputEl.value);
+        const cost = (tokens * m.inputPerMTok) / 1_000_000;
+        return `${m.label},${m.provider},${tokens},${cost.toFixed(8)}`;
+      });
+      const csv = ['Model,Provider,EstTokens,InputCostUSD', ...rows].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `token-estimate-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    document.addEventListener('app:reset', () => { inputEl.value = ''; update(); });
+  };
+
+  initPtc();
+  document.addEventListener('astro:after-swap', initPtc);
+</script>

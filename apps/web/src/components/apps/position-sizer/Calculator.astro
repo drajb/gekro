@@ -1,0 +1,257 @@
+---
+// Position Sizer — Kelly criterion + fixed-risk models, zero deps
+---
+
+<div id="ps-app" class="space-y-6">
+
+  <!-- Inputs -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <div class="space-y-1.5">
+      <label for="ps-account" class="text-sm font-medium text-text-secondary">Account size ($)</label>
+      <input id="ps-account" type="number" min="100" step="1000" value="50000"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="ps-winrate" class="text-sm font-medium text-text-secondary">Win rate (%)</label>
+      <input id="ps-winrate" type="number" min="1" max="99" step="0.5" value="55"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <p class="text-xs text-text-muted">Your historical win rate for this specific setup.</p>
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="ps-rr" class="text-sm font-medium text-text-secondary">Reward/Risk ratio (R)</label>
+      <input id="ps-rr" type="number" min="0.1" step="0.1" value="2.0"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <p class="text-xs text-text-muted">Average winner ÷ average loser. Use realized R from your trade log.</p>
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="ps-fixed-pct" class="text-sm font-medium text-text-secondary">Fixed-risk % (for comparison)</label>
+      <input id="ps-fixed-pct" type="number" min="0.1" max="10" step="0.25" value="2"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+  </div>
+
+  <!-- Results: 3 model cards -->
+  <div id="ps-results" class="space-y-3">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Edge indicator -->
+  <div id="ps-edge-wrap" class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">Edge analysis</p>
+    <div id="ps-edge-content" class="text-sm text-text-secondary space-y-1">—</div>
+  </div>
+
+  <!-- 50-trade equity simulation -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">50-trade equity simulation</p>
+      <button id="ps-resim" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">
+        ↻ Resimulate
+      </button>
+    </div>
+    <div id="ps-sim-chart" class="overflow-x-auto">
+      <!-- Rendered by JS -->
+    </div>
+    <p class="text-[10px] text-text-muted px-1">Each run is a random sample of 50 trades with your win rate. Illustrative only.</p>
+  </div>
+
+</div>
+
+<style>
+  .ps-equity-bar {
+    display: inline-block;
+    height: 24px;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    min-width: 2px;
+  }
+</style>
+
+<script>
+  const fmt = (n: number, dec = 0) =>
+    n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  const fmtPct = (n: number) => (n * 100).toFixed(2) + '%';
+
+  interface ModelResult {
+    name: string;
+    fraction: number;
+    riskDollars: number;
+    shares?: number;
+    color: string;
+    warning?: string;
+  }
+
+  const initPs = () => {
+    const app = document.getElementById('ps-app');
+    if (!app || (app as any)._psInit) return;
+    (app as any)._psInit = true;
+
+    const accountEl  = document.getElementById('ps-account') as HTMLInputElement;
+    const winrateEl  = document.getElementById('ps-winrate') as HTMLInputElement;
+    const rrEl       = document.getElementById('ps-rr') as HTMLInputElement;
+    const fixedEl    = document.getElementById('ps-fixed-pct') as HTMLInputElement;
+    const resultsEl  = document.getElementById('ps-results')!;
+    const edgeEl     = document.getElementById('ps-edge-content')!;
+    const simEl      = document.getElementById('ps-sim-chart')!;
+    const resimBtn   = document.getElementById('ps-resim')!;
+
+    const resultCard = (m: ModelResult) => `
+      <div class="p-5 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <p class="text-xs font-mono uppercase tracking-widest text-text-muted">${m.name}</p>
+            <p class="text-2xl font-heading font-bold" style="color:${m.color}">${fmtPct(m.fraction)}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-text-muted">Risk per trade</p>
+            <p class="text-lg font-semibold text-text-primary">$${fmt(m.riskDollars)}</p>
+          </div>
+        </div>
+        <div class="w-full h-1.5 bg-bg-elevated rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all" style="width:${Math.min(m.fraction * 100 / 0.25, 100)}%;background:${m.color}"></div>
+        </div>
+        ${m.warning ? `<p class="text-xs text-amber-400">⚠ ${m.warning}</p>` : ''}
+      </div>`;
+
+    let lastModels: ModelResult[] = [];
+
+    const simulate = (models: ModelResult[], account: number, winRate: number, rr: number) => {
+      if (!models.length) return;
+      const trades = 50;
+      const rows: string[] = [];
+      rows.push(`<div class="flex gap-px min-w-0 overflow-x-auto pb-1" style="min-height:80px;align-items:flex-end;">`);
+
+      models.forEach((m, mi) => {
+        let equity = account;
+        const bars: number[] = [equity];
+        for (let t = 0; t < trades; t++) {
+          const win = Math.random() < winRate;
+          const risk = equity * m.fraction;
+          equity += win ? risk * rr : -risk;
+          equity = Math.max(0, equity);
+          bars.push(equity);
+        }
+        const maxEq = Math.max(...bars);
+        const minEq = Math.min(...bars);
+        const range = maxEq - minEq || 1;
+        const barHtml = bars.map((b, i) => {
+          const h = Math.max(4, Math.round(((b - minEq) / range) * 60) + 4);
+          const color = b >= account ? m.color : 'var(--color-accent-danger)';
+          return `<div style="width:4px;height:${h}px;background:${color};border-radius:1px;" title="Trade ${i}: $${fmt(b)}"></div>`;
+        }).join('');
+        const finalReturn = ((equity / account - 1) * 100).toFixed(1);
+        rows.push(`
+          <div class="shrink-0 mr-4">
+            <p class="text-[9px] font-mono text-text-muted mb-1">${m.name.split('(')[0].trim()}</p>
+            <div class="flex gap-px items-end">${barHtml}</div>
+            <p class="text-[9px] font-mono mt-1" style="color:${equity >= account ? m.color : 'var(--color-accent-danger)'}">
+              ${equity >= account ? '+' : ''}${finalReturn}%
+            </p>
+          </div>`);
+      });
+      rows.push('</div>');
+      simEl.innerHTML = rows.join('');
+    };
+
+    const recalc = () => {
+      const account = parseFloat(accountEl.value);
+      const p = parseFloat(winrateEl.value) / 100;
+      const b = parseFloat(rrEl.value);
+      const fixedPct = parseFloat(fixedEl.value) / 100;
+
+      if (isNaN(account) || isNaN(p) || isNaN(b) || p <= 0 || p >= 1 || b <= 0) {
+        resultsEl.innerHTML = '<p class="text-text-muted text-sm">Enter valid inputs.</p>';
+        return;
+      }
+
+      const q = 1 - p;
+      const kelly = (b * p - q) / b;
+      const halfKelly = kelly / 2;
+
+      // Expected value per unit risked
+      const ev = p * b - q;
+
+      // Edge info
+      const edgeStr = ev >= 0
+        ? `Positive edge: <strong class="text-text-primary">${(ev * 100).toFixed(2)}%</strong> expected gain per unit risked. Kelly-optimal bet: <strong class="text-text-primary">${fmtPct(Math.max(0, kelly))}</strong>.`
+        : `<span class="text-red-400">Negative edge: ${(ev * 100).toFixed(2)}% per unit risked. Do not trade this setup — optimal bet size is 0.</span>`;
+      edgeEl.innerHTML = edgeStr;
+
+      const models: ModelResult[] = [];
+
+      if (kelly > 0) {
+        models.push({
+          name: `Full Kelly (${fmtPct(kelly)})`,
+          fraction: kelly,
+          riskDollars: account * kelly,
+          color: 'var(--color-accent)',
+          warning: kelly > 0.25 ? 'Full Kelly is extremely volatile — drawdowns of 50%+ are common. Use Half-Kelly.' : undefined,
+        });
+        models.push({
+          name: `Half-Kelly (${fmtPct(halfKelly)})`,
+          fraction: halfKelly,
+          riskDollars: account * halfKelly,
+          color: '#22c55e',
+        });
+      } else {
+        edgeEl.innerHTML = `<span class="text-red-400">Negative edge. Expected value per trade: ${(ev * 100).toFixed(2)}%. Kelly prescribes 0 — do not trade.</span>`;
+      }
+
+      models.push({
+        name: `Fixed ${(fixedPct * 100).toFixed(2)}% risk`,
+        fraction: fixedPct,
+        riskDollars: account * fixedPct,
+        color: 'var(--color-accent-warm)',
+      });
+
+      lastModels = models;
+      resultsEl.innerHTML = models.map(resultCard).join('');
+      simulate(models, account, p, b);
+    };
+
+    resimBtn.addEventListener('click', () => {
+      const account = parseFloat(accountEl.value);
+      const p = parseFloat(winrateEl.value) / 100;
+      const b = parseFloat(rrEl.value);
+      simulate(lastModels, account, p, b);
+    });
+
+    [accountEl, winrateEl, rrEl, fixedEl].forEach(el => {
+      el.addEventListener('input', recalc);
+      el.addEventListener('change', recalc);
+    });
+    recalc();
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastModels.length) return;
+      const text = lastModels.map(m => `${m.name}: ${fmtPct(m.fraction)} = $${fmt(m.riskDollars)}`).join('\n');
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const p = parseFloat(winrateEl.value) / 100;
+      const b = parseFloat(rrEl.value);
+      const account = parseFloat(accountEl.value);
+      const csv = ['Model,Fraction,RiskDollars,WinRate,RR', ...lastModels.map(m =>
+        `"${m.name}",${m.fraction.toFixed(6)},${m.riskDollars.toFixed(2)},${p},${b}`
+      )].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `position-size-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    document.addEventListener('app:reset', () => {
+      accountEl.value = '50000'; winrateEl.value = '55'; rrEl.value = '2'; fixedEl.value = '2';
+      recalc();
+    });
+  };
+
+  initPs();
+  document.addEventListener('astro:after-swap', initPs);
+</script>
