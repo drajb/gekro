@@ -28,7 +28,6 @@
  *  because it's decorative).
  */
 
-import { Image } from 'astro:assets';
 import BrandLogo from '../ui/BrandLogo.astro';
 const currentYear = new Date().getFullYear();
 const buildTime = new Date().toLocaleTimeString('en-GB', { 
@@ -113,7 +112,7 @@ const buildTime = new Date().toLocaleTimeString('en-GB', {
           <li><a href="/rss.xml" class="text-sm text-text-secondary hover:text-accent transition-colors">RSS Feed</a></li>
           <li class="pt-2">
             <a href="https://deepwiki.com/drajb/gekro" target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-80 transition-opacity" aria-label="Ask DeepWiki">
-              <Image src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki Badge" width={110} height={20} class="h-5 w-auto" />
+              <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki Badge" width="110" height="20" loading="lazy" class="h-5 w-auto" />
             </a>
           </li>
         </ul>

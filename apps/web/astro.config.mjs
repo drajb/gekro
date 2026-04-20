@@ -117,9 +117,6 @@ export default defineConfig({
       },
     })
   ],
-  image: {
-    domains: ['deepwiki.com'],
-  },
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
