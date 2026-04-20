@@ -28,6 +28,7 @@ import TeslaTripCalculator from '../../components/apps/tesla-trip-calculator/Cal
 import PositionSizer from '../../components/apps/position-sizer/Calculator.astro';
 import UnixTimestampConverter from '../../components/apps/unix-timestamp-converter/Calculator.astro';
 import DebtToIncomeCalculator from '../../components/apps/debt-to-income-calculator/Calculator.astro';
+import GraphingCalculator from '../../components/apps/graphing-calculator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -41,6 +42,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'position-sizer': PositionSizer,
   'unix-timestamp-converter': UnixTimestampConverter,
   'debt-to-income-calculator': DebtToIncomeCalculator,
+  'graphing-calculator': GraphingCalculator,
 };
 
 export async function getStaticPaths() {

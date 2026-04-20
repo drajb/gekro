@@ -4,6 +4,22 @@
 
 <div id="ps-app" class="space-y-6">
 
+  <!-- What this calculates -->
+  <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-2.5">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">What this calculates</p>
+    <p class="text-sm text-text-secondary leading-relaxed">
+      <strong class="text-text-primary">Position sizing</strong> determines how much capital to risk on each trade.
+      The <strong class="text-text-primary">Kelly criterion</strong> finds the mathematically optimal bet fraction —
+      the percentage of account that maximizes long-run growth given your historical win rate and reward/risk ratio.
+      <strong class="text-text-primary">Half-Kelly</strong> is the standard practitioner choice: same direction, half the volatility, far fewer blowup scenarios.
+    </p>
+    <div class="flex flex-wrap gap-4 text-xs font-mono text-text-muted pt-0.5">
+      <span><span class="text-text-secondary">Win rate</span> — % of your trades that close profitable</span>
+      <span><span class="text-text-secondary">R ratio</span> — average winner ÷ average loser (from your trade log)</span>
+      <span><span class="text-text-secondary">Edge</span> — p × R − (1 − p) &gt; 0 means positive expectancy</span>
+    </div>
+  </div>
+
   <!-- Inputs -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 

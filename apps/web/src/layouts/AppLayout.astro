@@ -14,6 +14,14 @@ const { data } = app;
 const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
 allApps.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 
+const CATEGORY_ORDER = ['ai', 'finance', 'trading', 'dev', 'ev', 'infra'];
+const CATEGORY_LABELS: Record<string, string> = {
+  ai: 'AI', finance: 'Finance', trading: 'Trading', dev: 'Dev', ev: 'EV', infra: 'Infra',
+};
+const grouped = CATEGORY_ORDER
+  .map(cat => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, apps: allApps.filter(a => a.data.category === cat) }))
+  .filter(({ apps }) => apps.length > 0);
+
 const seoDescription = data.aiSummary || data.description;
 const pageURL = `https://gekro.com/apps/${app.slug}/`;
 
@@ -79,25 +87,30 @@ const breadcrumbs = {
         </div>
       </div>
 
-      <!-- Apps nav list -->
-      <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-1 px-2 space-y-0.5">
-        {allApps.map(a => (
-          <a
-            href={`/apps/${a.slug}/`}
-            class:list={[
-              'sidebar-app-link flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors',
-              a.slug === app.slug
-                ? 'bg-accent/10 text-accent'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated',
-            ]}
-            data-title={a.data.title.toLowerCase()}
-          >
-            <span class="text-base shrink-0 leading-none">{a.data.icon}</span>
-            <span class="truncate leading-tight">{a.data.title}</span>
-            {a.slug === app.slug && (
-              <span class="ml-auto w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
-            )}
-          </a>
+      <!-- Apps nav list — grouped by category -->
+      <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-2">
+        {grouped.map(({ cat, label, apps: catApps }) => (
+          <div class="mb-3 px-2" data-cat-group={cat}>
+            <p class="px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-text-muted/50 select-none">{label}</p>
+            {catApps.map(a => (
+              <a
+                href={`/apps/${a.slug}/`}
+                class:list={[
+                  'sidebar-app-link flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors',
+                  a.slug === app.slug
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated',
+                ]}
+                data-title={a.data.title.toLowerCase()}
+              >
+                <span class="text-sm shrink-0 leading-none">{a.data.icon}</span>
+                <span class="truncate leading-tight">{a.data.title}</span>
+                {a.slug === app.slug && (
+                  <span class="ml-auto w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
+                )}
+              </a>
+            ))}
+          </div>
         ))}
       </nav>
 
@@ -183,6 +196,11 @@ const breadcrumbs = {
       nav.querySelectorAll<HTMLAnchorElement>('.sidebar-app-link').forEach(link => {
         const title = link.dataset.title || '';
         link.style.display = !q || title.includes(q) ? '' : 'none';
+      });
+      // Hide empty category headers
+      nav.querySelectorAll<HTMLElement>('[data-cat-group]').forEach(group => {
+        const anyVisible = [...group.querySelectorAll('.sidebar-app-link')].some(l => (l as HTMLElement).style.display !== 'none');
+        (group as HTMLElement).style.display = anyVisible ? '' : 'none';
       });
     });
   };

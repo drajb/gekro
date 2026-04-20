@@ -1,0 +1,624 @@
+---
+// Graphing Calculator — Basic / Scientific / 2D Graph / 3D Surface, zero deps
+---
+
+<div id="gc-app" class="space-y-4">
+
+  <!-- Mode tabs -->
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl">
+    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="basic">Basic</button>
+    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="sci">Scientific</button>
+    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="graph2d">2D Graph</button>
+    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="graph3d">3D Surface</button>
+  </div>
+
+  <!-- ─── CALCULATOR (Basic + Scientific) ─── -->
+  <div id="gc-calc-panel" class="space-y-2.5">
+    <!-- Display -->
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl min-h-[5rem] flex flex-col justify-end">
+      <p id="gc-expr-line" class="text-xs font-mono text-text-muted text-right min-h-[1rem] truncate">&nbsp;</p>
+      <p id="gc-display" class="text-3xl font-heading font-bold text-text-primary text-right tabular-nums truncate">0</p>
+    </div>
+
+    <!-- Scientific extras (only in sci mode) -->
+    <div id="gc-sci-row" class="hidden grid grid-cols-4 gap-1.5">
+      {[
+        { l: 'sin',  v: 'sin(' }, { l: 'cos',  v: 'cos(' }, { l: 'tan',  v: 'tan(' }, { l: 'π',    v: 'pi' },
+        { l: 'log',  v: 'log(' }, { l: 'ln',   v: 'ln(' },  { l: '√',    v: 'sqrt('}, { l: 'e',    v: 'e'  },
+        { l: 'x²',   v: '^2'   }, { l: 'xⁿ',   v: '^'   },  { l: 'n!',   v: '!'   }, { l: '1/x',  v: '1/('  },
+        { l: '(',    v: '('    }, { l: ')',     v: ')'    },  { l: 'asin', v: 'asin('}, { l: 'acos', v: 'acos('},
+      ].map(b => (
+        <button class="gc-sci py-2.5 text-xs font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-secondary hover:bg-bg-surface hover:text-accent transition-all" data-val={b.v}>
+          {b.l}
+        </button>
+      ))}
+    </div>
+
+    <!-- Memory -->
+    <div class="grid grid-cols-4 gap-1.5">
+      {['MC','MR','M+','M−'].map(k => (
+        <button class="gc-mem py-2 text-[11px] font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-muted hover:text-accent transition-all" data-mem={k}>{k}</button>
+      ))}
+    </div>
+
+    <!-- Number pad -->
+    <div class="grid grid-cols-4 gap-1.5">
+      {[
+        { l:'AC', t:'fn' },{ l:'±',  t:'fn' },{ l:'%',  t:'fn' },{ l:'÷',  t:'op' },
+        { l:'7',  t:'d'  },{ l:'8',  t:'d'  },{ l:'9',  t:'d'  },{ l:'×',  t:'op' },
+        { l:'4',  t:'d'  },{ l:'5',  t:'d'  },{ l:'6',  t:'d'  },{ l:'−',  t:'op' },
+        { l:'1',  t:'d'  },{ l:'2',  t:'d'  },{ l:'3',  t:'d'  },{ l:'+',  t:'op' },
+        { l:'0',  t:'d'  },{ l:'.',  t:'d'  },{ l:'⌫',  t:'fn' },{ l:'=',  t:'eq' },
+      ].map(b => (
+        <button
+          class:list={[
+            'gc-key py-4 text-sm font-mono rounded-xl transition-all select-none active:scale-95',
+            b.t === 'op' ? 'bg-bg-elevated border border-border text-text-secondary hover:text-accent hover:border-accent/30' :
+            b.t === 'eq' ? 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent/30 font-bold' :
+            b.t === 'fn' ? 'bg-bg-elevated border border-border-subtle text-text-muted hover:text-text-secondary' :
+                          'bg-bg-surface border border-border-subtle text-text-primary hover:bg-bg-elevated',
+          ]}
+          data-key={b.l}
+        >{b.l}</button>
+      ))}
+    </div>
+  </div>
+
+  <!-- ─── 2D GRAPH ─── -->
+  <div id="gc-2d-panel" class="space-y-3 hidden">
+    <div id="gc-eq-list" class="space-y-2"></div>
+    <button id="gc-add-eq" class="w-full py-2 text-xs font-mono border border-dashed border-border-subtle rounded-lg text-text-muted hover:text-accent hover:border-accent/40 transition-all">+ Add equation</button>
+
+    <div class="grid grid-cols-4 gap-2">
+      {[
+        { id:'gc-xmin', lbl:'x min', val:'-10' },
+        { id:'gc-xmax', lbl:'x max', val:'10'  },
+        { id:'gc-ymin', lbl:'y min', val:'-10' },
+        { id:'gc-ymax', lbl:'y max', val:'10'  },
+      ].map(f => (
+        <div class="space-y-1">
+          <label class="text-[10px] font-mono text-text-muted">{f.lbl}</label>
+          <input id={f.id} type="number" value={f.val}
+            class="w-full bg-bg-elevated border border-border-subtle rounded px-2 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        </div>
+      ))}
+    </div>
+
+    <canvas id="gc-canvas-2d" class="w-full rounded-xl border border-border-subtle"
+      style="height:420px;cursor:crosshair;touch-action:none;background:var(--color-bg-elevated)"></canvas>
+    <p class="text-[10px] text-text-muted px-1">Scroll to zoom · drag to pan · up to 6 equations</p>
+  </div>
+
+  <!-- ─── 3D SURFACE ─── -->
+  <div id="gc-3d-panel" class="space-y-3 hidden">
+    <div class="flex gap-2 items-center">
+      <span class="text-sm font-mono text-text-muted shrink-0">z =</span>
+      <input id="gc-3d-expr" type="text" value="sin(sqrt(x*x+y*y))"
+        class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <button id="gc-3d-plot" class="px-4 py-2 bg-accent/15 border border-accent/30 rounded-lg text-xs font-mono text-accent hover:bg-accent/25 transition-all shrink-0">Plot</button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono text-text-muted">Domain range ±</label>
+        <input id="gc-3d-range" type="number" value="4" min="0.5" step="0.5"
+          class="w-full bg-bg-elevated border border-border-subtle rounded px-2 py-1.5 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono text-text-muted">Resolution: <span id="gc-3d-res-val">20</span></label>
+        <input id="gc-3d-res" type="range" min="6" max="36" value="20" class="w-full mt-2" />
+      </div>
+    </div>
+
+    <!-- Preset buttons -->
+    <div class="flex flex-wrap gap-1.5">
+      {[
+        { l:'Ripple',   v:'sin(sqrt(x*x+y*y))' },
+        { l:'Saddle',   v:'x*x-y*y' },
+        { l:'Paraboloid', v:'x*x+y*y' },
+        { l:'Sine mesh',  v:'sin(x)*cos(y)' },
+        { l:'Peaks',    v:'3*(1-x)^2*exp(-(x^2)-(y+1)^2)-10*(x/5-x^3-y^5)*exp(-x^2-y^2)-1/3*exp(-(x+1)^2-y^2)' },
+      ].map(p => (
+        <button class="gc-3d-preset px-2.5 py-1 text-[10px] font-mono bg-bg-elevated border border-border-subtle rounded text-text-muted hover:text-accent hover:border-accent/40 transition-all" data-expr={p.v}>
+          {p.l}
+        </button>
+      ))}
+    </div>
+
+    <canvas id="gc-canvas-3d" class="w-full rounded-xl border border-border-subtle"
+      style="height:460px;cursor:grab;touch-action:none;background:var(--color-bg-elevated)"></canvas>
+    <p class="text-[10px] text-text-muted px-1">Drag to rotate · scroll to zoom</p>
+  </div>
+
+</div>
+
+<style>
+  .gc-tab { color: var(--color-text-muted); }
+  .gc-tab.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+  }
+  .gc-tab:not(.active):hover { color: var(--color-text-secondary); }
+  #gc-sci-row.hidden { display: none; }
+</style>
+
+<script>
+  // ── Expression evaluator ────────────────────────────────────────────
+  const evalExpr = (expr: string, vars: Record<string, number> = {}): number => {
+    try {
+      const s = expr
+        .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
+        .replace(/\^/g, '**')
+        .replace(/\bpi\b/g, 'Math.PI').replace(/\bPI\b/g, 'Math.PI')
+        .replace(/\be\b(?!\s*\()/g, 'Math.E')
+        .replace(/\bsin\b/g, 'Math.sin').replace(/\bcos\b/g, 'Math.cos')
+        .replace(/\btan\b/g, 'Math.tan').replace(/\basin\b/g, 'Math.asin')
+        .replace(/\bacos\b/g, 'Math.acos').replace(/\batan\b/g, 'Math.atan')
+        .replace(/\bsqrt\b/g, 'Math.sqrt').replace(/\babs\b/g, 'Math.abs')
+        .replace(/\blog\b/g, 'Math.log10').replace(/\bln\b/g, 'Math.log')
+        .replace(/\bexp\b/g, 'Math.exp').replace(/\bpow\b/g, 'Math.pow')
+        .replace(/\bfloor\b/g, 'Math.floor').replace(/\bceil\b/g, 'Math.ceil')
+        .replace(/\bround\b/g, 'Math.round').replace(/\bsign\b/g, 'Math.sign')
+        .replace(/\bmax\b/g, 'Math.max').replace(/\bmin\b/g, 'Math.min')
+        .replace(/\bhypot\b/g, 'Math.hypot');
+
+      const keys = Object.keys(vars);
+      const vals = Object.values(vars);
+      const fn = new Function(...keys, `"use strict"; return (${s});`);
+      const r = fn(...vals);
+      return typeof r === 'number' && isFinite(r) ? r : NaN;
+    } catch { return NaN; }
+  };
+
+  const COLORS_2D = ['#3fb1ff','#22c55e','#f59e0b','#f43f5e','#a855f7','#14b8a6'];
+
+  const initGc = () => {
+    const app = document.getElementById('gc-app');
+    if (!app || (app as any)._gcInit) return;
+    (app as any)._gcInit = true;
+
+    // ── State ─────────────────────────────────────────────────────────
+    let mode = 'basic';
+    let disp = '0', exprLine = '', mem = 0, lastWasEq = false, lastResult = 0;
+
+    let eqs: { expr: string; color: string; id: number }[] = [{ expr: 'sin(x)', color: COLORS_2D[0], id: 1 }];
+    let eqCtr = 2;
+    let vx = 0, vy = 0, vs = 30;
+    let drag2 = false, d2s = { x: 0, y: 0, vx: 0, vy: 0 };
+
+    let theta = Math.PI / 5, phi = Math.PI / 4, zoom3 = 1;
+    let drag3 = false, d3s = { x: 0, y: 0, t: 0, p: 0 };
+    let mesh: { x: number; y: number; z: number }[][] = [];
+    let zBounds = { min: -1, max: 1 };
+
+    // ── DOM ───────────────────────────────────────────────────────────
+    const tabs      = app.querySelectorAll<HTMLButtonElement>('.gc-tab');
+    const calcPanel = document.getElementById('gc-calc-panel')!;
+    const sciRow    = document.getElementById('gc-sci-row')!;
+    const panel2d   = document.getElementById('gc-2d-panel')!;
+    const panel3d   = document.getElementById('gc-3d-panel')!;
+    const dispEl    = document.getElementById('gc-display')!;
+    const exprEl    = document.getElementById('gc-expr-line')!;
+    const eqListEl  = document.getElementById('gc-eq-list')!;
+    const addEqBtn  = document.getElementById('gc-add-eq')!;
+    const c2d       = document.getElementById('gc-canvas-2d') as HTMLCanvasElement;
+    const c3d       = document.getElementById('gc-canvas-3d') as HTMLCanvasElement;
+    const xminEl    = document.getElementById('gc-xmin') as HTMLInputElement;
+    const xmaxEl    = document.getElementById('gc-xmax') as HTMLInputElement;
+    const yminEl    = document.getElementById('gc-ymin') as HTMLInputElement;
+    const ymaxEl    = document.getElementById('gc-ymax') as HTMLInputElement;
+    const expr3dEl  = document.getElementById('gc-3d-expr') as HTMLInputElement;
+    const plot3dBtn = document.getElementById('gc-3d-plot')!;
+    const range3dEl = document.getElementById('gc-3d-range') as HTMLInputElement;
+    const res3dEl   = document.getElementById('gc-3d-res') as HTMLInputElement;
+    const res3dVal  = document.getElementById('gc-3d-res-val')!;
+
+    // ── Calculator ────────────────────────────────────────────────────
+    const fmtN = (n: number): string => {
+      if (Math.abs(n) >= 1e15 || (Math.abs(n) < 1e-10 && n !== 0)) return n.toExponential(6);
+      return parseFloat(n.toPrecision(12)).toString();
+    };
+
+    const updateDisp = () => {
+      dispEl.textContent = disp;
+      exprEl.textContent = exprLine || '\u00a0';
+    };
+
+    const OPS = ['+','−','×','÷'];
+
+    const pressKey = (key: string) => {
+      const isDigit = /^[0-9.]$/.test(key);
+      if (key === 'AC')  { disp = '0'; exprLine = ''; lastWasEq = false; }
+      else if (key === '⌫') {
+        if (lastWasEq) { disp = '0'; lastWasEq = false; }
+        else disp = disp.length > 1 ? disp.slice(0, -1) : '0';
+      }
+      else if (key === '±') { disp = disp.startsWith('-') ? disp.slice(1) : disp === '0' ? '0' : '-' + disp; }
+      else if (key === '%') { try { disp = fmtN(parseFloat(disp) / 100); } catch {} }
+      else if (key === '=') {
+        exprLine = disp;
+        try {
+          const sanitized = disp.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/\^/g, '**')
+            .replace(/\bpi\b/g,'Math.PI').replace(/\be\b/g,'Math.E')
+            .replace(/\bsin\b/g,'Math.sin').replace(/\bcos\b/g,'Math.cos').replace(/\btan\b/g,'Math.tan')
+            .replace(/\bsqrt\b/g,'Math.sqrt').replace(/\babs\b/g,'Math.abs')
+            .replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+            .replace(/\bexp\b/g,'Math.exp');
+          const r = Function(`"use strict"; return (${sanitized});`)() as number;
+          lastResult = r; disp = isNaN(r) ? 'Error' : fmtN(r); lastWasEq = true;
+        } catch { disp = 'Error'; lastWasEq = true; }
+      }
+      else if (OPS.includes(key)) {
+        if (lastWasEq) { disp = fmtN(lastResult) + ' ' + key + ' '; lastWasEq = false; return; }
+        const trimmed = disp.trimEnd();
+        const endsOp = OPS.some(o => trimmed.endsWith(o));
+        disp = endsOp ? trimmed.slice(0, -2) + ' ' + key + ' ' : trimmed + ' ' + key + ' ';
+      }
+      else if (isDigit) {
+        if (lastWasEq) { disp = key === '.' ? '0.' : key; lastWasEq = false; return; }
+        const parts = disp.split(' '), last = parts[parts.length - 1];
+        if (last === '0' && key !== '.') { parts[parts.length - 1] = key; disp = parts.join(' '); }
+        else if (key === '.' && last.includes('.')) { /* ignore */ }
+        else disp += key;
+      }
+      updateDisp();
+    };
+
+    const pressSci = (val: string) => {
+      if (val === '!' ) {
+        const n = parseInt(disp.split(' ').pop() || '0');
+        if (n < 0 || n > 170) { disp = 'Error'; lastWasEq = true; updateDisp(); return; }
+        let r = 1; for (let i = 2; i <= n; i++) r *= i;
+        exprLine = n + '!'; lastResult = r; disp = fmtN(r); lastWasEq = true;
+      } else if (val === '^2') {
+        disp = disp.trimEnd() + '^2';
+      } else if (val === '^') {
+        disp = disp.trimEnd() + '^';
+      } else if (val === 'pi' || val === 'e') {
+        if (lastWasEq || disp === '0') { disp = val === 'pi' ? String(Math.PI) : String(Math.E); lastWasEq = false; }
+        else disp += val;
+      } else {
+        // function like sin(, cos(, etc.
+        if (lastWasEq || disp === '0') { disp = val; lastWasEq = false; }
+        else disp += val;
+      }
+      updateDisp();
+    };
+
+    const pressMem = (k: string) => {
+      const cur = parseFloat(disp.split(' ').pop() || '0') || 0;
+      if (k === 'MC') mem = 0;
+      else if (k === 'MR') { disp = fmtN(mem); updateDisp(); }
+      else if (k === 'M+') mem += cur;
+      else if (k === 'M−') mem -= cur;
+    };
+
+    app.querySelectorAll<HTMLButtonElement>('.gc-key').forEach(b => b.addEventListener('click', () => pressKey(b.dataset.key!)));
+    app.querySelectorAll<HTMLButtonElement>('.gc-sci').forEach(b => b.addEventListener('click', () => pressSci(b.dataset.val!)));
+    app.querySelectorAll<HTMLButtonElement>('.gc-mem').forEach(b => b.addEventListener('click', () => pressMem(b.dataset.mem!)));
+
+    const onKbd = (e: KeyboardEvent) => {
+      if (mode !== 'basic' && mode !== 'sci') return;
+      if (['INPUT','TEXTAREA','SELECT'].includes((e.target as HTMLElement).tagName)) return;
+      const map: Record<string,string> = {
+        '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+        '.':'.', '+':'+', '-':'−', '*':'×', '/':'÷', 'Enter':'=', 'Escape':'AC', 'Backspace':'⌫',
+      };
+      if (map[e.key]) { e.preventDefault(); pressKey(map[e.key]); }
+    };
+    document.addEventListener('keydown', onKbd);
+    document.addEventListener('astro:before-swap', () => document.removeEventListener('keydown', onKbd), { once: true });
+
+    // ── 2D Graph ──────────────────────────────────────────────────────
+    const renderEqList = () => {
+      eqListEl.innerHTML = eqs.map(eq => `
+        <div class="flex gap-2 items-center" data-eq="${eq.id}">
+          <div class="w-3 h-8 rounded shrink-0" style="background:${eq.color}"></div>
+          <span class="text-sm font-mono text-text-muted shrink-0">y =</span>
+          <input type="text" value="${eq.expr.replace(/"/g,'&quot;')}"
+            class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors"
+            data-eq-input="${eq.id}" />
+          ${eqs.length > 1 ? `<button class="text-text-muted hover:text-red-400 text-lg leading-none px-1 transition-colors" data-eq-rm="${eq.id}">×</button>` : ''}
+        </div>`).join('');
+      eqListEl.querySelectorAll<HTMLInputElement>('[data-eq-input]').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const id = +inp.dataset.eqInput!;
+          const eq = eqs.find(e => e.id === id);
+          if (eq) { eq.expr = inp.value; render2D(); }
+        });
+      });
+      eqListEl.querySelectorAll<HTMLButtonElement>('[data-eq-rm]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          eqs = eqs.filter(e => e.id !== +btn.dataset.eqRm!);
+          renderEqList(); render2D();
+        });
+      });
+    };
+
+    addEqBtn.addEventListener('click', () => {
+      if (eqs.length >= 6) return;
+      eqs.push({ expr: '', color: COLORS_2D[eqs.length % COLORS_2D.length], id: Date.now() + eqCtr++ });
+      renderEqList(); render2D();
+    });
+
+    const setup2D = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const cw = c2d.clientWidth, ch = 420;
+      if (c2d.width !== cw * dpr || c2d.height !== ch * dpr) {
+        c2d.width = cw * dpr; c2d.height = ch * dpr;
+      }
+      const ctx = c2d.getContext('2d')!;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, W: cw, H: ch };
+    };
+
+    const g2s = (gx: number, gy: number, W: number, H: number) => ({
+      x: W/2 + (gx - vx) * vs,
+      y: H/2 - (gy - vy) * vs,
+    });
+
+    const render2D = () => {
+      const { ctx, W, H } = setup2D();
+      ctx.clearRect(0, 0, W, H);
+
+      const step = Math.pow(10, Math.floor(Math.log10(60 / vs)));
+      const x0 = Math.floor((vx - W/(2*vs)) / step) * step;
+      const x1 = vx + W/(2*vs) + step;
+      const y0 = Math.floor((vy - H/(2*vs)) / step) * step;
+      const y1 = vy + H/(2*vs) + step;
+
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+      for (let gx = x0; gx <= x1; gx += step) {
+        const sx = W/2 + (gx - vx) * vs;
+        ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+      }
+      for (let gy = y0; gy <= y1; gy += step) {
+        const sy = H/2 - (gy - vy) * vs;
+        ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+      }
+
+      // Axes
+      const org = g2s(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, org.y); ctx.lineTo(W, org.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(org.x, 0); ctx.lineTo(org.x, H); ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      for (let gx = x0; gx <= x1; gx += step) {
+        if (Math.abs(gx) < step * 0.01) continue;
+        ctx.fillText(gx % 1 === 0 ? gx.toString() : gx.toFixed(2), W/2+(gx-vx)*vs, Math.min(Math.max(org.y+14,14),H-4));
+      }
+      ctx.textAlign = 'right';
+      for (let gy = y0; gy <= y1; gy += step) {
+        if (Math.abs(gy) < step * 0.01) continue;
+        ctx.fillText(gy % 1 === 0 ? gy.toString() : gy.toFixed(2), Math.min(Math.max(org.x-4,4),W-4), H/2-(gy-vy)*vs+3);
+      }
+
+      // Plot equations
+      const N = 800;
+      const maxJump = H / vs * 2;
+      eqs.forEach(eq => {
+        if (!eq.expr.trim()) return;
+        ctx.strokeStyle = eq.color; ctx.lineWidth = 2;
+        ctx.beginPath();
+        let moved = false, prevY = 0;
+        for (let i = 0; i <= N; i++) {
+          const gx = vx - W/(2*vs) + (i/N)*(W/vs);
+          const gy = evalExpr(eq.expr, { x: gx });
+          if (isNaN(gy)) { moved = false; continue; }
+          const { x: sx, y: sy } = g2s(gx, gy, W, H);
+          if (!moved || Math.abs(gy - prevY) > maxJump) { ctx.moveTo(sx, sy); moved = true; }
+          else ctx.lineTo(sx, sy);
+          prevY = gy;
+        }
+        ctx.stroke();
+      });
+    };
+
+    c2d.addEventListener('wheel', e => {
+      e.preventDefault();
+      const f = e.deltaY < 0 ? 1.15 : 1/1.15;
+      const r = c2d.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      const W = c2d.clientWidth, H = 420;
+      const gx = vx + (mx - W/2)/vs, gy = vy - (my - H/2)/vs;
+      vs *= f; vx = gx - (mx - W/2)/vs; vy = gy + (my - H/2)/vs;
+      render2D();
+    }, { passive: false });
+
+    c2d.addEventListener('pointerdown', e => {
+      drag2 = true; d2s = { x: e.clientX, y: e.clientY, vx, vy };
+      c2d.setPointerCapture(e.pointerId);
+    });
+    c2d.addEventListener('pointermove', e => {
+      if (!drag2) return;
+      vx = d2s.vx - (e.clientX - d2s.x)/vs;
+      vy = d2s.vy + (e.clientY - d2s.y)/vs;
+      render2D();
+    });
+    c2d.addEventListener('pointerup', () => { drag2 = false; });
+
+    [xminEl, xmaxEl, yminEl, ymaxEl].forEach(el => el.addEventListener('change', () => {
+      const xn = parseFloat(xminEl.value), xx = parseFloat(xmaxEl.value);
+      const yn = parseFloat(yminEl.value), yx = parseFloat(ymaxEl.value);
+      if (isNaN(xn+xx+yn+yx) || xx<=xn || yx<=yn) return;
+      vx = (xn+xx)/2; vy = (yn+yx)/2;
+      vs = Math.min(c2d.clientWidth/(xx-xn), 420/(yx-yn));
+      render2D();
+    }));
+
+    // ── 3D Surface ────────────────────────────────────────────────────
+    const zNorm = (z: number) => {
+      const { min, max } = zBounds;
+      const half = Math.max(0.001, (max - min) / 2);
+      const range = parseFloat(range3dEl.value) || 4;
+      return ((z - (min+max)/2) / half) * range * 0.4;
+    };
+
+    const buildMesh = () => {
+      const range = Math.max(0.5, parseFloat(range3dEl.value) || 4);
+      const res = parseInt(res3dEl.value) || 20;
+      const expr = expr3dEl.value;
+      mesh = []; let zMin = Infinity, zMax = -Infinity;
+      for (let i = 0; i <= res; i++) {
+        const row: { x: number; y: number; z: number }[] = [];
+        for (let j = 0; j <= res; j++) {
+          const x = -range + (i/res)*2*range, y = -range + (j/res)*2*range;
+          const z = evalExpr(expr, { x, y });
+          row.push({ x, y, z: isNaN(z) ? 0 : z });
+          if (!isNaN(z)) { if (z<zMin) zMin=z; if (z>zMax) zMax=z; }
+        }
+        mesh.push(row);
+      }
+      zBounds = { min: isFinite(zMin)?zMin:-1, max: isFinite(zMax)?zMax:1 };
+    };
+
+    const setup3D = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const cw = c3d.clientWidth, ch = 460;
+      if (c3d.width !== cw*dpr || c3d.height !== ch*dpr) {
+        c3d.width = cw*dpr; c3d.height = ch*dpr;
+      }
+      const ctx = c3d.getContext('2d')!;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, W: cw, H: ch };
+    };
+
+    const proj3 = (wx: number, wy: number, wz: number, W: number, H: number) => {
+      // Rotate Z by azimuth theta
+      const rx = wx*Math.cos(theta) - wy*Math.sin(theta);
+      const ry = wx*Math.sin(theta) + wy*Math.cos(theta);
+      // Rotate X by elevation phi
+      const ex = rx;
+      const ey = ry*Math.cos(phi) - wz*Math.sin(phi);
+      const ez = ry*Math.sin(phi) + wz*Math.cos(phi);
+      const fov = 7/zoom3, d = fov + ez;
+      if (d < 0.01) return null;
+      const s = Math.min(W,H) * 0.28 * zoom3;
+      return { x: W/2 + (ex/d)*s, y: H/2 - (ey/d)*s, depth: d };
+    };
+
+    const heatColor = (z: number, alpha: number): string => {
+      const { min, max } = zBounds;
+      const t = max===min ? 0.5 : Math.max(0, Math.min(1, (z-min)/(max-min)));
+      // Blue → Cyan → Green → Yellow → Red
+      let r=0, g=0, b=0;
+      if      (t < 0.25) { const s=t/0.25;     r=0;   g=Math.round(s*200);   b=255; }
+      else if (t < 0.5 ) { const s=(t-0.25)/0.25; r=0; g=200; b=Math.round((1-s)*255); }
+      else if (t < 0.75) { const s=(t-0.5)/0.25;  r=Math.round(s*255); g=200; b=0; }
+      else               { const s=(t-0.75)/0.25;  r=255; g=Math.round((1-s)*200); b=0; }
+      return `rgba(${r},${g},${b},${alpha})`;
+    };
+
+    const render3D = () => {
+      const { ctx, W, H } = setup3D();
+      ctx.clearRect(0, 0, W, H);
+      if (!mesh.length) return;
+
+      const res = mesh.length - 1;
+      type Pt = { x: number; y: number; depth: number } | null;
+
+      // Build quads with avg z and depth, then depth-sort (painter's algorithm)
+      const quads: { pts: Pt[]; avgZ: number; avgDepth: number }[] = [];
+      for (let i = 0; i < res; i++) {
+        for (let j = 0; j < res; j++) {
+          const corners = [mesh[i][j], mesh[i+1][j], mesh[i+1][j+1], mesh[i][j+1]];
+          const avgZ = corners.reduce((s, c) => s + c.z, 0) / 4;
+          const pts = corners.map(c => proj3(c.x, c.y, zNorm(c.z), W, H));
+          const depths = pts.filter(Boolean).map(p => p!.depth);
+          if (depths.length < 3) continue;
+          quads.push({ pts, avgZ, avgDepth: depths.reduce((a,b)=>a+b,0)/depths.length });
+        }
+      }
+      quads.sort((a, b) => b.avgDepth - a.avgDepth);
+
+      // Draw filled quads with wireframe stroke
+      quads.forEach(({ pts, avgZ }) => {
+        const vp = pts.filter(Boolean) as { x: number; y: number }[];
+        if (vp.length < 3) return;
+        ctx.beginPath();
+        ctx.moveTo(vp[0].x, vp[0].y);
+        for (let k = 1; k < vp.length; k++) ctx.lineTo(vp[k].x, vp[k].y);
+        ctx.closePath();
+        ctx.fillStyle = heatColor(avgZ, 0.72);
+        ctx.fill();
+        ctx.strokeStyle = heatColor(avgZ, 0.25);
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      });
+    };
+
+    plot3dBtn.addEventListener('click', () => { buildMesh(); render3D(); });
+    res3dEl.addEventListener('input', () => { res3dVal.textContent = res3dEl.value; });
+    range3dEl.addEventListener('change', () => { buildMesh(); render3D(); });
+    expr3dEl.addEventListener('keydown', e => { if (e.key === 'Enter') { buildMesh(); render3D(); } });
+
+    app.querySelectorAll<HTMLButtonElement>('.gc-3d-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        expr3dEl.value = btn.dataset.expr!;
+        buildMesh(); render3D();
+      });
+    });
+
+    c3d.addEventListener('wheel', e => {
+      e.preventDefault();
+      zoom3 = Math.max(0.3, Math.min(5, zoom3 * (e.deltaY < 0 ? 1.1 : 1/1.1)));
+      render3D();
+    }, { passive: false });
+
+    c3d.addEventListener('pointerdown', e => {
+      drag3 = true; d3s = { x: e.clientX, y: e.clientY, t: theta, p: phi };
+      c3d.style.cursor = 'grabbing'; c3d.setPointerCapture(e.pointerId);
+    });
+    c3d.addEventListener('pointermove', e => {
+      if (!drag3) return;
+      theta = d3s.t + (e.clientX - d3s.x) * 0.008;
+      phi = Math.max(-Math.PI/2, Math.min(Math.PI/2, d3s.p - (e.clientY - d3s.y) * 0.008));
+      render3D();
+    });
+    c3d.addEventListener('pointerup', () => { drag3 = false; c3d.style.cursor = 'grab'; });
+
+    // ── Mode switching ────────────────────────────────────────────────
+    const setMode = (m: string) => {
+      mode = m;
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.mode === m));
+      calcPanel.classList.toggle('hidden', m !== 'basic' && m !== 'sci');
+      sciRow.classList.toggle('hidden', m !== 'sci');
+      panel2d.classList.toggle('hidden', m !== 'graph2d');
+      panel3d.classList.toggle('hidden', m !== 'graph3d');
+
+      if (m === 'graph2d') requestAnimationFrame(() => { vs = c2d.clientWidth / 20; render2D(); });
+      if (m === 'graph3d') requestAnimationFrame(() => { buildMesh(); render3D(); });
+    };
+
+    tabs.forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode!)));
+
+    const onResize = () => {
+      if (mode === 'graph2d') render2D();
+      if (mode === 'graph3d') render3D();
+    };
+    window.addEventListener('resize', onResize);
+    document.addEventListener('astro:before-swap', () => window.removeEventListener('resize', onResize), { once: true });
+
+    renderEqList();
+    setMode('basic');
+    updateDisp();
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(disp); } catch {}
+    });
+    document.addEventListener('app:reset', () => {
+      disp = '0'; exprLine = ''; lastWasEq = false; mem = 0;
+      eqs = [{ expr: 'sin(x)', color: COLORS_2D[0], id: Date.now() }];
+      renderEqList(); updateDisp();
+      if (mode === 'graph2d') { vx = 0; vy = 0; vs = c2d.clientWidth/20; render2D(); }
+      if (mode === 'graph3d') { theta = Math.PI/5; phi = Math.PI/4; zoom3 = 1; buildMesh(); render3D(); }
+    });
+  };
+
+  initGc();
+  document.addEventListener('astro:after-swap', initGc);
+</script>
