@@ -1,0 +1,521 @@
+---
+/**
+ * Color Toolkit — Calculator.astro
+ *
+ * Two tools, zero external dependencies:
+ *
+ * Tab A — Image Color Extractor
+ *  - Drag-drop or file-pick an image (max 10 MB)
+ *  - Draws to hidden Canvas, samples pixels, buckets into 5 dominant colors
+ *  - Uses simplified median-cut quantization
+ *  - Shows swatches with HEX, RGB, HSL values and copy buttons
+ *
+ * Tab B — Color Converter
+ *  - Bidirectional HEX / RGB / HSL / CMYK inputs
+ *  - All update in real time when any field changes
+ *  - Live preview swatch
+ */
+---
+
+<div id="ct-app" class="space-y-5">
+
+  <!-- Tab bar -->
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
+    <button class="ct-tab active px-5 py-2 rounded-lg text-sm font-mono transition-all" data-tab="extractor">Extractor</button>
+    <button class="ct-tab px-5 py-2 rounded-lg text-sm font-mono transition-all" data-tab="converter">Converter</button>
+  </div>
+
+  <!-- ── Extractor tab ─────────────────────────────────────────── -->
+  <div id="ct-extractor-panel" class="space-y-4">
+
+    <!-- Drop zone -->
+    <div
+      id="ct-dropzone"
+      class="relative flex flex-col items-center justify-center gap-3 h-48 rounded-2xl border-2 border-dashed border-border-subtle
+             hover:border-accent/40 transition-colors cursor-pointer bg-bg-elevated"
+    >
+      <input type="file" id="ct-file-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
+      <span class="text-4xl pointer-events-none select-none">🖼️</span>
+      <p class="text-sm font-mono text-text-muted pointer-events-none">Drop an image or click to browse</p>
+      <p class="text-[10px] font-mono text-text-muted/50 pointer-events-none">PNG · JPG · WebP · GIF · max 10 MB</p>
+    </div>
+
+    <!-- Error -->
+    <div id="ct-extract-error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+      <p class="text-xs font-mono text-red-400" id="ct-extract-error-msg"></p>
+    </div>
+
+    <!-- Preview + swatches -->
+    <div id="ct-extract-result" class="hidden space-y-3">
+      <div class="flex flex-wrap gap-4 items-start">
+        <!-- Image thumbnail -->
+        <img id="ct-thumb" src="" alt="Uploaded" class="h-24 w-24 rounded-xl object-cover border border-border-subtle shrink-0" />
+        <!-- Dominant color swatches -->
+        <div class="flex-1 space-y-2">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Dominant colors</p>
+          <div id="ct-swatches" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden canvas for pixel sampling -->
+    <canvas id="ct-canvas" class="hidden"></canvas>
+  </div>
+
+  <!-- ── Converter tab ─────────────────────────────────────────── -->
+  <div id="ct-converter-panel" class="hidden space-y-5">
+
+    <!-- Preview swatch -->
+    <div class="flex items-center gap-4">
+      <div id="ct-color-swatch" class="w-20 h-20 rounded-2xl border border-border-subtle shadow-inner transition-all" style="background:#3b82f6"></div>
+      <div>
+        <p id="ct-color-name" class="text-lg font-mono font-semibold text-text-primary">#3B82F6</p>
+        <p class="text-xs font-mono text-text-muted mt-0.5">Click any field to edit</p>
+      </div>
+      <!-- Native color picker for quick selection -->
+      <input type="color" id="ct-native-picker" value="#3b82f6"
+        class="ml-auto w-12 h-12 rounded-xl cursor-pointer border border-border-subtle bg-transparent" title="Pick a color" />
+    </div>
+
+    <!-- Input fields -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <!-- HEX -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">HEX</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="ct-hex" value="#3B82F6" maxlength="7" spellcheck="false"
+            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+                   text-sm font-mono text-text-primary uppercase
+                   focus:outline-none focus:border-accent/40 transition-colors" />
+          <button class="ct-copy-field text-xs font-mono text-text-muted px-2.5 py-2 rounded-lg border border-border-subtle hover:text-accent hover:border-accent/30 transition-all" data-field="hex">⎘</button>
+        </div>
+      </div>
+
+      <!-- RGB -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">RGB</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="ct-rgb" value="rgb(59, 130, 246)" spellcheck="false"
+            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+                   text-sm font-mono text-text-primary
+                   focus:outline-none focus:border-accent/40 transition-colors" />
+          <button class="ct-copy-field text-xs font-mono text-text-muted px-2.5 py-2 rounded-lg border border-border-subtle hover:text-accent hover:border-accent/30 transition-all" data-field="rgb">⎘</button>
+        </div>
+      </div>
+
+      <!-- HSL -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">HSL</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="ct-hsl" value="hsl(217, 91%, 60%)" spellcheck="false"
+            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+                   text-sm font-mono text-text-primary
+                   focus:outline-none focus:border-accent/40 transition-colors" />
+          <button class="ct-copy-field text-xs font-mono text-text-muted px-2.5 py-2 rounded-lg border border-border-subtle hover:text-accent hover:border-accent/30 transition-all" data-field="hsl">⎘</button>
+        </div>
+      </div>
+
+      <!-- CMYK -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">CMYK</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="ct-cmyk" spellcheck="false"
+            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+                   text-sm font-mono text-text-primary
+                   focus:outline-none focus:border-accent/40 transition-colors" />
+          <button class="ct-copy-field text-xs font-mono text-text-muted px-2.5 py-2 rounded-lg border border-border-subtle hover:text-accent hover:border-accent/30 transition-all" data-field="cmyk">⎘</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tailwind closest match (informational) -->
+    <div id="ct-tailwind-match" class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Tailwind closest</p>
+        <span id="ct-tw-value" class="text-xs font-mono text-accent"></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .ct-tab {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .ct-tab.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .ct-tab:hover:not(.active) { color: var(--color-text-secondary); }
+
+  /* Drag-over state */
+  #ct-dropzone.drag-over {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  }
+
+  /* Color swatch card */
+  .ct-swatch-card {
+    display: flex; flex-direction: column;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--color-border-subtle);
+    min-width: 80px; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .ct-swatch-card:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+  .ct-swatch-color { height: 56px; }
+  .ct-swatch-info { padding: 6px 8px; background: var(--color-bg-elevated); }
+  .ct-swatch-hex { font-family: monospace; font-size: 0.7rem; color: var(--color-text-primary); }
+  .ct-swatch-rgb { font-family: monospace; font-size: 0.6rem; color: var(--color-text-muted); margin-top: 1px; }
+</style>
+
+<script>
+  /**
+   * Color Toolkit — client logic.
+   * Zero external dependencies.
+   */
+
+  /* ── Color conversions (all through RGB as canonical format) ─────*/
+
+  /** Parse #RRGGBB or #RGB → [r, g, b] or null */
+  const hexToRgb = (hex: string): [number,number,number] | null => {
+    const h = hex.replace('#','');
+    if (h.length === 3) {
+      const [r,g,b] = h.split('').map(c => parseInt(c+c, 16));
+      return [r,g,b];
+    }
+    if (h.length === 6) {
+      return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+    }
+    return null;
+  };
+
+  const rgbToHex = ([r,g,b]: [number,number,number]): string =>
+    '#' + [r,g,b].map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+
+  const rgbToHsl = ([r,g,b]: [number,number,number]): [number,number,number] => {
+    const rn = r/255, gn = g/255, bn = b/255;
+    const max = Math.max(rn,gn,bn), min = Math.min(rn,gn,bn);
+    const l = (max+min)/2;
+    if (max === min) return [0, 0, Math.round(l*100)];
+    const d = max - min;
+    const s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    let h = 0;
+    switch (max) {
+      case rn: h = (gn-bn)/d + (gn<bn?6:0); break;
+      case gn: h = (bn-rn)/d + 2; break;
+      case bn: h = (rn-gn)/d + 4; break;
+    }
+    return [Math.round(h/6*360), Math.round(s*100), Math.round(l*100)];
+  };
+
+  const hslToRgb = ([h,s,l]: [number,number,number]): [number,number,number] => {
+    const sn = s/100, ln = l/100;
+    if (s === 0) { const v = Math.round(ln*255); return [v,v,v]; }
+    const q = ln < 0.5 ? ln*(1+sn) : ln+sn-ln*sn;
+    const p = 2*ln - q;
+    const hk = h/360;
+    const hue2rgb = (hh: number) => {
+      if (hh < 0) hh += 1; if (hh > 1) hh -= 1;
+      if (hh < 1/6) return p+(q-p)*6*hh;
+      if (hh < 1/2) return q;
+      if (hh < 2/3) return p+(q-p)*(2/3-hh)*6;
+      return p;
+    };
+    return [
+      Math.round(hue2rgb(hk+1/3)*255),
+      Math.round(hue2rgb(hk)*255),
+      Math.round(hue2rgb(hk-1/3)*255),
+    ];
+  };
+
+  const rgbToCmyk = ([r,g,b]: [number,number,number]): [number,number,number,number] => {
+    if (r === 0 && g === 0 && b === 0) return [0,0,0,100];
+    const rn = r/255, gn = g/255, bn = b/255;
+    const k = 1 - Math.max(rn,gn,bn);
+    const c = (1-rn-k)/(1-k);
+    const m = (1-gn-k)/(1-k);
+    const y = (1-bn-k)/(1-k);
+    return [Math.round(c*100), Math.round(m*100), Math.round(y*100), Math.round(k*100)];
+  };
+
+  const cmykToRgb = ([c,m,y,k]: [number,number,number,number]): [number,number,number] => {
+    const cn = c/100, mn = m/100, yn = y/100, kn = k/100;
+    return [
+      Math.round(255*(1-cn)*(1-kn)),
+      Math.round(255*(1-mn)*(1-kn)),
+      Math.round(255*(1-yn)*(1-kn)),
+    ];
+  };
+
+  /** Parse "rgb(r, g, b)" → [r,g,b] or null */
+  const parseRgbStr = (s: string): [number,number,number] | null => {
+    const m = s.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+    if (!m) return null;
+    return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+  };
+
+  /** Parse "hsl(h, s%, l%)" → [h,s,l] or null */
+  const parseHslStr = (s: string): [number,number,number] | null => {
+    const m = s.match(/hsl\s*\(\s*(\d+)\s*,\s*(\d+)%?\s*,\s*(\d+)%?\s*\)/i);
+    if (!m) return null;
+    return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+  };
+
+  /** Parse "cmyk(c%, m%, y%, k%)" → [c,m,y,k] or null */
+  const parseCmykStr = (s: string): [number,number,number,number] | null => {
+    const m = s.match(/cmyk\s*\(\s*(\d+)%?\s*,\s*(\d+)%?\s*,\s*(\d+)%?\s*,\s*(\d+)%?\s*\)/i);
+    if (!m) return null;
+    return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3]), parseInt(m[4])];
+  };
+
+  /* ── Tailwind color palette for nearest-match ────────────────────*/
+  const TW_PALETTE: [string, [number,number,number]][] = [
+    ['slate-50',[248,250,252]],['slate-100',[241,245,249]],['slate-200',[226,232,240]],['slate-300',[203,213,225]],['slate-400',[148,163,184]],['slate-500',[100,116,139]],['slate-600',[71,85,105]],['slate-700',[51,65,85]],['slate-800',[30,41,59]],['slate-900',[15,23,42]],
+    ['blue-50',[239,246,255]],['blue-100',[219,234,254]],['blue-200',[191,219,254]],['blue-300',[147,197,253]],['blue-400',[96,165,250]],['blue-500',[59,130,246]],['blue-600',[37,99,235]],['blue-700',[29,78,216]],['blue-800',[30,64,175]],['blue-900',[30,58,138]],
+    ['green-50',[240,253,244]],['green-400',[74,222,128]],['green-500',[34,197,94]],['green-600',[22,163,74]],['green-900',[20,83,45]],
+    ['red-400',[248,113,113]],['red-500',[239,68,68]],['red-600',[220,38,38]],
+    ['yellow-400',[250,204,21]],['yellow-500',[234,179,8]],
+    ['purple-400',[192,132,252]],['purple-500',[168,85,247]],['purple-600',[147,51,234]],
+    ['pink-400',[244,114,182]],['pink-500',[236,72,153]],
+    ['cyan-400',[34,211,238]],['cyan-500',[6,182,212]],
+    ['orange-400',[251,146,60]],['orange-500',[249,115,22]],
+    ['white',[255,255,255]],['black',[0,0,0]],
+    ['gray-100',[243,244,246]],['gray-200',[229,231,235]],['gray-300',[209,213,219]],['gray-400',[156,163,175]],['gray-500',[107,114,128]],['gray-600',[75,85,99]],['gray-700',[55,65,81]],['gray-800',[31,41,55]],['gray-900',[17,24,39]],
+  ];
+
+  const nearestTailwind = ([r,g,b]: [number,number,number]): string => {
+    let best = TW_PALETTE[0][0], bestDist = Infinity;
+    for (const [name,[tr,tg,tb]] of TW_PALETTE) {
+      const d = (r-tr)**2 + (g-tg)**2 + (b-tb)**2;
+      if (d < bestDist) { bestDist = d; best = name; }
+    }
+    return best;
+  };
+
+  /* ── Median-cut color quantization (simplified) ─────────────────
+   * Bucket pixels into 5 dominant colors by repeatedly splitting
+   * the widest color channel range.
+   */
+  type Pixel = [number,number,number];
+
+  const medianCut = (pixels: Pixel[], depth: number): Pixel[] => {
+    if (depth === 0 || pixels.length === 0) {
+      // Return average of bucket
+      const avg: Pixel = [0,0,0];
+      for (const p of pixels) { avg[0]+=p[0]; avg[1]+=p[1]; avg[2]+=p[2]; }
+      const n = pixels.length || 1;
+      return [[Math.round(avg[0]/n), Math.round(avg[1]/n), Math.round(avg[2]/n)]];
+    }
+    // Find channel with widest range
+    const ranges = [0,1,2].map(ch => {
+      const vals = pixels.map(p => p[ch]);
+      return Math.max(...vals) - Math.min(...vals);
+    });
+    const ch = ranges.indexOf(Math.max(...ranges));
+    pixels.sort((a,b) => a[ch]-b[ch]);
+    const mid = Math.floor(pixels.length/2);
+    return [
+      ...medianCut(pixels.slice(0,mid), depth-1),
+      ...medianCut(pixels.slice(mid),   depth-1),
+    ];
+  };
+
+  /* ── Image color extraction ──────────────────────────────────────*/
+  const extractColors = (img: HTMLImageElement, canvas: HTMLCanvasElement): Pixel[] => {
+    const MAX_DIM = 200; // downsample for performance
+    const scale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+    canvas.width  = Math.round(img.naturalWidth  * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const pixels: Pixel[] = [];
+    const step = 5; // sample every 5th pixel for speed
+    for (let i = 0; i < data.length; i += 4 * step) {
+      const a = data[i+3];
+      if (a < 128) continue; // skip transparent pixels
+      pixels.push([data[i], data[i+1], data[i+2]]);
+    }
+
+    // depth=3 → 2^3=8 buckets, we take top 5 by distinct hue
+    const palette = medianCut(pixels, 3);
+    // Deduplicate very similar colors (distance < 30)
+    const unique: Pixel[] = [];
+    for (const c of palette) {
+      const tooClose = unique.some(u => Math.sqrt((c[0]-u[0])**2+(c[1]-u[1])**2+(c[2]-u[2])**2) < 30);
+      if (!tooClose) unique.push(c);
+    }
+    return unique.slice(0, 5);
+  };
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initCt = () => {
+    const app = document.getElementById('ct-app');
+    if (!app || (app as any)._ctInit) return;
+    (app as any)._ctInit = true;
+
+    const tabs      = app.querySelectorAll<HTMLButtonElement>('.ct-tab');
+    const extractEl = document.getElementById('ct-extractor-panel')!;
+    const convertEl = document.getElementById('ct-converter-panel')!;
+
+    // ── Tab switching
+    const setTab = (t: 'extractor' | 'converter') => {
+      tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+      extractEl.classList.toggle('hidden', t !== 'extractor');
+      convertEl.classList.toggle('hidden', t !== 'converter');
+    };
+    tabs.forEach(t => t.addEventListener('click', () => setTab(t.dataset.tab as 'extractor' | 'converter')));
+
+    // ── Extractor ───────────────────────────────────────────────
+    const dropzone  = document.getElementById('ct-dropzone')!;
+    const fileInput = document.getElementById('ct-file-input') as HTMLInputElement;
+    const errEl     = document.getElementById('ct-extract-error')!;
+    const errMsgEl  = document.getElementById('ct-extract-error-msg')!;
+    const resultEl  = document.getElementById('ct-extract-result')!;
+    const thumbEl   = document.getElementById('ct-thumb') as HTMLImageElement;
+    const swatchEl  = document.getElementById('ct-swatches')!;
+    const canvas    = document.getElementById('ct-canvas') as HTMLCanvasElement;
+
+    const showExtractError = (msg: string) => {
+      errEl.classList.remove('hidden');
+      errMsgEl.textContent = msg;
+      resultEl.classList.add('hidden');
+    };
+
+    const processFile = (file: File) => {
+      errEl.classList.add('hidden');
+      if (!file.type.startsWith('image/')) { showExtractError('File is not an image.'); return; }
+      if (file.size > 10 * 1024 * 1024) { showExtractError(`File is ${(file.size/1024/1024).toFixed(1)} MB — maximum is 10 MB.`); return; }
+
+      const url = URL.createObjectURL(file);
+      thumbEl.src = url;
+      thumbEl.onload = () => {
+        const colors = extractColors(thumbEl, canvas);
+        swatchEl.innerHTML = colors.map(([r,g,b]) => {
+          const hex = rgbToHex([r,g,b]);
+          const [h,s,l] = rgbToHsl([r,g,b]);
+          return `
+            <div class="ct-swatch-card" data-hex="${hex}" title="Click to copy ${hex}">
+              <div class="ct-swatch-color" style="background:${hex}"></div>
+              <div class="ct-swatch-info">
+                <div class="ct-swatch-hex">${hex.toUpperCase()}</div>
+                <div class="ct-swatch-rgb">rgb(${r},${g},${b})</div>
+                <div class="ct-swatch-rgb">hsl(${h},${s}%,${l}%)</div>
+              </div>
+            </div>`;
+        }).join('');
+
+        // Click swatch → copy hex
+        swatchEl.querySelectorAll<HTMLElement>('.ct-swatch-card').forEach(card => {
+          card.addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(card.dataset.hex || ''); } catch {}
+            card.style.outline = '2px solid var(--color-accent)';
+            setTimeout(() => { card.style.outline = ''; }, 1000);
+          });
+        });
+
+        resultEl.classList.remove('hidden');
+        URL.revokeObjectURL(url);
+      };
+      thumbEl.onerror = () => { showExtractError('Could not decode image.'); URL.revokeObjectURL(url); };
+    };
+
+    // Drag and drop
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      const file = e.dataTransfer?.files[0];
+      if (file) processFile(file);
+    });
+    fileInput.addEventListener('change', () => { const f = fileInput.files?.[0]; if (f) processFile(f); });
+
+    // ── Converter ───────────────────────────────────────────────
+    const hexEl    = document.getElementById('ct-hex')          as HTMLInputElement;
+    const rgbEl    = document.getElementById('ct-rgb')          as HTMLInputElement;
+    const hslEl    = document.getElementById('ct-hsl')          as HTMLInputElement;
+    const cmykEl   = document.getElementById('ct-cmyk')         as HTMLInputElement;
+    const swatchCv = document.getElementById('ct-color-swatch')!;
+    const nameLbl  = document.getElementById('ct-color-name')!;
+    const picker   = document.getElementById('ct-native-picker')as HTMLInputElement;
+    const twValue  = document.getElementById('ct-tw-value')!;
+
+    /** Update all fields from a canonical RGB value */
+    const updateFromRgb = (rgb: [number,number,number], skipField?: string) => {
+      const hex = rgbToHex(rgb);
+      const [h,s,l] = rgbToHsl(rgb);
+      const [c,m,y,k] = rgbToCmyk(rgb);
+      const [r,g,b] = rgb;
+
+      if (skipField !== 'hex')  hexEl.value  = hex.toUpperCase();
+      if (skipField !== 'rgb')  rgbEl.value  = `rgb(${r}, ${g}, ${b})`;
+      if (skipField !== 'hsl')  hslEl.value  = `hsl(${h}, ${s}%, ${l}%)`;
+      if (skipField !== 'cmyk') cmykEl.value = `cmyk(${c}%, ${m}%, ${y}%, ${k}%)`;
+
+      swatchCv.style.background = hex;
+      nameLbl.textContent = hex.toUpperCase();
+      picker.value = hex;
+
+      const tw = nearestTailwind(rgb);
+      twValue.textContent = tw;
+    };
+
+    // Initialise with the default blue
+    updateFromRgb([59, 130, 246]);
+
+    hexEl.addEventListener('input', () => {
+      const rgb = hexToRgb(hexEl.value.trim());
+      if (rgb) { updateFromRgb(rgb, 'hex'); hexEl.style.borderColor = ''; }
+      else hexEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+    });
+
+    rgbEl.addEventListener('input', () => {
+      const rgb = parseRgbStr(rgbEl.value.trim());
+      if (rgb) { updateFromRgb(rgb, 'rgb'); rgbEl.style.borderColor = ''; }
+      else rgbEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+    });
+
+    hslEl.addEventListener('input', () => {
+      const hsl = parseHslStr(hslEl.value.trim());
+      if (hsl) { updateFromRgb(hslToRgb(hsl), 'hsl'); hslEl.style.borderColor = ''; }
+      else hslEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+    });
+
+    cmykEl.addEventListener('input', () => {
+      const cmyk = parseCmykStr(cmykEl.value.trim());
+      if (cmyk) { updateFromRgb(cmykToRgb(cmyk), 'cmyk'); cmykEl.style.borderColor = ''; }
+      else cmykEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+    });
+
+    picker.addEventListener('input', () => {
+      const rgb = hexToRgb(picker.value);
+      if (rgb) updateFromRgb(rgb);
+    });
+
+    // Copy field buttons
+    app.querySelectorAll<HTMLButtonElement>('.ct-copy-field').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const field = btn.dataset.field;
+        const el = field === 'hex' ? hexEl : field === 'rgb' ? rgbEl : field === 'hsl' ? hslEl : cmykEl;
+        try { await navigator.clipboard.writeText(el.value); } catch {}
+        btn.textContent = '✓';
+        setTimeout(() => { btn.textContent = '⎘'; }, 1200);
+      });
+    });
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(hexEl.value); } catch {}
+    });
+    document.addEventListener('app:reset', () => { updateFromRgb([59,130,246]); });
+  };
+
+  initCt();
+  document.addEventListener('astro:after-swap', initCt);
+</script>

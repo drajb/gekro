@@ -1,0 +1,371 @@
+---
+/**
+ * JSON Formatter & Validator — Calculator.astro
+ *
+ * Zero-dependency JSON formatter. Uses native JSON.parse() for validation
+ * and a custom recursive tokenizer for syntax highlighting.
+ *
+ * Features:
+ *  - Real-time formatting as you type (debounced 200ms)
+ *  - Precise line:column error reporting from SyntaxError messages
+ *  - Three output modes: Pretty 2-space, Pretty 4-space, Minified
+ *  - Full syntax highlighting: keys, strings, numbers, booleans, null
+ *  - Copy formatted output to clipboard
+ *  - Character/line/key count stats
+ *  - Sample JSON presets for quick testing
+ */
+---
+
+<div id="jf-app" class="space-y-4">
+
+  <!-- Toolbar: mode selector + stats + actions -->
+  <div class="flex flex-wrap items-center gap-2">
+
+    <!-- Indent mode buttons -->
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg shrink-0">
+      <button class="jf-mode-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-indent="2">2 spaces</button>
+      <button class="jf-mode-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-indent="4">4 spaces</button>
+      <button class="jf-mode-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-indent="0">Minify</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex items-center gap-3 text-[11px] font-mono text-text-muted ml-1 flex-wrap">
+      <span id="jf-stat-chars">0 chars</span>
+      <span class="opacity-30">·</span>
+      <span id="jf-stat-lines">0 lines</span>
+      <span class="opacity-30">·</span>
+      <span id="jf-stat-keys">0 keys</span>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex gap-2 ml-auto">
+      <button id="jf-clear-btn" class="px-3 py-1.5 text-xs font-mono text-text-muted border border-border-subtle rounded-lg hover:text-text-secondary hover:border-accent/30 transition-all">Clear</button>
+      <button id="jf-copy-btn" class="px-3 py-1.5 text-xs font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">Copy</button>
+    </div>
+  </div>
+
+  <!-- Presets -->
+  <div class="flex flex-wrap gap-1.5">
+    <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest self-center mr-1">Presets:</span>
+    <button class="jf-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="user">User object</button>
+    <button class="jf-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="api">API response</button>
+    <button class="jf-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="nested">Nested array</button>
+    <button class="jf-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="broken">Broken JSON</button>
+  </div>
+
+  <!-- Two-pane layout: input | output -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Input pane -->
+    <div class="space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input</p>
+      <div class="relative">
+        <textarea
+          id="jf-input"
+          rows="20"
+          spellcheck="false"
+          autocomplete="off"
+          class="w-full h-[420px] bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+                 text-sm font-mono text-text-primary leading-relaxed resize-none
+                 focus:outline-none focus:border-accent/40 transition-colors"
+          placeholder='Paste raw JSON here…  {"key": "value"}'
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Output pane -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
+        <span id="jf-status-badge" class="hidden text-[10px] font-mono px-2 py-0.5 rounded-full"></span>
+      </div>
+      <!-- Error banner -->
+      <div id="jf-error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+        <p class="text-xs font-mono text-red-400 leading-relaxed" id="jf-error-msg"></p>
+      </div>
+      <!-- Highlighted output — scrollable code block -->
+      <div
+        id="jf-output"
+        class="h-[420px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono leading-relaxed whitespace-pre-wrap break-all"
+      >
+        <span class="text-text-muted/40 italic text-xs">Formatted output will appear here…</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* Mode button states */
+  .jf-mode-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .jf-mode-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+  }
+  .jf-mode-btn:hover:not(.active) {
+    color: var(--color-text-secondary);
+    background: color-mix(in srgb, var(--color-bg-base) 50%, transparent);
+  }
+
+  /* Syntax highlight token colours */
+  .jf-key    { color: var(--color-accent); }
+  .jf-str    { color: #4ade80; }   /* green-400 */
+  .jf-num    { color: #22d3ee; }   /* cyan-400 */
+  .jf-bool   { color: #fbbf24; }   /* amber-400 */
+  .jf-null   { color: #fbbf24; }
+  .jf-punct  { color: var(--color-text-muted); opacity: 0.6; }
+
+  /* Error highlight in input */
+  #jf-input.has-error { border-color: rgb(239 68 68 / 0.5); }
+
+  /* Valid badge */
+  .badge-valid   { background: rgb(34 197 94 / 0.15); color: #4ade80; border: 1px solid rgb(34 197 94 / 0.3); }
+  .badge-invalid { background: rgb(239 68 68 / 0.15); color: #f87171; border: 1px solid rgb(239 68 68 / 0.3); }
+</style>
+
+<script>
+  /**
+   * JSON Formatter client-side logic.
+   * Runs entirely in the browser — no network calls.
+   */
+
+  /* ── Preset data ─────────────────────────────────────────────────── */
+  const PRESETS: Record<string, string> = {
+    user: JSON.stringify({
+      id: "usr_01HXQ9T6NQWZ3J8KFGR4MVPBY",
+      name: "Rohit Burani",
+      email: "rohit@gekro.com",
+      role: "admin",
+      preferences: { theme: "dark", notifications: true, timezone: "America/Los_Angeles" },
+      createdAt: "2026-01-15T08:32:00Z",
+      tags: ["engineer", "ai", "founder"],
+    }),
+    api: JSON.stringify({
+      status: "success",
+      data: {
+        users: [
+          { id: 1, name: "Alice", active: true },
+          { id: 2, name: "Bob", active: false },
+        ],
+        pagination: { page: 1, pageSize: 20, total: 2 },
+      },
+      meta: { requestId: "req_abc123", latencyMs: 42 },
+    }),
+    nested: JSON.stringify({
+      matrix: [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+      graph: {
+        nodes: [{ id: "A", weight: 1.5 }, { id: "B", weight: null }],
+        edges: [{ from: "A", to: "B", directed: true }],
+      },
+    }),
+    broken: '{"name":"Rohit","active":true,"score":42,}', // trailing comma — invalid
+  };
+
+  /* ── Syntax tokenizer ─────────────────────────────────────────────
+   * Takes a pretty-printed JSON string and wraps tokens in <span> tags.
+   * Operates on the string character-by-character to avoid regex limits
+   * on very large inputs.
+   */
+  const escHtml = (s: string): string =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const tokenize = (json: string): string => {
+    // Regex that captures JSON tokens in order
+    const re = /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(true|false|null)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|([{}[\],:])/g;
+    let result = '';
+    let last = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(json)) !== null) {
+      // Preserve whitespace/newlines between tokens
+      if (m.index > last) result += escHtml(json.slice(last, m.index));
+      if (m[1] !== undefined)      result += `<span class="jf-key">${escHtml(m[1])}</span>:`;
+      else if (m[2] !== undefined) result += `<span class="jf-str">${escHtml(m[2])}</span>`;
+      else if (m[3] !== undefined) result += `<span class="jf-bool">${m[3]}</span>`;
+      else if (m[4] !== undefined) result += `<span class="jf-num">${m[4]}</span>`;
+      else if (m[5] !== undefined) result += `<span class="jf-punct">${escHtml(m[5])}</span>`;
+      last = re.lastIndex;
+    }
+    if (last < json.length) result += escHtml(json.slice(last));
+    return result;
+  };
+
+  /* ── Error position extraction ────────────────────────────────────
+   * Modern JS engines include "at line X column Y" in SyntaxError.message.
+   * Falls back to character position via offset search if line/col unavailable.
+   */
+  const parseErrorPos = (msg: string, raw: string): string => {
+    // Chrome/V8: "Unexpected token ... at position N"
+    const posMatch = msg.match(/position (\d+)/i);
+    if (posMatch) {
+      const pos = parseInt(posMatch[1]);
+      const before = raw.slice(0, pos);
+      const line = (before.match(/\n/g) || []).length + 1;
+      const col = pos - before.lastIndexOf('\n');
+      return `Line ${line}, column ${col} (char ${pos}): ${msg}`;
+    }
+    // Firefox/Safari: "JSON.parse: ... at line N column N"
+    const lcMatch = msg.match(/line (\d+) column (\d+)/i);
+    if (lcMatch) return `Line ${lcMatch[1]}, column ${lcMatch[2]}: ${msg}`;
+    return msg;
+  };
+
+  /* ── Count keys recursively ───────────────────────────────────────*/
+  const countKeys = (obj: unknown, depth = 0): number => {
+    if (obj === null || typeof obj !== 'object') return 0;
+    if (Array.isArray(obj)) return obj.reduce<number>((s, v) => s + countKeys(v, depth + 1), 0);
+    return Object.keys(obj).length + Object.values(obj).reduce<number>((s, v) => s + countKeys(v, depth + 1), 0);
+  };
+
+  /* ── Main init ────────────────────────────────────────────────────*/
+  const initJf = () => {
+    const app = document.getElementById('jf-app');
+    if (!app || (app as any)._jfInit) return;
+    (app as any)._jfInit = true;
+
+    const inputEl    = document.getElementById('jf-input') as HTMLTextAreaElement;
+    const outputEl   = document.getElementById('jf-output')!;
+    const errorEl    = document.getElementById('jf-error')!;
+    const errorMsgEl = document.getElementById('jf-error-msg')!;
+    const badge      = document.getElementById('jf-status-badge')!;
+    const statChars  = document.getElementById('jf-stat-chars')!;
+    const statLines  = document.getElementById('jf-stat-lines')!;
+    const statKeys   = document.getElementById('jf-stat-keys')!;
+    const modeBtns   = app.querySelectorAll<HTMLButtonElement>('.jf-mode-btn');
+    const presetBtns = app.querySelectorAll<HTMLButtonElement>('.jf-preset');
+    const clearBtn   = document.getElementById('jf-clear-btn')!;
+    const copyBtn    = document.getElementById('jf-copy-btn')!;
+
+    let indent = 2; // current indent setting (0 = minify)
+    let lastFormatted = ''; // last successfully formatted output for copy
+
+    /* Show valid state */
+    const setValid = (formatted: string, parsed: unknown) => {
+      errorEl.classList.add('hidden');
+      inputEl.classList.remove('has-error');
+      badge.className = 'badge-valid text-[10px] font-mono px-2 py-0.5 rounded-full';
+      badge.textContent = '✓ Valid JSON';
+      badge.classList.remove('hidden');
+
+      lastFormatted = formatted;
+      outputEl.innerHTML = tokenize(formatted);
+
+      const keys = countKeys(parsed);
+      const lines = formatted.split('\n').length;
+      statChars.textContent = `${formatted.length.toLocaleString()} chars`;
+      statLines.textContent = `${lines.toLocaleString()} line${lines !== 1 ? 's' : ''}`;
+      statKeys.textContent  = `${keys.toLocaleString()} key${keys !== 1 ? 's' : ''}`;
+    };
+
+    /* Show invalid state */
+    const setInvalid = (raw: string, err: SyntaxError) => {
+      errorEl.classList.remove('hidden');
+      inputEl.classList.add('has-error');
+      badge.className = 'badge-invalid text-[10px] font-mono px-2 py-0.5 rounded-full';
+      badge.textContent = '✗ Invalid';
+      badge.classList.remove('hidden');
+      errorMsgEl.textContent = parseErrorPos(err.message, raw);
+
+      outputEl.innerHTML = '<span class="text-text-muted/40 italic text-xs">Fix the error above to see formatted output.</span>';
+      lastFormatted = '';
+      statChars.textContent = `${raw.length.toLocaleString()} chars`;
+      statLines.textContent = '—';
+      statKeys.textContent  = '—';
+    };
+
+    /* Clear state (empty input) */
+    const setEmpty = () => {
+      errorEl.classList.add('hidden');
+      inputEl.classList.remove('has-error');
+      badge.classList.add('hidden');
+      outputEl.innerHTML = '<span class="text-text-muted/40 italic text-xs">Formatted output will appear here…</span>';
+      lastFormatted = '';
+      statChars.textContent = '0 chars';
+      statLines.textContent = '0 lines';
+      statKeys.textContent  = '0 keys';
+    };
+
+    /* Core format function */
+    const format = () => {
+      const raw = inputEl.value.trim();
+      if (!raw) { setEmpty(); return; }
+
+      // Guard: tokenizing >2MB synchronously can freeze the tab
+      if (raw.length > 2_000_000) {
+        errorEl.classList.remove('hidden');
+        errorMsgEl.textContent = `Input is ${(raw.length / 1_000_000).toFixed(1)} MB — too large to tokenize safely in the browser. Paste a smaller excerpt.`;
+        inputEl.classList.add('has-error');
+        badge.classList.add('hidden');
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        // indent=0 means minify
+        const formatted = indent === 0 ? JSON.stringify(parsed) : JSON.stringify(parsed, null, indent);
+        setValid(formatted, parsed);
+      } catch (e) {
+        setInvalid(raw, e as SyntaxError);
+      }
+    };
+
+    /* Debounced input handler */
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    inputEl.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(format, 200);
+    });
+
+    /* Mode buttons */
+    modeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        indent = parseInt(btn.dataset.indent || '2');
+        format();
+      });
+    });
+
+    /* Presets */
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        inputEl.value = PRESETS[btn.dataset.preset || 'user'] || '';
+        format();
+      });
+    });
+
+    /* Clear */
+    clearBtn.addEventListener('click', () => { inputEl.value = ''; setEmpty(); });
+
+    /* Copy formatted output */
+    copyBtn.addEventListener('click', async () => {
+      const text = lastFormatted || inputEl.value;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+      } catch {
+        // Fallback for browsers that block clipboard without user gesture
+        copyBtn.textContent = 'Failed';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+      }
+    });
+
+    /* AppShell integration */
+    document.addEventListener('app:copy', async () => {
+      const text = lastFormatted || inputEl.value;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+    document.addEventListener('app:reset', () => { inputEl.value = ''; setEmpty(); indent = 2; modeBtns.forEach((b,i)=>b.classList.toggle('active',i===0)); });
+
+    // Format on load if there's pre-filled content
+    format();
+  };
+
+  initJf();
+  document.addEventListener('astro:after-swap', initJf);
+</script>

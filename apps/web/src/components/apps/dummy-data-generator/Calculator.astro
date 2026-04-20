@@ -1,0 +1,387 @@
+---
+/**
+ * Dummy Data Generator — Calculator.astro
+ *
+ * Zero external dependencies — hand-rolled micro-faker with 20+ data types.
+ * Uses window.crypto.getRandomValues() for all random values.
+ *
+ * Features:
+ *  - Column builder: add/remove/reorder columns, name each field, choose type
+ *  - 20+ data types: names, email, UUID, phone, lorem, int, float, date, etc.
+ *  - Row count 1–1000
+ *  - Live preview table (first 5 rows)
+ *  - Export as JSON (pretty) or CSV with proper quoting
+ *  - Copy output to clipboard
+ */
+---
+
+<div id="ddg-app" class="space-y-5">
+
+  <!-- Schema builder -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Schema columns</p>
+      <button id="ddg-add-col" class="text-xs font-mono px-3 py-1.5 rounded-lg border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-all">+ Add column</button>
+    </div>
+
+    <div id="ddg-columns" class="space-y-2">
+      <!-- Column rows rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Row count + format -->
+  <div class="flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-3">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted shrink-0">Rows</label>
+      <input type="number" id="ddg-rows" min="1" max="1000" value="10"
+        class="w-20 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
+               text-sm font-mono text-center text-text-primary
+               focus:outline-none focus:border-accent/40 transition-colors" />
+      <span class="text-[10px] font-mono text-text-muted">max 1000</span>
+    </div>
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+      <button class="ddg-fmt-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="json">JSON</button>
+      <button class="ddg-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="csv">CSV</button>
+    </div>
+    <button id="ddg-generate" class="px-6 py-2 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono font-semibold text-sm hover:bg-accent/30 active:scale-95 transition-all">Generate</button>
+  </div>
+
+  <!-- Preview table -->
+  <div id="ddg-preview-wrap" class="hidden space-y-1.5">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Preview (first 5 rows)</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table id="ddg-preview-table" class="w-full text-xs font-mono"></table>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div id="ddg-output-wrap" class="hidden space-y-1.5">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
+      <div class="flex gap-2">
+        <button id="ddg-copy-btn" class="text-xs font-mono px-3 py-1 rounded-lg border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-all">Copy</button>
+        <button id="ddg-download-btn" class="text-xs font-mono px-3 py-1 rounded-lg border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary transition-all">Download</button>
+      </div>
+    </div>
+    <textarea id="ddg-output" rows="12" readonly spellcheck="false"
+      class="w-full h-64 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-primary leading-relaxed resize-none
+             focus:outline-none"></textarea>
+  </div>
+
+</div>
+
+<style>
+  .ddg-fmt-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .ddg-fmt-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+  }
+  /* Column row styling */
+  .ddg-col-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 10px;
+  }
+  .ddg-col-name {
+    flex: 1; min-width: 80px;
+    background: transparent; border: none;
+    font-family: monospace; font-size: 0.8rem;
+    color: var(--color-text-primary); outline: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 2px 0;
+    transition: border-color 0.2s;
+  }
+  .ddg-col-name:focus { border-color: var(--color-accent); }
+  .ddg-col-type {
+    background: var(--color-bg-surface); border: 1px solid var(--color-border-subtle);
+    border-radius: 6px; padding: 4px 8px;
+    font-family: monospace; font-size: 0.75rem;
+    color: var(--color-text-secondary); outline: none;
+    cursor: pointer; min-width: 140px;
+  }
+  .ddg-col-remove {
+    color: var(--color-text-muted); font-size: 0.9rem; cursor: pointer;
+    padding: 4px; border-radius: 4px; line-height: 1;
+    transition: color 0.15s;
+  }
+  .ddg-col-remove:hover { color: #ef4444; }
+  /* Preview table */
+  #ddg-preview-table th {
+    padding: 8px 12px; text-align: left; font-size: 0.65rem;
+    font-family: monospace; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--color-text-muted); background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  #ddg-preview-table td {
+    padding: 6px 12px; font-size: 0.75rem; font-family: monospace;
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  #ddg-preview-table tr:last-child td { border-bottom: none; }
+  #ddg-preview-table tr:nth-child(even) td { background: var(--color-bg-elevated); }
+</style>
+
+<script>
+  /**
+   * Dummy Data Generator — micro-faker engine.
+   * Uses window.crypto.getRandomValues() for all random values.
+   * No external libraries.
+   */
+
+  /* ── Crypto-based random helpers ────────────────────────────────*/
+  const randInt = (min: number, max: number): number => {
+    const range = max - min + 1;
+    const buf = new Uint32Array(1);
+    const limit = Math.floor(0x100000000 / range) * range;
+    let x: number;
+    do { crypto.getRandomValues(buf); x = buf[0]; } while (x >= limit);
+    return min + (x % range);
+  };
+
+  const pick = <T>(arr: T[]): T => arr[randInt(0, arr.length - 1)];
+
+  const randFloat = (min: number, max: number, decimals = 2): number => {
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return parseFloat((min + (buf[0] / 0xFFFFFFFF) * (max - min)).toFixed(decimals));
+  };
+
+  /* ── Data pools ─────────────────────────────────────────────────*/
+  const FIRST = ['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','William','Barbara','David','Susan','Richard','Jessica','Joseph','Sarah','Thomas','Karen','Charles','Lisa','Christopher','Nancy','Daniel','Betty','Matthew','Margaret','Anthony','Sandra','Mark','Ashley','Donald','Dorothy','Steven','Kimberly','Paul','Emily','Andrew','Donna','Joshua','Michelle','Kenneth','Carol','Kevin','Amanda','Brian','Melissa','George','Deborah','Timothy','Stephanie'];
+  const LAST  = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores','Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts'];
+  const DOMAINS = ['gmail.com','yahoo.com','outlook.com','icloud.com','proton.me','fastmail.com','hey.com','email.com'];
+  const COMPANIES = ['Acme Corp','Pinnacle Systems','NexGen Tech','Apex Solutions','Blue Horizon','TechEdge','DataBridge','CloudCore','Vertex Labs','Horizon AI'];
+  const JOBS = ['Software Engineer','Product Manager','Data Scientist','UX Designer','DevOps Engineer','Marketing Manager','Sales Director','HR Manager','Finance Analyst','Operations Lead'];
+  const DEPTS = ['Engineering','Product','Design','Marketing','Sales','HR','Finance','Operations','Legal','Customer Success'];
+  const CITIES = ['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','San Antonio','San Diego','Dallas','San Jose','Austin','Jacksonville','Fort Worth','Columbus','Charlotte'];
+  const COUNTRIES = ['United States','United Kingdom','Canada','Australia','Germany','France','Japan','India','Brazil','Mexico'];
+  const STREETS = ['Main St','Oak Ave','Park Blvd','Elm St','Maple Ave','Cedar Lane','Willow Dr','Birch Rd','Pine St','Sunset Blvd'];
+  const LOREM_WORDS = ['lorem','ipsum','dolor','sit','amet','consectetur','adipiscing','elit','sed','do','eiusmod','tempor','incididunt','ut','labore','et','dolore','magna','aliqua','enim','ad','minim','veniam','quis','nostrud','exercitation','ullamco','laboris','nisi','aliquip','ex','ea','commodo','consequat'];
+  const COLORS_HEX = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FECA57','#FF9FF3','#54A0FF','#5F27CD','#00D2D3','#FF9F43','#EE5A24','#0652DD','#1289A7','#C4E538','#FDA7DF'];
+
+  /* ── UUID v4 (RFC 4122) ─────────────────────────────────────────*/
+  const uuid = (): string => {
+    const b = new Uint8Array(16);
+    crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant 10xx
+    const h = [...b].map(v => v.toString(16).padStart(2,'0')).join('');
+    return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+  };
+
+  /* ── Individual generators ──────────────────────────────────────*/
+  const GENERATORS: Record<string, () => string | number | boolean> = {
+    'full-name':    () => `${pick(FIRST)} ${pick(LAST)}`,
+    'first-name':  () => pick(FIRST),
+    'last-name':   () => pick(LAST),
+    'email':       () => `${pick(FIRST).toLowerCase()}.${pick(LAST).toLowerCase()}${randInt(1,99)}@${pick(DOMAINS)}`,
+    'username':    () => `${pick(FIRST).toLowerCase()}${pick(LAST).toLowerCase().slice(0,4)}${randInt(10,999)}`,
+    'uuid':        () => uuid(),
+    'phone':       () => `+1 (${randInt(200,999)}) ${randInt(200,999)}-${randInt(1000,9999)}`,
+    'url':         () => `https://${pick(COMPANIES).toLowerCase().replace(/\s+/g,'-')}.com/${pick(LAST).toLowerCase()}`,
+    'domain':      () => `${pick(COMPANIES).toLowerCase().replace(/\s+/g,'')}.com`,
+    'city':        () => pick(CITIES),
+    'country':     () => pick(COUNTRIES),
+    'street':      () => `${randInt(1,9999)} ${pick(STREETS)}`,
+    'postal-code': () => String(randInt(10000,99999)),
+    'company':     () => pick(COMPANIES),
+    'job-title':   () => pick(JOBS),
+    'department':  () => pick(DEPTS),
+    'lorem-words': () => Array.from({length: randInt(3,7)}, () => pick(LOREM_WORDS)).join(' '),
+    'lorem-sentence': () => {
+      const words = Array.from({length: randInt(8,15)}, () => pick(LOREM_WORDS));
+      return words[0].charAt(0).toUpperCase() + words.join(' ').slice(1) + '.';
+    },
+    'lorem-paragraph': () => {
+      return Array.from({length: randInt(3,5)}, () => {
+        const words = Array.from({length: randInt(10,20)}, () => pick(LOREM_WORDS));
+        return words[0].charAt(0).toUpperCase() + words.join(' ').slice(1) + '.';
+      }).join(' ');
+    },
+    'integer':     () => randInt(1, 10000),
+    'float':       () => randFloat(0, 1000, 2),
+    'boolean':     () => randInt(0,1) === 1,
+    'percent':     () => `${randInt(0,100)}%`,
+    'date-iso':    () => { const d = new Date(randInt(2010, 2026), randInt(0,11), randInt(1,28)); return d.toISOString().split('T')[0]; },
+    'date-short':  () => { const d = new Date(randInt(2010, 2026), randInt(0,11), randInt(1,28)); return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`; },
+    'timestamp':   () => randInt(1262304000, 1745196000), // 2010–2025
+    'color-hex':   () => pick(COLORS_HEX),
+    'gender':      () => pick(['Male','Female','Non-binary','Prefer not to say']),
+  };
+
+  const TYPE_LABELS: Record<string, string> = {
+    'full-name':'Full Name','first-name':'First Name','last-name':'Last Name',
+    'email':'Email','username':'Username','uuid':'UUID','phone':'Phone',
+    'url':'URL','domain':'Domain','city':'City','country':'Country',
+    'street':'Street Address','postal-code':'Postal Code','company':'Company',
+    'job-title':'Job Title','department':'Department','lorem-words':'Lorem Words',
+    'lorem-sentence':'Lorem Sentence','lorem-paragraph':'Lorem Paragraph',
+    'integer':'Integer','float':'Float','boolean':'Boolean','percent':'Percent',
+    'date-iso':'Date (ISO)','date-short':'Date (Short)','timestamp':'Timestamp (Unix)',
+    'color-hex':'Color (Hex)','gender':'Gender',
+  };
+
+  /* ── CSV escape ─────────────────────────────────────────────────*/
+  const csvCell = (v: unknown): string => {
+    const s = String(v);
+    // Quote if contains comma, quote, or newline
+    if (/[,"\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+    return s;
+  };
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initDdg = () => {
+    const app = document.getElementById('ddg-app');
+    if (!app || (app as any)._ddgInit) return;
+    (app as any)._ddgInit = true;
+
+    const colsEl    = document.getElementById('ddg-columns')!;
+    const addColBtn = document.getElementById('ddg-add-col')!;
+    const rowsEl    = document.getElementById('ddg-rows')  as HTMLInputElement;
+    const fmtBtns   = app.querySelectorAll<HTMLButtonElement>('.ddg-fmt-btn');
+    const genBtn    = document.getElementById('ddg-generate')!;
+    const prevWrap  = document.getElementById('ddg-preview-wrap')!;
+    const prevTable = document.getElementById('ddg-preview-table')!;
+    const outWrap   = document.getElementById('ddg-output-wrap')!;
+    const outEl     = document.getElementById('ddg-output')  as HTMLTextAreaElement;
+    const copyBtn   = document.getElementById('ddg-copy-btn')!;
+    const dlBtn     = document.getElementById('ddg-download-btn')!;
+
+    let fmt: 'json' | 'csv' = 'json';
+    let colIdCounter = 0;
+    let lastOutput = '';
+    let lastData: Record<string,unknown>[] = [];
+
+    /* Build the <select> type dropdown */
+    const buildTypeSelect = (value = 'full-name'): string => {
+      const groups: Record<string, string[]> = {
+        'Identity':  ['full-name','first-name','last-name','email','username','uuid'],
+        'Contact':   ['phone','url','domain'],
+        'Location':  ['city','country','street','postal-code'],
+        'Content':   ['lorem-words','lorem-sentence','lorem-paragraph'],
+        'Numbers':   ['integer','float','boolean','percent'],
+        'Date/Time': ['date-iso','date-short','timestamp'],
+        'Business':  ['company','job-title','department'],
+        'Other':     ['color-hex','gender'],
+      };
+      const opts = Object.entries(groups).map(([grp, types]) =>
+        `<optgroup label="${grp}">${types.map(t =>
+          `<option value="${t}"${t === value ? ' selected' : ''}>${TYPE_LABELS[t]}</option>`
+        ).join('')}</optgroup>`
+      ).join('');
+      return `<select class="ddg-col-type">${opts}</select>`;
+    };
+
+    /* Add a new column row */
+    const addColumn = (name = '', type = 'full-name') => {
+      const id = ++colIdCounter;
+      const div = document.createElement('div');
+      div.className = 'ddg-col-row';
+      div.dataset.colId = String(id);
+      div.innerHTML = `
+        <span class="text-text-muted/40 text-sm select-none font-mono">${id}.</span>
+        <input type="text" class="ddg-col-name" value="${name}" placeholder="field_name" />
+        ${buildTypeSelect(type)}
+        <button class="ddg-col-remove" title="Remove column">✕</button>`;
+      div.querySelector('.ddg-col-remove')!.addEventListener('click', () => div.remove());
+      colsEl.appendChild(div);
+    };
+
+    /* Collect schema from DOM */
+    const getSchema = (): Array<{ name: string; type: string }> => {
+      return [...colsEl.querySelectorAll<HTMLElement>('.ddg-col-row')].map(row => ({
+        name: (row.querySelector('.ddg-col-name') as HTMLInputElement).value.trim() || 'field',
+        type: (row.querySelector('.ddg-col-type') as HTMLSelectElement).value,
+      }));
+    };
+
+    /* Generate dataset */
+    const generate = () => {
+      const schema = getSchema();
+      if (!schema.length) return;
+      const rows = Math.max(1, Math.min(1000, parseInt(rowsEl.value) || 10));
+
+      lastData = Array.from({ length: rows }, () => {
+        const obj: Record<string, unknown> = {};
+        for (const col of schema) {
+          const gen = GENERATORS[col.type];
+          obj[col.name] = gen ? gen() : '';
+        }
+        return obj;
+      });
+
+      // Render preview (first 5 rows)
+      const previewRows = lastData.slice(0, 5);
+      const headers = schema.map(c => c.name);
+      prevTable.innerHTML =
+        `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>` +
+        `<tbody>${previewRows.map(row =>
+          `<tr>${headers.map(h => `<td>${String(row[h]).slice(0, 40)}</td>`).join('')}</tr>`
+        ).join('')}</tbody>`;
+      prevWrap.classList.remove('hidden');
+
+      // Render output
+      if (fmt === 'json') {
+        lastOutput = JSON.stringify(lastData, null, 2);
+      } else {
+        const csvRows = [headers.map(csvCell).join(',')];
+        for (const row of lastData) csvRows.push(headers.map(h => csvCell(row[h])).join(','));
+        lastOutput = csvRows.join('\n');
+      }
+      outEl.value = lastOutput;
+      outWrap.classList.remove('hidden');
+    };
+
+    /* Format toggle */
+    fmtBtns.forEach(btn => btn.addEventListener('click', () => {
+      fmt = btn.dataset.fmt as 'json' | 'csv';
+      fmtBtns.forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
+    }));
+
+    addColBtn.addEventListener('click', () => addColumn());
+    genBtn.addEventListener('click', generate);
+
+    copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(lastOutput); } catch {}
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    });
+
+    dlBtn.addEventListener('click', () => {
+      if (!lastOutput) return;
+      const mime = fmt === 'json' ? 'application/json' : 'text/csv';
+      const ext  = fmt;
+      const blob = new Blob([lastOutput], { type: mime });
+      const url  = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), { href: url, download: `data-${Date.now()}.${ext}` });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    document.addEventListener('app:reset', () => {
+      colsEl.innerHTML = ''; colIdCounter = 0;
+      prevWrap.classList.add('hidden'); outWrap.classList.add('hidden');
+      outEl.value = ''; lastOutput = ''; lastData = [];
+      // Restore default columns
+      addColumn('id', 'uuid'); addColumn('name', 'full-name'); addColumn('email', 'email');
+    });
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(lastOutput); } catch {}
+    });
+
+    // Start with sensible defaults
+    addColumn('id', 'uuid');
+    addColumn('name', 'full-name');
+    addColumn('email', 'email');
+  };
+
+  initDdg();
+  document.addEventListener('astro:after-swap', initDdg);
+</script>

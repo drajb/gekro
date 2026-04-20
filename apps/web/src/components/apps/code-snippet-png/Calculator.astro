@@ -1,0 +1,363 @@
+---
+/**
+ * Code Snippet to PNG — Calculator.astro
+ *
+ * Uses:
+ *  - shiki/bundle/web (already installed) for browser-side syntax highlighting
+ *  - html-to-image for DOM → PNG capture at 2x pixel density
+ *
+ * Both libraries are dynamically imported on first use.
+ *
+ * Features:
+ *  - 30 language options
+ *  - 8 curated dark themes
+ *  - Background gradient presets + custom gradient picker
+ *  - Padding slider, border radius toggle, font-size selector
+ *  - Window chrome (fake macOS traffic lights) toggle
+ *  - 2x pixel density for crisp retina export
+ *  - Live preview updates as settings change
+ */
+---
+
+<div id="csp-app" class="space-y-5">
+
+  <!-- Code input -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Code</label>
+      <div class="flex items-center gap-2">
+        <!-- Language selector -->
+        <select id="csp-lang"
+          class="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
+          {[
+            'javascript','typescript','python','rust','go','java','c','cpp','csharp',
+            'bash','sql','html','css','json','yaml','toml','markdown','ruby','php',
+            'swift','kotlin','scala','dart','elixir','haskell','lua','r','dockerfile',
+            'graphql','jsx','tsx',
+          ].map(l => <option value={l}>{l}</option>)}
+        </select>
+        <!-- Theme selector -->
+        <select id="csp-theme"
+          class="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
+          {[
+            ['github-dark','GitHub Dark'],
+            ['tokyo-night','Tokyo Night'],
+            ['dracula','Dracula'],
+            ['nord','Nord'],
+            ['one-dark-pro','One Dark Pro'],
+            ['catppuccin-mocha','Catppuccin Mocha'],
+            ['solarized-dark','Solarized Dark'],
+            ['rose-pine','Rosé Pine'],
+          ].map(([v,l]) => <option value={v}>{l}</option>)}
+        </select>
+      </div>
+    </div>
+    <textarea
+      id="csp-input"
+      rows="10"
+      spellcheck="false"
+      autocomplete="off"
+      class="w-full h-48 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary leading-relaxed resize-none
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="Paste your code here…"
+    ></textarea>
+  </div>
+
+  <!-- Options bar -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+    <!-- Background gradient -->
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Background</label>
+      <div class="flex gap-1 flex-wrap" id="csp-bg-swatches">
+        {[
+          { id:'aurora',   g:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)' },
+          { id:'ocean',    g:'linear-gradient(135deg,#0061ff,#60efff)' },
+          { id:'sunset',   g:'linear-gradient(135deg,#f093fb,#f5576c)' },
+          { id:'forest',   g:'linear-gradient(135deg,#134e5e,#71b280)' },
+          { id:'midnight', g:'linear-gradient(135deg,#232526,#414345)' },
+          { id:'lava',     g:'linear-gradient(135deg,#200122,#6f0000)' },
+          { id:'gold',     g:'linear-gradient(135deg,#f7971e,#ffd200)' },
+          { id:'neon',     g:'linear-gradient(135deg,#00f260,#0575e6)' },
+        ].map(bg => (
+          <button
+            class="csp-bg-swatch w-7 h-7 rounded-lg border-2 border-transparent hover:scale-110 transition-all"
+            data-bg-id={bg.id}
+            style={`background:${bg.g}`}
+            title={bg.id.charAt(0).toUpperCase()+bg.id.slice(1)}
+          ></button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Padding -->
+    <div class="space-y-1">
+      <div class="flex justify-between">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Padding</label>
+        <span id="csp-pad-val" class="text-[10px] font-mono text-text-muted">32px</span>
+      </div>
+      <input type="range" id="csp-padding" min="8" max="80" value="32"
+        class="w-full accent-[var(--color-accent)]" />
+    </div>
+
+    <!-- Font size -->
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Font size</label>
+      <select id="csp-fontsize"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        {['12px','13px','14px','15px','16px','18px','20px'].map(s => (
+          <option value={s} selected={s === '14px'}>{s}</option>
+        ))}
+      </select>
+    </div>
+
+    <!-- Toggles -->
+    <div class="space-y-2">
+      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+        <input type="checkbox" id="csp-chrome" checked class="accent-[var(--color-accent)] w-4 h-4" />
+        Window chrome
+      </label>
+      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+        <input type="checkbox" id="csp-rounded" checked class="accent-[var(--color-accent)] w-4 h-4" />
+        Rounded corners
+      </label>
+    </div>
+  </div>
+
+  <!-- Live preview -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Preview</p>
+      <div class="flex items-center gap-2">
+        <span id="csp-loading" class="hidden text-[10px] font-mono text-text-muted animate-pulse">Highlighting…</span>
+        <button id="csp-export-btn"
+          class="px-4 py-1.5 text-xs font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all disabled:opacity-40">
+          Export PNG
+        </button>
+      </div>
+    </div>
+
+    <!-- The preview container — this element is captured by html-to-image -->
+    <div class="overflow-auto rounded-xl border border-border-subtle bg-bg-elevated p-4">
+      <div id="csp-preview-outer" style="display:inline-block; min-width:100%">
+        <!-- Gradient background wrapper -->
+        <div id="csp-preview-bg" style="padding:32px; background:linear-gradient(135deg,#0f0c29,#302b63,#24243e); display:inline-block; min-width:400px;">
+          <!-- Code window -->
+          <div id="csp-preview-window" style="border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+            <!-- Chrome bar -->
+            <div id="csp-preview-chrome" style="background:#1e1e2e; padding:12px 16px; display:flex; align-items:center; gap:6px; border-bottom:1px solid rgba(255,255,255,0.06);">
+              <span style="width:12px;height:12px;border-radius:50%;background:#ff5f57;display:inline-block;"></span>
+              <span style="width:12px;height:12px;border-radius:50%;background:#febc2e;display:inline-block;"></span>
+              <span style="width:12px;height:12px;border-radius:50%;background:#28c840;display:inline-block;"></span>
+            </div>
+            <!-- Highlighted code -->
+            <div id="csp-preview-code"
+              style="background:#1e1e2e; padding:20px 24px; font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace; font-size:14px; line-height:1.7; overflow-x:auto; min-height:60px;">
+              <span style="color:#666;font-style:italic;font-size:12px">Paste code above to see a preview…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* Active swatch state */
+  .csp-bg-swatch.active {
+    border-color: var(--color-accent) !important;
+    transform: scale(1.15);
+  }
+</style>
+
+<script>
+  /**
+   * Code Snippet to PNG — client logic.
+   * Dynamically imports shiki and html-to-image on first use.
+   */
+
+  /* ── Background gradient definitions ────────────────────────────*/
+  const BACKGROUNDS: Record<string, string> = {
+    aurora:   'linear-gradient(135deg,#0f0c29,#302b63,#24243e)',
+    ocean:    'linear-gradient(135deg,#0061ff,#60efff)',
+    sunset:   'linear-gradient(135deg,#f093fb,#f5576c)',
+    forest:   'linear-gradient(135deg,#134e5e,#71b280)',
+    midnight: 'linear-gradient(135deg,#232526,#414345)',
+    lava:     'linear-gradient(135deg,#200122,#6f0000)',
+    gold:     'linear-gradient(135deg,#f7971e,#ffd200)',
+    neon:     'linear-gradient(135deg,#00f260,#0575e6)',
+  };
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initCsp = () => {
+    const app = document.getElementById('csp-app');
+    if (!app || (app as any)._cspInit) return;
+    (app as any)._cspInit = true;
+
+    const inputEl    = document.getElementById('csp-input')     as HTMLTextAreaElement;
+    const langEl     = document.getElementById('csp-lang')      as HTMLSelectElement;
+    const themeEl    = document.getElementById('csp-theme')     as HTMLSelectElement;
+    const padEl      = document.getElementById('csp-padding')   as HTMLInputElement;
+    const padValEl   = document.getElementById('csp-pad-val')!;
+    const fontsizeEl = document.getElementById('csp-fontsize')  as HTMLSelectElement;
+    const chromeCb   = document.getElementById('csp-chrome')    as HTMLInputElement;
+    const roundedCb  = document.getElementById('csp-rounded')   as HTMLInputElement;
+    const bgSwatches = app.querySelectorAll<HTMLButtonElement>('.csp-bg-swatch');
+    const previewBg  = document.getElementById('csp-preview-bg')!;
+    const previewWin = document.getElementById('csp-preview-window')!;
+    const previewChr = document.getElementById('csp-preview-chrome')!;
+    const previewCode= document.getElementById('csp-preview-code')!;
+    const exportBtn  = document.getElementById('csp-export-btn') as HTMLButtonElement;
+    const loadingEl  = document.getElementById('csp-loading')!;
+
+    let activeBg = 'aurora';
+    let highlighter: any = null; // shiki highlighter instance (cached)
+    let highlighterLoading = false;
+
+    /* Activate first swatch */
+    bgSwatches.forEach(b => b.classList.toggle('active', b.dataset.bgId === activeBg));
+
+    /* Apply current settings to preview DOM */
+    const applySettings = () => {
+      const pad = padEl.value + 'px';
+      previewBg.style.padding = pad;
+      previewBg.style.background = BACKGROUNDS[activeBg];
+
+      const radius = roundedCb.checked ? '12px' : '4px';
+      previewWin.style.borderRadius = radius;
+
+      previewChr.style.display = chromeCb.checked ? 'flex' : 'none';
+      previewCode.style.fontSize = fontsizeEl.value;
+    };
+
+    /* Load shiki highlighter (once) and highlight code */
+    const highlight = async () => {
+      const code = inputEl.value;
+      if (!code.trim()) {
+        previewCode.innerHTML = '<span style="color:#666;font-style:italic;font-size:12px">Paste code above to see a preview…</span>';
+        return;
+      }
+
+      // Show loading state
+      loadingEl.classList.remove('hidden');
+
+      try {
+        // Lazy-load shiki on first use
+        if (!highlighter && !highlighterLoading) {
+          highlighterLoading = true;
+          const { createHighlighter } = await import('shiki/bundle/web');
+          highlighter = await createHighlighter({
+            themes: ['github-dark','tokyo-night','dracula','nord','one-dark-pro','catppuccin-mocha','solarized-dark','rose-pine'],
+            langs: ['javascript','typescript','python','rust','go','java','c','cpp','csharp',
+                    'bash','sql','html','css','json','yaml','toml','markdown','ruby','php',
+                    'swift','kotlin','scala','dart','elixir','haskell','lua','r','dockerfile','graphql'],
+          });
+          highlighterLoading = false;
+        }
+
+        // Wait for highlighter if still loading
+        if (!highlighter) return;
+
+        let html: string;
+        try {
+          html = highlighter.codeToHtml(code, { lang: langEl.value, theme: themeEl.value });
+        } catch {
+          // Language not available in bundle — fall back to plaintext
+          html = highlighter.codeToHtml(code, { lang: 'javascript', theme: themeEl.value });
+        }
+
+        // Shiki wraps in <pre><code>. Extract and inject.
+        previewCode.innerHTML = html;
+
+        // Override shiki's default pre styles to match our layout
+        const preEl = previewCode.querySelector('pre');
+        if (preEl) {
+          preEl.style.margin = '0';
+          preEl.style.padding = '0';
+          preEl.style.background = 'transparent';
+          preEl.style.fontFamily = "'JetBrains Mono','Fira Code','Cascadia Code',monospace";
+          preEl.style.fontSize = fontsizeEl.value;
+          preEl.style.lineHeight = '1.7';
+          preEl.style.overflow = 'visible';
+        }
+
+        // Set code window background from shiki's inline style on <pre>
+        const preEl2 = previewCode.querySelector<HTMLElement>('pre');
+        if (preEl2) {
+          const bg = preEl2.style.backgroundColor || preEl2.style.background;
+          if (bg) {
+            previewCode.style.background = bg;
+            previewWin.style.background = bg;
+          }
+        }
+      } catch (e) {
+        previewCode.innerHTML = `<pre style="color:#f87171;font-size:12px">Highlight error: ${String(e)}</pre>`;
+      } finally {
+        loadingEl.classList.add('hidden');
+      }
+    };
+
+    /* Debounced input handler */
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const debounced = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(highlight, 400); };
+
+    inputEl.addEventListener('input', debounced);
+    langEl.addEventListener('change', highlight);
+    themeEl.addEventListener('change', highlight);
+    padEl.addEventListener('input', () => { padValEl.textContent = padEl.value + 'px'; applySettings(); });
+    fontsizeEl.addEventListener('change', () => { applySettings(); highlight(); });
+    chromeCb.addEventListener('change', applySettings);
+    roundedCb.addEventListener('change', applySettings);
+
+    bgSwatches.forEach(btn => btn.addEventListener('click', () => {
+      activeBg = btn.dataset.bgId || 'aurora';
+      bgSwatches.forEach(b => b.classList.toggle('active', b.dataset.bgId === activeBg));
+      applySettings();
+    }));
+
+    /* Export PNG using html-to-image */
+    exportBtn.addEventListener('click', async () => {
+      if (!inputEl.value.trim()) return;
+
+      exportBtn.disabled = true;
+      exportBtn.textContent = 'Exporting…';
+
+      try {
+        const { toPng } = await import('html-to-image');
+        const outerEl = document.getElementById('csp-preview-outer')!;
+
+        const dataUrl = await toPng(outerEl, {
+          pixelRatio: 2,           // 2× for retina-quality output
+          skipFonts: false,        // embed fonts if possible
+          cacheBust: true,
+        });
+
+        const a = Object.assign(document.createElement('a'), {
+          href: dataUrl,
+          download: `code-${Date.now()}.png`,
+        });
+        a.click();
+      } catch (e) {
+        console.error('Export failed:', e);
+      } finally {
+        exportBtn.disabled = false;
+        exportBtn.textContent = 'Export PNG';
+      }
+    });
+
+    document.addEventListener('app:reset', () => {
+      inputEl.value = '';
+      previewCode.innerHTML = '<span style="color:#666;font-style:italic;font-size:12px">Paste code above to see a preview…</span>';
+    });
+
+    applySettings();
+  };
+
+  initCsp();
+  document.addEventListener('astro:after-swap', initCsp);
+</script>

@@ -1,0 +1,322 @@
+---
+/**
+ * CSV to JSON Converter — Calculator.astro
+ *
+ * Uses PapaParse (MIT) loaded dynamically on first parse.
+ * Handles quoted fields, commas inside strings, multi-line values,
+ * custom delimiters, and auto type detection.
+ *
+ * Hard 10 MB limit enforced before parsing.
+ * All processing happens client-side — nothing leaves the browser.
+ */
+---
+
+<div id="ctj-app" class="space-y-5">
+
+  <!-- Input area — tab toggle between paste and upload -->
+  <div class="space-y-3">
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
+      <button id="ctj-tab-paste"
+        class="ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all bg-accent/15 text-accent">
+        Paste CSV
+      </button>
+      <button id="ctj-tab-file"
+        class="ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all text-text-muted hover:text-text-primary">
+        Upload file
+      </button>
+    </div>
+
+    <!-- Paste pane -->
+    <div id="ctj-paste-pane">
+      <textarea
+        id="ctj-input"
+        rows="8"
+        spellcheck="false"
+        autocomplete="off"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors"
+        placeholder="name,age,city&#10;Alice,30,New York&#10;Bob,25,London"
+      ></textarea>
+    </div>
+
+    <!-- Upload pane -->
+    <div id="ctj-file-pane" class="hidden">
+      <div
+        id="ctj-dropzone"
+        class="relative flex flex-col items-center justify-center gap-2
+               rounded-xl border-2 border-dashed border-border-subtle bg-bg-elevated
+               p-8 text-center transition-all cursor-pointer hover:border-accent/40 hover:bg-accent/5"
+      >
+        <div class="text-2xl select-none">📋</div>
+        <p class="text-sm font-mono text-text-secondary">Drop a CSV file or click to browse</p>
+        <p class="text-[10px] font-mono text-text-muted">max 10 MB</p>
+        <input id="ctj-file-input" type="file" accept=".csv,.tsv,.txt"
+          class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+      </div>
+      <p id="ctj-file-name" class="hidden mt-1 text-xs font-mono text-text-muted"></p>
+    </div>
+  </div>
+
+  <!-- Options row -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Delimiter</label>
+      <select id="ctj-delim"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="">Auto-detect</option>
+        <option value=",">,  Comma</option>
+        <option value="&#9;">⇥  Tab</option>
+        <option value=";">; Semicolon</option>
+        <option value="|">|  Pipe</option>
+      </select>
+    </div>
+
+    <div class="space-y-1 flex flex-col justify-end">
+      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+        <input type="checkbox" id="ctj-header" checked class="accent-[var(--color-accent)] w-4 h-4" />
+        Header row
+      </label>
+    </div>
+
+    <div class="space-y-1 flex flex-col justify-end">
+      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+        <input type="checkbox" id="ctj-types" checked class="accent-[var(--color-accent)] w-4 h-4" />
+        Dynamic types
+      </label>
+    </div>
+
+    <div class="space-y-1 flex flex-col justify-end">
+      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+        <input type="checkbox" id="ctj-skip-empty" checked class="accent-[var(--color-accent)] w-4 h-4" />
+        Skip empty rows
+      </label>
+    </div>
+  </div>
+
+  <!-- Convert button -->
+  <div class="flex items-center gap-3">
+    <button id="ctj-convert-btn"
+      class="px-5 py-2 text-xs font-mono text-accent border border-accent/30 bg-accent/5
+             rounded-lg hover:bg-accent/10 transition-all disabled:opacity-40">
+      Convert to JSON
+    </button>
+    <span id="ctj-status" class="text-xs font-mono text-text-muted"></span>
+  </div>
+
+  <!-- Error -->
+  <p id="ctj-error" class="hidden text-xs font-mono text-red-400"></p>
+
+  <!-- Output -->
+  <div id="ctj-output-wrap" class="hidden space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">JSON output</p>
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-1.5 text-[10px] font-mono text-text-muted cursor-pointer">
+          <input type="checkbox" id="ctj-minify" class="accent-[var(--color-accent)] w-3 h-3" />
+          Minify
+        </label>
+        <button id="ctj-copy"
+          class="px-3 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">
+          Copy
+        </button>
+        <button id="ctj-download"
+          class="px-3 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">
+          Download
+        </button>
+      </div>
+    </div>
+    <textarea
+      id="ctj-output"
+      readonly
+      spellcheck="false"
+      rows="12"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-secondary leading-relaxed resize-y
+             focus:outline-none transition-colors"
+    ></textarea>
+  </div>
+
+</div>
+
+<script>
+  /**
+   * CSV to JSON — client logic.
+   * Lazy-loads PapaParse (MIT) on first conversion.
+   */
+
+  const initCtj = () => {
+    const app = document.getElementById('ctj-app');
+    if (!app || (app as any)._ctjInit) return;
+    (app as any)._ctjInit = true;
+
+    /* Tabs */
+    const tabPaste   = document.getElementById('ctj-tab-paste')!;
+    const tabFile    = document.getElementById('ctj-tab-file')!;
+    const pastePane  = document.getElementById('ctj-paste-pane')!;
+    const filePane   = document.getElementById('ctj-file-pane')!;
+
+    /* Inputs */
+    const inputEl    = document.getElementById('ctj-input')       as HTMLTextAreaElement;
+    const dropzone   = document.getElementById('ctj-dropzone')!;
+    const fileInput  = document.getElementById('ctj-file-input')  as HTMLInputElement;
+    const fileNameEl = document.getElementById('ctj-file-name')!;
+    const delimEl    = document.getElementById('ctj-delim')       as HTMLSelectElement;
+    const headerCb   = document.getElementById('ctj-header')      as HTMLInputElement;
+    const typesCb    = document.getElementById('ctj-types')       as HTMLInputElement;
+    const skipCb     = document.getElementById('ctj-skip-empty')  as HTMLInputElement;
+
+    /* Actions */
+    const convertBtn = document.getElementById('ctj-convert-btn') as HTMLButtonElement;
+    const statusEl   = document.getElementById('ctj-status')!;
+    const errorEl    = document.getElementById('ctj-error')!;
+
+    /* Output */
+    const outputWrap = document.getElementById('ctj-output-wrap')!;
+    const outputEl   = document.getElementById('ctj-output')      as HTMLTextAreaElement;
+    const minifyCb   = document.getElementById('ctj-minify')      as HTMLInputElement;
+    const copyBtn    = document.getElementById('ctj-copy')        as HTMLButtonElement;
+    const downloadBtn= document.getElementById('ctj-download')    as HTMLButtonElement;
+
+    let activeTab = 'paste';
+    let uploadedCsv: string | null = null;
+    let lastParsed: unknown[] | null = null;
+
+    const showError = (msg: string) => {
+      errorEl.textContent = msg;
+      errorEl.classList.remove('hidden');
+    };
+    const clearError = () => errorEl.classList.add('hidden');
+
+    /* ── Tab switching ────────────────────────────────────────────*/
+    const switchTab = (tab: string) => {
+      activeTab = tab;
+      pastePane.classList.toggle('hidden', tab !== 'paste');
+      filePane.classList.toggle('hidden', tab !== 'file');
+      tabPaste.className = `ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${tab === 'paste' ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'}`;
+      tabFile.className  = `ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${tab === 'file'  ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'}`;
+    };
+    tabPaste.addEventListener('click', () => switchTab('paste'));
+    tabFile.addEventListener('click',  () => switchTab('file'));
+
+    /* ── File upload ──────────────────────────────────────────────*/
+    const handleFile = (file: File) => {
+      clearError();
+      if (file.size > 10 * 1024 * 1024) {
+        showError(`File is ${(file.size / 1_048_576).toFixed(1)} MB — the hard limit is 10 MB.`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        uploadedCsv = e.target?.result as string;
+        fileNameEl.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        fileNameEl.classList.remove('hidden');
+      };
+      reader.readAsText(file);
+    };
+
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('border-accent/60'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-accent/60'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('border-accent/60');
+      if (e.dataTransfer?.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files?.[0]) handleFile(fileInput.files[0]);
+    });
+
+    /* ── Render output ────────────────────────────────────────────*/
+    const renderOutput = () => {
+      if (!lastParsed) return;
+      outputEl.value = minifyCb.checked
+        ? JSON.stringify(lastParsed)
+        : JSON.stringify(lastParsed, null, 2);
+    };
+    minifyCb.addEventListener('change', renderOutput);
+
+    /* ── Convert ──────────────────────────────────────────────────*/
+    convertBtn.addEventListener('click', async () => {
+      clearError();
+      outputWrap.classList.add('hidden');
+      lastParsed = null;
+
+      const raw = activeTab === 'paste' ? inputEl.value.trim() : uploadedCsv;
+      if (!raw) {
+        showError(activeTab === 'paste' ? 'Paste some CSV text first.' : 'Upload a CSV file first.');
+        return;
+      }
+
+      convertBtn.disabled = true;
+      convertBtn.textContent = 'Converting…';
+      statusEl.textContent = '';
+
+      try {
+        // Lazy-load PapaParse on first use
+        const { default: Papa } = await import('papaparse');
+
+        const config: Record<string, any> = {
+          header: headerCb.checked,
+          dynamicTyping: typesCb.checked,
+          skipEmptyLines: skipCb.checked ? 'greedy' : false,
+        };
+        if (delimEl.value) config.delimiter = delimEl.value;
+
+        const result = Papa.parse(raw, config);
+
+        if (result.errors.length > 0 && result.data.length === 0) {
+          showError('Parse error: ' + result.errors[0].message);
+          return;
+        }
+
+        lastParsed = result.data as unknown[];
+        renderOutput();
+
+        const rowCount = lastParsed.length;
+        statusEl.textContent = `${rowCount} row${rowCount !== 1 ? 's' : ''}${result.errors.length ? ` (${result.errors.length} parse warnings)` : ''}`;
+        outputWrap.classList.remove('hidden');
+      } catch (e) {
+        showError('Conversion failed: ' + String(e));
+      } finally {
+        convertBtn.disabled = false;
+        convertBtn.textContent = 'Convert to JSON';
+      }
+    });
+
+    /* ── Copy ─────────────────────────────────────────────────────*/
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(outputEl.value).then(() => {
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+      });
+    });
+
+    /* ── Download ─────────────────────────────────────────────────*/
+    downloadBtn.addEventListener('click', () => {
+      if (!outputEl.value) return;
+      const blob = new Blob([outputEl.value], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `converted-${Date.now()}.json`,
+      });
+      a.click();
+    });
+
+    document.addEventListener('app:reset', () => {
+      inputEl.value = '';
+      uploadedCsv = null;
+      lastParsed = null;
+      fileInput.value = '';
+      fileNameEl.classList.add('hidden');
+      outputWrap.classList.add('hidden');
+      statusEl.textContent = '';
+      clearError();
+    }, { once: false });
+  };
+
+  initCtj();
+  document.addEventListener('astro:after-swap', initCtj);
+</script>

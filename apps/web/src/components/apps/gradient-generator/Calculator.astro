@@ -1,0 +1,474 @@
+---
+/**
+ * Glass & Mesh Gradient Generator — Calculator.astro
+ *
+ * Two tabs:
+ *  - Glass: glassmorphism card builder with backdrop-blur, bg opacity, border
+ *  - Mesh: layered radial gradients (2–4 stops) composited with blend modes
+ *
+ * Zero external dependencies — pure CSS generation from DOM inputs.
+ * Outputs ready-to-paste CSS and Tailwind v4 utility classes.
+ */
+---
+
+<div id="gg-app" class="space-y-5">
+
+  <!-- Tab switcher -->
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
+    <button id="gg-tab-glass"
+      class="gg-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all bg-accent/15 text-accent">
+      Glass
+    </button>
+    <button id="gg-tab-mesh"
+      class="gg-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all text-text-muted hover:text-text-primary">
+      Mesh
+    </button>
+  </div>
+
+  <!-- ══════════════════ GLASS TAB ══════════════════ -->
+  <div id="gg-glass-panel" class="space-y-5">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <!-- Controls -->
+      <div class="space-y-4">
+
+        <!-- Background color behind glass card -->
+        <div class="space-y-1">
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Page background</label>
+          <div class="flex gap-3 flex-wrap">
+            {[
+              { id:'gb-purple', g:'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)' },
+              { id:'gb-teal',   g:'linear-gradient(135deg,#0d1117,#0a3d62,#0c4a6e)' },
+              { id:'gb-rose',   g:'linear-gradient(135deg,#1a0a1e,#3d0a2e,#6e0c3f)' },
+              { id:'gb-earth',  g:'linear-gradient(135deg,#1c1008,#3d2c10,#5c4020)' },
+              { id:'gb-mono',   g:'linear-gradient(135deg,#111,#222,#333)' },
+            ].map(bg => (
+              <button
+                class="gg-gb-swatch w-8 h-8 rounded-lg border-2 border-transparent hover:scale-110 transition-all"
+                data-bg={bg.g}
+                style={`background:${bg.g}`}
+                title={bg.id}
+              ></button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Blur -->
+        <div class="space-y-1">
+          <div class="flex justify-between">
+            <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Backdrop blur</label>
+            <span id="gg-blur-val" class="text-[10px] font-mono text-text-muted">12px</span>
+          </div>
+          <input type="range" id="gg-blur" min="0" max="40" value="12"
+            class="w-full accent-[var(--color-accent)]" />
+        </div>
+
+        <!-- BG color + opacity -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Card fill</label>
+            <input type="color" id="gg-card-color" value="#ffffff"
+              class="w-full h-9 rounded-lg border border-border-subtle bg-bg-elevated cursor-pointer p-0.5" />
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Opacity</label>
+              <span id="gg-opacity-val" class="text-[10px] font-mono text-text-muted">10%</span>
+            </div>
+            <input type="range" id="gg-opacity" min="0" max="40" value="10"
+              class="w-full accent-[var(--color-accent)]" />
+          </div>
+        </div>
+
+        <!-- Border -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Border color</label>
+            <input type="color" id="gg-border-color" value="#ffffff"
+              class="w-full h-9 rounded-lg border border-border-subtle bg-bg-elevated cursor-pointer p-0.5" />
+          </div>
+          <div class="space-y-1">
+            <div class="flex justify-between">
+              <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Border opacity</label>
+              <span id="gg-bop-val" class="text-[10px] font-mono text-text-muted">20%</span>
+            </div>
+            <input type="range" id="gg-bop" min="0" max="60" value="20"
+              class="w-full accent-[var(--color-accent)]" />
+          </div>
+        </div>
+
+        <!-- Border radius -->
+        <div class="space-y-1">
+          <div class="flex justify-between">
+            <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Border radius</label>
+            <span id="gg-radius-val" class="text-[10px] font-mono text-text-muted">16px</span>
+          </div>
+          <input type="range" id="gg-radius" min="0" max="40" value="16"
+            class="w-full accent-[var(--color-accent)]" />
+        </div>
+
+        <!-- Shadow -->
+        <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+          <input type="checkbox" id="gg-shadow" checked class="accent-[var(--color-accent)] w-4 h-4" />
+          Drop shadow
+        </label>
+      </div>
+
+      <!-- Preview -->
+      <div class="space-y-2">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Preview</p>
+        <div id="gg-glass-stage"
+          class="relative rounded-xl overflow-hidden flex items-center justify-center"
+          style="height:220px; background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)">
+          <!-- Decorative blobs behind glass -->
+          <div style="position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(99,102,241,0.4);top:20px;left:20px;filter:blur(30px)"></div>
+          <div style="position:absolute;width:80px;height:80px;border-radius:50%;background:rgba(236,72,153,0.3);bottom:20px;right:20px;filter:blur(25px)"></div>
+          <!-- Glass card -->
+          <div id="gg-glass-card"
+            style="width:200px;padding:24px;text-align:center;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+            <div style="width:36px;height:36px;border-radius:50%;background:rgba(99,102,241,0.6);margin:0 auto 12px"></div>
+            <p style="color:rgba(255,255,255,0.9);font-size:13px;font-family:monospace;margin:0">Glass card</p>
+            <p style="color:rgba(255,255,255,0.5);font-size:11px;font-family:monospace;margin:4px 0 0">Glassmorphism</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CSS output -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">CSS output</p>
+        <button id="gg-glass-copy"
+          class="px-3 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">
+          Copy CSS
+        </button>
+      </div>
+      <pre id="gg-glass-css"
+        class="bg-bg-elevated border border-border-subtle rounded-xl p-4 text-xs font-mono text-text-secondary leading-relaxed overflow-x-auto whitespace-pre-wrap"></pre>
+    </div>
+  </div>
+
+  <!-- ══════════════════ MESH TAB ══════════════════ -->
+  <div id="gg-mesh-panel" class="hidden space-y-5">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <!-- Stops builder -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Gradient stops</p>
+          <button id="gg-add-stop"
+            class="px-3 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all disabled:opacity-40">
+            + Add stop
+          </button>
+        </div>
+        <div id="gg-stops" class="space-y-2"></div>
+
+        <!-- Background base color -->
+        <div class="space-y-1 pt-1">
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Base background</label>
+          <input type="color" id="gg-mesh-bg" value="#0d1117"
+            class="w-full h-9 rounded-lg border border-border-subtle bg-bg-elevated cursor-pointer p-0.5" />
+        </div>
+
+        <!-- Blend mode -->
+        <div class="space-y-1">
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Blend mode</label>
+          <select id="gg-blend"
+            class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5 text-xs font-mono text-text-primary focus:outline-none transition-colors">
+            {['normal','screen','overlay','soft-light','hard-light','color-dodge','multiply'].map(m => (
+              <option value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <!-- Mesh preview -->
+      <div class="space-y-2">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Preview</p>
+        <div id="gg-mesh-preview" class="rounded-xl overflow-hidden" style="height:220px;background:#0d1117"></div>
+      </div>
+    </div>
+
+    <!-- CSS output -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">CSS output</p>
+        <button id="gg-mesh-copy"
+          class="px-3 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">
+          Copy CSS
+        </button>
+      </div>
+      <pre id="gg-mesh-css"
+        class="bg-bg-elevated border border-border-subtle rounded-xl p-4 text-xs font-mono text-text-secondary leading-relaxed overflow-x-auto whitespace-pre-wrap"></pre>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .gg-tab.active {
+    background: rgb(var(--color-accent-rgb, 99 102 241) / 0.15);
+    color: var(--color-accent);
+  }
+  .gg-gb-swatch.active {
+    border-color: var(--color-accent) !important;
+    transform: scale(1.15);
+  }
+</style>
+
+<script>
+  /**
+   * Glass & Mesh Gradient Generator — client logic.
+   * No external dependencies — all math is pure JS.
+   */
+
+  /* ── Helpers ────────────────────────────────────────────────────*/
+
+  /** Convert hex color to {r,g,b} */
+  const hexToRgb = (hex: string) => {
+    const n = parseInt(hex.slice(1), 16);
+    return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+  };
+
+  /** Format rgba() string with percent-based alpha */
+  const rgba = (hex: string, pct: number) => {
+    const { r, g, b } = hexToRgb(hex);
+    return `rgba(${r}, ${g}, ${b}, ${(pct / 100).toFixed(2)})`;
+  };
+
+  /* ── Mesh gradient stops (default 3) ───────────────────────────*/
+  interface MeshStop { color: string; x: number; y: number; size: number; opacity: number }
+
+  const DEFAULT_STOPS: MeshStop[] = [
+    { color: '#6366f1', x: 20, y: 30, size: 60, opacity: 70 },
+    { color: '#ec4899', x: 70, y: 60, size: 50, opacity: 60 },
+    { color: '#06b6d4', x: 50, y: 80, size: 55, opacity: 50 },
+  ];
+
+  let meshStops: MeshStop[] = DEFAULT_STOPS.map(s => ({ ...s }));
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initGg = () => {
+    const app = document.getElementById('gg-app');
+    if (!app || (app as any)._ggInit) return;
+    (app as any)._ggInit = true;
+
+    /* Tab refs */
+    const tabGlass   = document.getElementById('gg-tab-glass')!;
+    const tabMesh    = document.getElementById('gg-tab-mesh')!;
+    const glassPanel = document.getElementById('gg-glass-panel')!;
+    const meshPanel  = document.getElementById('gg-mesh-panel')!;
+
+    /* Glass controls */
+    const blurEl        = document.getElementById('gg-blur')        as HTMLInputElement;
+    const blurValEl     = document.getElementById('gg-blur-val')!;
+    const cardColorEl   = document.getElementById('gg-card-color')  as HTMLInputElement;
+    const opacityEl     = document.getElementById('gg-opacity')     as HTMLInputElement;
+    const opacityValEl  = document.getElementById('gg-opacity-val')!;
+    const borderColorEl = document.getElementById('gg-border-color')as HTMLInputElement;
+    const bopEl         = document.getElementById('gg-bop')         as HTMLInputElement;
+    const bopValEl      = document.getElementById('gg-bop-val')!;
+    const radiusEl      = document.getElementById('gg-radius')      as HTMLInputElement;
+    const radiusValEl   = document.getElementById('gg-radius-val')!;
+    const shadowCb      = document.getElementById('gg-shadow')      as HTMLInputElement;
+    const gbSwatches    = app.querySelectorAll<HTMLButtonElement>('.gg-gb-swatch');
+    const glassStage    = document.getElementById('gg-glass-stage')!;
+    const glassCard     = document.getElementById('gg-glass-card')!;
+    const glassCssEl    = document.getElementById('gg-glass-css')!;
+    const glassCopyBtn  = document.getElementById('gg-glass-copy') as HTMLButtonElement;
+
+    /* Mesh controls */
+    const addStopBtn    = document.getElementById('gg-add-stop')    as HTMLButtonElement;
+    const stopsEl       = document.getElementById('gg-stops')!;
+    const meshBgEl      = document.getElementById('gg-mesh-bg')     as HTMLInputElement;
+    const blendEl       = document.getElementById('gg-blend')       as HTMLSelectElement;
+    const meshPreviewEl = document.getElementById('gg-mesh-preview')!;
+    const meshCssEl     = document.getElementById('gg-mesh-css')!;
+    const meshCopyBtn   = document.getElementById('gg-mesh-copy')   as HTMLButtonElement;
+
+    /* ── Tab switching ────────────────────────────────────────────*/
+    let activeTab = 'glass';
+    const switchTab = (tab: string) => {
+      activeTab = tab;
+      glassPanel.classList.toggle('hidden', tab !== 'glass');
+      meshPanel.classList.toggle('hidden', tab !== 'mesh');
+      tabGlass.classList.toggle('active', tab === 'glass');
+      tabGlass.classList.toggle('text-text-muted', tab !== 'glass');
+      tabMesh.classList.toggle('active', tab === 'mesh');
+      tabMesh.classList.toggle('text-text-muted', tab !== 'mesh');
+    };
+    tabGlass.addEventListener('click', () => switchTab('glass'));
+    tabMesh.addEventListener('click', () => switchTab('mesh'));
+
+    /* ── Glass logic ──────────────────────────────────────────────*/
+
+    let activeBg = 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)';
+
+    gbSwatches.forEach(btn => btn.addEventListener('click', () => {
+      activeBg = btn.dataset.bg || activeBg;
+      gbSwatches.forEach(b => b.classList.toggle('active', b === btn));
+      glassStage.style.background = activeBg;
+      updateGlass();
+    }));
+    // Mark first swatch active
+    gbSwatches[0]?.classList.add('active');
+
+    const updateGlass = () => {
+      const blur    = +blurEl.value;
+      const opacity = +opacityEl.value;
+      const bop     = +bopEl.value;
+      const radius  = +radiusEl.value;
+      const shadow  = shadowCb.checked;
+
+      blurValEl.textContent    = blur + 'px';
+      opacityValEl.textContent = opacity + '%';
+      bopValEl.textContent     = bop + '%';
+      radiusValEl.textContent  = radius + 'px';
+
+      const bgRgba   = rgba(cardColorEl.value, opacity);
+      const borRgba  = rgba(borderColorEl.value, bop);
+      const bdFilter = `blur(${blur}px)`;
+      const bdRadius = radius + 'px';
+      const boxShadow = shadow ? '0 8px 32px rgba(0,0,0,0.3)' : 'none';
+
+      // Apply to preview card
+      glassCard.style.backdropFilter         = bdFilter;
+      glassCard.style.webkitBackdropFilter   = bdFilter;
+      glassCard.style.background             = bgRgba;
+      glassCard.style.border                 = `1px solid ${borRgba}`;
+      glassCard.style.borderRadius           = bdRadius;
+      glassCard.style.boxShadow              = boxShadow;
+
+      // Generate CSS output
+      glassCssEl.textContent = `.glass-card {
+  /* Glassmorphism */
+  backdrop-filter: ${bdFilter};
+  -webkit-backdrop-filter: ${bdFilter};
+  background: ${bgRgba};
+  border: 1px solid ${borRgba};
+  border-radius: ${bdRadius};${shadow ? `\n  box-shadow: ${boxShadow};` : ''}
+}`;
+    };
+
+    blurEl.addEventListener('input', updateGlass);
+    cardColorEl.addEventListener('input', updateGlass);
+    opacityEl.addEventListener('input', updateGlass);
+    borderColorEl.addEventListener('input', updateGlass);
+    bopEl.addEventListener('input', updateGlass);
+    radiusEl.addEventListener('input', updateGlass);
+    shadowCb.addEventListener('change', updateGlass);
+
+    glassCopyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(glassCssEl.textContent || '').then(() => {
+        const orig = glassCopyBtn.textContent;
+        glassCopyBtn.textContent = 'Copied!';
+        setTimeout(() => { glassCopyBtn.textContent = orig; }, 1500);
+      });
+    });
+
+    /* ── Mesh logic ───────────────────────────────────────────────*/
+
+    /** Build one mesh stop DOM row */
+    const buildStopRow = (stop: MeshStop, idx: number) => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 p-2 bg-bg-elevated border border-border-subtle rounded-lg';
+      row.innerHTML = `
+        <input type="color" class="ms-color w-8 h-8 rounded cursor-pointer border-0 p-0" value="${stop.color}" title="Color" />
+        <div class="flex-1 space-y-0.5">
+          <div class="flex gap-2 text-[10px] font-mono text-text-muted">
+            <span>X:<input type="number" class="ms-x w-10 bg-transparent border-b border-border-subtle text-text-primary ml-1" value="${stop.x}" min="0" max="100" /></span>
+            <span>Y:<input type="number" class="ms-y w-10 bg-transparent border-b border-border-subtle text-text-primary ml-1" value="${stop.y}" min="0" max="100" /></span>
+            <span>Sz:<input type="number" class="ms-size w-10 bg-transparent border-b border-border-subtle text-text-primary ml-1" value="${stop.size}" min="10" max="150" /></span>
+            <span>Op:<input type="number" class="ms-op w-10 bg-transparent border-b border-border-subtle text-text-primary ml-1" value="${stop.opacity}" min="0" max="100" />%</span>
+          </div>
+        </div>
+        <button class="ms-del text-text-muted hover:text-red-400 font-mono text-xs px-1" title="Remove">✕</button>
+      `;
+      // Wire inputs
+      const colorIn = row.querySelector<HTMLInputElement>('.ms-color')!;
+      const xIn     = row.querySelector<HTMLInputElement>('.ms-x')!;
+      const yIn     = row.querySelector<HTMLInputElement>('.ms-y')!;
+      const sizeIn  = row.querySelector<HTMLInputElement>('.ms-size')!;
+      const opIn    = row.querySelector<HTMLInputElement>('.ms-op')!;
+      const delBtn  = row.querySelector<HTMLButtonElement>('.ms-del')!;
+
+      const sync = () => {
+        stop.color   = colorIn.value;
+        stop.x       = +xIn.value;
+        stop.y       = +yIn.value;
+        stop.size    = +sizeIn.value;
+        stop.opacity = +opIn.value;
+        updateMesh();
+      };
+      colorIn.addEventListener('input', sync);
+      xIn.addEventListener('input', sync);
+      yIn.addEventListener('input', sync);
+      sizeIn.addEventListener('input', sync);
+      opIn.addEventListener('input', sync);
+
+      delBtn.addEventListener('click', () => {
+        meshStops.splice(idx, 1);
+        renderStopRows();
+        updateMesh();
+      });
+
+      return row;
+    };
+
+    const renderStopRows = () => {
+      stopsEl.innerHTML = '';
+      meshStops.forEach((stop, i) => stopsEl.appendChild(buildStopRow(stop, i)));
+      addStopBtn.disabled = meshStops.length >= 6;
+    };
+
+    const updateMesh = () => {
+      const bg     = meshBgEl.value;
+      const blend  = blendEl.value;
+
+      // Build layered radial-gradient CSS
+      const layers = meshStops.map(s => {
+        const { r, g, b } = hexToRgb(s.color);
+        const a = (s.opacity / 100).toFixed(2);
+        return `radial-gradient(circle at ${s.x}% ${s.y}%, rgba(${r},${g},${b},${a}) 0%, transparent ${s.size}%)`;
+      });
+
+      const bgProp = [...layers, bg].join(',\n    ');
+      meshPreviewEl.style.background = [...layers, bg].join(', ');
+      meshPreviewEl.style.backgroundBlendMode = blend;
+
+      meshCssEl.textContent = `.mesh-bg {
+  background:
+    ${bgProp};
+  background-blend-mode: ${blend};
+}`;
+    };
+
+    addStopBtn.addEventListener('click', () => {
+      if (meshStops.length >= 6) return;
+      meshStops.push({ color: '#a855f7', x: 50, y: 50, size: 50, opacity: 60 });
+      renderStopRows();
+      updateMesh();
+    });
+
+    meshBgEl.addEventListener('input', updateMesh);
+    blendEl.addEventListener('change', updateMesh);
+
+    meshCopyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(meshCssEl.textContent || '').then(() => {
+        const orig = meshCopyBtn.textContent;
+        meshCopyBtn.textContent = 'Copied!';
+        setTimeout(() => { meshCopyBtn.textContent = orig; }, 1500);
+      });
+    });
+
+    // Init both panels
+    renderStopRows();
+    updateGlass();
+    updateMesh();
+  };
+
+  initGg();
+  document.addEventListener('astro:after-swap', initGg);
+</script>

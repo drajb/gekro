@@ -1,0 +1,432 @@
+---
+/**
+ * JWT Decoder — Calculator.astro
+ *
+ * Decodes JSON Web Tokens entirely in the browser using:
+ *  - atob() for base64url → bytes
+ *  - JSON.parse() for payload/header
+ *  - Custom syntax highlighter for the JSON panels
+ *
+ * The token is NEVER sent to a server. No external libraries needed.
+ *
+ * Features:
+ *  - Header, Payload, Signature in separate color-coded panels
+ *  - Claim table with human-readable dates for iat/exp/nbf
+ *  - Live "expires in / expired X ago" countdown (updates every second)
+ *  - Algorithm badge from header.alg
+ *  - Copy each section independently
+ *  - Structural validation with precise error messages
+ */
+---
+
+<div id="jwt-app" class="space-y-5">
+
+  <!-- Token input -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="jwt-input" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">JWT Token</label>
+      <div class="flex gap-2">
+        <button id="jwt-sample-btn" class="text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all">Load sample</button>
+        <button id="jwt-clear-btn" class="text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all">Clear</button>
+      </div>
+    </div>
+    <textarea
+      id="jwt-input"
+      rows="4"
+      spellcheck="false"
+      autocomplete="off"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-primary leading-relaxed resize-none
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    ></textarea>
+
+    <!-- Error banner -->
+    <div id="jwt-error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+      <p class="text-xs font-mono text-red-400" id="jwt-error-msg"></p>
+    </div>
+  </div>
+
+  <!-- Token structure visualizer — colored segments -->
+  <div id="jwt-structure" class="hidden p-3 bg-bg-elevated border border-border-subtle rounded-xl">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">Token structure</p>
+    <div class="text-xs font-mono break-all leading-relaxed" id="jwt-colored-token"></div>
+    <div class="flex gap-3 mt-2 text-[10px] font-mono">
+      <span class="text-[#f59e0b]">■ Header</span>
+      <span class="text-[#60a5fa]">■ Payload</span>
+      <span class="text-text-muted/50">■ Signature</span>
+    </div>
+  </div>
+
+  <!-- Algorithm + type badges + expiry (style="display:none" avoids conflict with flex) -->
+  <div id="jwt-meta" style="display:none" class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Algorithm</span>
+      <span id="jwt-alg-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-accent/15 text-accent"></span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Type</span>
+      <span id="jwt-typ-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-bg-elevated border border-border-subtle text-text-secondary"></span>
+    </div>
+    <div id="jwt-expiry-wrap" class="flex items-center gap-2 ml-auto">
+      <span id="jwt-expiry-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold"></span>
+    </div>
+  </div>
+
+  <!-- Three decoded panels -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Header panel -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest" style="color:#f59e0b">Header</p>
+        <button class="jwt-copy-section text-[10px] font-mono text-text-muted hover:text-accent transition-colors" data-section="header">Copy</button>
+      </div>
+      <div id="jwt-header-panel"
+        class="p-4 bg-bg-elevated border rounded-xl text-sm font-mono leading-relaxed min-h-[80px] whitespace-pre-wrap break-all"
+        style="border-color: rgb(245 158 11 / 0.25)"></div>
+    </div>
+
+    <!-- Payload panel -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest" style="color:#60a5fa">Payload</p>
+        <button class="jwt-copy-section text-[10px] font-mono text-text-muted hover:text-accent transition-colors" data-section="payload">Copy</button>
+      </div>
+      <div id="jwt-payload-panel"
+        class="p-4 bg-bg-elevated border rounded-xl text-sm font-mono leading-relaxed min-h-[80px] whitespace-pre-wrap break-all"
+        style="border-color: rgb(96 165 250 / 0.25)"></div>
+    </div>
+  </div>
+
+  <!-- Signature panel -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Signature (raw base64url — not verified)</p>
+      <button class="jwt-copy-section text-[10px] font-mono text-text-muted hover:text-accent transition-colors" data-section="sig">Copy</button>
+    </div>
+    <div id="jwt-sig-panel"
+      class="p-4 bg-bg-elevated border border-border-subtle rounded-xl text-xs font-mono text-text-muted break-all leading-relaxed min-h-[48px]"></div>
+  </div>
+
+  <!-- Claims table -->
+  <div id="jwt-claims-wrap" class="hidden space-y-1.5">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Standard claims</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-subtle bg-bg-elevated">
+            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-muted">Claim</th>
+            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-muted">Raw value</th>
+            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-muted">Decoded</th>
+          </tr>
+        </thead>
+        <tbody id="jwt-claims-body" class="divide-y divide-border-subtle bg-bg-surface"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Security disclaimer -->
+  <p class="text-[10px] font-mono text-text-muted/50 leading-relaxed">
+    This token is decoded locally — it is never sent to any server. The signature is displayed but <strong class="text-text-muted">not cryptographically verified</strong>. Do not rely on this tool for security decisions.
+  </p>
+
+</div>
+
+<style>
+  /* Syntax highlight colours — reuse JSON formatter palette */
+  .jf-key   { color: var(--color-accent); }
+  .jf-str   { color: #4ade80; }
+  .jf-num   { color: #22d3ee; }
+  .jf-bool  { color: #fbbf24; }
+  .jf-null  { color: #fbbf24; }
+  .jf-punct { color: var(--color-text-muted); opacity: 0.6; }
+
+  /* Token segment colours */
+  .jwt-seg-header  { color: #f59e0b; }
+  .jwt-seg-payload { color: #60a5fa; }
+  .jwt-seg-sig     { color: var(--color-text-muted); opacity: 0.5; }
+  .jwt-seg-dot     { color: var(--color-text-muted); opacity: 0.3; }
+
+  /* Expiry badges */
+  .badge-valid   { background: rgb(34 197 94 / 0.15); color: #4ade80; }
+  .badge-expired { background: rgb(239 68 68 / 0.15); color: #f87171; }
+  .badge-warn    { background: rgb(251 191 36 / 0.15); color: #fbbf24; }
+  .badge-no-exp  { background: var(--color-bg-elevated); color: var(--color-text-muted); border: 1px solid var(--color-border-subtle); }
+</style>
+
+<script>
+  /**
+   * JWT Decoder client logic.
+   * Uses only native browser APIs — no external libraries.
+   */
+
+  /* Sample JWT — HS256, exp set far in the future for demo purposes */
+  const SAMPLE_JWT =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+    'eyJzdWIiOiJ1c3JfMDFIWFE5VDZOUVdaM0o4S0ZHUjRNVlBCWSIsIm5hbWUiOiJSb2hpdCBCdXJhbmkiLCJlbWFpbCI6InJvaGl0QGdla3JvLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTcxMzU3NzYwMCwiZXhwIjo0ODY5MjUxMjAwLCJuYmYiOjE3MTM1Nzc2MDAsImlzcyI6Imh0dHBzOi8vZ2Vrcm8uY29tIiwiYXVkIjoiZ2Vrcm8tYXBpIn0.' +
+    'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+
+  /* ── Base64url → string ───────────────────────────────────────────
+   * JWT uses base64url which differs from standard base64:
+   *   - uses '-' instead of '+'
+   *   - uses '_' instead of '/'
+   *   - omits padding '='
+   */
+  const b64urlDecode = (s: string): string => {
+    // Normalise to standard base64
+    const b64 = s.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding to multiple of 4
+    const padded = b64 + '='.repeat((4 - b64.length % 4) % 4);
+    return atob(padded);
+  };
+
+  /* ── JSON syntax highlighter (same logic as JSON formatter) ───────*/
+  const escHtml = (s: string): string =>
+    s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const tokenize = (json: string): string => {
+    const re = /("(?:[^"\\]|\\.)*")\s*:|("(?:[^"\\]|\\.)*")|(true|false|null)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|([{}[\],:])/g;
+    let result = '', last = 0, m: RegExpExecArray | null;
+    while ((m = re.exec(json)) !== null) {
+      if (m.index > last) result += escHtml(json.slice(last, m.index));
+      if (m[1] !== undefined)      result += `<span class="jf-key">${escHtml(m[1])}</span>:`;
+      else if (m[2] !== undefined) result += `<span class="jf-str">${escHtml(m[2])}</span>`;
+      else if (m[3] !== undefined) result += `<span class="jf-bool">${m[3]}</span>`;
+      else if (m[4] !== undefined) result += `<span class="jf-num">${m[4]}</span>`;
+      else if (m[5] !== undefined) result += `<span class="jf-punct">${escHtml(m[5])}</span>`;
+      last = re.lastIndex;
+    }
+    if (last < json.length) result += escHtml(json.slice(last));
+    return result;
+  };
+
+  /* ── Human-readable date from Unix timestamp ──────────────────────*/
+  const fmtDate = (ts: number): string => {
+    const d = new Date(ts * 1000);
+    return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  };
+
+  /* ── Duration string (relative) ──────────────────────────────────*/
+  const relTime = (nowMs: number, tsMs: number): string => {
+    const diff = Math.abs(tsMs - nowMs);
+    const secs = Math.floor(diff / 1000);
+    if (secs < 60)   return `${secs}s`;
+    if (secs < 3600) return `${Math.floor(secs/60)}m ${secs%60}s`;
+    if (secs < 86400)return `${Math.floor(secs/3600)}h ${Math.floor((secs%3600)/60)}m`;
+    return `${Math.floor(secs/86400)}d ${Math.floor((secs%86400)/3600)}h`;
+  };
+
+  /* ── Standard claim descriptors ──────────────────────────────────*/
+  const CLAIM_META: Record<string, string> = {
+    iss: 'Issuer', sub: 'Subject', aud: 'Audience',
+    exp: 'Expiry', nbf: 'Not Before', iat: 'Issued At', jti: 'JWT ID',
+  };
+
+  /* ── Main init ────────────────────────────────────────────────────*/
+  const initJwt = () => {
+    const app = document.getElementById('jwt-app');
+    if (!app || (app as any)._jwtInit) return;
+    (app as any)._jwtInit = true;
+
+    const inputEl       = document.getElementById('jwt-input')   as HTMLTextAreaElement;
+    const errorEl       = document.getElementById('jwt-error')!;
+    const errorMsgEl    = document.getElementById('jwt-error-msg')!;
+    const structureEl   = document.getElementById('jwt-structure')!;
+    const coloredToken  = document.getElementById('jwt-colored-token')!;
+    const metaEl        = document.getElementById('jwt-meta')!;
+    const algBadge      = document.getElementById('jwt-alg-badge')!;
+    const typBadge      = document.getElementById('jwt-typ-badge')!;
+    const expiryBadge   = document.getElementById('jwt-expiry-badge')!;
+    const headerPanel   = document.getElementById('jwt-header-panel')!;
+    const payloadPanel  = document.getElementById('jwt-payload-panel')!;
+    const sigPanel      = document.getElementById('jwt-sig-panel')!;
+    const claimsWrap    = document.getElementById('jwt-claims-wrap')!;
+    const claimsBody    = document.getElementById('jwt-claims-body')!;
+    const sampleBtn     = document.getElementById('jwt-sample-btn')!;
+    const clearBtn      = document.getElementById('jwt-clear-btn')!;
+
+    // Stored decoded values for copy buttons
+    let decodedHeader  = '';
+    let decodedPayload = '';
+    let rawSig         = '';
+    let expTimestamp: number | null = null;
+    let expiryTimer: ReturnType<typeof setInterval> | null = null;
+
+    /* Show error state */
+    const showError = (msg: string) => {
+      errorEl.classList.remove('hidden');
+      errorMsgEl.textContent = msg;
+      structureEl.classList.add('hidden');
+      metaEl.style.display = 'none';
+      headerPanel.innerHTML = '';
+      payloadPanel.innerHTML = '';
+      sigPanel.innerHTML = '';
+      claimsWrap.classList.add('hidden');
+      if (expiryTimer) { clearInterval(expiryTimer); expiryTimer = null; }
+    };
+
+    /* Clear error */
+    const clearError = () => errorEl.classList.add('hidden');
+
+    /* Update expiry badge — called every second */
+    const updateExpiry = () => {
+      if (expTimestamp === null) {
+        expiryBadge.className = 'badge-no-exp px-2.5 py-0.5 rounded-full text-xs font-mono';
+        expiryBadge.textContent = 'No expiry';
+        return;
+      }
+      const now = Date.now();
+      const expMs = expTimestamp * 1000;
+      const expired = now > expMs;
+      const rel = relTime(now, expMs);
+
+      if (expired) {
+        expiryBadge.className = 'badge-expired px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold';
+        expiryBadge.textContent = `Expired ${rel} ago`;
+      } else if (expMs - now < 3_600_000) {
+        // Less than 1 hour — warn
+        expiryBadge.className = 'badge-warn px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold';
+        expiryBadge.textContent = `Expires in ${rel}`;
+      } else {
+        expiryBadge.className = 'badge-valid px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold';
+        expiryBadge.textContent = `Valid · expires in ${rel}`;
+      }
+    };
+
+    /* Decode and render the token */
+    const decode = () => {
+      const raw = inputEl.value.trim();
+      if (!raw) {
+        clearError();
+        structureEl.classList.add('hidden');
+        metaEl.style.display = 'none';
+        headerPanel.innerHTML = '';
+        payloadPanel.innerHTML = '';
+        sigPanel.innerHTML = '';
+        claimsWrap.classList.add('hidden');
+        if (expiryTimer) { clearInterval(expiryTimer); expiryTimer = null; }
+        return;
+      }
+
+      const parts = raw.split('.');
+      if (parts.length !== 3) {
+        showError(`Invalid JWT structure: expected 3 segments separated by '.', got ${parts.length}.`);
+        return;
+      }
+
+      const [rawHeader, rawPayload, rawSigSeg] = parts;
+      rawSig = rawSigSeg;
+
+      // Decode header
+      let headerObj: Record<string,unknown>;
+      try {
+        const headerJson = b64urlDecode(rawHeader);
+        headerObj = JSON.parse(headerJson);
+        decodedHeader = JSON.stringify(headerObj, null, 2);
+      } catch {
+        showError('Failed to decode header: segment is not valid base64url-encoded JSON.');
+        return;
+      }
+
+      // Decode payload
+      let payloadObj: Record<string,unknown>;
+      try {
+        const payloadJson = b64urlDecode(rawPayload);
+        payloadObj = JSON.parse(payloadJson);
+        decodedPayload = JSON.stringify(payloadObj, null, 2);
+      } catch {
+        showError('Failed to decode payload: segment is not valid base64url-encoded JSON.');
+        return;
+      }
+
+      clearError();
+
+      // Colored token structure
+      structureEl.classList.remove('hidden');
+      coloredToken.innerHTML =
+        `<span class="jwt-seg-header">${escHtml(rawHeader)}</span>` +
+        `<span class="jwt-seg-dot">.</span>` +
+        `<span class="jwt-seg-payload">${escHtml(rawPayload)}</span>` +
+        `<span class="jwt-seg-dot">.</span>` +
+        `<span class="jwt-seg-sig">${escHtml(rawSigSeg)}</span>`;
+
+      // Meta badges (use style.display to avoid Tailwind hidden+flex conflict)
+      metaEl.style.display = 'flex';
+      algBadge.textContent = String(headerObj.alg || 'unknown');
+      typBadge.textContent = String(headerObj.typ || 'JWT');
+
+      // Render decoded panels
+      headerPanel.innerHTML  = tokenize(decodedHeader);
+      payloadPanel.innerHTML = tokenize(decodedPayload);
+      sigPanel.textContent   = rawSigSeg;
+
+      // Expiry countdown
+      expTimestamp = typeof payloadObj.exp === 'number' ? payloadObj.exp : null;
+      if (expiryTimer) clearInterval(expiryTimer);
+      updateExpiry();
+      expiryTimer = setInterval(updateExpiry, 1000);
+
+      // Claims table — standard claims found in payload
+      const stdClaims = Object.keys(CLAIM_META);
+      const foundClaims = stdClaims.filter(k => k in payloadObj);
+
+      if (foundClaims.length > 0) {
+        claimsWrap.classList.remove('hidden');
+        claimsBody.innerHTML = foundClaims.map(k => {
+          const raw = payloadObj[k];
+          let decoded = String(raw);
+          // Humanise Unix timestamps
+          if ((k === 'exp' || k === 'nbf' || k === 'iat') && typeof raw === 'number') {
+            decoded = `${fmtDate(raw)} <span class="text-text-muted text-xs">(${raw})</span>`;
+          } else if (k === 'aud' && Array.isArray(raw)) {
+            decoded = raw.join(', ');
+          }
+          return `
+            <tr>
+              <td class="px-4 py-2 font-mono text-accent text-xs">${escHtml(k)}<br><span class="text-text-muted font-sans">${CLAIM_META[k]}</span></td>
+              <td class="px-4 py-2 font-mono text-xs text-text-muted">${escHtml(JSON.stringify(raw))}</td>
+              <td class="px-4 py-2 font-mono text-xs text-text-secondary">${decoded}</td>
+            </tr>`;
+        }).join('');
+      } else {
+        claimsWrap.classList.add('hidden');
+      }
+    };
+
+    // Debounced decode on input
+    let timer: ReturnType<typeof setTimeout>;
+    inputEl.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(decode, 200); });
+
+    sampleBtn.addEventListener('click', () => { inputEl.value = SAMPLE_JWT; decode(); });
+    clearBtn.addEventListener('click', () => { inputEl.value = ''; decode(); });
+
+    // Copy section buttons
+    app.querySelectorAll<HTMLButtonElement>('.jwt-copy-section').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const section = btn.dataset.section;
+        const text = section === 'header' ? decodedHeader : section === 'payload' ? decodedPayload : rawSig;
+        if (!text) return;
+        try { await navigator.clipboard.writeText(text); } catch {}
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      });
+    });
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(decodedPayload || decodedHeader); } catch {}
+    });
+    document.addEventListener('app:reset', () => { inputEl.value = ''; decode(); });
+
+    // Clean up interval on page navigation
+    document.addEventListener('astro:before-swap', () => {
+      if (expiryTimer) { clearInterval(expiryTimer); expiryTimer = null; }
+    }, { once: true });
+
+    // Load sample on first visit for discoverability
+    if (!inputEl.value) { inputEl.value = SAMPLE_JWT; decode(); }
+  };
+
+  initJwt();
+  document.addEventListener('astro:after-swap', initJwt);
+</script>

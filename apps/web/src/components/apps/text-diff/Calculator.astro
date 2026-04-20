@@ -1,0 +1,389 @@
+---
+/**
+ * Text Diff / Code Compare — Calculator.astro
+ *
+ * Uses the MIT-licensed `diff` npm package (diffLines / diffChars).
+ * All diffing runs in the browser — no server contact.
+ *
+ * Features:
+ *  - Line-level and character-level diff modes
+ *  - Unified and side-by-side view layouts
+ *  - Ignore-whitespace toggle
+ *  - +/- stats badge (lines/chars added, removed, unchanged)
+ *  - Preset examples to demo the tool immediately
+ *  - Copy unified diff to clipboard
+ */
+---
+
+<div id="td-app" class="space-y-4">
+
+  <!-- Toolbar -->
+  <div class="flex flex-wrap items-center gap-2">
+
+    <!-- Diff mode -->
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg shrink-0">
+      <button class="td-mode-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-mode="lines">Line diff</button>
+      <button class="td-mode-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-mode="chars">Char diff</button>
+    </div>
+
+    <!-- View layout -->
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg shrink-0">
+      <button class="td-view-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-view="unified">Unified</button>
+      <button class="td-view-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-view="split">Split</button>
+    </div>
+
+    <!-- Ignore whitespace toggle -->
+    <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none shrink-0">
+      <input type="checkbox" id="td-ignore-ws" class="rounded accent-[var(--color-accent)]" />
+      Ignore whitespace
+    </label>
+
+    <!-- Stats -->
+    <div id="td-stats" class="hidden flex items-center gap-2 text-[11px] font-mono ml-1 flex-wrap">
+      <span id="td-stat-add" class="text-green-400"></span>
+      <span id="td-stat-rem" class="text-red-400"></span>
+      <span id="td-stat-eq"  class="text-text-muted"></span>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-2 ml-auto">
+      <button id="td-clear-btn" class="px-3 py-1.5 text-xs font-mono text-text-muted border border-border-subtle rounded-lg hover:text-text-secondary hover:border-accent/30 transition-all">Clear</button>
+      <button id="td-copy-btn" class="px-3 py-1.5 text-xs font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">Copy diff</button>
+    </div>
+  </div>
+
+  <!-- Preset examples -->
+  <div class="flex flex-wrap gap-1.5">
+    <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest self-center mr-1">Presets:</span>
+    <button class="td-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="code">Code edit</button>
+    <button class="td-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="json">JSON schema</button>
+    <button class="td-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="prose">Prose edit</button>
+  </div>
+
+  <!-- Input row -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+    <div class="space-y-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Original</p>
+      <textarea id="td-left"  rows="10" spellcheck="false"
+        class="w-full h-48 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors"
+        placeholder="Original text…"></textarea>
+    </div>
+    <div class="space-y-1">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Modified</p>
+      <textarea id="td-right" rows="10" spellcheck="false"
+        class="w-full h-48 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors"
+        placeholder="Modified text…"></textarea>
+    </div>
+  </div>
+
+  <!-- Diff output -->
+  <div class="space-y-1.5">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Diff output</p>
+
+    <!-- Unified view -->
+    <div id="td-unified"
+      class="min-h-[120px] max-h-[480px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl text-sm font-mono leading-relaxed">
+      <div id="td-unified-content" class="p-4">
+        <span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>
+      </div>
+    </div>
+
+    <!-- Split view (hidden by default) -->
+    <div id="td-split" class="hidden overflow-auto border border-border-subtle rounded-xl">
+      <div class="grid grid-cols-2 min-w-[600px]">
+        <div id="td-split-left"  class="border-r border-border-subtle p-4 text-sm font-mono leading-relaxed min-h-[120px] max-h-[480px] overflow-auto bg-bg-elevated rounded-l-xl"></div>
+        <div id="td-split-right" class="p-4 text-sm font-mono leading-relaxed min-h-[120px] max-h-[480px] overflow-auto bg-bg-elevated rounded-r-xl"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* Toolbar button states */
+  .td-mode-btn, .td-view-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .td-mode-btn.active, .td-view-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+  }
+  .td-mode-btn:hover:not(.active), .td-view-btn:hover:not(.active) {
+    color: var(--color-text-secondary);
+    background: color-mix(in srgb, var(--color-bg-base) 50%, transparent);
+  }
+
+  /* Diff line colours — additions, removals, unchanged */
+  .diff-add  { background: rgb(34 197 94 / 0.12); color: #4ade80; display: block; padding: 0 16px; margin: 0 -16px; }
+  .diff-rem  { background: rgb(239 68 68 / 0.12); color: #f87171; display: block; padding: 0 16px; margin: 0 -16px; }
+  .diff-eq   { color: var(--color-text-secondary); display: block; padding: 0 16px; margin: 0 -16px; }
+
+  /* Gutter prefix (+/-/ ) */
+  .diff-add::before { content: '+ '; opacity: 0.7; }
+  .diff-rem::before { content: '− '; opacity: 0.7; }
+  .diff-eq::before  { content: '  '; }
+
+  /* Inline char-level highlights within a line */
+  .diff-ins { background: rgb(34 197 94 / 0.35); border-radius: 2px; }
+  .diff-del { background: rgb(239 68 68 / 0.35); border-radius: 2px; text-decoration: line-through; }
+
+  /* Split view pane headers */
+  .split-header { padding: 6px 16px; font-size: 0.65rem; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-muted); border-bottom: 1px solid var(--color-border-subtle); }
+</style>
+
+<script>
+  /**
+   * Text Diff client logic.
+   * Imports the `diff` package (MIT) for reliable diff computation.
+   * All rendering is custom HTML to match the Gekro design system.
+   */
+  import * as Diff from 'diff';
+
+  /* ── Preset content ───────────────────────────────────────────────*/
+  const PRESETS: Record<string, [string, string]> = {
+    code: [
+`function greet(name) {
+  const msg = "Hello, " + name;
+  console.log(msg);
+  return msg;
+}`,
+`function greet(name: string): string {
+  const msg = \`Hello, \${name}!\`;
+  console.log(msg);
+  return msg;
+}`,
+    ],
+    json: [
+`{
+  "version": 1,
+  "features": ["auth", "billing"],
+  "timeout": 30
+}`,
+`{
+  "version": 2,
+  "features": ["auth", "billing", "analytics"],
+  "timeout": 60,
+  "retries": 3
+}`,
+    ],
+    prose: [
+      `The quick brown fox jumps over the lazy dog. It was a bright, sunny afternoon in the forest.`,
+      `The quick brown fox leaped over the sleepy dog. It was a bright, sunny morning in the meadow.`,
+    ],
+  };
+
+  /* ── Escape HTML to prevent XSS in diff output ───────────────────*/
+  const esc = (s: string): string =>
+    s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  /* ── Build unified diff HTML ──────────────────────────────────────
+   * For line mode: each part is a full line (or multiple lines).
+   * For char mode: each part is a character span within a synthetic line.
+   */
+  const buildUnified = (parts: Diff.Change[], mode: 'lines' | 'chars'): { html: string; add: number; rem: number; eq: number } => {
+    let html = '';
+    let add = 0, rem = 0, eq = 0;
+
+    if (mode === 'lines') {
+      for (const part of parts) {
+        // Each part may contain multiple newline-terminated lines
+        const lines = part.value.split('\n');
+        // Remove trailing empty string from split (JSON.stringify adds trailing \n)
+        if (lines[lines.length - 1] === '') lines.pop();
+
+        for (const line of lines) {
+          if (part.added)   { html += `<span class="diff-add">${esc(line)}</span>\n`; add++; }
+          else if (part.removed) { html += `<span class="diff-rem">${esc(line)}</span>\n`; rem++; }
+          else              { html += `<span class="diff-eq">${esc(line)}</span>\n`; eq++; }
+        }
+      }
+    } else {
+      // Char diff: inline spans within a single block of text
+      for (const part of parts) {
+        const escaped = esc(part.value);
+        if (part.added)        { html += `<span class="diff-ins">${escaped}</span>`; add += part.value.length; }
+        else if (part.removed) { html += `<span class="diff-del">${escaped}</span>`; rem += part.value.length; }
+        else                   { html += escaped; eq += part.value.length; }
+      }
+    }
+
+    return { html, add, rem, eq };
+  };
+
+  /* ── Build split view HTML (left = original, right = modified) ────
+   * Left pane: unchanged + removed lines. Right pane: unchanged + added lines.
+   * No alignment ghosts — clean and unambiguous.
+   */
+  const buildSplit = (parts: Diff.Change[], mode: 'lines' | 'chars'): { left: string; right: string } => {
+    let left = '', right = '';
+
+    if (mode === 'lines') {
+      for (const part of parts) {
+        const lines = part.value.split('\n');
+        if (lines[lines.length - 1] === '') lines.pop();
+        for (const line of lines) {
+          const escaped = esc(line);
+          if (part.added)        right += `<span class="diff-add">${escaped}</span>\n`;
+          else if (part.removed) left  += `<span class="diff-rem">${escaped}</span>\n`;
+          else { const row = `<span class="diff-eq">${escaped}</span>\n`; left += row; right += row; }
+        }
+      }
+    } else {
+      // Char diff — left shows original with removals highlighted, right shows modified with additions
+      for (const part of parts) {
+        const escaped = esc(part.value);
+        if (part.added)        right += `<span class="diff-ins">${escaped}</span>`;
+        else if (part.removed) left  += `<span class="diff-del">${escaped}</span>`;
+        else { left += escaped; right += escaped; }
+      }
+    }
+
+    return { left, right };
+  };
+
+  /* ── Init ─────────────────────────────────────────────────────────*/
+  const initTd = () => {
+    const app = document.getElementById('td-app');
+    if (!app || (app as any)._tdInit) return;
+    (app as any)._tdInit = true;
+
+    const leftEl       = document.getElementById('td-left')    as HTMLTextAreaElement;
+    const rightEl      = document.getElementById('td-right')   as HTMLTextAreaElement;
+    const unifiedEl    = document.getElementById('td-unified')!;
+    const unifiedCont  = document.getElementById('td-unified-content')!;
+    const splitEl      = document.getElementById('td-split')!;
+    const splitLeftEl  = document.getElementById('td-split-left')!;
+    const splitRightEl = document.getElementById('td-split-right')!;
+    const statsEl      = document.getElementById('td-stats')!;
+    const statAdd      = document.getElementById('td-stat-add')!;
+    const statRem      = document.getElementById('td-stat-rem')!;
+    const statEq       = document.getElementById('td-stat-eq')!;
+    const ignoreWs     = document.getElementById('td-ignore-ws') as HTMLInputElement;
+    const modeBtns     = app.querySelectorAll<HTMLButtonElement>('.td-mode-btn');
+    const viewBtns     = app.querySelectorAll<HTMLButtonElement>('.td-view-btn');
+    const presetBtns   = app.querySelectorAll<HTMLButtonElement>('.td-preset');
+    const clearBtn     = document.getElementById('td-clear-btn')!;
+    const copyBtn      = document.getElementById('td-copy-btn')!;
+
+    let mode: 'lines' | 'chars' = 'lines';
+    let view: 'unified' | 'split' = 'unified';
+    let lastUnifiedText = ''; // plain-text unified diff for copy
+
+    const unit = (mode: 'lines' | 'chars') => mode === 'lines' ? 'line' : 'char';
+
+    /* Run diff and update display */
+    const runDiff = () => {
+      let a = leftEl.value;
+      let b = rightEl.value;
+
+      if (ignoreWs.checked) {
+        // Normalise each line's leading/trailing whitespace
+        const trim = (s: string) => s.split('\n').map(l => l.trim()).join('\n');
+        a = trim(a); b = trim(b);
+      }
+
+      // Empty state
+      if (!a && !b) {
+        unifiedCont.innerHTML = '<span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>';
+        splitLeftEl.innerHTML = '';
+        splitRightEl.innerHTML = '';
+        statsEl.classList.add('hidden');
+        lastUnifiedText = '';
+        return;
+      }
+
+      // Compute diff based on mode
+      const parts: Diff.Change[] = mode === 'lines'
+        ? Diff.diffLines(a, b, { newlineIsToken: false })
+        : Diff.diffChars(a, b);
+
+      // Unified view
+      const { html, add, rem, eq } = buildUnified(parts, mode);
+      unifiedCont.innerHTML = html || '<span class="text-text-muted/40 italic text-xs">No differences found — texts are identical.</span>';
+
+      // Build plain-text for copy — simple prefix per line
+      lastUnifiedText = parts.map(p => {
+        const prefix = p.added ? '+ ' : p.removed ? '- ' : '  ';
+        const lines = p.value.split('\n');
+        // Remove trailing empty string produced by trailing newline
+        if (lines[lines.length - 1] === '') lines.pop();
+        return lines.map(l => prefix + l).join('\n');
+      }).join('\n');
+
+      // Split view
+      const { left, right } = buildSplit(parts, mode);
+      splitLeftEl.innerHTML  = left  || '<span class="text-text-muted/40 italic text-xs">empty</span>';
+      splitRightEl.innerHTML = right || '<span class="text-text-muted/40 italic text-xs">empty</span>';
+
+      // Stats
+      statsEl.classList.remove('hidden');
+      const u = unit(mode);
+      statAdd.textContent = `+${add} ${u}${add !== 1 ? 's' : ''}`;
+      statRem.textContent = `−${rem} ${u}${rem !== 1 ? 's' : ''}`;
+      statEq.textContent  = `${eq} unchanged`;
+    };
+
+    /* Toggle visible view pane */
+    const setView = (v: 'unified' | 'split') => {
+      view = v;
+      unifiedEl.classList.toggle('hidden', v !== 'unified');
+      splitEl.classList.toggle('hidden', v !== 'split');
+    };
+
+    /* Debounce diff on input */
+    let timer: ReturnType<typeof setTimeout>;
+    const debounced = () => { clearTimeout(timer); timer = setTimeout(runDiff, 150); };
+
+    leftEl.addEventListener('input', debounced);
+    rightEl.addEventListener('input', debounced);
+    ignoreWs.addEventListener('change', runDiff);
+
+    modeBtns.forEach(btn => btn.addEventListener('click', () => {
+      modeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode as 'lines' | 'chars';
+      runDiff();
+    }));
+
+    viewBtns.forEach(btn => btn.addEventListener('click', () => {
+      viewBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      setView(btn.dataset.view as 'unified' | 'split');
+    }));
+
+    presetBtns.forEach(btn => btn.addEventListener('click', () => {
+      const [left, right] = PRESETS[btn.dataset.preset || 'code'] || ['',''];
+      leftEl.value = left; rightEl.value = right;
+      runDiff();
+    }));
+
+    clearBtn.addEventListener('click', () => {
+      leftEl.value = ''; rightEl.value = '';
+      runDiff();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!lastUnifiedText) return;
+      try {
+        await navigator.clipboard.writeText(lastUnifiedText);
+        copyBtn.textContent = 'Copied!';
+      } catch { copyBtn.textContent = 'Failed'; }
+      setTimeout(() => { copyBtn.textContent = 'Copy diff'; }, 1500);
+    });
+
+    document.addEventListener('app:reset', () => { leftEl.value = ''; rightEl.value = ''; runDiff(); });
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(lastUnifiedText); } catch {}
+    });
+
+    runDiff();
+  };
+
+  initTd();
+  document.addEventListener('astro:after-swap', initTd);
+</script>

@@ -1,0 +1,283 @@
+---
+/**
+ * Client-Side Image Compressor — Calculator.astro
+ *
+ * Uses browser-image-compression (MIT) loaded dynamically on first use.
+ * All compression happens in the browser — no uploads, no server.
+ *
+ * Supports JPEG, PNG, WebP inputs.
+ * Outputs the compressed image as a downloadable file.
+ * Hard 10 MB input limit enforced before loading the library.
+ */
+---
+
+<div id="ic-app" class="space-y-5">
+
+  <!-- Drop zone / file picker -->
+  <div
+    id="ic-dropzone"
+    class="relative flex flex-col items-center justify-center gap-3
+           rounded-xl border-2 border-dashed border-border-subtle bg-bg-elevated
+           p-10 text-center transition-all cursor-pointer
+           hover:border-accent/40 hover:bg-accent/5"
+    style="min-height:180px"
+  >
+    <div class="text-3xl select-none">🖼️</div>
+    <p class="text-sm font-mono text-text-secondary">Drop an image here or click to browse</p>
+    <p class="text-[10px] font-mono text-text-muted">JPEG · PNG · WebP · max 10 MB</p>
+    <input id="ic-file-input" type="file" accept="image/jpeg,image/png,image/webp"
+      class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+  </div>
+
+  <!-- Error -->
+  <p id="ic-error" class="hidden text-xs font-mono text-red-400"></p>
+
+  <!-- Settings (shown after a file is picked) -->
+  <div id="ic-settings" class="hidden space-y-4">
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+      <!-- Quality -->
+      <div class="space-y-1">
+        <div class="flex justify-between">
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quality</label>
+          <span id="ic-quality-val" class="text-[10px] font-mono text-text-muted">80%</span>
+        </div>
+        <input type="range" id="ic-quality" min="10" max="100" value="80"
+          class="w-full accent-[var(--color-accent)]" />
+      </div>
+
+      <!-- Max width -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Max width (px)</label>
+        <select id="ic-maxw"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors">
+          {['Original','3840','2560','1920','1280','960','640'].map(w => (
+            <option value={w}>{w === 'Original' ? 'Original width' : w + 'px'}</option>
+          ))}
+        </select>
+      </div>
+
+      <!-- Output format -->
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output format</label>
+        <select id="ic-format"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors">
+          <option value="auto">Auto (match input)</option>
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/webp">WebP</option>
+          <option value="image/png">PNG</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Compress button -->
+    <button id="ic-compress-btn"
+      class="px-5 py-2 text-xs font-mono text-accent border border-accent/30 bg-accent/5
+             rounded-lg hover:bg-accent/10 transition-all disabled:opacity-40">
+      Compress image
+    </button>
+  </div>
+
+  <!-- Result -->
+  <div id="ic-result" class="hidden space-y-4">
+
+    <!-- Side-by-side preview + stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <div class="space-y-2">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Original</p>
+        <img id="ic-orig-preview" class="w-full rounded-xl border border-border-subtle object-contain max-h-64" />
+        <p id="ic-orig-info" class="text-xs font-mono text-text-muted"></p>
+      </div>
+
+      <div class="space-y-2">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Compressed</p>
+        <img id="ic-comp-preview" class="w-full rounded-xl border border-border-subtle object-contain max-h-64" />
+        <p id="ic-comp-info" class="text-xs font-mono text-text-muted"></p>
+      </div>
+    </div>
+
+    <!-- Savings bar + download -->
+    <div class="flex flex-wrap items-center gap-4">
+      <div class="flex-1 space-y-1">
+        <div class="flex justify-between text-[10px] font-mono text-text-muted">
+          <span>Size reduction</span>
+          <span id="ic-savings-pct">—</span>
+        </div>
+        <div class="h-2 bg-bg-elevated border border-border-subtle rounded-full overflow-hidden">
+          <div id="ic-savings-bar" class="h-full bg-accent/60 rounded-full transition-all" style="width:0%"></div>
+        </div>
+      </div>
+      <button id="ic-download-btn"
+        class="px-5 py-2 text-xs font-mono text-accent border border-accent/30 bg-accent/5
+               rounded-lg hover:bg-accent/10 transition-all">
+        Download
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /**
+   * Image Compressor — client logic.
+   * Lazy-loads browser-image-compression (MIT) on first compress.
+   */
+
+  const initIc = () => {
+    const app = document.getElementById('ic-app');
+    if (!app || (app as any)._icInit) return;
+    (app as any)._icInit = true;
+
+    const dropzone     = document.getElementById('ic-dropzone')!;
+    const fileInput    = document.getElementById('ic-file-input')    as HTMLInputElement;
+    const errorEl      = document.getElementById('ic-error')!;
+    const settingsEl   = document.getElementById('ic-settings')!;
+    const qualityEl    = document.getElementById('ic-quality')       as HTMLInputElement;
+    const qualityValEl = document.getElementById('ic-quality-val')!;
+    const maxwEl       = document.getElementById('ic-maxw')          as HTMLSelectElement;
+    const formatEl     = document.getElementById('ic-format')        as HTMLSelectElement;
+    const compressBtn  = document.getElementById('ic-compress-btn')  as HTMLButtonElement;
+    const resultEl     = document.getElementById('ic-result')!;
+    const origPreview  = document.getElementById('ic-orig-preview')  as HTMLImageElement;
+    const compPreview  = document.getElementById('ic-comp-preview')  as HTMLImageElement;
+    const origInfoEl   = document.getElementById('ic-orig-info')!;
+    const compInfoEl   = document.getElementById('ic-comp-info')!;
+    const savingsPct   = document.getElementById('ic-savings-pct')!;
+    const savingsBar   = document.getElementById('ic-savings-bar')!;
+    const downloadBtn  = document.getElementById('ic-download-btn')  as HTMLButtonElement;
+
+    let currentFile: File | null = null;
+    let compressedBlob: Blob | null = null;
+
+    const fmt = (bytes: number) =>
+      bytes < 1024 ? bytes + ' B'
+      : bytes < 1_048_576 ? (bytes / 1024).toFixed(1) + ' KB'
+      : (bytes / 1_048_576).toFixed(2) + ' MB';
+
+    const showError = (msg: string) => {
+      errorEl.textContent = msg;
+      errorEl.classList.remove('hidden');
+    };
+    const clearError = () => errorEl.classList.add('hidden');
+
+    /* Drag-over highlight */
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('border-accent/60'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-accent/60'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('border-accent/60');
+      const file = e.dataTransfer?.files[0];
+      if (file) handleFile(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files?.[0]) handleFile(fileInput.files[0]);
+    });
+
+    qualityEl.addEventListener('input', () => {
+      qualityValEl.textContent = qualityEl.value + '%';
+    });
+
+    const handleFile = (file: File) => {
+      clearError();
+      if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+        showError('Unsupported format. Please use JPEG, PNG, or WebP.');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        showError(`File is ${fmt(file.size)} — the hard limit is 10 MB.`);
+        return;
+      }
+
+      currentFile = file;
+      compressedBlob = null;
+      resultEl.classList.add('hidden');
+
+      // Show original preview + info
+      const reader = new FileReader();
+      reader.onload = ev => {
+        origPreview.src = ev.target?.result as string;
+        origPreview.onload = () => {
+          origInfoEl.textContent = `${origPreview.naturalWidth} × ${origPreview.naturalHeight} px · ${fmt(file.size)}`;
+        };
+      };
+      reader.readAsDataURL(file);
+
+      settingsEl.classList.remove('hidden');
+    };
+
+    compressBtn.addEventListener('click', async () => {
+      if (!currentFile) return;
+      clearError();
+      compressBtn.disabled = true;
+      compressBtn.textContent = 'Compressing…';
+
+      try {
+        // Lazy-load the library on first use
+        const { default: imageCompression } = await import('browser-image-compression');
+
+        const quality = +qualityEl.value / 100;
+        const maxWidthSetting = maxwEl.value;
+        const format = formatEl.value === 'auto' ? undefined : formatEl.value;
+
+        const options: Record<string, any> = {
+          maxSizeMB: 50,          // effectively no MB cap — we rely on quality + dimension
+          initialQuality: quality,
+          useWebWorker: true,
+          fileType: format,
+        };
+        if (maxWidthSetting !== 'Original') {
+          options.maxWidthOrHeight = +maxWidthSetting;
+        }
+
+        compressedBlob = await imageCompression(currentFile, options);
+
+        // Show compressed preview
+        const url = URL.createObjectURL(compressedBlob);
+        compPreview.src = url;
+        compPreview.onload = () => {
+          compInfoEl.textContent = `${compPreview.naturalWidth} × ${compPreview.naturalHeight} px · ${fmt(compressedBlob!.size)}`;
+        };
+
+        // Savings
+        const saved = Math.max(0, 100 - (compressedBlob.size / currentFile.size) * 100);
+        savingsPct.textContent = saved.toFixed(1) + '% smaller';
+        savingsBar.style.width = Math.min(saved, 100) + '%';
+
+        resultEl.classList.remove('hidden');
+      } catch (e) {
+        showError('Compression failed: ' + String(e));
+      } finally {
+        compressBtn.disabled = false;
+        compressBtn.textContent = 'Compress image';
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!compressedBlob || !currentFile) return;
+      const ext = compressedBlob.type.split('/')[1] || 'jpg';
+      const name = currentFile.name.replace(/\.[^.]+$/, '') + '-compressed.' + ext;
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(compressedBlob),
+        download: name,
+      });
+      a.click();
+    });
+
+    document.addEventListener('app:reset', () => {
+      currentFile = null;
+      compressedBlob = null;
+      fileInput.value = '';
+      settingsEl.classList.add('hidden');
+      resultEl.classList.add('hidden');
+      clearError();
+    }, { once: false });
+  };
+
+  initIc();
+  document.addEventListener('astro:after-swap', initIc);
+</script>

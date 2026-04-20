@@ -36,6 +36,19 @@ import CurrencyConverter from '../../components/apps/currency-converter/Calculat
 import GlobalClock from '../../components/apps/global-clock/Calculator.astro';
 import RichTextToMarkdown from '../../components/apps/rich-text-to-markdown/Calculator.astro';
 import DiceRoller from '../../components/apps/dice-roller/Calculator.astro';
+
+import JsonFormatter from '../../components/apps/json-formatter/Calculator.astro';
+import TextDiff from '../../components/apps/text-diff/Calculator.astro';
+import JwtDecoder from '../../components/apps/jwt-decoder/Calculator.astro';
+import PasswordGenerator from '../../components/apps/password-generator/Calculator.astro';
+import DummyDataGenerator from '../../components/apps/dummy-data-generator/Calculator.astro';
+import CodeSnippetPng from '../../components/apps/code-snippet-png/Calculator.astro';
+import ColorToolkit from '../../components/apps/color-toolkit/Calculator.astro';
+import GradientGenerator from '../../components/apps/gradient-generator/Calculator.astro';
+import ImageCompressor from '../../components/apps/image-compressor/Calculator.astro';
+import CsvToJson from '../../components/apps/csv-to-json/Calculator.astro';
+import DeviceInfo from '../../components/apps/device-info/Calculator.astro';
+
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
   'markdown-visualizer': MarkdownVisualizer,
@@ -55,6 +68,17 @@ const CALCULATOR_MAP: Record<string, any> = {
   'global-clock': GlobalClock,
   'rich-text-to-markdown': RichTextToMarkdown,
   'dice-roller': DiceRoller,
+  'json-formatter': JsonFormatter,
+  'text-diff': TextDiff,
+  'jwt-decoder': JwtDecoder,
+  'password-generator': PasswordGenerator,
+  'dummy-data-generator': DummyDataGenerator,
+  'code-snippet-png': CodeSnippetPng,
+  'color-toolkit': ColorToolkit,
+  'gradient-generator': GradientGenerator,
+  'image-compressor': ImageCompressor,
+  'csv-to-json': CsvToJson,
+  'device-info': DeviceInfo,
 };
 
 export async function getStaticPaths() {

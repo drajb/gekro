@@ -1,0 +1,259 @@
+---
+/**
+ * Device & Browser Info — Calculator.astro
+ *
+ * Reads browser-native APIs (navigator.*, screen.*, WebGL) to surface
+ * device, OS, hardware, and network information.
+ *
+ * Public IP fetched from Cloudflare's cdn-cgi/trace endpoint.
+ * Displayed on screen only — never sent to any Gekro server or stored.
+ *
+ * Zero external dependencies.
+ */
+---
+
+<div id="di-app" class="space-y-5">
+
+  <!-- Refresh button -->
+  <div class="flex items-center justify-between">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Live snapshot from your browser</p>
+    <button id="di-refresh"
+      class="px-3 py-1 text-[10px] font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">
+      Refresh
+    </button>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <!-- Browser & Agent -->
+    <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Browser</p>
+      <div id="di-browser" class="space-y-2"></div>
+    </div>
+
+    <!-- OS & Platform -->
+    <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Platform</p>
+      <div id="di-platform" class="space-y-2"></div>
+    </div>
+
+    <!-- Hardware -->
+    <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Hardware</p>
+      <div id="di-hardware" class="space-y-2"></div>
+    </div>
+
+    <!-- Screen -->
+    <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Screen</p>
+      <div id="di-screen" class="space-y-2"></div>
+    </div>
+
+    <!-- Network -->
+    <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Network</p>
+      <div id="di-network" class="space-y-2"></div>
+    </div>
+
+    <!-- Location / Time -->
+    <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Locale & time</p>
+      <div id="di-locale" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- Public IP (separate fetch) -->
+  <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Public IP</p>
+      <p class="text-[10px] font-mono text-text-muted">via Cloudflare cdn-cgi/trace — displayed only, never stored</p>
+    </div>
+    <div id="di-ip" class="space-y-2">
+      <p class="text-xs font-mono text-text-muted animate-pulse">Fetching…</p>
+    </div>
+  </div>
+
+  <!-- Raw user agent -->
+  <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Raw user agent</p>
+    <p id="di-ua" class="text-xs font-mono text-text-secondary break-all leading-relaxed"></p>
+  </div>
+
+</div>
+
+<style>
+  /* Key/value row within each card */
+  .di-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11px;
+    font-family: monospace;
+  }
+  .di-key  { color: var(--color-text-muted); flex-shrink: 0; }
+  .di-val  { color: var(--color-text-primary); text-align: right; word-break: break-all; }
+  .di-val.good { color: #34d399; }
+  .di-val.warn { color: #fbbf24; }
+  .di-val.bad  { color: #f87171; }
+</style>
+
+<script>
+  /**
+   * Device & Browser Info — client logic.
+   * Reads navigator/screen/WebGL APIs + Cloudflare IP.
+   */
+
+  /** Build a key/value row element */
+  const row = (key: string, val: string, cls = '') => {
+    const d = document.createElement('div');
+    d.className = 'di-row';
+    d.innerHTML = `<span class="di-key">${key}</span><span class="di-val ${cls}">${val || '—'}</span>`;
+    return d;
+  };
+
+  /** Mount an array of rows into a target element */
+  const mount = (id: string, rows: HTMLElement[]) => {
+    const el = document.getElementById(id)!;
+    el.innerHTML = '';
+    rows.forEach(r => el.appendChild(r));
+  };
+
+  /** Try to extract GPU info via WebGL */
+  const getGpu = (): string => {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext | null;
+      if (!gl) return '—';
+      const ext = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
+      if (!ext) return 'WebGL (renderer hidden)';
+      return (gl as WebGLRenderingContext).getParameter(ext.UNMASKED_RENDERER_WEBGL) || '—';
+    } catch { return '—'; }
+  };
+
+  /** Parse a rough browser name from userAgent */
+  const parseBrowser = (ua: string): string => {
+    if (/Edg\//.test(ua))     return 'Microsoft Edge';
+    if (/OPR\//.test(ua))     return 'Opera';
+    if (/Chrome\//.test(ua))  return 'Chrome';
+    if (/Firefox\//.test(ua)) return 'Firefox';
+    if (/Safari\//.test(ua))  return 'Safari';
+    return 'Unknown';
+  };
+
+  /** Parse browser version */
+  const parseBrowserVer = (ua: string): string => {
+    const m = ua.match(/(Chrome|Firefox|Safari|Edg|OPR)\/(\d+\.\d+)/);
+    return m ? m[2] : '—';
+  };
+
+  const initDi = () => {
+    const app = document.getElementById('di-app');
+    if (!app || (app as any)._diInit) return;
+    (app as any)._diInit = true;
+
+    const refresh = () => populate();
+    document.getElementById('di-refresh')!.addEventListener('click', refresh);
+
+    populate();
+  };
+
+  const populate = () => {
+    const nav = navigator;
+    const ua  = nav.userAgent;
+    const conn = (nav as any).connection || (nav as any).mozConnection || (nav as any).webkitConnection;
+
+    /* Browser */
+    mount('di-browser', [
+      row('Name',     parseBrowser(ua)),
+      row('Version',  parseBrowserVer(ua)),
+      row('Engine',   /Gecko\/\d/.test(ua) && !/like Gecko/.test(ua) ? 'Gecko' : /WebKit/.test(ua) ? 'WebKit/Blink' : '—'),
+      row('Cookies',  nav.cookieEnabled ? 'Enabled' : 'Disabled', nav.cookieEnabled ? 'good' : 'bad'),
+      row('Online',   nav.onLine ? 'Yes' : 'No', nav.onLine ? 'good' : 'bad'),
+      row('Language', nav.language || '—'),
+    ]);
+
+    /* Platform */
+    const plat = (nav as any).userAgentData?.platform || nav.platform || '—';
+    mount('di-platform', [
+      row('Platform',  plat),
+      row('Vendor',    nav.vendor || '—'),
+      row('Touch pts', String(nav.maxTouchPoints ?? '—')),
+      row('PDF viewer',(nav as any).pdfViewerEnabled !== undefined ? ((nav as any).pdfViewerEnabled ? 'Yes' : 'No') : '—'),
+    ]);
+
+    /* Hardware */
+    const mem  = (nav as any).deviceMemory;
+    const cpus = nav.hardwareConcurrency;
+    mount('di-hardware', [
+      row('CPU threads', cpus ? String(cpus) : '—'),
+      row('Device mem',  mem  ? mem + ' GB (rounded)' : '—'),
+      row('GPU',         getGpu()),
+    ]);
+
+    /* Screen */
+    const { width, height, colorDepth, availWidth, availHeight } = screen;
+    const dpr = window.devicePixelRatio || 1;
+    mount('di-screen', [
+      row('Resolution', `${width} × ${height}`),
+      row('Available',  `${availWidth} × ${availHeight}`),
+      row('Pixel ratio', dpr.toFixed(2) + 'x'),
+      row('Color depth', colorDepth + ' bits'),
+      row('Orientation', screen.orientation?.type || '—'),
+    ]);
+
+    /* Network */
+    mount('di-network', [
+      row('Effective type', conn?.effectiveType || '—'),
+      row('Downlink',       conn?.downlink != null ? conn.downlink + ' Mbps' : '—'),
+      row('RTT',            conn?.rtt        != null ? conn.rtt + ' ms' : '—'),
+      row('Save data',      conn?.saveData   != null ? (conn.saveData ? 'On' : 'Off') : '—'),
+    ]);
+
+    /* Locale */
+    const tz   = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const now  = new Date();
+    const tzOff = now.getTimezoneOffset();
+    const tzStr = (tzOff > 0 ? '-' : '+') + String(Math.abs(Math.floor(tzOff / 60))).padStart(2, '0') + ':' + String(Math.abs(tzOff % 60)).padStart(2, '0');
+    mount('di-locale', [
+      row('Timezone', tz),
+      row('UTC offset', `UTC${tzStr}`),
+      row('Languages', (nav.languages || [nav.language]).slice(0, 3).join(', ')),
+      row('Local time', now.toLocaleTimeString()),
+    ]);
+
+    /* Raw UA */
+    document.getElementById('di-ua')!.textContent = ua;
+
+    /* Public IP — async fetch */
+    fetchIp();
+  };
+
+  const fetchIp = async () => {
+    const el = document.getElementById('di-ip')!;
+    el.innerHTML = '<p class="text-xs font-mono text-text-muted animate-pulse">Fetching…</p>';
+    try {
+      const res  = await fetch('https://1.1.1.1/cdn-cgi/trace');
+      const text = await res.text();
+      const pairs: Record<string, string> = {};
+      text.trim().split('\n').forEach(line => {
+        const [k, ...rest] = line.split('=');
+        pairs[k.trim()] = rest.join('=').trim();
+      });
+      el.innerHTML = '';
+      const rows: HTMLElement[] = [
+        row('IP address', pairs['ip'] || '—'),
+        row('Location',   pairs['loc'] || '—'),
+        row('Data center', pairs['colo'] || '—'),
+        row('HTTP version', pairs['http'] || '—'),
+      ];
+      rows.forEach(r => el.appendChild(r));
+    } catch {
+      el.innerHTML = '<p class="text-xs font-mono text-text-muted">Could not fetch (check network / ad-blocker)</p>';
+    }
+  };
+
+  initDi();
+  document.addEventListener('astro:after-swap', initDi);
+</script>
