@@ -122,5 +122,8 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ['qr-code-styling'],
+    },
   },
 });

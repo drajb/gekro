@@ -27,6 +27,7 @@
     "html-to-image": "^1.11.13",
     "motion": "^10.0.0",
     "papaparse": "^5.5.3",
+    "qr-code-styling": "^1.9.2",
     "sharp": "^0.33.5",
     "shiki": "^1.0.0",
     "tailwindcss": "4.0.0-beta.8",

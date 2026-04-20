@@ -1,0 +1,680 @@
+---
+// QR Code Generator — Calculator.astro
+// Uses qr-code-styling served from /vendors/ (bypasses Vite dep bundling).
+// All processing is client-side — no data leaves the browser.
+---
+<!-- Classic (non-module) script — runs with `this = window` so UMD sets window.QRCodeStyling -->
+<script is:inline src="/vendors/qr-code-styling.js"></script>
+
+<div id="qrg-app" class="space-y-6">
+
+  <!-- Content type tabs -->
+  <div class="space-y-1.5">
+    <p class="qrg-label">Content type</p>
+    <div class="flex flex-wrap gap-1.5" id="qrg-type-tabs">
+      {[
+        ['url',      '🔗', 'URL'],
+        ['wifi',     '📶', 'WiFi'],
+        ['text',     '📝', 'Text'],
+        ['email',    '✉️',  'Email'],
+        ['sms',      '💬', 'SMS'],
+        ['phone',    '📞', 'Phone'],
+        ['vcard',    '👤', 'vCard'],
+        ['location', '📍', 'Location'],
+      ].map(([type, icon, label]) => (
+        <button class="qrg-type-btn" data-type={type}>
+          <span class="qrg-type-icon">{icon}</span>
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ── Left: data form + style controls ─────────────────── -->
+    <div class="space-y-5">
+
+      <!-- URL -->
+      <div id="qrg-form-url" class="qrg-form space-y-3">
+        <div class="space-y-1">
+          <label class="qrg-label">URL</label>
+          <input type="url" id="qrg-url" class="qrg-input w-full" placeholder="https://example.com" value="https://gekro.com" />
+        </div>
+      </div>
+
+      <!-- WiFi -->
+      <div id="qrg-form-wifi" class="qrg-form hidden space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="qrg-label">Network name (SSID)</label>
+            <input type="text" id="qrg-wifi-ssid" class="qrg-input w-full" placeholder="MyNetwork" />
+          </div>
+          <div class="space-y-1">
+            <label class="qrg-label">Password</label>
+            <input type="text" id="qrg-wifi-pass" class="qrg-input w-full" placeholder="password123" />
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 items-center">
+          <div class="space-y-1">
+            <label class="qrg-label">Security</label>
+            <select id="qrg-wifi-sec" class="qrg-select">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="">None</option>
+            </select>
+          </div>
+          <label class="qrg-check-label mt-4">
+            <input type="checkbox" id="qrg-wifi-hidden" class="qrg-check" />
+            Hidden network
+          </label>
+        </div>
+      </div>
+
+      <!-- Text -->
+      <div id="qrg-form-text" class="qrg-form hidden space-y-1">
+        <label class="qrg-label">Text</label>
+        <textarea id="qrg-text" rows="4" class="qrg-input w-full resize-none" placeholder="Any text up to ~500 characters…"></textarea>
+      </div>
+
+      <!-- Email -->
+      <div id="qrg-form-email" class="qrg-form hidden space-y-3">
+        <div class="space-y-1">
+          <label class="qrg-label">To</label>
+          <input type="email" id="qrg-email-to" class="qrg-input w-full" placeholder="hello@example.com" />
+        </div>
+        <div class="space-y-1">
+          <label class="qrg-label">Subject</label>
+          <input type="text" id="qrg-email-subject" class="qrg-input w-full" placeholder="Subject line" />
+        </div>
+        <div class="space-y-1">
+          <label class="qrg-label">Body</label>
+          <textarea id="qrg-email-body" rows="3" class="qrg-input w-full resize-none" placeholder="Email body…"></textarea>
+        </div>
+      </div>
+
+      <!-- SMS -->
+      <div id="qrg-form-sms" class="qrg-form hidden space-y-3">
+        <div class="space-y-1">
+          <label class="qrg-label">Phone number</label>
+          <input type="tel" id="qrg-sms-number" class="qrg-input w-full" placeholder="+1 555 000 1234" />
+        </div>
+        <div class="space-y-1">
+          <label class="qrg-label">Message</label>
+          <textarea id="qrg-sms-body" rows="3" class="qrg-input w-full resize-none" placeholder="Your message…"></textarea>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div id="qrg-form-phone" class="qrg-form hidden space-y-1">
+        <label class="qrg-label">Phone number</label>
+        <input type="tel" id="qrg-phone-number" class="qrg-input w-full" placeholder="+1 555 000 1234" />
+      </div>
+
+      <!-- vCard -->
+      <div id="qrg-form-vcard" class="qrg-form hidden space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="qrg-label">First name</label>
+            <input type="text" id="qrg-vc-first" class="qrg-input w-full" placeholder="Jane" />
+          </div>
+          <div class="space-y-1">
+            <label class="qrg-label">Last name</label>
+            <input type="text" id="qrg-vc-last" class="qrg-input w-full" placeholder="Smith" />
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label class="qrg-label">Organisation</label>
+          <input type="text" id="qrg-vc-org" class="qrg-input w-full" placeholder="Acme Corp" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="qrg-label">Phone</label>
+            <input type="tel" id="qrg-vc-phone" class="qrg-input w-full" placeholder="+1 555 000 1234" />
+          </div>
+          <div class="space-y-1">
+            <label class="qrg-label">Email</label>
+            <input type="email" id="qrg-vc-email" class="qrg-input w-full" placeholder="jane@acme.com" />
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label class="qrg-label">Website</label>
+          <input type="url" id="qrg-vc-url" class="qrg-input w-full" placeholder="https://acme.com" />
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div id="qrg-form-location" class="qrg-form hidden space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="qrg-label">Latitude</label>
+            <input type="number" step="any" id="qrg-lat" class="qrg-input w-full" placeholder="40.7128" />
+          </div>
+          <div class="space-y-1">
+            <label class="qrg-label">Longitude</label>
+            <input type="number" step="any" id="qrg-lng" class="qrg-input w-full" placeholder="-74.0060" />
+          </div>
+        </div>
+        <button id="qrg-use-location" class="text-xs font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg px-3 py-1.5 hover:bg-accent/10 transition-all w-fit">
+          Use my current location
+        </button>
+        <p class="text-[10px] font-mono text-text-muted">Opens in Maps on mobile. On iOS use a Maps URL instead for native support.</p>
+      </div>
+
+      <!-- ── Style controls (always visible) ──────────────────── -->
+      <div class="space-y-4 pt-2 border-t border-border-subtle">
+        <p class="qrg-label">Style</p>
+
+        <!-- Dot style -->
+        <div class="space-y-1">
+          <label class="qrg-label">Dot style</label>
+          <div class="flex flex-wrap gap-1.5" id="qrg-dot-style-btns">
+            {[
+              ['square','■ Square'],['rounded','◼ Rounded'],['dots','● Dots'],
+              ['classy','◈ Classy'],['classy-rounded','◉ Classy+'],['extra-rounded','⬟ Max round'],
+            ].map(([v,l]) => (
+              <button class="qrg-style-btn" data-dot={v}>{l}</button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="flex flex-wrap gap-4">
+          <div class="space-y-1">
+            <label class="qrg-label">Foreground</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="qrg-fg-color" value="#000000" class="qrg-swatch" />
+              <span class="text-xs font-mono text-text-muted" id="qrg-fg-val">#000000</span>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <label class="qrg-label">Background</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="qrg-bg-color" value="#ffffff" class="qrg-swatch" />
+              <span class="text-xs font-mono text-text-muted" id="qrg-bg-val">#ffffff</span>
+              <label class="qrg-check-label">
+                <input type="checkbox" id="qrg-bg-transparent" class="qrg-check" />
+                Transparent
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error correction + size -->
+        <div class="flex flex-wrap gap-4 items-end">
+          <div class="space-y-1">
+            <label class="qrg-label">Error correction</label>
+            <select id="qrg-ecl" class="qrg-select">
+              <option value="L">L — 7%</option>
+              <option value="M" selected>M — 15%</option>
+              <option value="Q">Q — 25% (recommended with logo)</option>
+              <option value="H">H — 30%</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="qrg-label">Size (px)</label>
+            <select id="qrg-size" class="qrg-select">
+              {[256,300,400,512,600,800,1024].map(s => (
+                <option value={s} selected={s === 300}>{s}px</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <!-- Logo upload -->
+        <div class="space-y-2">
+          <label class="qrg-label">Logo (optional, max 1 MB)</label>
+          <div id="qrg-logo-drop" class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border-subtle rounded-xl py-4 px-6 transition-colors hover:border-accent/40 cursor-pointer relative">
+            <input type="file" id="qrg-logo-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
+            <div id="qrg-logo-placeholder" class="text-center space-y-1">
+              <p class="text-sm font-mono text-text-muted">Drop image or click to browse</p>
+              <p class="text-[10px] font-mono text-text-muted/60">PNG, JPG, SVG, WebP — 1 MB max</p>
+            </div>
+            <div id="qrg-logo-preview" class="hidden flex-col items-center gap-2">
+              <img id="qrg-logo-img" src="" alt="Logo" class="max-h-16 max-w-24 object-contain rounded" />
+              <button id="qrg-logo-remove" class="text-[10px] font-mono text-red-400 hover:text-red-300 transition-colors">Remove logo</button>
+            </div>
+            <p id="qrg-logo-error" class="hidden text-xs font-mono text-red-400"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate button -->
+      <button id="qrg-generate-btn"
+        class="w-full py-3 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono font-semibold hover:bg-accent/30 active:scale-95 transition-all">
+        Generate QR Code
+      </button>
+    </div>
+
+    <!-- ── Right: preview + download ────────────────────────── -->
+    <div class="space-y-4 flex flex-col items-center">
+
+      <!-- QR preview -->
+      <div>
+        <p class="qrg-label mb-2 text-center">Preview</p>
+        <div id="qrg-preview-container" class="rounded-xl overflow-hidden border border-border-subtle p-4 bg-white inline-block min-h-[300px] min-w-[300px] flex items-center justify-center">
+          <div id="qrg-placeholder-msg" class="text-center space-y-2 p-8">
+            <p class="text-3xl">⬛</p>
+            <p class="text-xs font-mono text-text-muted">Fill in the form and click Generate</p>
+          </div>
+          <!-- QR canvas injected here by JS -->
+        </div>
+      </div>
+
+      <!-- Download buttons -->
+      <div id="qrg-download-row" class="hidden flex gap-3">
+        <button id="qrg-dl-png" class="px-5 py-2 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono text-sm font-semibold hover:bg-accent/30 active:scale-95 transition-all">
+          Download PNG
+        </button>
+        <button id="qrg-dl-svg" class="px-5 py-2 bg-bg-elevated border border-border-subtle rounded-xl text-text-secondary font-mono text-sm hover:border-accent/40 transition-all">
+          Download SVG
+        </button>
+      </div>
+
+      <!-- Encoded data preview -->
+      <div id="qrg-data-preview" class="hidden w-full space-y-1">
+        <p class="qrg-label">Encoded data</p>
+        <textarea id="qrg-data-text" rows="3" readonly spellcheck="false"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-3 py-2
+                 text-xs font-mono text-text-muted leading-relaxed resize-none focus:outline-none"></textarea>
+      </div>
+
+      <!-- Privacy note -->
+      <div class="w-full p-3 rounded-xl bg-bg-elevated border border-border-subtle">
+        <p class="text-[10px] font-mono text-text-muted leading-relaxed">
+          🔒 <strong class="text-text-secondary">100% private.</strong> All QR generation happens in your browser. No data is transmitted, stored, or logged anywhere — including your logo, WiFi password, or contact details.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .qrg-label {
+    font-size: 0.65rem; font-family: monospace;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    display: block;
+  }
+  .qrg-input {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 10px; padding: 8px 12px;
+    font-size: 0.85rem; font-family: monospace;
+    color: var(--color-text-primary); outline: none;
+    transition: border-color 0.2s;
+  }
+  .qrg-input:focus { border-color: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+  .qrg-select {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px; padding: 6px 10px;
+    font-size: 0.75rem; font-family: monospace;
+    color: var(--color-text-secondary); outline: none; cursor: pointer;
+  }
+  .qrg-swatch {
+    width: 30px; height: 30px; border-radius: 6px;
+    border: 2px solid var(--color-border-subtle);
+    cursor: pointer; padding: 0;
+  }
+  .qrg-check-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.75rem; font-family: monospace;
+    color: var(--color-text-muted); cursor: pointer; user-select: none;
+  }
+  .qrg-check { accent-color: var(--color-accent); width: 14px; height: 14px; cursor: pointer; }
+
+  /* Type tab buttons */
+  .qrg-type-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 10px; font-size: 0.75rem;
+    font-family: monospace; border: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-elevated); color: var(--color-text-muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .qrg-type-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    color: var(--color-accent);
+  }
+  .qrg-type-btn:hover:not(.active) {
+    border-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    color: var(--color-text-secondary);
+  }
+  .qrg-type-icon { font-size: 0.85em; }
+
+  /* Style picker buttons */
+  .qrg-style-btn {
+    padding: 4px 10px; border-radius: 8px; font-size: 0.7rem;
+    font-family: monospace; border: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-elevated); color: var(--color-text-muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .qrg-style-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+    color: var(--color-accent);
+  }
+  .qrg-style-btn:hover:not(.active) {
+    border-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    color: var(--color-text-secondary);
+  }
+
+  /* Logo drop zone active */
+  #qrg-logo-drop.dragover {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  }
+</style>
+
+<script>
+  // QRCodeStyling is loaded as a UMD global from /vendors/qr-code-styling.js
+  // The is:inline classic script sets window.QRCodeStyling via the UMD wrapper.
+  // Fallback: if somehow undefined, fetch+eval it directly.
+  const getQR = async (): Promise<any> => {
+    if ((window as any).QRCodeStyling) return (window as any).QRCodeStyling;
+    const code = await (await fetch('/vendors/qr-code-styling.js')).text();
+    const mod = { exports: {} as any };
+    new Function('module','exports', code)(mod, mod.exports);
+    (window as any).QRCodeStyling = mod.exports;
+    return mod.exports;
+  };
+
+  const LOGO_MAX_BYTES = 1_048_576; // 1 MB
+
+  /* ── Encode each content type to a string ─────────────────────*/
+  const encode = {
+    url: () => {
+      const v = (document.getElementById('qrg-url') as HTMLInputElement).value.trim();
+      return v || 'https://gekro.com';
+    },
+    wifi: () => {
+      const ssid = (document.getElementById('qrg-wifi-ssid') as HTMLInputElement).value;
+      const pass = (document.getElementById('qrg-wifi-pass') as HTMLInputElement).value;
+      const sec  = (document.getElementById('qrg-wifi-sec') as HTMLSelectElement).value;
+      const hidden = (document.getElementById('qrg-wifi-hidden') as HTMLInputElement).checked;
+      const escapedSsid = ssid.replace(/[\\;,":]/g, c => '\\' + c);
+      const escapedPass = pass.replace(/[\\;,":]/g, c => '\\' + c);
+      return `WIFI:S:${escapedSsid};T:${sec};P:${escapedPass};H:${hidden};;`;
+    },
+    text: () => (document.getElementById('qrg-text') as HTMLTextAreaElement).value || 'Hello from gekro.com',
+    email: () => {
+      const to  = encodeURIComponent((document.getElementById('qrg-email-to') as HTMLInputElement).value.trim());
+      const sub = encodeURIComponent((document.getElementById('qrg-email-subject') as HTMLInputElement).value.trim());
+      const body= encodeURIComponent((document.getElementById('qrg-email-body') as HTMLTextAreaElement).value.trim());
+      let out = `mailto:${to}`;
+      const params: string[] = [];
+      if (sub)  params.push(`subject=${sub}`);
+      if (body) params.push(`body=${body}`);
+      if (params.length) out += '?' + params.join('&');
+      return out;
+    },
+    sms: () => {
+      const num  = (document.getElementById('qrg-sms-number') as HTMLInputElement).value.trim().replace(/\s/g,'');
+      const body = encodeURIComponent((document.getElementById('qrg-sms-body') as HTMLTextAreaElement).value.trim());
+      return body ? `sms:${num}?body=${body}` : `sms:${num}`;
+    },
+    phone: () => {
+      const num = (document.getElementById('qrg-phone-number') as HTMLInputElement).value.trim().replace(/\s/g,'');
+      return `tel:${num}`;
+    },
+    vcard: () => {
+      const first = (document.getElementById('qrg-vc-first') as HTMLInputElement).value.trim();
+      const last  = (document.getElementById('qrg-vc-last') as HTMLInputElement).value.trim();
+      const org   = (document.getElementById('qrg-vc-org') as HTMLInputElement).value.trim();
+      const phone = (document.getElementById('qrg-vc-phone') as HTMLInputElement).value.trim();
+      const email = (document.getElementById('qrg-vc-email') as HTMLInputElement).value.trim();
+      const url   = (document.getElementById('qrg-vc-url') as HTMLInputElement).value.trim();
+      const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
+      if (first || last) lines.push(`N:${last};${first};;;`, `FN:${first} ${last}`.trim());
+      if (org)   lines.push(`ORG:${org}`);
+      if (phone) lines.push(`TEL;TYPE=CELL:${phone}`);
+      if (email) lines.push(`EMAIL:${email}`);
+      if (url)   lines.push(`URL:${url}`);
+      lines.push('END:VCARD');
+      return lines.join('\n');
+    },
+    location: () => {
+      const lat = (document.getElementById('qrg-lat') as HTMLInputElement).value.trim();
+      const lng = (document.getElementById('qrg-lng') as HTMLInputElement).value.trim();
+      if (!lat || !lng) return 'geo:0,0';
+      return `geo:${lat},${lng}`;
+    },
+  };
+
+  /* ── Init ────────────────────────────────────────────────────*/
+  const initQrg = () => {
+    const app = document.getElementById('qrg-app');
+    if (!app || (app as any)._qrgInit) return;
+    (app as any)._qrgInit = true;
+
+    const g = (id: string) => document.getElementById(id)!;
+
+    const typeTabs   = app.querySelectorAll<HTMLButtonElement>('.qrg-type-btn');
+    const forms      = app.querySelectorAll<HTMLElement>('.qrg-form');
+    const dotBtns    = app.querySelectorAll<HTMLButtonElement>('.qrg-style-btn');
+    const fgColorEl  = g('qrg-fg-color')     as HTMLInputElement;
+    const bgColorEl  = g('qrg-bg-color')     as HTMLInputElement;
+    const bgTransEl  = g('qrg-bg-transparent') as HTMLInputElement;
+    const fgVal      = g('qrg-fg-val');
+    const bgVal      = g('qrg-bg-val');
+    const eclEl      = g('qrg-ecl')          as HTMLSelectElement;
+    const sizeEl     = g('qrg-size')         as HTMLSelectElement;
+    const logoInput  = g('qrg-logo-input')   as HTMLInputElement;
+    const logoDrop   = g('qrg-logo-drop');
+    const logoPlaceholder = g('qrg-logo-placeholder');
+    const logoPreviewWrap = g('qrg-logo-preview');
+    const logoImg    = g('qrg-logo-img')     as HTMLImageElement;
+    const logoRemove = g('qrg-logo-remove');
+    const logoError  = g('qrg-logo-error');
+    const genBtn     = g('qrg-generate-btn');
+    const container  = g('qrg-preview-container');
+    const dlRow      = g('qrg-download-row');
+    const dlPng      = g('qrg-dl-png');
+    const dlSvg      = g('qrg-dl-svg');
+    const dataPreview= g('qrg-data-preview');
+    const dataText   = g('qrg-data-text')    as HTMLTextAreaElement;
+    const useLocBtn  = g('qrg-use-location');
+
+    let activeType  = 'url';
+    let activeDot   = 'square';
+    let logoDataUrl = '';
+    let qrInstance: any = null;
+
+    /* ── Type tab switching ─────────────────────────────────────*/
+    const switchType = (type: string) => {
+      activeType = type;
+      typeTabs.forEach(b => b.classList.toggle('active', b.dataset.type === type));
+      forms.forEach(f => f.classList.add('hidden'));
+      const form = document.getElementById(`qrg-form-${type}`);
+      if (form) form.classList.remove('hidden');
+    };
+    typeTabs.forEach(btn => btn.addEventListener('click', () => switchType(btn.dataset.type!)));
+    switchType('url'); // default
+
+    /* ── Dot style selection ────────────────────────────────────*/
+    dotBtns.forEach(btn => btn.addEventListener('click', () => {
+      activeDot = btn.dataset.dot!;
+      dotBtns.forEach(b => b.classList.toggle('active', b.dataset.dot === activeDot));
+    }));
+    // Activate default
+    dotBtns.forEach(b => b.classList.toggle('active', b.dataset.dot === 'square'));
+
+    /* ── Color inputs ───────────────────────────────────────────*/
+    fgColorEl.addEventListener('input', () => { fgVal.textContent = fgColorEl.value; });
+    bgColorEl.addEventListener('input', () => { bgVal.textContent = bgColorEl.value; });
+
+    /* ── Logo upload ────────────────────────────────────────────*/
+    const handleLogoFile = (file: File) => {
+      logoError.classList.add('hidden');
+      if (file.size > LOGO_MAX_BYTES) {
+        logoError.textContent = `File is ${(file.size/1024/1024).toFixed(1)} MB — maximum is 1 MB.`;
+        logoError.classList.remove('hidden');
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        logoError.textContent = 'Please select an image file.';
+        logoError.classList.remove('hidden');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        logoDataUrl = e.target!.result as string;
+        logoImg.src = logoDataUrl;
+        logoPlaceholder.classList.add('hidden');
+        logoPreviewWrap.classList.remove('hidden');
+        logoPreviewWrap.style.display = 'flex';
+        // Bump error correction to Q when logo is present
+        if (eclEl.value === 'L' || eclEl.value === 'M') eclEl.value = 'Q';
+      };
+      reader.readAsDataURL(file);
+    };
+
+    logoInput.addEventListener('change', () => {
+      if (logoInput.files?.[0]) handleLogoFile(logoInput.files[0]);
+    });
+
+    logoDrop.addEventListener('dragover', (e) => { e.preventDefault(); logoDrop.classList.add('dragover'); });
+    logoDrop.addEventListener('dragleave', () => logoDrop.classList.remove('dragover'));
+    logoDrop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      logoDrop.classList.remove('dragover');
+      if (e.dataTransfer?.files[0]) handleLogoFile(e.dataTransfer.files[0]);
+    });
+
+    logoRemove.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      logoDataUrl = '';
+      logoImg.src = '';
+      logoPlaceholder.classList.remove('hidden');
+      logoPreviewWrap.classList.add('hidden');
+      logoInput.value = '';
+    });
+
+    /* ── Geolocation ────────────────────────────────────────────*/
+    useLocBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+      useLocBtn.textContent = 'Getting location…';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          (document.getElementById('qrg-lat') as HTMLInputElement).value = pos.coords.latitude.toFixed(6);
+          (document.getElementById('qrg-lng') as HTMLInputElement).value = pos.coords.longitude.toFixed(6);
+          useLocBtn.textContent = 'Use my current location';
+        },
+        () => {
+          useLocBtn.textContent = 'Use my current location';
+          alert('Could not get location. Please enter coordinates manually.');
+        },
+      );
+    });
+
+    /* ── Generate QR ────────────────────────────────────────────*/
+    const generate = async () => {
+      genBtn.textContent = 'Generating…';
+      (genBtn as HTMLButtonElement).disabled = true;
+
+      try {
+        const QRCodeStyling = await getQR();
+        const data = encode[activeType as keyof typeof encode]();
+        const size = parseInt(sizeEl.value);
+        const bgColor = bgTransEl.checked ? 'transparent' : bgColorEl.value;
+
+        const options: Record<string, any> = {
+          width: size,
+          height: size,
+          data,
+          margin: 10,
+          qrOptions: {
+            errorCorrectionLevel: eclEl.value,
+          },
+          dotsOptions: {
+            type: activeDot,
+            color: fgColorEl.value,
+          },
+          backgroundOptions: {
+            color: bgColor,
+          },
+          cornersSquareOptions: {
+            type: activeDot === 'square' ? 'square' : 'extra-rounded',
+            color: fgColorEl.value,
+          },
+          cornersDotOptions: {
+            type: activeDot === 'square' ? 'square' : 'dot',
+            color: fgColorEl.value,
+          },
+        };
+
+        if (logoDataUrl) {
+          options.image = logoDataUrl;
+          options.imageOptions = {
+            crossOrigin: 'anonymous',
+            margin: 6,
+            imageSize: 0.3,
+          };
+        }
+
+        // Clear old QR
+        const placeholder = document.getElementById('qrg-placeholder-msg');
+        if (placeholder) placeholder.style.display = 'none';
+        const old = container.querySelector('canvas, svg');
+        if (old) old.remove();
+
+        qrInstance = new QRCodeStyling(options);
+        qrInstance.append(container);
+
+        // Show download row + data preview
+        dlRow.classList.remove('hidden');
+        dlRow.style.display = 'flex';
+        dataPreview.classList.remove('hidden');
+        dataText.value = data;
+
+      } catch (e) {
+        console.error('QR generation failed:', e);
+      } finally {
+        genBtn.textContent = 'Generate QR Code';
+        (genBtn as HTMLButtonElement).disabled = false;
+      }
+    };
+
+    genBtn.addEventListener('click', generate);
+
+    /* ── Downloads ──────────────────────────────────────────────*/
+    dlPng.addEventListener('click', () => {
+      if (qrInstance) qrInstance.download({ name: `qr-${activeType}-${Date.now()}`, extension: 'png' });
+    });
+    dlSvg.addEventListener('click', () => {
+      if (qrInstance) qrInstance.download({ name: `qr-${activeType}-${Date.now()}`, extension: 'svg' });
+    });
+
+    /* ── App shell events ───────────────────────────────────────*/
+    document.addEventListener('app:reset', () => {
+      switchType('url');
+      logoDataUrl = '';
+      logoImg.src = '';
+      logoPlaceholder.classList.remove('hidden');
+      logoPreviewWrap.classList.add('hidden');
+      logoInput.value = '';
+      dlRow.classList.add('hidden');
+      dataPreview.classList.add('hidden');
+      const old = container.querySelector('canvas, svg');
+      if (old) old.remove();
+      const ph = document.getElementById('qrg-placeholder-msg');
+      if (ph) ph.style.display = '';
+      qrInstance = null;
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (dataText.value) {
+        try { await navigator.clipboard.writeText(dataText.value); } catch {}
+      }
+    });
+  };
+
+  initQrg();
+  document.addEventListener('astro:after-swap', initQrg);
+</script>
