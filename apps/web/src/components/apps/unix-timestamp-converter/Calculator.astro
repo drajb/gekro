@@ -1,0 +1,278 @@
+---
+// Unix Timestamp Converter — zero deps, auto-detects seconds vs ms
+---
+
+<div id="utc-app" class="space-y-6">
+
+  <!-- Live clock -->
+  <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Current Unix timestamp</p>
+      <p id="utc-live" class="text-3xl font-heading font-bold text-accent font-mono tabular-nums">—</p>
+    </div>
+    <div class="text-right">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Milliseconds</p>
+      <p id="utc-live-ms" class="text-lg font-mono text-text-secondary tabular-nums">—</p>
+    </div>
+    <button id="utc-copy-live" class="px-3 py-1.5 text-xs font-mono bg-bg-surface border border-border-subtle rounded-lg text-text-muted hover:text-accent hover:border-accent/40 transition-all">
+      Copy
+    </button>
+  </div>
+
+  <!-- Converter panels -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <!-- Unix → Human -->
+    <div class="space-y-3 p-4 bg-bg-surface border border-border-subtle rounded-xl">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Unix → Human</p>
+      <div class="flex gap-2">
+        <input id="utc-unix-in" type="text" inputmode="numeric" placeholder="e.g. 1713535200" value="1713535200"
+          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <button id="utc-use-now" class="px-3 py-2 text-xs font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-muted hover:text-accent hover:border-accent/40 transition-all whitespace-nowrap">
+          Now
+        </button>
+      </div>
+      <div id="utc-unix-result" class="space-y-2 text-sm">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+    <!-- Human → Unix -->
+    <div class="space-y-3 p-4 bg-bg-surface border border-border-subtle rounded-xl">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Human → Unix</p>
+      <input id="utc-date-in" type="datetime-local"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      <div id="utc-date-result" class="space-y-2 text-sm">
+        <!-- filled by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Format selector -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output formats (from Unix → Human input)</p>
+    <div id="utc-formats" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- Common epochs -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Common epochs</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-xs font-mono">
+        <thead>
+          <tr class="border-b border-border-subtle bg-bg-elevated">
+            <th class="px-4 py-2.5 text-left text-text-muted">Event</th>
+            <th class="px-4 py-2.5 text-right text-text-muted">Unix (s)</th>
+            <th class="px-4 py-2.5 text-right text-text-muted">UTC date</th>
+            <th class="px-4 py-2.5 text-right text-text-muted">Relative</th>
+          </tr>
+        </thead>
+        <tbody id="utc-epochs" class="divide-y divide-border-subtle">
+          <!-- filled by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const EPOCHS = [
+    { label: 'Unix epoch',          ts: 0 },
+    { label: 'Y2K',                 ts: 946684800 },
+    { label: 'Unix 1 billion',      ts: 1_000_000_000 },
+    { label: 'iPhone launch',       ts: 1168560000 },
+    { label: 'ChatGPT launch',      ts: 1669852800 },
+    { label: 'Unix 2 billion',      ts: 2_000_000_000 },
+    { label: 'Year 2038 problem',   ts: 2_147_483_647 },
+  ];
+
+  const FORMATS: { label: string; fn: (d: Date) => string }[] = [
+    { label: 'ISO 8601',   fn: d => d.toISOString() },
+    { label: 'RFC 2822',   fn: d => d.toUTCString() },
+    { label: 'UTC',        fn: d => d.toUTCString().replace(' GMT', ' UTC') },
+    { label: 'Local',      fn: d => d.toLocaleString() },
+    { label: 'US date',    fn: d => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
+    { label: 'EU date',    fn: d => d.toLocaleDateString('de-DE', { year: 'numeric', month: '2-digit', day: '2-digit' }) },
+    { label: 'Time only',  fn: d => d.toLocaleTimeString() },
+    { label: 'Day of week', fn: d => d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
+  ];
+
+  const relativeTime = (ts: number): string => {
+    const diff = Date.now() / 1000 - ts;
+    const abs = Math.abs(diff);
+    const future = diff < 0;
+    const fmt = (n: number, u: string) => `${Math.round(n)} ${u}${Math.round(n) !== 1 ? 's' : ''} ${future ? 'from now' : 'ago'}`;
+    if (abs < 60) return fmt(abs, 'second');
+    if (abs < 3600) return fmt(abs / 60, 'minute');
+    if (abs < 86400) return fmt(abs / 3600, 'hour');
+    if (abs < 86400 * 30) return fmt(abs / 86400, 'day');
+    if (abs < 86400 * 365) return fmt(abs / (86400 * 30), 'month');
+    return fmt(abs / (86400 * 365), 'year');
+  };
+
+  const isMs = (v: number) => v > 9_999_999_999; // >10B = definitely ms
+
+  const resultRow = (label: string, value: string, copyVal?: string) => `
+    <div class="flex items-center justify-between gap-2 py-1.5 border-b border-border-subtle/50 last:border-0">
+      <span class="text-text-muted text-[11px] font-mono shrink-0">${label}</span>
+      <span class="font-mono text-text-primary text-xs truncate">${value}</span>
+      ${copyVal !== undefined ? `<button class="utc-copy-btn shrink-0 text-[10px] font-mono text-text-muted hover:text-accent transition-colors px-1.5 py-0.5 rounded border border-transparent hover:border-accent/20" data-val="${copyVal}">copy</button>` : ''}
+    </div>`;
+
+  const formatCard = (label: string, value: string) => `
+    <div class="flex items-start justify-between gap-2 p-3 bg-bg-elevated border border-border-subtle rounded-lg">
+      <div class="min-w-0">
+        <p class="text-[10px] font-mono text-text-muted mb-0.5">${label}</p>
+        <p class="text-xs font-mono text-text-secondary break-all">${value}</p>
+      </div>
+      <button class="utc-copy-btn shrink-0 mt-0.5 text-[10px] font-mono text-text-muted hover:text-accent transition-colors" data-val="${value}">copy</button>
+    </div>`;
+
+  const initUtc = () => {
+    const app = document.getElementById('utc-app');
+    if (!app || (app as any)._utcInit) return;
+    (app as any)._utcInit = true;
+
+    const liveEl   = document.getElementById('utc-live')!;
+    const liveMsEl = document.getElementById('utc-live-ms')!;
+    const copyLive = document.getElementById('utc-copy-live')!;
+    const unixIn   = document.getElementById('utc-unix-in') as HTMLInputElement;
+    const useNow   = document.getElementById('utc-use-now')!;
+    const dateIn   = document.getElementById('utc-date-in') as HTMLInputElement;
+    const unixRes  = document.getElementById('utc-unix-result')!;
+    const dateRes  = document.getElementById('utc-date-result')!;
+    const formatsEl= document.getElementById('utc-formats')!;
+    const epochsTbody = document.getElementById('utc-epochs')!;
+
+    // Live clock
+    const tickLive = () => {
+      const now = Date.now();
+      const s = Math.floor(now / 1000);
+      liveEl.textContent = s.toLocaleString();
+      liveMsEl.textContent = now.toLocaleString();
+    };
+    tickLive();
+    const liveTimer = setInterval(tickLive, 1000);
+    // Clean up on nav
+    document.addEventListener('astro:before-swap', () => clearInterval(liveTimer), { once: true });
+
+    copyLive.addEventListener('click', () => {
+      navigator.clipboard.writeText(Math.floor(Date.now() / 1000).toString()).catch(() => {});
+      copyLive.textContent = 'Copied!';
+      setTimeout(() => { copyLive.textContent = 'Copy'; }, 1500);
+    });
+
+    useNow.addEventListener('click', () => {
+      unixIn.value = Math.floor(Date.now() / 1000).toString();
+      calcUnix();
+    });
+
+    // Set default datetime-local to now
+    const nowIso = new Date().toISOString().slice(0, 16);
+    dateIn.value = nowIso;
+
+    const calcUnix = () => {
+      const raw = unixIn.value.trim().replace(/[^0-9.\-]/g, '');
+      const n = parseFloat(raw);
+      if (isNaN(n)) {
+        unixRes.innerHTML = '<p class="text-text-muted">Enter a valid timestamp.</p>';
+        formatsEl.innerHTML = '';
+        return;
+      }
+      const ms = isMs(n) ? n : n * 1000;
+      const d = new Date(ms);
+      const s = isMs(n) ? n / 1000 : n;
+
+      unixRes.innerHTML =
+        resultRow('Unit detected', isMs(n) ? 'milliseconds' : 'seconds') +
+        resultRow('UTC', d.toISOString(), d.toISOString()) +
+        resultRow('Local', d.toLocaleString(), d.toLocaleString()) +
+        resultRow('Relative', relativeTime(s));
+
+      formatsEl.innerHTML = FORMATS.map(f => {
+        try { return formatCard(f.label, f.fn(d)); }
+        catch { return ''; }
+      }).join('');
+
+      // Attach copy handlers
+      attachCopyHandlers(app);
+    };
+
+    const calcDate = () => {
+      if (!dateIn.value) { dateRes.innerHTML = ''; return; }
+      const d = new Date(dateIn.value);
+      if (isNaN(d.getTime())) { dateRes.innerHTML = '<p class="text-text-muted">Invalid date.</p>'; return; }
+      const s = Math.floor(d.getTime() / 1000);
+      const ms = d.getTime();
+      dateRes.innerHTML =
+        resultRow('Unix (seconds)', s.toString(), s.toString()) +
+        resultRow('Unix (ms)', ms.toString(), ms.toString()) +
+        resultRow('ISO 8601', d.toISOString(), d.toISOString()) +
+        resultRow('Relative', relativeTime(s));
+      attachCopyHandlers(app);
+    };
+
+    // Populate common epochs
+    epochsTbody.innerHTML = EPOCHS.map(e => {
+      const d = new Date(e.ts * 1000);
+      return `<tr class="hover:bg-bg-elevated transition-colors">
+        <td class="px-4 py-2.5 text-text-secondary">${e.label}</td>
+        <td class="px-4 py-2.5 text-right text-text-primary">${e.ts.toLocaleString()}</td>
+        <td class="px-4 py-2.5 text-right text-text-muted">${d.toISOString().split('T')[0]}</td>
+        <td class="px-4 py-2.5 text-right text-text-muted">${relativeTime(e.ts)}</td>
+      </tr>`;
+    }).join('');
+
+    unixIn.addEventListener('input', calcUnix);
+    dateIn.addEventListener('input', calcDate);
+
+    calcUnix();
+    calcDate();
+
+    document.addEventListener('app:copy', async () => {
+      const s = Math.floor(Date.now() / 1000).toString();
+      try { await navigator.clipboard.writeText(s); } catch {}
+    });
+    document.addEventListener('app:reset', () => {
+      unixIn.value = Math.floor(Date.now() / 1000).toString();
+      dateIn.value = new Date().toISOString().slice(0, 16);
+      calcUnix();
+      calcDate();
+    });
+    document.addEventListener('app:export', () => {
+      const rows = FORMATS.map(f => {
+        const raw = parseFloat(unixIn.value);
+        if (isNaN(raw)) return '';
+        const d = new Date(isMs(raw) ? raw : raw * 1000);
+        try { return `"${f.label}","${f.fn(d)}"`; } catch { return ''; }
+      }).filter(Boolean);
+      const csv = ['Format,Value', ...rows].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `timestamp-${Math.floor(Date.now()/1000)}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  };
+
+  const attachCopyHandlers = (root: HTMLElement) => {
+    root.querySelectorAll<HTMLButtonElement>('.utc-copy-btn').forEach(btn => {
+      if ((btn as any)._utcCopy) return;
+      (btn as any)._utcCopy = true;
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.val || '').catch(() => {});
+        const orig = btn.textContent;
+        btn.textContent = '✓';
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+      });
+    });
+  };
+
+  initUtc();
+  document.addEventListener('astro:after-swap', initUtc);
+</script>

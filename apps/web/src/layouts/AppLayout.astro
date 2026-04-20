@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
+import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -9,6 +10,9 @@ interface Props {
 
 const { app } = Astro.props;
 const { data } = app;
+
+const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+allApps.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 
 const seoDescription = data.aiSummary || data.description;
 const pageURL = `https://gekro.com/apps/${app.slug}/`;
@@ -48,30 +52,141 @@ const breadcrumbs = {
   <JsonLD data={schema} />
   <JsonLD data={breadcrumbs} />
 
-  <main class="max-w-5xl mx-auto px-6 py-32">
-    <slot />
+  <div class="flex min-h-screen">
 
-    <!-- Methodology content from markdown body -->
-    <div class="mt-16 pt-12 border-t border-border-subtle">
-      <h2 class="text-xs font-mono uppercase tracking-widest text-text-muted mb-8">Methodology</h2>
-      <div class="prose prose-invert max-w-none
-                  prose-headings:font-heading prose-headings:font-medium
-                  prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6
-                  prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-4
-                  prose-p:text-text-secondary prose-p:leading-relaxed prose-p:mb-6
-                  prose-li:text-text-secondary
-                  prose-strong:text-text-primary prose-strong:font-semibold
-                  prose-a:text-accent prose-a:no-underline hover:prose-a:underline
-                  prose-code:text-accent prose-code:bg-accent/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
-        <slot name="methodology" />
+    <!-- Left sidebar — desktop only -->
+    <aside
+      id="apps-sidebar"
+      class="hidden lg:flex flex-col w-60 xl:w-68 shrink-0 border-r border-border-subtle bg-bg-base"
+      style="position: sticky; top: 0; height: 100vh;"
+    >
+      <!-- Header spacer to clear fixed nav -->
+      <div class="h-24 shrink-0"></div>
+
+      <!-- Search -->
+      <div class="px-3 pb-3 shrink-0">
+        <div class="relative">
+          <input
+            id="sidebar-search"
+            type="search"
+            placeholder="Jump to app…"
+            autocomplete="off"
+            class="w-full bg-bg-elevated border border-border-subtle rounded-lg pl-8 pr-3 py-2
+                   text-xs font-mono text-text-primary placeholder:text-text-muted
+                   focus:outline-none focus:border-accent/40 transition-colors"
+          />
+          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none select-none">⌕</span>
+        </div>
+      </div>
+
+      <!-- Apps nav list -->
+      <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-1 px-2 space-y-0.5">
+        {allApps.map(a => (
+          <a
+            href={`/apps/${a.slug}/`}
+            class:list={[
+              'sidebar-app-link flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors',
+              a.slug === app.slug
+                ? 'bg-accent/10 text-accent'
+                : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated',
+            ]}
+            data-title={a.data.title.toLowerCase()}
+          >
+            <span class="text-base shrink-0 leading-none">{a.data.icon}</span>
+            <span class="truncate leading-tight">{a.data.title}</span>
+            {a.slug === app.slug && (
+              <span class="ml-auto w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
+            )}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Footer link -->
+      <div class="px-4 py-4 border-t border-border-subtle shrink-0">
+        <a
+          href="/apps/"
+          class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors flex items-center gap-1"
+        >
+          <span>←</span> All apps
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content column -->
+    <div class="flex-1 min-w-0">
+
+      <!-- Mobile app switcher -->
+      <div class="lg:hidden sticky top-0 z-40 px-4 py-3 border-b border-border-subtle bg-bg-base/90 backdrop-blur-sm" style="padding-top: calc(env(safe-area-inset-top) + 0.75rem)">
+        <!-- spacer for fixed header on mobile -->
+        <div class="h-14"></div>
+        <select
+          id="mobile-app-select"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2
+                 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"
+        >
+          {allApps.map(a => (
+            <option value={`/apps/${a.slug}/`} selected={a.slug === app.slug}>
+              {a.data.icon} {a.data.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16 lg:pt-24">
+        <slot />
+
+        <!-- Methodology content from markdown body -->
+        <div class="mt-16 pt-12 border-t border-border-subtle">
+          <h2 class="text-xs font-mono uppercase tracking-widest text-text-muted mb-8">Methodology</h2>
+          <div class="prose prose-invert max-w-none
+                      prose-headings:font-heading prose-headings:font-medium
+                      prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6
+                      prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-4
+                      prose-p:text-text-secondary prose-p:leading-relaxed prose-p:mb-6
+                      prose-li:text-text-secondary
+                      prose-strong:text-text-primary prose-strong:font-semibold
+                      prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+                      prose-code:text-accent prose-code:bg-accent/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded">
+            <slot name="methodology" />
+          </div>
+        </div>
+
+        <div class="mt-12 lg:hidden">
+          <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
+            <span class="group-hover:-translate-x-1 transition-transform">←</span>
+            All apps
+          </a>
+        </div>
       </div>
     </div>
-
-    <div class="mt-12">
-      <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
-        <span class="group-hover:-translate-x-1 transition-transform">←</span>
-        All apps
-      </a>
-    </div>
-  </main>
+  </div>
 </BaseLayout>
+
+<script>
+  const initSidebar = () => {
+    const search = document.getElementById('sidebar-search') as HTMLInputElement | null;
+    const nav = document.getElementById('sidebar-nav');
+    const mobileSelect = document.getElementById('mobile-app-select') as HTMLSelectElement | null;
+
+    if (mobileSelect && !(mobileSelect as any)._mobileInit) {
+      (mobileSelect as any)._mobileInit = true;
+      mobileSelect.addEventListener('change', () => {
+        if (mobileSelect.value) window.location.href = mobileSelect.value;
+      });
+    }
+
+    if (!search || !nav || (search as any)._sidebarInit) return;
+    (search as any)._sidebarInit = true;
+
+    search.addEventListener('input', () => {
+      const q = search.value.toLowerCase().trim();
+      nav.querySelectorAll<HTMLAnchorElement>('.sidebar-app-link').forEach(link => {
+        const title = link.dataset.title || '';
+        link.style.display = !q || title.includes(q) ? '' : 'none';
+      });
+    });
+  };
+
+  initSidebar();
+  document.addEventListener('astro:after-swap', initSidebar);
+</script>

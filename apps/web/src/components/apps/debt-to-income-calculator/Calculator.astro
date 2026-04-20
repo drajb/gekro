@@ -1,0 +1,315 @@
+---
+// Debt-to-Income Calculator — front-end & back-end DTI, lender thresholds, zero deps
+---
+
+<div id="dti-app" class="space-y-6">
+
+  <!-- Income -->
+  <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-4">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Income</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label for="dti-income" class="text-sm font-medium text-text-secondary">Annual gross income ($)</label>
+        <input id="dti-income" type="number" min="0" step="1000" value="80000"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium text-text-secondary">Monthly gross income</label>
+        <div class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-muted font-mono" id="dti-monthly-income">$6,667</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Housing costs (front-end) -->
+  <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-4">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Monthly housing costs (PITI + HOA)</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1.5">
+        <label for="dti-mortgage" class="text-sm font-medium text-text-secondary">Mortgage / rent payment ($)</label>
+        <input id="dti-mortgage" type="number" min="0" step="50" value="1500"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1.5">
+        <label for="dti-taxes" class="text-sm font-medium text-text-secondary">Property taxes ($/mo)</label>
+        <input id="dti-taxes" type="number" min="0" step="10" value="200"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1.5">
+        <label for="dti-insurance" class="text-sm font-medium text-text-secondary">Homeowner's insurance ($/mo)</label>
+        <input id="dti-insurance" type="number" min="0" step="10" value="100"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1.5">
+        <label for="dti-hoa" class="text-sm font-medium text-text-secondary">HOA fees ($/mo)</label>
+        <input id="dti-hoa" type="number" min="0" step="10" value="0"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Other monthly debts (back-end) -->
+  <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-4">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Other monthly debt payments</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1.5">
+        <label for="dti-car" class="text-sm font-medium text-text-secondary">Car payment(s) ($/mo)</label>
+        <input id="dti-car" type="number" min="0" step="25" value="350"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1.5">
+        <label for="dti-student" class="text-sm font-medium text-text-secondary">Student loan payment ($/mo)</label>
+        <input id="dti-student" type="number" min="0" step="25" value="250"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+      </div>
+      <div class="space-y-1.5">
+        <label for="dti-cc" class="text-sm font-medium text-text-secondary">Credit card minimums ($/mo)</label>
+        <input id="dti-cc" type="number" min="0" step="10" value="50"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <p class="text-xs text-text-muted">Use minimum payment, not full balance.</p>
+      </div>
+      <div class="space-y-1.5">
+        <label for="dti-other" class="text-sm font-medium text-text-secondary">Other obligations ($/mo)</label>
+        <input id="dti-other" type="number" min="0" step="10" value="0"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        <p class="text-xs text-text-muted">Child support, alimony, personal loans, etc.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DTI results -->
+  <div id="dti-results" class="space-y-4">
+    <!-- Filled by JS -->
+  </div>
+
+  <!-- Lender thresholds table -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Lender thresholds</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-subtle bg-bg-elevated">
+            <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Loan Type</th>
+            <th class="px-4 py-2.5 text-center text-xs font-mono uppercase tracking-wider text-text-muted">Front-end max</th>
+            <th class="px-4 py-2.5 text-center text-xs font-mono uppercase tracking-wider text-text-muted">Back-end max</th>
+            <th class="px-4 py-2.5 text-center text-xs font-mono uppercase tracking-wider text-text-muted">Status</th>
+          </tr>
+        </thead>
+        <tbody id="dti-threshold-tbody" class="divide-y divide-border-subtle">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- What-if panel -->
+  <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">What-if analysis</p>
+    <div id="dti-whatif" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const fmt = (n: number, dec = 0) =>
+    '$' + n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  const fmtPct = (n: number, dec = 1) => (n * 100).toFixed(dec) + '%';
+
+  const THRESHOLDS = [
+    { name: 'Conventional', feMax: 0.28, beMax: 0.43, note: 'Best rates below 36%' },
+    { name: 'FHA',          feMax: 0.31, beMax: 0.50, note: 'Requires MIP; max 43% typical' },
+    { name: 'VA',           feMax: null, beMax: 0.41, note: 'Residual income also assessed' },
+    { name: 'USDA',         feMax: 0.29, beMax: 0.41, note: 'Rural/suburban only' },
+  ];
+
+  const gaugeArc = (pct: number, color: string): string => {
+    // SVG semicircle gauge, pct 0–1
+    const capped = Math.min(pct, 1);
+    const r = 40, cx = 60, cy = 60, sweep = Math.PI;
+    const startX = cx - r, startY = cy;
+    const angle = Math.PI - capped * Math.PI;
+    const endX = cx + r * Math.cos(angle);
+    const endY = cy - r * Math.sin(angle);
+    const large = capped > 0.5 ? 1 : 0;
+    return `<svg viewBox="0 0 120 65" class="w-32 h-20">
+      <path d="M${startX},${cy} A${r},${r} 0 0,1 ${cx+r},${cy}" fill="none" stroke="var(--color-bg-elevated)" stroke-width="8" stroke-linecap="round"/>
+      ${capped > 0 ? `<path d="M${startX},${cy} A${r},${r} 0 ${large},1 ${endX},${endY}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round"/>` : ''}
+      <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold" fill="${color}">${fmtPct(pct)}</text>
+    </svg>`;
+  };
+
+  const dtiColor = (pct: number): string => {
+    if (pct <= 0.28) return 'var(--color-accent)';
+    if (pct <= 0.36) return '#22c55e';
+    if (pct <= 0.43) return 'var(--color-accent-warm)';
+    return 'var(--color-accent-danger, #ef4444)';
+  };
+
+  const initDti = () => {
+    const app = document.getElementById('dti-app');
+    if (!app || (app as any)._dtiInit) return;
+    (app as any)._dtiInit = true;
+
+    const incomeEl    = document.getElementById('dti-income') as HTMLInputElement;
+    const mortgageEl  = document.getElementById('dti-mortgage') as HTMLInputElement;
+    const taxesEl     = document.getElementById('dti-taxes') as HTMLInputElement;
+    const insuranceEl = document.getElementById('dti-insurance') as HTMLInputElement;
+    const hoaEl       = document.getElementById('dti-hoa') as HTMLInputElement;
+    const carEl       = document.getElementById('dti-car') as HTMLInputElement;
+    const studentEl   = document.getElementById('dti-student') as HTMLInputElement;
+    const ccEl        = document.getElementById('dti-cc') as HTMLInputElement;
+    const otherEl     = document.getElementById('dti-other') as HTMLInputElement;
+    const monthlyIncomeEl = document.getElementById('dti-monthly-income')!;
+    const resultsEl   = document.getElementById('dti-results')!;
+    const tbodyEl     = document.getElementById('dti-threshold-tbody')!;
+    const whatifEl    = document.getElementById('dti-whatif')!;
+
+    const num = (el: HTMLInputElement) => Math.max(0, parseFloat(el.value) || 0);
+
+    const recalc = () => {
+      const annualIncome = num(incomeEl);
+      const monthlyIncome = annualIncome / 12;
+      monthlyIncomeEl.textContent = monthlyIncome > 0 ? fmt(monthlyIncome, 2) : '—';
+
+      const housingCost = num(mortgageEl) + num(taxesEl) + num(insuranceEl) + num(hoaEl);
+      const otherDebt = num(carEl) + num(studentEl) + num(ccEl) + num(otherEl);
+      const totalDebt = housingCost + otherDebt;
+
+      if (monthlyIncome <= 0) {
+        resultsEl.innerHTML = '<p class="text-text-muted text-sm">Enter your annual income.</p>';
+        tbodyEl.innerHTML = '';
+        whatifEl.innerHTML = '';
+        return;
+      }
+
+      const feDTI = housingCost / monthlyIncome;
+      const beDTI = totalDebt / monthlyIncome;
+
+      const feColor = dtiColor(feDTI);
+      const beColor = dtiColor(beDTI);
+
+      resultsEl.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-5 bg-bg-surface border border-border-subtle rounded-xl flex items-center gap-5">
+            ${gaugeArc(feDTI, feColor)}
+            <div>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Front-end DTI</p>
+              <p class="text-xs text-text-muted">Housing only</p>
+              <p class="mt-1 text-xs font-mono text-text-secondary">${fmt(housingCost, 0)}/mo housing</p>
+            </div>
+          </div>
+          <div class="p-5 bg-bg-surface border border-border-subtle rounded-xl flex items-center gap-5">
+            ${gaugeArc(beDTI, beColor)}
+            <div>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Back-end DTI</p>
+              <p class="text-xs text-text-muted">All monthly debts</p>
+              <p class="mt-1 text-xs font-mono text-text-secondary">${fmt(totalDebt, 0)}/mo total</p>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
+            <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-1">Housing / mo</p>
+            <p class="text-lg font-semibold text-text-primary">${fmt(housingCost, 0)}</p>
+          </div>
+          <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
+            <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-1">Other debt / mo</p>
+            <p class="text-lg font-semibold text-text-primary">${fmt(otherDebt, 0)}</p>
+          </div>
+          <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
+            <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest mb-1">Free cash / mo</p>
+            <p class="text-lg font-semibold text-text-primary">${fmt(monthlyIncome - totalDebt, 0)}</p>
+          </div>
+        </div>`;
+
+      // Lender threshold table
+      tbodyEl.innerHTML = THRESHOLDS.map(t => {
+        const feOk = t.feMax === null ? true : feDTI <= t.feMax;
+        const beOk = beDTI <= t.beMax;
+        const ok = feOk && beOk;
+        const statusColor = ok ? '#22c55e' : 'var(--color-accent-danger, #ef4444)';
+        const statusText = ok ? '✓ Eligible' : '✗ Over limit';
+        return `<tr class="hover:bg-bg-elevated/50 transition-colors">
+          <td class="px-4 py-3">
+            <p class="font-medium text-text-primary text-sm">${t.name}</p>
+            <p class="text-[10px] text-text-muted mt-0.5">${t.note}</p>
+          </td>
+          <td class="px-4 py-3 text-center font-mono text-sm">
+            ${t.feMax !== null ? `<span class="${!feOk ? 'text-red-400' : 'text-text-secondary'}">${fmtPct(feDTI)} / ${fmtPct(t.feMax)}</span>` : '<span class="text-text-muted">—</span>'}
+          </td>
+          <td class="px-4 py-3 text-center font-mono text-sm">
+            <span class="${!beOk ? 'text-red-400' : 'text-text-secondary'}">${fmtPct(beDTI)} / ${fmtPct(t.beMax)}</span>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <span class="text-xs font-mono font-medium" style="color:${statusColor}">${statusText}</span>
+          </td>
+        </tr>`;
+      }).join('');
+
+      // What-if analysis
+      const maxBEDebt_conv = monthlyIncome * 0.43 - housingCost;
+      const maxBEDebt_fha  = monthlyIncome * 0.50 - housingCost;
+      const incomeFor36    = totalDebt / 0.36;
+      const incomeFor43    = totalDebt / 0.43;
+      whatifEl.innerHTML = `
+        <div class="space-y-1.5">
+          <p class="text-xs font-mono text-text-muted uppercase tracking-widest">Max additional debt you can add</p>
+          <p class="text-text-secondary text-sm">Conventional (43%): <strong class="text-text-primary">${fmt(Math.max(0, maxBEDebt_conv - otherDebt), 0)}/mo</strong></p>
+          <p class="text-text-secondary text-sm">FHA (50%): <strong class="text-text-primary">${fmt(Math.max(0, maxBEDebt_fha - otherDebt), 0)}/mo</strong></p>
+        </div>
+        <div class="space-y-1.5">
+          <p class="text-xs font-mono text-text-muted uppercase tracking-widest">Income needed to qualify</p>
+          <p class="text-text-secondary text-sm">At 36% DTI: <strong class="text-text-primary">${fmt(incomeFor36 * 12, 0)}/yr</strong></p>
+          <p class="text-text-secondary text-sm">At 43% DTI: <strong class="text-text-primary">${fmt(incomeFor43 * 12, 0)}/yr</strong></p>
+        </div>`;
+    };
+
+    [incomeEl, mortgageEl, taxesEl, insuranceEl, hoaEl, carEl, studentEl, ccEl, otherEl].forEach(el => {
+      el.addEventListener('input', recalc);
+      el.addEventListener('change', recalc);
+    });
+    recalc();
+
+    document.addEventListener('app:copy', async () => {
+      const annualIncome = num(incomeEl);
+      const monthlyIncome = annualIncome / 12;
+      const housingCost = num(mortgageEl) + num(taxesEl) + num(insuranceEl) + num(hoaEl);
+      const totalDebt = housingCost + num(carEl) + num(studentEl) + num(ccEl) + num(otherEl);
+      const fe = housingCost / monthlyIncome;
+      const be = totalDebt / monthlyIncome;
+      const text = `DTI Summary\nAnnual income: ${fmt(annualIncome)}\nFront-end DTI: ${fmtPct(fe)}\nBack-end DTI: ${fmtPct(be)}\nTotal monthly debt: ${fmt(totalDebt, 0)}`;
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const annualIncome = num(incomeEl);
+      const monthlyIncome = annualIncome / 12;
+      const housingCost = num(mortgageEl) + num(taxesEl) + num(insuranceEl) + num(hoaEl);
+      const totalDebt = housingCost + num(carEl) + num(studentEl) + num(ccEl) + num(otherEl);
+      const csv = [
+        'Metric,Value',
+        `Annual Income,${annualIncome}`,
+        `Monthly Income,${monthlyIncome.toFixed(2)}`,
+        `Monthly Housing,${housingCost}`,
+        `Total Monthly Debt,${totalDebt}`,
+        `Front-end DTI,${(housingCost/monthlyIncome*100).toFixed(2)}%`,
+        `Back-end DTI,${(totalDebt/monthlyIncome*100).toFixed(2)}%`,
+      ].join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `dti-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+    document.addEventListener('app:reset', () => {
+      incomeEl.value = '80000'; mortgageEl.value = '1500'; taxesEl.value = '200';
+      insuranceEl.value = '100'; hoaEl.value = '0'; carEl.value = '350';
+      studentEl.value = '250'; ccEl.value = '50'; otherEl.value = '0';
+      recalc();
+    });
+  };
+
+  initDti();
+  document.addEventListener('astro:after-swap', initDti);
+</script>

@@ -59,7 +59,7 @@ const categories = [
         const link = card as HTMLAnchorElement;
         const title = (link.querySelector('h3')?.textContent || '').toLowerCase();
         const job = (link.querySelector('p')?.textContent || '').toLowerCase();
-        const category = (link.querySelector('[data-category-val]') as HTMLElement)?.dataset.categoryVal || '';
+        const category = card.closest<HTMLElement>('[data-card-wrapper]')?.dataset.categoryVal || '';
 
         const matchesSearch = !query || title.includes(query) || job.includes(query);
         const matchesCategory = activeCategory === 'all' || category === activeCategory;
