@@ -50,6 +50,7 @@ import CsvToJson from '../../components/apps/csv-to-json/Calculator.astro';
 import DeviceInfo from '../../components/apps/device-info/Calculator.astro';
 import CssButtonGenerator from '../../components/apps/css-button-generator/Calculator.astro';
 import QrCodeGenerator from '../../components/apps/qr-code-generator/Calculator.astro';
+import Tokenizer from '../../components/apps/tokenizer/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -83,6 +84,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'device-info': DeviceInfo,
   'css-button-generator': CssButtonGenerator,
   'qr-code-generator': QrCodeGenerator,
+  'tokenizer': Tokenizer,
 };
 
 export async function getStaticPaths() {
