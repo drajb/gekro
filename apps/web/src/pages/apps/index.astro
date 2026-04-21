@@ -5,18 +5,52 @@ import JsonLD from '../../components/seo/JsonLD.astro';
 import { getCollection } from 'astro:content';
 
 const apps = await getCollection('apps', ({ data }) => data.status !== 'archived');
-apps.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
+
+/* ── Category priority + section split ──────────────────────────────────────
+ * Decision (2026-04-20): default sort is by category *priority*, not date.
+ * Lower number = higher priority = shown first.
+ *
+ * "Featured" categories (priority < 100) reinforce the "AI engineer's lab"
+ * positioning. "Other Tools" categories (priority >= 100) are personal-utility
+ * apps that Rohit built for himself but don't carry brand weight.
+ *
+ * NEVER delete an app to "clean up" the catalogue — re-categorise instead.
+ * Adding a new category requires updating this map.
+ */
+const CATEGORY_PRIORITY: Record<string, number> = {
+  ai: 1,        // most on-brand — every AI tool first
+  trading: 2,
+  ev: 3,
+  infra: 4,
+  dev: 5,
+  finance: 6,
+  // — section break: "Other Tools" below —
+  health: 100,
+  fun: 101,
+};
+
+const sortByPriorityThenDate = (a: typeof apps[0], b: typeof apps[0]) => {
+  const pa = CATEGORY_PRIORITY[a.data.category] ?? 999;
+  const pb = CATEGORY_PRIORITY[b.data.category] ?? 999;
+  if (pa !== pb) return pa - pb;
+  return new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime();
+};
+
+apps.sort(sortByPriorityThenDate);
+
+const featuredApps = apps.filter(a => (CATEGORY_PRIORITY[a.data.category] ?? 999) < 100);
+const otherApps   = apps.filter(a => (CATEGORY_PRIORITY[a.data.category] ?? 999) >= 100);
 
 const categories = [
   { id: 'all',     label: 'All',     count: apps.length },
   { id: 'ai',      label: 'AI',      count: apps.filter(a => a.data.category === 'ai').length },
-  { id: 'finance', label: 'Finance', count: apps.filter(a => a.data.category === 'finance').length },
-  { id: 'dev',     label: 'Dev',     count: apps.filter(a => a.data.category === 'dev').length },
   { id: 'trading', label: 'Trading', count: apps.filter(a => a.data.category === 'trading').length },
   { id: 'ev',      label: 'EV',      count: apps.filter(a => a.data.category === 'ev').length },
   { id: 'infra',   label: 'Infra',   count: apps.filter(a => a.data.category === 'infra').length },
-  { id: 'fun',     label: 'Fun',     count: apps.filter(a => a.data.category === 'fun').length },
+  { id: 'dev',     label: 'Dev',     count: apps.filter(a => a.data.category === 'dev').length },
+  { id: 'finance', label: 'Finance', count: apps.filter(a => a.data.category === 'finance').length },
   { id: 'health',  label: 'Health',  count: apps.filter(a => a.data.category === 'health').length },
+  { id: 'fun',     label: 'Fun',     count: apps.filter(a => a.data.category === 'fun').length },
 ].filter(c => c.id === 'all' || c.count > 0);
 
 const uniqueCategories = new Set(apps.map(a => a.data.category)).size;
@@ -133,24 +167,62 @@ const breadcrumbs = {
       </div>
     </div>
 
-    <!-- Card grid -->
-    {apps.length > 0 ? (
-      <div id="apps-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {apps.map(app => (
-          <div data-card-wrapper data-category-val={app.data.category}>
-            <AppCard
-              title={app.data.title}
-              job={app.data.job}
-              category={app.data.category}
-              icon={app.data.icon}
-              status={app.data.status}
-              slug={app.slug}
-              publishedAt={app.data.publishedAt}
-            />
-          </div>
-        ))}
-      </div>
-    ) : (
+    <!-- ── Featured apps section (AI / Trading / EV / Infra / Dev / Finance) ── -->
+    {featuredApps.length > 0 && (
+      <section data-section="featured" class="space-y-4">
+        <div data-section-heading="featured" class="flex items-center gap-3">
+          <h2 class="text-[10px] font-mono uppercase tracking-[0.3em] text-accent">Featured</h2>
+          <div class="h-px flex-1 bg-border-subtle"></div>
+          <span class="text-[10px] font-mono text-text-muted">{featuredApps.length} {featuredApps.length === 1 ? 'tool' : 'tools'}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {featuredApps.map(app => (
+            <div data-card-wrapper data-category-val={app.data.category} data-section-val="featured">
+              <AppCard
+                title={app.data.title}
+                job={app.data.job}
+                category={app.data.category}
+                icon={app.data.icon}
+                status={app.data.status}
+                slug={app.slug}
+                publishedAt={app.data.publishedAt}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- ── Other tools section (Health / Fun / personal utilities) ── -->
+    {otherApps.length > 0 && (
+      <section data-section="other" class="space-y-4 mt-12">
+        <div data-section-heading="other" class="flex items-center gap-3">
+          <h2 class="text-[10px] font-mono uppercase tracking-[0.3em] text-text-muted">Other Tools</h2>
+          <div class="h-px flex-1 bg-border-subtle"></div>
+          <span class="text-[10px] font-mono text-text-muted">{otherApps.length} {otherApps.length === 1 ? 'tool' : 'tools'}</span>
+        </div>
+        <p class="text-xs text-text-muted/70 italic max-w-2xl">
+          Personal-utility apps I built so I wouldn't have to keep visiting other sites.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {otherApps.map(app => (
+            <div data-card-wrapper data-category-val={app.data.category} data-section-val="other">
+              <AppCard
+                title={app.data.title}
+                job={app.data.job}
+                category={app.data.category}
+                icon={app.data.icon}
+                status={app.data.status}
+                slug={app.slug}
+                publishedAt={app.data.publishedAt}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {apps.length === 0 && (
       <div class="py-24 text-center border border-dashed border-border rounded-xl">
         <p class="text-text-muted">First app is being calibrated. Check back soon.</p>
       </div>
@@ -192,6 +264,21 @@ const breadcrumbs = {
 
         const wrapper = card.closest<HTMLElement>('[data-card-wrapper]');
         if (wrapper) wrapper.style.display = matchesSearch && matchesCategory ? '' : 'none';
+      });
+
+      // Hide section headers + intro copy when a specific category filter is
+      // active — the Featured/Other Tools divide only makes sense in "all" view.
+      const sections = document.querySelectorAll<HTMLElement>('[data-section]');
+      sections.forEach(sec => {
+        const section = sec.dataset.section;
+        const sectionCards = sec.querySelectorAll<HTMLElement>('[data-card-wrapper]');
+        const anySectionVisible = [...sectionCards].some(c => c.style.display !== 'none');
+        const heading = sec.querySelector<HTMLElement>(`[data-section-heading="${section}"]`);
+        const intro = sec.querySelector<HTMLElement>('p.italic');
+        const hideHeading = activeCategory !== 'all' || !anySectionVisible;
+        if (heading) heading.style.display = hideHeading ? 'none' : '';
+        if (intro) intro.style.display = hideHeading ? 'none' : '';
+        sec.style.display = anySectionVisible ? '' : 'none';
       });
 
       const anyVisible = [...cards].some(c => {
