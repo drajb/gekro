@@ -1,0 +1,538 @@
+---
+/**
+ * GPU VRAM Calculator — Calculator.astro
+ *
+ * Estimates VRAM for LLM inference and LoRA fine-tuning across a curated
+ * hardware table. Three components:
+ *   1. Weights:     params × bytes_per_param (per chosen quantization)
+ *   2. KV cache:    2 × layers × heads × head_dim × seq_len × batch × bytes
+ *   3. Activations: ~12% of weights for inference
+ *
+ * LoRA fine-tuning adds:
+ *   - Optimizer states (8-bit Adam: 2× LoRA params; FP32 Adam: 4×)
+ *   - Gradients (1× LoRA params)
+ *   - LoRA adapters (~rank/full_dim of base, ~0.5% at rank 16)
+ *
+ * Hardware table: NVIDIA consumer + datacenter, Apple Silicon, Pi AI HAT.
+ * Last verified 2026-04-20.
+ *
+ * Zero deps. Pure math.
+ */
+---
+
+<div id="vr-app" class="space-y-5">
+
+  <!-- Mode tabs -->
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
+    <button id="vr-tab-inf" data-mode="inference"
+      class="vr-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all bg-accent/15 text-accent">
+      Inference
+    </button>
+    <button id="vr-tab-lora" data-mode="lora"
+      class="vr-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all text-text-muted hover:text-text-primary">
+      LoRA Fine-tune
+    </button>
+  </div>
+
+  <!-- Model selection grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Model size (B params)</label>
+      <select id="vr-model"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="1">1B (Llama 3.2-1B)</option>
+        <option value="1.5">1.5B (Phi-1.5)</option>
+        <option value="3">3B (Llama 3.2-3B)</option>
+        <option value="7" selected>7B (Llama 3 / Mistral 7B)</option>
+        <option value="8">8B (Llama 3-8B)</option>
+        <option value="13">13B (Llama 2-13B)</option>
+        <option value="14">14B (Phi-3-medium)</option>
+        <option value="22">22B (Mistral-Small)</option>
+        <option value="32">32B (Qwen 2.5-32B)</option>
+        <option value="34">34B (Yi-34B)</option>
+        <option value="70">70B (Llama 3-70B)</option>
+        <option value="72">72B (Qwen 2.5-72B)</option>
+        <option value="120">120B (Falcon-180B/3)</option>
+        <option value="180">180B (Falcon-180B)</option>
+        <option value="405">405B (Llama 3.1-405B)</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </div>
+
+    <div id="vr-custom-wrap" class="space-y-1 hidden">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Custom params (B)</label>
+      <input type="number" id="vr-custom-params" min="0.1" step="0.1" value="7"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quantization</label>
+      <select id="vr-quant"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="4.0">FP32 (4 bytes)</option>
+        <option value="2.0" selected>FP16 / BF16 (2 bytes)</option>
+        <option value="1.0">FP8 / INT8 (1 byte)</option>
+        <option value="0.6875">Q5_K_M (~5.5 bits)</option>
+        <option value="0.5625">Q4_K_M (~4.5 bits)</option>
+        <option value="0.5">INT4 / Q4_0 (4 bits)</option>
+        <option value="0.4375">Q3_K_M (~3.5 bits)</option>
+        <option value="0.3125">Q2_K (~2.5 bits)</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Context length</label>
+      <select id="vr-context"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="2048">2K</option>
+        <option value="4096" selected>4K</option>
+        <option value="8192">8K</option>
+        <option value="16384">16K</option>
+        <option value="32768">32K</option>
+        <option value="65536">64K</option>
+        <option value="131072">128K</option>
+        <option value="200000">200K</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Batch size</label>
+      <input type="number" id="vr-batch" min="1" max="64" step="1" value="1"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">KV cache dtype</label>
+      <select id="vr-kv-bytes"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="2" selected>FP16 (2 bytes)</option>
+        <option value="1">FP8 (1 byte)</option>
+        <option value="0.5">INT4 (0.5 bytes)</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Attention type</label>
+      <select id="vr-attn"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="1">MHA (standard)</option>
+        <option value="0.25" selected>GQA (Llama 3+, Qwen 2)</option>
+        <option value="0.125">MQA (PaLM, Falcon)</option>
+      </select>
+    </div>
+
+    <!-- LoRA-only controls -->
+    <div id="vr-lora-controls" class="space-y-1 hidden">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">LoRA rank</label>
+      <select id="vr-lora-rank"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="4">4</option>
+        <option value="8">8</option>
+        <option value="16" selected>16</option>
+        <option value="32">32</option>
+        <option value="64">64</option>
+        <option value="128">128</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Hero: total VRAM + breakdown -->
+  <div class="p-5 bg-bg-elevated border border-accent/20 rounded-xl space-y-4">
+    <div class="flex flex-wrap items-end gap-6">
+      <div>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Total VRAM needed</p>
+        <p id="vr-total" class="text-4xl font-heading font-bold text-accent">14.0 GB</p>
+      </div>
+      <div class="ml-auto text-right">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">For</p>
+        <p id="vr-summary" class="text-sm font-mono text-text-secondary">7B model · FP16 · 4K context · batch 1</p>
+      </div>
+    </div>
+
+    <!-- Breakdown bar -->
+    <div class="space-y-2">
+      <div id="vr-breakdown-bar" class="flex h-3 rounded-full overflow-hidden bg-bg-base">
+        <!-- segments injected by JS -->
+      </div>
+      <div id="vr-breakdown-rows" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- Hardware fit table -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Will it fit?</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border-subtle bg-bg-elevated">
+            <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">GPU / Device</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">VRAM</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Headroom</th>
+            <th class="px-4 py-2.5 text-center text-xs font-mono uppercase tracking-wider text-text-muted">Fit</th>
+          </tr>
+        </thead>
+        <tbody id="vr-hw-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * GPU VRAM Calculator — client logic.
+   * Pure math, no deps.
+   */
+
+  /* ── Hardware table ─────────────────────────────────────────────*/
+  // Tier sort: cheapest consumer → high-end consumer → datacenter →
+  // unified-memory Apple → edge. Last verified 2026-04-20.
+  interface Hardware {
+    name: string;
+    tier: 'consumer' | 'datacenter' | 'apple' | 'edge';
+    vramGB: number;          // usable VRAM
+    notes?: string;          // shown after the name
+    capModelB?: number;      // hard model-size cap (e.g. Pi AI HAT)
+  }
+
+  const HARDWARE: Hardware[] = [
+    // Consumer NVIDIA
+    { name: 'RTX 3060',  tier: 'consumer', vramGB: 12 },
+    { name: 'RTX 3090',  tier: 'consumer', vramGB: 24 },
+    { name: 'RTX 4060',  tier: 'consumer', vramGB: 8 },
+    { name: 'RTX 4070',  tier: 'consumer', vramGB: 12 },
+    { name: 'RTX 4080',  tier: 'consumer', vramGB: 16 },
+    { name: 'RTX 4090',  tier: 'consumer', vramGB: 24 },
+    { name: 'RTX 5060',  tier: 'consumer', vramGB: 8 },
+    { name: 'RTX 5070',  tier: 'consumer', vramGB: 12 },
+    { name: 'RTX 5080',  tier: 'consumer', vramGB: 16 },
+    { name: 'RTX 5090',  tier: 'consumer', vramGB: 32 },
+    // Datacenter
+    { name: 'A100 40GB', tier: 'datacenter', vramGB: 40 },
+    { name: 'A100 80GB', tier: 'datacenter', vramGB: 80 },
+    { name: 'A6000',     tier: 'datacenter', vramGB: 48 },
+    { name: 'H100 80GB', tier: 'datacenter', vramGB: 80 },
+    { name: 'H200',      tier: 'datacenter', vramGB: 141 },
+    // Apple Silicon (unified — practical limit ~75% of total)
+    { name: 'Mac mini M4 (24 GB unified)', tier: 'apple', vramGB: 18, notes: '75% of unified' },
+    { name: 'M4 Pro (48 GB unified)',      tier: 'apple', vramGB: 36, notes: '75% of unified' },
+    { name: 'M4 Max (128 GB unified)',     tier: 'apple', vramGB: 96, notes: '75% of unified' },
+    { name: 'M3 Ultra (192 GB unified)',   tier: 'apple', vramGB: 144, notes: '75% of unified' },
+    // Edge / Pi
+    { name: 'Pi AI HAT 2 (Hailo-10H)', tier: 'edge', vramGB: 8, capModelB: 3, notes: 'INT8 only · 1.5–3B models max' },
+    { name: 'Jetson Orin Nano',         tier: 'edge', vramGB: 8 },
+    { name: 'Jetson Orin AGX 32GB',     tier: 'edge', vramGB: 32 },
+    { name: 'Jetson Orin AGX 64GB',     tier: 'edge', vramGB: 64 },
+  ];
+
+  const TIER_LABELS: Record<string, string> = {
+    consumer:   'Consumer NVIDIA',
+    datacenter: 'Datacenter NVIDIA',
+    apple:      'Apple Silicon (unified)',
+    edge:       'Edge / Pi',
+  };
+
+  /* ── Per-model architecture estimates ───────────────────────────*/
+  // Approximate transformer architecture defaults derived from public model
+  // cards. Used to estimate KV cache when no explicit numbers are available.
+  // (layers, hidden_size, num_heads, head_dim) → all knowable from params.
+  const archForParams = (paramsB: number) => {
+    // Rough heuristics tuned against Llama/Mistral/Qwen architectures
+    if (paramsB <= 1.5)  return { layers: 16, heads: 16, headDim: 64 };
+    if (paramsB <= 3)    return { layers: 24, heads: 24, headDim: 96 };
+    if (paramsB <= 8)    return { layers: 32, heads: 32, headDim: 128 };
+    if (paramsB <= 14)   return { layers: 40, heads: 40, headDim: 128 };
+    if (paramsB <= 34)   return { layers: 60, heads: 56, headDim: 128 };
+    if (paramsB <= 72)   return { layers: 80, heads: 64, headDim: 128 };
+    if (paramsB <= 180)  return { layers: 80, heads: 96, headDim: 192 };
+    return                  { layers: 126, heads: 128, headDim: 128 }; // 405B
+  };
+
+  /* ── Computation ────────────────────────────────────────────────*/
+  interface Breakdown {
+    weights: number;       // GB
+    kvCache: number;       // GB
+    activations: number;   // GB
+    optimizer: number;     // GB (LoRA only)
+    gradients: number;     // GB (LoRA only)
+    loraAdapters: number;  // GB (LoRA only)
+    total: number;         // GB
+  }
+
+  const compute = (
+    paramsB: number,
+    bytesPerParam: number,
+    contextLen: number,
+    batch: number,
+    kvBytes: number,
+    attnFactor: number,    // 1 = MHA, 0.25 = GQA, 0.125 = MQA
+    mode: 'inference' | 'lora',
+    loraRank: number,
+  ): Breakdown => {
+    const arch = archForParams(paramsB);
+    const params = paramsB * 1e9;
+
+    // Weights: params × bytes
+    const weights = (params * bytesPerParam) / 1e9;
+
+    // KV cache: 2 (K + V) × layers × heads × head_dim × seq × batch × bytes
+    // GQA/MQA reduce effective heads by attnFactor
+    const effectiveHeads = arch.heads * attnFactor;
+    const kvCache = (2 * arch.layers * effectiveHeads * arch.headDim * contextLen * batch * kvBytes) / 1e9;
+
+    // Activations: 12% slack for inference, much higher for training
+    const activations = mode === 'inference' ? weights * 0.12 : weights * 0.20;
+
+    let optimizer = 0;
+    let gradients = 0;
+    let loraAdapters = 0;
+    if (mode === 'lora') {
+      // LoRA adapters: roughly 2 × (hidden_size × rank) × layers × bytes
+      // Approximate as a fraction of base params
+      const loraParams = arch.layers * arch.heads * arch.headDim * loraRank * 2;
+      loraAdapters = (loraParams * 2) / 1e9; // FP16 LoRA
+      // 8-bit Adam: 2× LoRA params for optimizer states
+      optimizer = (loraParams * 2) / 1e9;
+      // Gradients: 1× LoRA params at FP16
+      gradients = (loraParams * 2) / 1e9;
+    }
+
+    const total = weights + kvCache + activations + optimizer + gradients + loraAdapters;
+    return { weights, kvCache, activations, optimizer, gradients, loraAdapters, total };
+  };
+
+  /* ── Rendering ──────────────────────────────────────────────────*/
+
+  const fmt = (gb: number) => {
+    if (gb < 1) return `${(gb * 1024).toFixed(0)} MB`;
+    if (gb < 10) return `${gb.toFixed(2)} GB`;
+    if (gb < 100) return `${gb.toFixed(1)} GB`;
+    return `${gb.toFixed(0)} GB`;
+  };
+
+  const initVr = () => {
+    const app = document.getElementById('vr-app');
+    if (!app || (app as any)._vrInit) return;
+    (app as any)._vrInit = true;
+
+    const tabInf  = document.getElementById('vr-tab-inf')!;
+    const tabLora = document.getElementById('vr-tab-lora')!;
+    const modelEl = document.getElementById('vr-model')        as HTMLSelectElement;
+    const customWrap = document.getElementById('vr-custom-wrap')!;
+    const customEl   = document.getElementById('vr-custom-params') as HTMLInputElement;
+    const quantEl = document.getElementById('vr-quant')        as HTMLSelectElement;
+    const contextEl = document.getElementById('vr-context')    as HTMLSelectElement;
+    const batchEl = document.getElementById('vr-batch')        as HTMLInputElement;
+    const kvBytesEl = document.getElementById('vr-kv-bytes')   as HTMLSelectElement;
+    const attnEl  = document.getElementById('vr-attn')         as HTMLSelectElement;
+    const loraControls = document.getElementById('vr-lora-controls')!;
+    const loraRankEl = document.getElementById('vr-lora-rank') as HTMLSelectElement;
+    const totalEl = document.getElementById('vr-total')!;
+    const summaryEl = document.getElementById('vr-summary')!;
+    const breakdownBar = document.getElementById('vr-breakdown-bar')!;
+    const breakdownRows = document.getElementById('vr-breakdown-rows')!;
+    const hwBody = document.getElementById('vr-hw-tbody')!;
+
+    let mode: 'inference' | 'lora' = 'inference';
+    let lastBreakdown: Breakdown | null = null;
+    let lastParams = 7;
+
+    const setMode = (m: 'inference' | 'lora') => {
+      mode = m;
+      [tabInf, tabLora].forEach(t => {
+        const isActive = (t.dataset.mode || '') === m;
+        t.className = `vr-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${
+          isActive ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'
+        }`;
+      });
+      loraControls.classList.toggle('hidden', m !== 'lora');
+      render();
+    };
+
+    const render = () => {
+      const paramsB = modelEl.value === 'custom' ? parseFloat(customEl.value) : parseFloat(modelEl.value);
+      customWrap.classList.toggle('hidden', modelEl.value !== 'custom');
+      lastParams = paramsB;
+
+      const bytesPerParam = parseFloat(quantEl.value);
+      const contextLen = parseInt(contextEl.value);
+      const batch = Math.max(1, parseInt(batchEl.value) || 1);
+      const kvBytes = parseFloat(kvBytesEl.value);
+      const attnFactor = parseFloat(attnEl.value);
+      const loraRank = parseInt(loraRankEl.value);
+
+      const b = compute(paramsB, bytesPerParam, contextLen, batch, kvBytes, attnFactor, mode, loraRank);
+      lastBreakdown = b;
+
+      totalEl.textContent = fmt(b.total);
+      const quantLabel = quantEl.options[quantEl.selectedIndex].text.split(' ')[0];
+      const ctxLabel = contextEl.options[contextEl.selectedIndex].text;
+      const attnLabel = attnEl.options[attnEl.selectedIndex].text.split(' ')[0];
+      summaryEl.textContent = `${paramsB}B · ${quantLabel} · ${ctxLabel} ctx · batch ${batch} · ${attnLabel} attn${mode === 'lora' ? ` · LoRA r${loraRank}` : ''}`;
+
+      // Breakdown bar
+      const segments = mode === 'inference'
+        ? [
+            { label: 'Weights',     value: b.weights,     color: 'bg-accent/70' },
+            { label: 'KV cache',    value: b.kvCache,     color: 'bg-blue-500/70' },
+            { label: 'Activations', value: b.activations, color: 'bg-purple-500/70' },
+          ]
+        : [
+            { label: 'Weights',     value: b.weights,     color: 'bg-accent/70' },
+            { label: 'KV cache',    value: b.kvCache,     color: 'bg-blue-500/70' },
+            { label: 'Activations', value: b.activations, color: 'bg-purple-500/70' },
+            { label: 'Optimizer',   value: b.optimizer,   color: 'bg-amber-500/70' },
+            { label: 'Gradients',   value: b.gradients,   color: 'bg-rose-500/70' },
+            { label: 'LoRA adapters', value: b.loraAdapters, color: 'bg-emerald-500/70' },
+          ];
+
+      breakdownBar.innerHTML = segments.map(s => {
+        const pct = b.total > 0 ? (s.value / b.total) * 100 : 0;
+        return `<div class="${s.color} h-full" style="width:${pct.toFixed(2)}%" title="${s.label}: ${fmt(s.value)}"></div>`;
+      }).join('');
+
+      breakdownRows.innerHTML = segments.map(s => {
+        const pct = b.total > 0 ? (s.value / b.total) * 100 : 0;
+        return `
+          <div class="space-y-0.5">
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${s.label}</p>
+            <p class="text-base font-heading font-semibold text-text-primary">${fmt(s.value)}</p>
+            <p class="text-[10px] font-mono text-text-muted">${pct.toFixed(0)}%</p>
+          </div>
+        `;
+      }).join('');
+
+      // Hardware table
+      const tierGroups = new Map<string, Hardware[]>();
+      HARDWARE.forEach(h => {
+        if (!tierGroups.has(h.tier)) tierGroups.set(h.tier, []);
+        tierGroups.get(h.tier)!.push(h);
+      });
+
+      const rows: string[] = [];
+      tierGroups.forEach((hws, tier) => {
+        rows.push(`
+          <tr class="bg-bg-base/50 border-b border-border-subtle">
+            <td colspan="4" class="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest text-text-muted">${TIER_LABELS[tier]}</td>
+          </tr>
+        `);
+        hws.forEach(h => {
+          // Hard cap (e.g. Pi AI HAT only supports ≤3B regardless of math)
+          const capExceeded = h.capModelB && paramsB > h.capModelB;
+          const fits = !capExceeded && b.total <= h.vramGB;
+          const headroom = h.vramGB - b.total;
+          const headroomLabel = capExceeded
+            ? '—'
+            : (headroom >= 0 ? `+${fmt(headroom)}` : fmt(headroom));
+          const headroomClass = capExceeded
+            ? 'text-text-muted'
+            : (fits ? (headroom > h.vramGB * 0.3 ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400');
+          const verdict = capExceeded
+            ? '<span class="text-red-400 text-xs font-mono">model too big</span>'
+            : (fits
+                ? '<span class="text-emerald-400 text-xs font-mono">✓ fits</span>'
+                : '<span class="text-red-400 text-xs font-mono">✗ no</span>');
+          rows.push(`
+            <tr class="border-b border-border-subtle/50 hover:bg-bg-elevated/30 transition-colors">
+              <td class="px-4 py-2 text-text-primary">
+                ${h.name}
+                ${h.notes ? `<span class="text-[10px] text-text-muted ml-1">· ${h.notes}</span>` : ''}
+              </td>
+              <td class="px-4 py-2 text-right font-mono text-text-secondary">${h.vramGB} GB</td>
+              <td class="px-4 py-2 text-right font-mono ${headroomClass}">${headroomLabel}</td>
+              <td class="px-4 py-2 text-center">${verdict}</td>
+            </tr>
+          `);
+        });
+      });
+      hwBody.innerHTML = rows.join('');
+    };
+
+    [tabInf, tabLora].forEach(t => t.addEventListener('click', () => setMode((t.dataset.mode as any) || 'inference')));
+    [modelEl, quantEl, contextEl, batchEl, kvBytesEl, attnEl, loraRankEl, customEl].forEach(el => {
+      el.addEventListener('change', render);
+      el.addEventListener('input', render);
+    });
+
+    /* ── AppShell toolbar wiring ────────────────────────────────*/
+    document.addEventListener('app:reset', () => {
+      modelEl.value = '7';
+      quantEl.value = '2.0';
+      contextEl.value = '4096';
+      batchEl.value = '1';
+      kvBytesEl.value = '2';
+      attnEl.value = '0.25';
+      loraRankEl.value = '16';
+      customEl.value = '7';
+      setMode('inference');
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastBreakdown) return;
+      const b = lastBreakdown;
+      const lines = [
+        `GPU VRAM estimate — ${summaryEl.textContent}`,
+        ``,
+        `Total: ${fmt(b.total)}`,
+        `  Weights:     ${fmt(b.weights)}`,
+        `  KV cache:    ${fmt(b.kvCache)}`,
+        `  Activations: ${fmt(b.activations)}`,
+      ];
+      if (mode === 'lora') {
+        lines.push(`  Optimizer:   ${fmt(b.optimizer)}`);
+        lines.push(`  Gradients:   ${fmt(b.gradients)}`);
+        lines.push(`  LoRA adapters: ${fmt(b.loraAdapters)}`);
+      }
+      lines.push('');
+      lines.push('Fit verdict (single-GPU):');
+      HARDWARE.forEach(h => {
+        const capped = h.capModelB && lastParams > h.capModelB;
+        const fits = !capped && b.total <= h.vramGB;
+        const headroom = h.vramGB - b.total;
+        lines.push(`  ${capped ? '✗' : (fits ? '✓' : '✗')} ${h.name} (${h.vramGB} GB) — ${capped ? 'model too big' : (fits ? `${fmt(headroom)} headroom` : `needs ${fmt(-headroom)} more`)}`);
+      });
+      try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastBreakdown) return;
+      const b = lastBreakdown;
+      const rows = [
+        ['component', 'gb'],
+        ['weights', b.weights.toFixed(3)],
+        ['kv_cache', b.kvCache.toFixed(3)],
+        ['activations', b.activations.toFixed(3)],
+        ['optimizer', b.optimizer.toFixed(3)],
+        ['gradients', b.gradients.toFixed(3)],
+        ['lora_adapters', b.loraAdapters.toFixed(3)],
+        ['total', b.total.toFixed(3)],
+        ['', ''],
+        ['device', 'fits'],
+        ...HARDWARE.map(h => {
+          const capped = h.capModelB && lastParams > h.capModelB;
+          return [h.name, capped ? 'no (model too big)' : (b.total <= h.vramGB ? 'yes' : 'no')];
+        }),
+      ];
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `gpu-vram-${Date.now()}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    setMode('inference');
+  };
+
+  initVr();
+  document.addEventListener('astro:after-swap', initVr);
+</script>
