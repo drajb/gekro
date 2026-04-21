@@ -256,8 +256,16 @@
   const fetchIp = async () => {
     const el = document.getElementById('di-ip')!;
     el.innerHTML = '<p class="text-xs font-mono text-text-muted animate-pulse">Fetching…</p>';
+
+    // 5-second hard timeout — the Cloudflare endpoint usually responds in <500ms,
+    // but ad-blockers/network issues can stall the request indefinitely. Without
+    // this AbortController the spinner shows "Fetching…" forever.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     try {
-      const res  = await fetch('https://1.1.1.1/cdn-cgi/trace');
+      const res  = await fetch('https://1.1.1.1/cdn-cgi/trace', { signal: controller.signal });
+      clearTimeout(timeoutId);
       const text = await res.text();
       const pairs: Record<string, string> = {};
       text.trim().split('\n').forEach(line => {
@@ -272,8 +280,10 @@
         row('HTTP version', pairs['http'] || '—'),
       ];
       rows.forEach(r => el.appendChild(r));
-    } catch {
-      el.innerHTML = '<p class="text-xs font-mono text-text-muted">Could not fetch (check network / ad-blocker)</p>';
+    } catch (e) {
+      clearTimeout(timeoutId);
+      const reason = (e as Error)?.name === 'AbortError' ? 'timed out after 5s' : 'check network / ad-blocker';
+      el.innerHTML = `<p class="text-xs font-mono text-text-muted">Could not fetch (${reason})</p>`;
     }
   };
 
