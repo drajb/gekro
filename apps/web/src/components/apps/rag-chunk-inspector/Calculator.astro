@@ -1,0 +1,440 @@
+---
+/**
+ * RAG Chunk Inspector — Calculator.astro
+ *
+ * Visualize document chunking strategies for RAG pipelines. Three strategies:
+ *   - Fixed-size: cut every N chars with M overlap (naïve baseline)
+ *   - Recursive:  split on paragraph → sentence → word (LangChain-style)
+ *   - Sentence:   sentence-aware greedy packing
+ *
+ * Token estimates use the same cl100k_base pre-tokenization as the Tokenizer
+ * Visualizer app (calibrated multipliers per family).
+ *
+ * Zero deps. Pure regex + DOM.
+ */
+---
+
+<div id="rag-app" class="space-y-5">
+
+  <!-- Input area -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="rag-input" class="text-sm font-medium text-text-secondary">Document text</label>
+      <div class="flex items-center gap-2 text-[11px] font-mono text-text-muted flex-wrap">
+        <span id="rag-doc-chars">0 chars</span>
+        <span class="opacity-30">·</span>
+        <span id="rag-doc-tokens">0 ~tokens</span>
+      </div>
+    </div>
+    <textarea
+      id="rag-input"
+      rows="8"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="Paste a representative document (article, code file, transcript, manual)…"
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Strategy + size + overlap controls -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Strategy</label>
+      <select id="rag-strategy"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="recursive">Recursive (¶ → sentence → word)</option>
+        <option value="fixed">Fixed-size (character cut)</option>
+        <option value="sentence">Sentence-aware (greedy)</option>
+      </select>
+    </div>
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Chunk size <span id="rag-size-val" class="text-text-secondary">512</span> <span class="text-text-muted/60">~tokens</span>
+      </label>
+      <input type="range" id="rag-size" min="64" max="4096" step="64" value="512"
+        class="w-full accent-[var(--color-accent)]" />
+    </div>
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Overlap <span id="rag-overlap-val" class="text-text-secondary">50</span> <span class="text-text-muted/60">~tokens</span>
+      </label>
+      <input type="range" id="rag-overlap" min="0" max="512" step="10" value="50"
+        class="w-full accent-[var(--color-accent)]" />
+    </div>
+  </div>
+
+  <!-- Hero stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-accent mb-1">Chunks produced</p>
+      <p id="rag-chunk-count" class="text-2xl font-heading font-bold text-text-primary">0</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Avg chunk size</p>
+      <p id="rag-avg-size" class="text-2xl font-heading font-bold text-text-primary">0</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5">~tokens</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Total ~tokens</p>
+      <p id="rag-total-tokens" class="text-2xl font-heading font-bold text-text-primary">0</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Overlap waste</p>
+      <p id="rag-overlap-waste" class="text-2xl font-heading font-bold text-text-primary">0%</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5">duplicated text</p>
+    </div>
+  </div>
+
+  <!-- Chunk visualization -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Chunks</p>
+      <p class="text-[10px] font-mono text-text-muted">
+        <span class="inline-block w-2 h-2 rounded-full bg-accent/60 mr-1"></span>
+        overlap regions highlighted
+      </p>
+    </div>
+    <div id="rag-chunks" class="space-y-3">
+      <p class="text-text-muted italic text-xs p-4 bg-bg-elevated border border-border-subtle rounded-xl">Chunks appear here as you type…</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * RAG Chunk Inspector — client logic.
+   * Pure-JS chunking with per-strategy splitter and overlap visualization.
+   */
+
+  // Reuse the tokenizer pre-split for token estimates. Multiplier 0.92 matches
+  // the OpenAI cl100k_base calibration in the Tokenizer Visualizer app.
+  const CL100K_PATTERN =
+    /'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+/gu;
+
+  const estimateTokens = (s: string): number => {
+    if (!s) return 0;
+    const matches = s.match(CL100K_PATTERN);
+    return Math.round((matches?.length || 0) * 0.92);
+  };
+
+  // Convert "chunk size in tokens" → approximate "chunk size in characters"
+  // using the inverse of the cl100k multiplier × ~4 chars/token average.
+  // 1 token ≈ 4 chars for English; this is the same heuristic the
+  // prompt-token-counter app uses and is accurate to ±10%.
+  const tokensToChars = (tokens: number): number => Math.round(tokens * 4);
+
+  interface Chunk {
+    text: string;
+    startChar: number;
+    endChar: number;
+    overlapWithPrev: number; // chars of overlap with the previous chunk
+  }
+
+  /* ── Strategy 1: Fixed-size character cut ──────────────────────*/
+  const chunkFixed = (text: string, sizeTokens: number, overlapTokens: number): Chunk[] => {
+    const sizeChars = tokensToChars(sizeTokens);
+    const overlapChars = Math.min(tokensToChars(overlapTokens), sizeChars - 1);
+    const stride = Math.max(1, sizeChars - overlapChars);
+
+    const chunks: Chunk[] = [];
+    let start = 0;
+    while (start < text.length) {
+      const end = Math.min(start + sizeChars, text.length);
+      chunks.push({
+        text: text.slice(start, end),
+        startChar: start,
+        endChar: end,
+        overlapWithPrev: chunks.length === 0 ? 0 : overlapChars,
+      });
+      if (end >= text.length) break;
+      start += stride;
+    }
+    return chunks;
+  };
+
+  /* ── Strategy 2: Recursive (paragraph → sentence → word) ───────*/
+  // Tries successively finer separators when a piece is still too big.
+  const SEPARATORS = ['\n\n', '\n', '. ', '! ', '? ', '; ', ', ', ' ', ''];
+
+  const splitRecursive = (text: string, sizeChars: number, sepIdx: number): string[] => {
+    if (text.length <= sizeChars) return [text];
+    const sep = SEPARATORS[sepIdx];
+
+    // Last-resort hard cut at sizeChars when no separator works
+    if (sep === '' || sepIdx >= SEPARATORS.length - 1) {
+      const out: string[] = [];
+      for (let i = 0; i < text.length; i += sizeChars) out.push(text.slice(i, i + sizeChars));
+      return out;
+    }
+
+    // Split on this separator and recurse on too-big pieces
+    const parts = text.split(sep);
+    const result: string[] = [];
+    for (const part of parts) {
+      const piece = part + (part === parts[parts.length - 1] ? '' : sep);
+      if (piece.length <= sizeChars) {
+        result.push(piece);
+      } else {
+        result.push(...splitRecursive(piece, sizeChars, sepIdx + 1));
+      }
+    }
+    return result;
+  };
+
+  const chunkRecursive = (text: string, sizeTokens: number, overlapTokens: number): Chunk[] => {
+    const sizeChars = tokensToChars(sizeTokens);
+    const overlapChars = Math.min(tokensToChars(overlapTokens), Math.floor(sizeChars / 2));
+    const pieces = splitRecursive(text, sizeChars, 0).filter(p => p.length > 0);
+
+    // Greedy pack pieces into chunks, with overlap from previous chunk's tail
+    const chunks: Chunk[] = [];
+    let buffer = '';
+    let bufferStart = 0;
+    let cursor = 0;
+
+    for (const piece of pieces) {
+      if ((buffer + piece).length > sizeChars && buffer.length > 0) {
+        // Emit current chunk
+        const startChar = bufferStart;
+        const endChar = bufferStart + buffer.length;
+        chunks.push({
+          text: buffer,
+          startChar,
+          endChar,
+          overlapWithPrev: chunks.length === 0 ? 0 : Math.min(overlapChars, chunks[chunks.length - 1].text.length),
+        });
+        // Start next buffer with overlap from current buffer's tail
+        const overlapTail = overlapChars > 0 ? buffer.slice(-overlapChars) : '';
+        buffer = overlapTail + piece;
+        bufferStart = endChar - overlapTail.length;
+      } else {
+        if (buffer === '') bufferStart = cursor;
+        buffer += piece;
+      }
+      cursor += piece.length;
+    }
+    if (buffer.length > 0) {
+      chunks.push({
+        text: buffer,
+        startChar: bufferStart,
+        endChar: bufferStart + buffer.length,
+        overlapWithPrev: chunks.length === 0 ? 0 : Math.min(overlapChars, chunks[chunks.length - 1].text.length),
+      });
+    }
+    return chunks;
+  };
+
+  /* ── Strategy 3: Sentence-aware greedy packing ─────────────────*/
+  const chunkSentence = (text: string, sizeTokens: number, overlapTokens: number): Chunk[] => {
+    const sizeChars = tokensToChars(sizeTokens);
+    const overlapChars = Math.min(tokensToChars(overlapTokens), Math.floor(sizeChars / 2));
+
+    // Split on sentence boundaries (keeps the trailing punctuation)
+    const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.length > 0);
+
+    const chunks: Chunk[] = [];
+    let buffer = '';
+    let bufferStart = 0;
+    let cursor = 0;
+
+    for (const sentence of sentences) {
+      const sep = buffer ? ' ' : '';
+      if ((buffer + sep + sentence).length > sizeChars && buffer.length > 0) {
+        const startChar = bufferStart;
+        const endChar = bufferStart + buffer.length;
+        chunks.push({
+          text: buffer,
+          startChar,
+          endChar,
+          overlapWithPrev: chunks.length === 0 ? 0 : Math.min(overlapChars, chunks[chunks.length - 1].text.length),
+        });
+        const overlapTail = overlapChars > 0 ? buffer.slice(-overlapChars) : '';
+        buffer = overlapTail + (overlapTail ? ' ' : '') + sentence;
+        bufferStart = endChar - overlapTail.length;
+      } else {
+        if (buffer === '') bufferStart = cursor;
+        buffer += sep + sentence;
+      }
+      cursor += sentence.length + 1;
+    }
+    if (buffer.length > 0) {
+      chunks.push({
+        text: buffer,
+        startChar: bufferStart,
+        endChar: bufferStart + buffer.length,
+        overlapWithPrev: chunks.length === 0 ? 0 : Math.min(overlapChars, chunks[chunks.length - 1].text.length),
+      });
+    }
+    return chunks;
+  };
+
+  /* ── Rendering ─────────────────────────────────────────────────*/
+
+  const escapeHtml = (s: string): string =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const initRag = () => {
+    const app = document.getElementById('rag-app');
+    if (!app || (app as any)._ragInit) return;
+    (app as any)._ragInit = true;
+
+    const inputEl    = document.getElementById('rag-input')        as HTMLTextAreaElement;
+    const strategyEl = document.getElementById('rag-strategy')     as HTMLSelectElement;
+    const sizeEl     = document.getElementById('rag-size')         as HTMLInputElement;
+    const sizeValEl  = document.getElementById('rag-size-val')!;
+    const overlapEl  = document.getElementById('rag-overlap')      as HTMLInputElement;
+    const overlapValEl = document.getElementById('rag-overlap-val')!;
+    const docCharsEl = document.getElementById('rag-doc-chars')!;
+    const docTokensEl= document.getElementById('rag-doc-tokens')!;
+    const chunkCountEl = document.getElementById('rag-chunk-count')!;
+    const avgSizeEl  = document.getElementById('rag-avg-size')!;
+    const totalTokensEl = document.getElementById('rag-total-tokens')!;
+    const overlapWasteEl = document.getElementById('rag-overlap-waste')!;
+    const chunksEl   = document.getElementById('rag-chunks')!;
+
+    let lastChunks: Chunk[] = [];
+
+    const render = () => {
+      const text = inputEl.value;
+      const sizeTokens = parseInt(sizeEl.value);
+      const overlapTokens = parseInt(overlapEl.value);
+      const strategy = strategyEl.value;
+
+      sizeValEl.textContent = String(sizeTokens);
+      overlapValEl.textContent = String(overlapTokens);
+
+      docCharsEl.textContent = `${text.length.toLocaleString()} chars`;
+      docTokensEl.textContent = `${estimateTokens(text).toLocaleString()} ~tokens`;
+
+      if (!text.trim()) {
+        chunksEl.innerHTML = '<p class="text-text-muted italic text-xs p-4 bg-bg-elevated border border-border-subtle rounded-xl">Chunks appear here as you type…</p>';
+        chunkCountEl.textContent = '0';
+        avgSizeEl.textContent = '0';
+        totalTokensEl.textContent = '0';
+        overlapWasteEl.textContent = '0%';
+        lastChunks = [];
+        return;
+      }
+
+      let chunks: Chunk[];
+      switch (strategy) {
+        case 'fixed':    chunks = chunkFixed(text, sizeTokens, overlapTokens); break;
+        case 'sentence': chunks = chunkSentence(text, sizeTokens, overlapTokens); break;
+        case 'recursive':
+        default:         chunks = chunkRecursive(text, sizeTokens, overlapTokens);
+      }
+      lastChunks = chunks;
+
+      const tokenSizes = chunks.map(c => estimateTokens(c.text));
+      const totalTokens = tokenSizes.reduce((a, b) => a + b, 0);
+      const avgTokens = chunks.length ? Math.round(totalTokens / chunks.length) : 0;
+      const docTokens = estimateTokens(text);
+      const overlapWaste = docTokens > 0 ? Math.max(0, ((totalTokens - docTokens) / docTokens) * 100) : 0;
+
+      chunkCountEl.textContent = chunks.length.toLocaleString();
+      avgSizeEl.textContent = avgTokens.toLocaleString();
+      totalTokensEl.textContent = totalTokens.toLocaleString();
+      overlapWasteEl.textContent = `${overlapWaste.toFixed(1)}%`;
+
+      // Render each chunk as a card with the overlap region (the leading
+      // `overlapWithPrev` chars) highlighted in accent color.
+      chunksEl.innerHTML = chunks.map((c, i) => {
+        const tokens = tokenSizes[i];
+        const overlapText = c.overlapWithPrev > 0 ? c.text.slice(0, c.overlapWithPrev) : '';
+        const restText = c.text.slice(c.overlapWithPrev);
+        const overlapHtml = overlapText
+          ? `<span class="bg-accent/20 text-accent rounded px-0.5" title="Overlap with previous chunk (${c.overlapWithPrev} chars)">${escapeHtml(overlapText)}</span>`
+          : '';
+        return `
+          <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+                Chunk <span class="text-accent">${i + 1}</span> / ${chunks.length}
+              </p>
+              <div class="flex items-center gap-2 text-[10px] font-mono text-text-muted">
+                <span>${tokens.toLocaleString()} ~tokens</span>
+                <span class="opacity-30">·</span>
+                <span>${c.text.length.toLocaleString()} chars</span>
+                ${c.overlapWithPrev > 0 ? `<span class="opacity-30">·</span><span class="text-accent">${c.overlapWithPrev}-char overlap</span>` : ''}
+              </div>
+            </div>
+            <div class="text-xs font-mono text-text-secondary leading-relaxed whitespace-pre-wrap break-words max-h-32 overflow-y-auto">${overlapHtml}${escapeHtml(restText)}</div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    inputEl.addEventListener('input', render);
+    strategyEl.addEventListener('change', render);
+    sizeEl.addEventListener('input', render);
+    overlapEl.addEventListener('input', render);
+
+    /* ── AppShell toolbar wiring ────────────────────────────────*/
+    document.addEventListener('app:reset', () => {
+      inputEl.value = '';
+      strategyEl.value = 'recursive';
+      sizeEl.value = '512';
+      overlapEl.value = '50';
+      render();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastChunks.length) return;
+      const lines = [
+        `Strategy: ${strategyEl.value}`,
+        `Chunk size: ${sizeEl.value} tokens · Overlap: ${overlapEl.value} tokens`,
+        `Total chunks: ${lastChunks.length}`,
+        `Total tokens: ${lastChunks.reduce((sum, c) => sum + estimateTokens(c.text), 0)}`,
+        '',
+        ...lastChunks.map((c, i) => `--- Chunk ${i + 1} (${estimateTokens(c.text)} tokens, ${c.text.length} chars) ---\n${c.text}`),
+      ];
+      try { await navigator.clipboard.writeText(lines.join('\n\n')); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastChunks.length) return;
+      // Export as JSON (ready to feed into a vector DB ingestion pipeline)
+      const payload = {
+        strategy: strategyEl.value,
+        chunkSize: parseInt(sizeEl.value),
+        overlap: parseInt(overlapEl.value),
+        totalChunks: lastChunks.length,
+        chunks: lastChunks.map((c, i) => ({
+          index: i,
+          text: c.text,
+          tokens: estimateTokens(c.text),
+          chars: c.text.length,
+          startChar: c.startChar,
+          endChar: c.endChar,
+          overlapWithPrev: c.overlapWithPrev,
+        })),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `rag-chunks-${Date.now()}.json`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    // Pre-fill an example so the visualization isn't empty on first load
+    if (!inputEl.value) {
+      inputEl.value = `Retrieval-Augmented Generation (RAG) is a technique for grounding large language model outputs in external documents. The standard pipeline indexes documents by splitting them into smaller chunks, embedding each chunk into a vector representation, and storing those vectors in a database optimized for similarity search.
+
+At query time, the user's question is also embedded, and the database returns the top-K most similar chunks. Those chunks are then concatenated into the LLM's prompt as context, allowing the model to answer questions about specific documents it was never trained on.
+
+The chunk size is one of the most consequential parameters in this pipeline. Chunks that are too small lose surrounding context — the model retrieves the right paragraph but can't see the section heading or preceding sentence. Chunks that are too large dilute the embedding's semantic focus, retrieving noisy results that mix multiple topics into one vector.
+
+Overlap helps preserve information that crosses chunk boundaries. Without overlap, a sentence that spans the last word of one chunk and the first word of the next becomes invisible to retrieval. Typical overlap is 10–20% of the chunk size.
+
+The recursive strategy used by most modern RAG frameworks tries to split on natural boundaries first — paragraph breaks, then sentence boundaries, then word boundaries — and only falls back to a hard character cut when nothing else works. This preserves semantic units when possible.`;
+    }
+    render();
+  };
+
+  initRag();
+  document.addEventListener('astro:after-swap', initRag);
+</script>
