@@ -50,6 +50,8 @@ const blog = defineCollection({
     // If missing, BlogLayout falls back to description
     aiSummary: z.string().optional(),
     mainImage: z.string().optional(),
+    // ISO date of last significant content update (optional; falls back to publishedAt)
+    updatedAt: z.string().optional(),
   }),
 });
 const experiments = defineCollection({

@@ -86,19 +86,23 @@ const schema = {
   "description": seoDescription,
   "image": [absoluteOgImage],
   "datePublished": post.publishedAt,
-  "dateModified": post.publishedAt,
+  "dateModified": (post as any).updatedAt || post.publishedAt,
   "author": {
     "@type": "Person",
+    "@id": "https://gekro.com/about/#person",
     "name": "Rohit Burani",
-    "url": "https://gekro.com/about"
+    "url": "https://gekro.com/about/"
   },
   "publisher": {
     "@type": "Organization",
+    "@id": "https://gekro.com/#organization",
     "name": "gekro",
     "url": "https://gekro.com",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://gekro.com/favicon.svg"
+      "url": "https://gekro.com/og/default.png",
+      "width": 1200,
+      "height": 630
     }
   },
   "mainEntityOfPage": {
@@ -128,7 +132,7 @@ const breadcrumbs = {
   ogImage={ogImage}
   ogType="article"
   publishedTime={post.publishedAt}
-  modifiedTime={post.publishedAt}
+  modifiedTime={(post as any).updatedAt || post.publishedAt}
   author="Rohit Burani"
   section={primaryTopic}
   tags={post.topics}

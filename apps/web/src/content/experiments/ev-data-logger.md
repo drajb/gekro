@@ -4,7 +4,7 @@ description: "Self-hosted TeslaMate instance for Model Y telemetry and solar cha
 summary: "Transitioned from a custom TypeScript listener to a self-hosted TeslaMate fork running on a Raspberry Pi 5. Tracks every drive, charge, and phantom drain on my Model Y with 100% data sovereignty."
 aiSummary: "Deployed a self-hosted TeslaMate instance in Docker to monitor his Tesla Model Y. Optimized charging cycles against solar production peaks using MQTT telemetry to maximize solar-offset charging."
 status: "active"
-startDate: "June 2024"
+startDate: "2024-06-01"
 stack:
   - "TeslaMate"
   - "Docker"

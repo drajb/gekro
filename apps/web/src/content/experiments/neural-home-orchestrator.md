@@ -4,7 +4,7 @@ description: "A localized agentic system for managing home automation and energy
 summary: "A localized agentic system for managing home automation and energy efficiency. This experiment integrates local LLMs with Home Assistant to create a truly private, intelligent home controller."
 aiSummary: "Integrated Home Assistant with Together AI and local Ollama instances to automate home energy routines based on real-time occupancy and tariff data. Uses local-first inference for privacy-sensitive commands with optional cloud escalation for complex reasoning."
 status: "active"
-startDate: "October 2025"
+startDate: "2025-10-01"
 stack:
   - "Python"
   - "Home Assistant"

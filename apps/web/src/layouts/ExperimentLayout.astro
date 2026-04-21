@@ -74,16 +74,20 @@ const schema = {
   "proficiencyLevel": experiment.difficulty,
   "author": {
     "@type": "Person",
+    "@id": "https://gekro.com/about/#person",
     "name": "Rohit Burani",
-    "url": "https://gekro.com/about"
+    "url": "https://gekro.com/about/"
   },
   "publisher": {
     "@type": "Organization",
+    "@id": "https://gekro.com/#organization",
     "name": "gekro",
     "url": "https://gekro.com",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://gekro.com/favicon.svg"
+      "url": "https://gekro.com/og/default.png",
+      "width": 1200,
+      "height": 630
     }
   },
   "mainEntityOfPage": {
@@ -158,7 +162,7 @@ const breadcrumbs = {
         </div>
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Started</span>
-          <span class="text-sm text-text-primary">{experiment.startDate}</span>
+          <span class="text-sm text-text-primary">{new Date(experiment.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
         </div>
         <!-- Show GitHub link if provided, otherwise fall back to lab navigation -->
         {experiment.githubUrl ? (

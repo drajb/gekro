@@ -25,8 +25,11 @@ Fields: title, slug, description, topics, publishedAt, url
 - /              Homepage — latest experiments and recent posts
 - /blog          Archive of technical deep dives and engineering notes
 - /experiments   Detailed case studies — architecture, outcomes, failures
+- /apps          Free single-session browser tools (31 utilities across AI, finance, dev, EV)
 - /about         Philosophy, mission, and author biography
 - /contact       Direct contact form (Turnstile-protected)
+- /now           Live snapshot of current engineering focus areas and hardware status
+- /slides        Technical keynotes and architecture presentations
 - /topics/[slug] Cluster pages for each topic area
 - /rss.xml       RSS 2.0 feed for aggregators
 - /sitemap-index.xml  Full site structure (with per-URL lastmod)
@@ -42,6 +45,10 @@ Current active topics (derived from post frontmatter — see /llms-full.txt for 
 - /topics/python
 - /topics/linux
 - /topics/docker
+- /topics/raspberry-pi
+- /topics/self-hosting
+- /topics/trading
+- /topics/ev
 
 ## Content format guarantees
 - Every post includes a TL;DR block before the first heading
@@ -79,4 +86,4 @@ LinkedIn: https://www.linkedin.com/in/rohitburani/
 Contact: https://gekro.com/contact
 
 ---
-Last updated: 2026-04
+Last updated: 2026-04-20

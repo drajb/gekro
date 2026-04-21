@@ -13,9 +13,12 @@
  *  @tailwindcss/vite — Tailwind v4 Vite plugin (replaces postcss config).
  *    Processing happens in Vite's transform pipeline, not PostCSS.
  *
- * Image domains:
- *  deepwiki.com is whitelisted so Astro's <Image> component can optimise
- *  the DeepWiki badge loaded from their CDN in Footer.astro.
+ * Sitemap:
+ *  @astrojs/sitemap generates /sitemap-index.xml + /sitemap-0.xml at build time.
+ *  The filter() hook excludes /og/ prerendered images and /api/ JSON endpoints.
+ *  The serialize() hook sets per-URL lastmod from frontmatter dates (via lastmodMap)
+ *  and assigns priority tiers: homepage (1.0), archives (0.9), posts (0.8),
+ *  apps (0.7), topics (0.6), static pages (0.5).
  */
 
 import { defineConfig } from 'astro/config';
@@ -70,6 +73,7 @@ const scanCollection = (collectionDir, urlPrefix, dateFields) => {
 
 scanCollection(join(__dirname, 'src/content/blog'), '/blog/', ['publishedAt']);
 scanCollection(join(__dirname, 'src/content/experiments'), '/experiments/', ['endDate', 'startDate']);
+scanCollection(join(__dirname, 'src/content/apps'), '/apps/', ['publishedAt', 'updatedAt']);
 
 // Sanity integration is conditional — site works local-only without it
 const sanityIntegration = [];
@@ -93,6 +97,10 @@ export default defineConfig({
       // Per-URL lastmod + priority hints. Google ignores priority in practice,
       // but lastmod is honoured — it's the single most valuable sitemap signal
       // for "re-crawl this". Homepage + archives get daily, posts get monthly.
+      filter(page) {
+        // Exclude build artefacts and API routes from the sitemap
+        return !page.includes('/og/') && !page.includes('/api/');
+      },
       serialize(item) {
         const mapped = lastmodMap.get(item.url);
         if (mapped) item.lastmod = mapped;
@@ -100,11 +108,18 @@ export default defineConfig({
         if (item.url === 'https://gekro.com/') {
           item.priority = 1.0;
           item.changefreq = 'weekly';
-        } else if (item.url === 'https://gekro.com/blog/' || item.url === 'https://gekro.com/experiments/') {
+        } else if (
+          item.url === 'https://gekro.com/blog/' ||
+          item.url === 'https://gekro.com/experiments/' ||
+          item.url === 'https://gekro.com/apps/'
+        ) {
           item.priority = 0.9;
           item.changefreq = 'weekly';
         } else if (item.url.includes('/blog/') || item.url.includes('/experiments/')) {
           item.priority = 0.8;
+          item.changefreq = 'monthly';
+        } else if (item.url.includes('/apps/')) {
+          item.priority = 0.7;
           item.changefreq = 'monthly';
         } else if (item.url.includes('/topics/')) {
           item.priority = 0.6;

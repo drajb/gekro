@@ -24,6 +24,7 @@ const grouped = CATEGORY_ORDER
 
 const seoDescription = data.aiSummary || data.description;
 const pageURL = `https://gekro.com/apps/${app.slug}/`;
+const ogImage = `/og/apps/${app.slug}.png`;
 
 const schema = {
   '@context': 'https://schema.org',
@@ -36,8 +37,9 @@ const schema = {
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   author: {
     '@type': 'Person',
+    '@id': 'https://gekro.com/about/#person',
     name: 'Rohit Burani',
-    url: 'https://gekro.com/about',
+    url: 'https://gekro.com/about/',
   },
 };
 
@@ -55,6 +57,7 @@ const breadcrumbs = {
 <BaseLayout
   title={`${data.title} | gekro`}
   description={seoDescription}
+  ogImage={ogImage}
   ogType="website"
 >
   <JsonLD data={schema} />

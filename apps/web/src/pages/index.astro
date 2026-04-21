@@ -50,7 +50,10 @@ const recentPosts = allPosts.slice(0, 3);
 const topics = getTopicCounts(allPosts).slice(0, 8);
 ---
 
-<BaseLayout title="gekro | Building at the edge of what's possible">
+<BaseLayout
+  title="gekro | Building at the edge of what's possible"
+  description="Rohit Burani's personal AI engineering lab — deep dives on agentic AI, local LLM inference, self-hosted Raspberry Pi infrastructure, EV telemetry, and autonomous trading systems. Live experiments, not tutorials."
+>
   <!-- Site-wide JSON-LD entities (WebSite + Organization + Person).
        Declared on the homepage only — other pages reference by @id. -->
   <GlobalSchema />

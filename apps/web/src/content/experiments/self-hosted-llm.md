@@ -4,7 +4,7 @@ description: "Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cl
 summary: "Running Llama 3 on a local Raspberry Pi cluster with Ollama and Cloudflare Tunnels. This experiment explores the limits of edge compute for decentralized intelligence."
 aiSummary: "Deployed a concurrent Ollama inference cluster across a 3-node Raspberry Pi 5 cluster (16GB each). Used Cloudflare Tunnels with Access policies for secure remote CLI access to the private intelligence layer."
 status: "completed"
-startDate: "June 2025"
+startDate: "2025-06-01"
 stack:
   - "Raspberry Pi"
   - "Ollama"

@@ -48,6 +48,7 @@ interface Props {
   author?: string;
   section?: string;
   tags?: string[];
+  noindex?: boolean;
 }
 
 const {
@@ -60,6 +61,7 @@ const {
   author,
   section,
   tags,
+  noindex,
 } = Astro.props;
 // GA4 is env-var driven and silently omitted when missing (unlike GTM/CF)
 const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
@@ -103,6 +105,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
       author={author}
       section={section}
       tags={tags}
+      noindex={noindex}
     />
 
     <!-- Enables SPA-style page transitions using the View Transitions API -->
