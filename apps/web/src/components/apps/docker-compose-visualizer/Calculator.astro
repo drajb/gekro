@@ -1,0 +1,600 @@
+---
+/**
+ * Docker Compose Visualizer — Calculator.astro
+ *
+ * Parses docker-compose.yml (subset) entirely in the browser. No upload.
+ * Renders services as cards with image/ports/volumes/env/depends_on,
+ * generates an ASCII + Mermaid dependency graph, and runs lint checks.
+ *
+ * The YAML parser is a hand-rolled subset that handles:
+ *   - Indentation-based mappings (2-space convention)
+ *   - Lists (- item)
+ *   - Inline strings, quoted strings, numbers
+ *   - Top-level keys: services, networks, volumes
+ *   - Per-service keys: image, ports, volumes, environment, depends_on,
+ *     networks, restart, privileged, command, build
+ *
+ * Doesn't handle: anchors/aliases, multi-doc, external var substitution.
+ *
+ * Zero deps. ~400 lines including parser.
+ */
+---
+
+<div id="dc-app" class="space-y-5">
+
+  <!-- Input area -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="dc-input" class="text-sm font-medium text-text-secondary">docker-compose.yml</label>
+      <div class="flex items-center gap-2 text-[11px] font-mono text-text-muted">
+        <button id="dc-load-example" class="text-accent hover:underline">Load example</button>
+      </div>
+    </div>
+    <textarea
+      id="dc-input"
+      rows="10"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="version: '3.8'&#10;services:&#10;  app:&#10;    image: myapp:latest&#10;    ports: ['8080:80']&#10;    depends_on: [db]&#10;  db:&#10;    image: postgres:16&#10;    ports: ['5432:5432']"
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Lint summary -->
+  <div id="dc-lint" class="hidden p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Lint findings</p>
+    <ul id="dc-lint-list" class="space-y-1 text-xs font-mono"></ul>
+  </div>
+
+  <!-- Service cards -->
+  <div id="dc-services" class="space-y-3"></div>
+
+  <!-- Dependency graph -->
+  <div id="dc-graph-wrap" class="hidden space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Dependency graph</p>
+      <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+        <button id="dc-graph-ascii" class="dc-graph-tab px-3 py-1 rounded text-[10px] font-mono bg-accent/15 text-accent">ASCII</button>
+        <button id="dc-graph-mermaid" class="dc-graph-tab px-3 py-1 rounded text-[10px] font-mono text-text-muted hover:text-text-primary">Mermaid</button>
+      </div>
+    </div>
+    <pre id="dc-graph" class="bg-bg-elevated border border-border-subtle rounded-xl p-4 text-xs font-mono text-text-secondary overflow-x-auto whitespace-pre"></pre>
+  </div>
+
+  <!-- Error -->
+  <p id="dc-error" class="hidden text-xs font-mono text-red-400 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/20"></p>
+</div>
+
+<script>
+  /**
+   * Docker Compose Visualizer — client logic.
+   * Includes a minimal indentation-aware YAML subset parser.
+   */
+
+  /* ── YAML subset parser ─────────────────────────────────────────*/
+  // Handles compose v2/v3 conventions: indented mappings, dash lists,
+  // quoted/unquoted scalars. Returns a JS object or throws on malformed.
+
+  type YamlValue = string | number | boolean | null | YamlValue[] | { [k: string]: YamlValue };
+
+  const parseScalar = (raw: string): YamlValue => {
+    const t = raw.trim();
+    if (t === '') return '';
+    if (t === 'null' || t === '~') return null;
+    if (t === 'true') return true;
+    if (t === 'false') return false;
+    // Quoted strings
+    if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+      return t.slice(1, -1);
+    }
+    // Number
+    if (/^-?\d+(\.\d+)?$/.test(t)) return parseFloat(t);
+    return t;
+  };
+
+  // Parse inline lists like ['a', 'b', 'c'] or [a, b, c]
+  const parseInlineList = (raw: string): YamlValue[] => {
+    const inner = raw.trim().slice(1, -1).trim();
+    if (!inner) return [];
+    // Naive comma split (doesn't handle commas inside strings — acceptable for compose)
+    return inner.split(',').map(s => parseScalar(s.trim()));
+  };
+
+  // Parse inline objects like {a: 1, b: 2}
+  const parseInlineObject = (raw: string): { [k: string]: YamlValue } => {
+    const inner = raw.trim().slice(1, -1).trim();
+    if (!inner) return {};
+    const obj: { [k: string]: YamlValue } = {};
+    inner.split(',').forEach(pair => {
+      const [k, v] = pair.split(':');
+      if (k) obj[k.trim()] = parseScalar((v || '').trim());
+    });
+    return obj;
+  };
+
+  const parseValue = (raw: string): YamlValue => {
+    const t = raw.trim();
+    if (t.startsWith('[') && t.endsWith(']')) return parseInlineList(t);
+    if (t.startsWith('{') && t.endsWith('}')) return parseInlineObject(t);
+    return parseScalar(t);
+  };
+
+  interface Line { indent: number; raw: string; isItem: boolean; }
+
+  const tokenize = (text: string): Line[] => {
+    return text.split('\n')
+      .map(line => {
+        // Strip trailing comments (only when the # is preceded by whitespace)
+        const cleaned = line.replace(/\s+#.*$/, '').replace(/\s+$/, '');
+        return cleaned;
+      })
+      .map((line, i) => ({ raw: line, idx: i }))
+      .filter(({ raw }) => raw.trim() !== '' && !raw.trim().startsWith('#'))
+      .map(({ raw }) => {
+        const indent = raw.match(/^ */)![0].length;
+        const stripped = raw.slice(indent);
+        const isItem = stripped.startsWith('- ');
+        return { indent, raw: isItem ? stripped.slice(2) : stripped, isItem };
+      });
+  };
+
+  // Build a nested object from indentation-tokenized lines.
+  // Recursive descent; each call consumes lines at exactly `expectedIndent`.
+  const parseBlock = (lines: Line[], cursor: { i: number }, expectedIndent: number): YamlValue => {
+    // Decide list vs map by looking at the first line at this indent
+    if (cursor.i >= lines.length) return null;
+    const first = lines[cursor.i];
+
+    if (first.isItem) {
+      const list: YamlValue[] = [];
+      while (cursor.i < lines.length && lines[cursor.i].indent === expectedIndent && lines[cursor.i].isItem) {
+        const itemLine = lines[cursor.i];
+        cursor.i++;
+        // The item itself may be a scalar (`- foo`) or start a nested map (`- key: val\n  key2: val2`)
+        const colonIdx = itemLine.raw.indexOf(':');
+        if (colonIdx < 0) {
+          list.push(parseValue(itemLine.raw));
+        } else {
+          // Nested map starting at this item
+          const map: { [k: string]: YamlValue } = {};
+          const k = itemLine.raw.slice(0, colonIdx).trim();
+          const v = itemLine.raw.slice(colonIdx + 1).trim();
+          if (v !== '') {
+            map[k] = parseValue(v);
+          } else {
+            // Value continues on next lines indented further
+            const childIndent = cursor.i < lines.length ? lines[cursor.i].indent : expectedIndent + 2;
+            map[k] = parseBlock(lines, cursor, childIndent);
+          }
+          // Continue collecting subsequent fields of this map item at +2 indent
+          const itemChildIndent = expectedIndent + 2;
+          while (cursor.i < lines.length && lines[cursor.i].indent === itemChildIndent && !lines[cursor.i].isItem) {
+            const subLine = lines[cursor.i];
+            cursor.i++;
+            const subColon = subLine.raw.indexOf(':');
+            if (subColon < 0) continue;
+            const sk = subLine.raw.slice(0, subColon).trim();
+            const sv = subLine.raw.slice(subColon + 1).trim();
+            if (sv !== '') {
+              map[sk] = parseValue(sv);
+            } else {
+              const ci = cursor.i < lines.length ? lines[cursor.i].indent : itemChildIndent + 2;
+              map[sk] = parseBlock(lines, cursor, ci);
+            }
+          }
+          list.push(map);
+        }
+      }
+      return list;
+    }
+
+    // Map
+    const map: { [k: string]: YamlValue } = {};
+    while (cursor.i < lines.length && lines[cursor.i].indent === expectedIndent && !lines[cursor.i].isItem) {
+      const line = lines[cursor.i];
+      cursor.i++;
+      const colonIdx = line.raw.indexOf(':');
+      if (colonIdx < 0) continue;
+      const k = line.raw.slice(0, colonIdx).trim();
+      const v = line.raw.slice(colonIdx + 1).trim();
+      if (v !== '') {
+        map[k] = parseValue(v);
+      } else {
+        // Value on next indented lines
+        if (cursor.i >= lines.length || lines[cursor.i].indent <= expectedIndent) {
+          map[k] = null;
+        } else {
+          const childIndent = lines[cursor.i].indent;
+          map[k] = parseBlock(lines, cursor, childIndent);
+        }
+      }
+    }
+    return map;
+  };
+
+  const parseYaml = (text: string): { [k: string]: YamlValue } => {
+    const lines = tokenize(text);
+    const cursor = { i: 0 };
+    const startIndent = lines.length > 0 ? lines[0].indent : 0;
+    const result = parseBlock(lines, cursor, startIndent);
+    return (result && typeof result === 'object' && !Array.isArray(result)) ? result : {};
+  };
+
+  /* ── Lint checks ────────────────────────────────────────────────*/
+  interface LintFinding { severity: 'high' | 'medium' | 'low'; message: string; }
+
+  const lintCompose = (compose: any): LintFinding[] => {
+    const findings: LintFinding[] = [];
+    const services = compose.services || {};
+    const networks = compose.networks || {};
+
+    // Port collisions
+    const portMap = new Map<string, string[]>();
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const ports = svc?.ports;
+      if (!Array.isArray(ports)) return;
+      ports.forEach(p => {
+        const portStr = String(p);
+        const hostPort = portStr.split(':')[0].split('-')[0];
+        if (!portMap.has(hostPort)) portMap.set(hostPort, []);
+        portMap.get(hostPort)!.push(name);
+      });
+    });
+    portMap.forEach((svcs, port) => {
+      if (svcs.length > 1) {
+        findings.push({ severity: 'high', message: `Port collision: ${svcs.join(', ')} all bind host port ${port}` });
+      }
+    });
+
+    // Orphan networks
+    const usedNetworks = new Set<string>();
+    Object.values(services).forEach((svc: any) => {
+      const nets = svc?.networks;
+      if (Array.isArray(nets)) nets.forEach(n => usedNetworks.add(String(n)));
+      else if (nets && typeof nets === 'object') Object.keys(nets).forEach(n => usedNetworks.add(n));
+    });
+    Object.keys(networks).forEach(n => {
+      if (!usedNetworks.has(n)) {
+        findings.push({ severity: 'low', message: `Orphan network: '${n}' is declared but no service uses it` });
+      }
+    });
+
+    // Implicit latest tag
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const img = svc?.image;
+      if (typeof img === 'string' && !img.includes(':')) {
+        findings.push({ severity: 'medium', message: `Service '${name}' uses implicit :latest tag (image: ${img})` });
+      }
+    });
+
+    // Missing restart policy
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      if (!svc?.restart) {
+        findings.push({ severity: 'low', message: `Service '${name}' has no restart policy` });
+      }
+    });
+
+    // Privileged
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      if (svc?.privileged === true) {
+        findings.push({ severity: 'medium', message: `Service '${name}' runs privileged — review carefully` });
+      }
+    });
+
+    // Bind mount of /
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const vols = svc?.volumes;
+      if (Array.isArray(vols)) {
+        vols.forEach(v => {
+          const s = String(v);
+          if (s.startsWith('/:') || s.startsWith('/ ')) {
+            findings.push({ severity: 'high', message: `Service '${name}' bind-mounts root filesystem: ${s}` });
+          }
+        });
+      }
+    });
+
+    // Circular dependency
+    const deps: Record<string, string[]> = {};
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const d = svc?.depends_on;
+      if (Array.isArray(d)) deps[name] = d.map(String);
+      else if (d && typeof d === 'object') deps[name] = Object.keys(d);
+      else deps[name] = [];
+    });
+    const hasCycle = (start: string, target: string, seen = new Set<string>()): boolean => {
+      if (seen.has(start)) return false;
+      seen.add(start);
+      const ds = deps[start] || [];
+      if (ds.includes(target)) return true;
+      return ds.some(d => hasCycle(d, target, seen));
+    };
+    Object.keys(deps).forEach(name => {
+      (deps[name] || []).forEach(d => {
+        if (hasCycle(d, name)) {
+          findings.push({ severity: 'high', message: `Circular dependency: ${name} ↔ ${d}` });
+        }
+      });
+    });
+
+    return findings;
+  };
+
+  /* ── Graph generators ──────────────────────────────────────────*/
+  const generateAsciiGraph = (compose: any): string => {
+    const services = compose.services || {};
+    const lines: string[] = [];
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const d = svc?.depends_on;
+      let deps: string[] = [];
+      if (Array.isArray(d)) deps = d.map(String);
+      else if (d && typeof d === 'object') deps = Object.keys(d);
+      if (deps.length === 0) {
+        lines.push(`${name}  (no dependencies)`);
+      } else {
+        lines.push(`${name}`);
+        deps.forEach((dep, i) => {
+          const isLast = i === deps.length - 1;
+          lines.push(`  ${isLast ? '└── ' : '├── '}depends_on: ${dep}`);
+        });
+      }
+    });
+    return lines.join('\n');
+  };
+
+  const generateMermaidGraph = (compose: any): string => {
+    const services = compose.services || {};
+    const lines = ['graph TD'];
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const d = svc?.depends_on;
+      let deps: string[] = [];
+      if (Array.isArray(d)) deps = d.map(String);
+      else if (d && typeof d === 'object') deps = Object.keys(d);
+      if (deps.length === 0) {
+        lines.push(`  ${name}[${name}]`);
+      } else {
+        deps.forEach(dep => lines.push(`  ${name}[${name}] --> ${dep}[${dep}]`));
+      }
+    });
+    return lines.join('\n');
+  };
+
+  /* ── Rendering ─────────────────────────────────────────────────*/
+  const escapeHtml = (s: string): string =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const renderServices = (compose: any, container: HTMLElement) => {
+    const services = compose.services || {};
+    const cards: string[] = [];
+    Object.entries(services).forEach(([name, svc]: [string, any]) => {
+      const image = svc?.image || (svc?.build ? `(build: ${typeof svc.build === 'string' ? svc.build : 'inline'})` : '—');
+      const ports = Array.isArray(svc?.ports) ? svc.ports.map(String) : [];
+      const volumes = Array.isArray(svc?.volumes) ? svc.volumes.map(String) : [];
+      const env = svc?.environment;
+      const envItems = Array.isArray(env) ? env.map(String) : (env && typeof env === 'object') ? Object.entries(env).map(([k, v]) => `${k}=${v}`) : [];
+      const deps = Array.isArray(svc?.depends_on) ? svc.depends_on.map(String) : (svc?.depends_on && typeof svc.depends_on === 'object') ? Object.keys(svc.depends_on) : [];
+      const restart = svc?.restart || '—';
+
+      const list = (items: string[], emptyText: string) =>
+        items.length === 0
+          ? `<span class="text-text-muted/60 italic">${emptyText}</span>`
+          : items.map(i => `<code class="text-[10px] bg-bg-base px-1.5 py-0.5 rounded border border-border-subtle">${escapeHtml(i)}</code>`).join(' ');
+
+      cards.push(`
+        <div class="bg-bg-elevated border border-border-subtle rounded-xl p-4 space-y-3">
+          <div class="flex items-baseline justify-between gap-3 flex-wrap">
+            <div class="flex items-baseline gap-3">
+              <h3 class="text-base font-heading font-semibold text-accent">${escapeHtml(name)}</h3>
+              <code class="text-xs font-mono text-text-secondary">${escapeHtml(image)}</code>
+            </div>
+            <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest">restart: ${escapeHtml(String(restart))}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="space-y-1">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Ports</p>
+              <div class="flex flex-wrap gap-1">${list(ports, 'none')}</div>
+            </div>
+            <div class="space-y-1">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Depends on</p>
+              <div class="flex flex-wrap gap-1">${list(deps, 'nothing')}</div>
+            </div>
+            <div class="space-y-1">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Volumes</p>
+              <div class="flex flex-wrap gap-1">${list(volumes, 'none')}</div>
+            </div>
+            <div class="space-y-1">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Environment</p>
+              <div class="flex flex-wrap gap-1">${list(envItems, 'none')}</div>
+            </div>
+          </div>
+        </div>
+      `);
+    });
+    container.innerHTML = cards.join('');
+  };
+
+  const SEVERITY_CLASSES = {
+    high:   'text-red-400',
+    medium: 'text-amber-400',
+    low:    'text-text-muted',
+  };
+
+  const initDc = () => {
+    const app = document.getElementById('dc-app');
+    if (!app || (app as any)._dcInit) return;
+    (app as any)._dcInit = true;
+
+    const inputEl    = document.getElementById('dc-input')        as HTMLTextAreaElement;
+    const errorEl    = document.getElementById('dc-error')!;
+    const lintEl     = document.getElementById('dc-lint')!;
+    const lintListEl = document.getElementById('dc-lint-list')!;
+    const servicesEl = document.getElementById('dc-services')!;
+    const graphWrap  = document.getElementById('dc-graph-wrap')!;
+    const graphEl    = document.getElementById('dc-graph')!;
+    const tabAscii   = document.getElementById('dc-graph-ascii')!;
+    const tabMermaid = document.getElementById('dc-graph-mermaid')!;
+    const exampleBtn = document.getElementById('dc-load-example')!;
+
+    let lastCompose: any = null;
+    let graphMode: 'ascii' | 'mermaid' = 'ascii';
+
+    const render = () => {
+      const text = inputEl.value;
+      errorEl.classList.add('hidden');
+      if (!text.trim()) {
+        servicesEl.innerHTML = '<p class="text-text-muted italic text-xs p-4 bg-bg-elevated border border-border-subtle rounded-xl">Paste a docker-compose.yml above…</p>';
+        lintEl.classList.add('hidden');
+        graphWrap.classList.add('hidden');
+        lastCompose = null;
+        return;
+      }
+
+      try {
+        const compose = parseYaml(text);
+        lastCompose = compose;
+
+        if (!compose.services || typeof compose.services !== 'object') {
+          servicesEl.innerHTML = '<p class="text-amber-400 italic text-xs p-4 border border-amber-500/30 rounded-xl bg-amber-500/5">No `services:` block found at top level.</p>';
+          lintEl.classList.add('hidden');
+          graphWrap.classList.add('hidden');
+          return;
+        }
+
+        renderServices(compose, servicesEl);
+
+        // Lint
+        const findings = lintCompose(compose);
+        if (findings.length > 0) {
+          lintEl.classList.remove('hidden');
+          lintListEl.innerHTML = findings.map(f =>
+            `<li class="${SEVERITY_CLASSES[f.severity]}">[${f.severity}] ${escapeHtml(f.message)}</li>`
+          ).join('');
+        } else {
+          lintEl.classList.remove('hidden');
+          lintListEl.innerHTML = '<li class="text-emerald-400">[ok] No lint findings</li>';
+        }
+
+        // Graph
+        graphWrap.classList.remove('hidden');
+        graphEl.textContent = graphMode === 'ascii'
+          ? generateAsciiGraph(compose)
+          : generateMermaidGraph(compose);
+      } catch (e) {
+        errorEl.textContent = `Parse error: ${(e as Error).message}`;
+        errorEl.classList.remove('hidden');
+        servicesEl.innerHTML = '';
+        lintEl.classList.add('hidden');
+        graphWrap.classList.add('hidden');
+      }
+    };
+
+    const setGraphMode = (m: 'ascii' | 'mermaid') => {
+      graphMode = m;
+      [tabAscii, tabMermaid].forEach((t, i) => {
+        const isActive = (i === 0 ? 'ascii' : 'mermaid') === m;
+        t.className = `dc-graph-tab px-3 py-1 rounded text-[10px] font-mono ${
+          isActive ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'
+        }`;
+      });
+      if (lastCompose) {
+        graphEl.textContent = m === 'ascii' ? generateAsciiGraph(lastCompose) : generateMermaidGraph(lastCompose);
+      }
+    };
+
+    inputEl.addEventListener('input', render);
+    tabAscii.addEventListener('click', () => setGraphMode('ascii'));
+    tabMermaid.addEventListener('click', () => setGraphMode('mermaid'));
+
+    const EXAMPLE = `version: '3.8'
+services:
+  web:
+    image: nginx:1.25
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - frontend
+  api:
+    image: my-api:v2.1
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://db:5432/app
+      - REDIS_URL=redis://cache:6379
+    depends_on:
+      - db
+      - cache
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+  db:
+    image: postgres:16
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: example
+    restart: unless-stopped
+    networks:
+      - backend
+  cache:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - backend
+networks:
+  frontend:
+  backend:
+  unused-net:
+volumes:
+  pgdata:
+`;
+
+    exampleBtn.addEventListener('click', () => {
+      inputEl.value = EXAMPLE;
+      render();
+    });
+
+    document.addEventListener('app:reset', () => {
+      inputEl.value = '';
+      render();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastCompose) return;
+      // Copy the current graph (mermaid is more useful for sharing)
+      const text = generateMermaidGraph(lastCompose);
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastCompose) return;
+      // Export full analysis as JSON
+      const findings = lintCompose(lastCompose);
+      const payload = {
+        services: Object.keys(lastCompose.services || {}),
+        lint: findings,
+        graph: {
+          ascii: generateAsciiGraph(lastCompose),
+          mermaid: generateMermaidGraph(lastCompose),
+        },
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `compose-analysis-${Date.now()}.json`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    render();
+  };
+
+  initDc();
+  document.addEventListener('astro:after-swap', initDc);
+</script>

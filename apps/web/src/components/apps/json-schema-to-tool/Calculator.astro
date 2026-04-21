@@ -1,0 +1,391 @@
+---
+/**
+ * JSON Schema → LLM Tool Definition — Calculator.astro
+ *
+ * Converts a JSON Schema input (or OpenAPI operation, or a tool def in any
+ * of the three provider formats) into the equivalent OpenAI / Anthropic /
+ * Gemini tool definition. Surfaces per-provider incompatibilities inline.
+ *
+ * Zero deps. Pure JSON manipulation.
+ */
+---
+
+<div id="jst-app" class="space-y-5">
+
+  <!-- Input area -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="jst-input" class="text-sm font-medium text-text-secondary">JSON Schema, OpenAPI op, or existing tool def</label>
+      <div class="flex items-center gap-2 text-[11px] font-mono text-text-muted">
+        <button id="jst-load-example" class="text-accent hover:underline">Load example</button>
+      </div>
+    </div>
+    <textarea
+      id="jst-input"
+      rows="10"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder='{ "name": "get_weather", "description": "Get current weather", "parameters": { "type": "object", "properties": { ... } } }'
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Function name + description (inferred or override) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Function name (override)</label>
+      <input type="text" id="jst-name" placeholder="(inferred from schema)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Description (override)</label>
+      <input type="text" id="jst-desc" placeholder="(inferred from schema)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+  </div>
+
+  <!-- Errors -->
+  <p id="jst-error" class="hidden text-xs font-mono text-red-400 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/20"></p>
+
+  <!-- Three outputs -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+
+    <!-- OpenAI -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-accent">OpenAI</p>
+        <button data-copy="openai" class="jst-copy text-[10px] font-mono text-text-muted hover:text-accent">Copy</button>
+      </div>
+      <pre id="jst-out-openai" class="bg-bg-elevated border border-border-subtle rounded-xl p-3 text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre min-h-32 max-h-96"></pre>
+      <div id="jst-warn-openai" class="hidden text-[10px] font-mono text-amber-400"></div>
+    </div>
+
+    <!-- Anthropic -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-accent">Anthropic</p>
+        <button data-copy="anthropic" class="jst-copy text-[10px] font-mono text-text-muted hover:text-accent">Copy</button>
+      </div>
+      <pre id="jst-out-anthropic" class="bg-bg-elevated border border-border-subtle rounded-xl p-3 text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre min-h-32 max-h-96"></pre>
+      <div id="jst-warn-anthropic" class="hidden text-[10px] font-mono text-amber-400"></div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-accent">Google Gemini</p>
+        <button data-copy="gemini" class="jst-copy text-[10px] font-mono text-text-muted hover:text-accent">Copy</button>
+      </div>
+      <pre id="jst-out-gemini" class="bg-bg-elevated border border-border-subtle rounded-xl p-3 text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre min-h-32 max-h-96"></pre>
+      <div id="jst-warn-gemini" class="hidden text-[10px] font-mono text-amber-400"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Schema → Tool converter logic.
+   * Detects input format, normalizes to a canonical { name, description, schema },
+   * then emits the three provider-specific shapes.
+   */
+
+  interface Canonical {
+    name: string;
+    description: string;
+    schema: any;
+  }
+
+  /* ── Input detection ──────────────────────────────────────────*/
+  const detectAndNormalize = (input: any, nameOverride?: string, descOverride?: string): Canonical => {
+    let name = nameOverride || '';
+    let description = descOverride || '';
+    let schema: any = null;
+
+    // OpenAI tool wrapper: { type: 'function', function: { name, description, parameters } }
+    if (input?.type === 'function' && input?.function) {
+      name = name || input.function.name || 'unnamed_function';
+      description = description || input.function.description || '';
+      schema = input.function.parameters;
+    }
+    // Anthropic: { name, description, input_schema }
+    else if (input?.input_schema) {
+      name = name || input.name || 'unnamed_function';
+      description = description || input.description || '';
+      schema = input.input_schema;
+    }
+    // Gemini: { function_declarations: [{ name, description, parameters }] }
+    else if (Array.isArray(input?.function_declarations)) {
+      const fd = input.function_declarations[0];
+      name = name || fd?.name || 'unnamed_function';
+      description = description || fd?.description || '';
+      schema = fd?.parameters;
+    }
+    // Bare function-like object: { name, description, parameters | schema }
+    else if (input?.name && (input?.parameters || input?.schema)) {
+      name = name || input.name;
+      description = description || input.description || '';
+      schema = input.parameters || input.schema;
+    }
+    // OpenAPI operation object: { operationId, summary, requestBody.content."application/json".schema }
+    else if (input?.operationId) {
+      name = name || input.operationId;
+      description = description || input.summary || input.description || '';
+      schema = input?.requestBody?.content?.['application/json']?.schema;
+    }
+    // Bare JSON Schema: { type: 'object', properties: {...} }
+    else if (input?.type === 'object' || input?.properties) {
+      name = name || 'unnamed_function';
+      description = description || (input?.description || '');
+      schema = input;
+    }
+    // Last-ditch: assume the whole thing is the schema
+    else {
+      name = name || 'unnamed_function';
+      schema = input;
+    }
+
+    if (!schema || typeof schema !== 'object') {
+      schema = { type: 'object', properties: {} };
+    }
+
+    return { name, description, schema };
+  };
+
+  /* ── Per-provider emitters ────────────────────────────────────*/
+  const emitOpenAI = (c: Canonical) => ({
+    type: 'function',
+    function: {
+      name: c.name,
+      description: c.description,
+      parameters: c.schema,
+      strict: true,
+    },
+  });
+
+  const emitAnthropic = (c: Canonical) => ({
+    name: c.name,
+    description: c.description,
+    input_schema: c.schema,
+  });
+
+  // Gemini doesn't support all JSON Schema features. Strip incompatible parts
+  // and warn for each removal.
+  const sanitizeForGemini = (schema: any, warnings: string[]): any => {
+    if (!schema || typeof schema !== 'object') return schema;
+    if (Array.isArray(schema)) return schema.map(s => sanitizeForGemini(s, warnings));
+
+    const cleaned: any = {};
+    for (const [k, v] of Object.entries(schema)) {
+      if (k === '$ref') {
+        warnings.push('`$ref` is not supported by Gemini — replaced with empty object');
+        return { type: 'OBJECT' };
+      }
+      if (k === 'oneOf' || k === 'anyOf' || k === 'allOf') {
+        warnings.push(`\`${k}\` is not supported by Gemini — collapsed to first variant`);
+        const arr = v as any[];
+        return sanitizeForGemini(arr[0] || {}, warnings);
+      }
+      if (k === 'additionalProperties') {
+        warnings.push('`additionalProperties` is not supported by Gemini — removed');
+        continue;
+      }
+      if (k === 'type' && typeof v === 'string') {
+        // Gemini uses uppercase TYPE strings
+        const upper = v.toUpperCase();
+        if (!['STRING','NUMBER','INTEGER','BOOLEAN','ARRAY','OBJECT'].includes(upper)) {
+          warnings.push(`Type "${v}" not supported by Gemini — coerced to STRING`);
+          cleaned[k] = 'STRING';
+        } else {
+          cleaned[k] = upper;
+        }
+        continue;
+      }
+      cleaned[k] = sanitizeForGemini(v, warnings);
+    }
+    return cleaned;
+  };
+
+  const emitGemini = (c: Canonical, warnings: string[]) => ({
+    function_declarations: [{
+      name: c.name,
+      description: c.description,
+      parameters: sanitizeForGemini(c.schema, warnings),
+    }],
+  });
+
+  /* ── OpenAI strict-mode warnings ─────────────────────────────*/
+  const collectOpenAIWarnings = (schema: any, path = '', warnings: string[] = []): string[] => {
+    if (!schema || typeof schema !== 'object') return warnings;
+    if (schema.type === 'object' && schema.additionalProperties !== false) {
+      warnings.push(`${path || '(root)'} should set "additionalProperties": false for OpenAI strict mode`);
+    }
+    if (schema.properties) {
+      const propKeys = Object.keys(schema.properties);
+      if (schema.required && propKeys.length !== schema.required.length) {
+        warnings.push(`${path || '(root)'} strict mode requires every property to be in "required"`);
+      }
+      for (const [k, v] of Object.entries(schema.properties)) {
+        collectOpenAIWarnings(v, path ? `${path}.${k}` : k, warnings);
+      }
+    }
+    return warnings;
+  };
+
+  const collectAnthropicWarnings = (schema: any): string[] => {
+    // Anthropic is more permissive than the others; warnings are minimal
+    const warnings: string[] = [];
+    if (!schema || typeof schema !== 'object') {
+      warnings.push('Schema is not an object');
+    }
+    return warnings;
+  };
+
+  /* ── Init ─────────────────────────────────────────────────────*/
+  const initJst = () => {
+    const app = document.getElementById('jst-app');
+    if (!app || (app as any)._jstInit) return;
+    (app as any)._jstInit = true;
+
+    const inputEl = document.getElementById('jst-input')        as HTMLTextAreaElement;
+    const nameEl  = document.getElementById('jst-name')         as HTMLInputElement;
+    const descEl  = document.getElementById('jst-desc')         as HTMLInputElement;
+    const errorEl = document.getElementById('jst-error')!;
+    const exampleBtn = document.getElementById('jst-load-example')!;
+
+    const outputs: Record<string, { el: HTMLElement; warn: HTMLElement }> = {
+      openai:    { el: document.getElementById('jst-out-openai')!,    warn: document.getElementById('jst-warn-openai')! },
+      anthropic: { el: document.getElementById('jst-out-anthropic')!, warn: document.getElementById('jst-warn-anthropic')! },
+      gemini:    { el: document.getElementById('jst-out-gemini')!,    warn: document.getElementById('jst-warn-gemini')! },
+    };
+
+    let lastOutputs: Record<string, any> = {};
+
+    const render = () => {
+      errorEl.classList.add('hidden');
+      const text = inputEl.value.trim();
+      if (!text) {
+        Object.values(outputs).forEach(o => {
+          o.el.textContent = '';
+          o.warn.classList.add('hidden');
+        });
+        lastOutputs = {};
+        return;
+      }
+
+      let parsed: any;
+      try {
+        parsed = JSON.parse(text);
+      } catch (e) {
+        errorEl.textContent = `JSON parse error: ${(e as Error).message}`;
+        errorEl.classList.remove('hidden');
+        Object.values(outputs).forEach(o => { o.el.textContent = ''; o.warn.classList.add('hidden'); });
+        return;
+      }
+
+      const canonical = detectAndNormalize(parsed, nameEl.value || undefined, descEl.value || undefined);
+
+      const openaiOut = emitOpenAI(canonical);
+      const anthropicOut = emitAnthropic(canonical);
+      const geminiWarns: string[] = [];
+      const geminiOut = emitGemini(canonical, geminiWarns);
+
+      lastOutputs = { openai: openaiOut, anthropic: anthropicOut, gemini: geminiOut };
+
+      outputs.openai.el.textContent = JSON.stringify(openaiOut, null, 2);
+      outputs.anthropic.el.textContent = JSON.stringify(anthropicOut, null, 2);
+      outputs.gemini.el.textContent = JSON.stringify(geminiOut, null, 2);
+
+      // Warnings per provider
+      const openaiWarns = collectOpenAIWarnings(canonical.schema);
+      const showWarn = (slot: { el: HTMLElement; warn: HTMLElement }, warns: string[]) => {
+        if (warns.length === 0) {
+          slot.warn.classList.add('hidden');
+        } else {
+          slot.warn.classList.remove('hidden');
+          slot.warn.innerHTML = warns.map(w => `⚠ ${w}`).join('<br>');
+        }
+      };
+      showWarn(outputs.openai, openaiWarns);
+      showWarn(outputs.anthropic, collectAnthropicWarnings(canonical.schema));
+      showWarn(outputs.gemini, geminiWarns);
+    };
+
+    inputEl.addEventListener('input', render);
+    nameEl.addEventListener('input', render);
+    descEl.addEventListener('input', render);
+
+    /* Per-provider copy buttons */
+    document.querySelectorAll<HTMLButtonElement>('.jst-copy').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const which = btn.dataset.copy as keyof typeof outputs;
+        const text = outputs[which].el.textContent || '';
+        if (text) {
+          try { await navigator.clipboard.writeText(text); } catch {}
+          const orig = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = orig; }, 1500);
+        }
+      });
+    });
+
+    const EXAMPLE = `{
+  "name": "get_weather",
+  "description": "Get the current weather for a given location",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "location": {
+        "type": "string",
+        "description": "City and state, e.g. San Francisco, CA"
+      },
+      "unit": {
+        "type": "string",
+        "enum": ["celsius", "fahrenheit"],
+        "description": "Temperature unit"
+      }
+    },
+    "required": ["location"],
+    "additionalProperties": false
+  }
+}`;
+
+    exampleBtn.addEventListener('click', () => { inputEl.value = EXAMPLE; render(); });
+
+    document.addEventListener('app:reset', () => {
+      inputEl.value = '';
+      nameEl.value = '';
+      descEl.value = '';
+      render();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      // Default copy = OpenAI format (most common request)
+      const text = outputs.openai.el.textContent || '';
+      if (text) { try { await navigator.clipboard.writeText(text); } catch {} }
+    });
+
+    document.addEventListener('app:export', () => {
+      if (Object.keys(lastOutputs).length === 0) return;
+      const payload = {
+        openai: lastOutputs.openai,
+        anthropic: lastOutputs.anthropic,
+        gemini: lastOutputs.gemini,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `tool-defs-${Date.now()}.json`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    render();
+  };
+
+  initJst();
+  document.addEventListener('astro:after-swap', initJst);
+</script>

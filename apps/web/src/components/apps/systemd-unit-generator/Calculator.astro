@@ -1,0 +1,350 @@
+---
+/**
+ * systemd Unit File Generator — Calculator.astro
+ *
+ * Form-driven .service file generator with security-hardening defaults
+ * baked in. Output includes inline comments per directive.
+ *
+ * Zero deps. Pure string templating.
+ */
+---
+
+<div id="su-app" class="space-y-5">
+
+  <!-- Form grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+    <div class="space-y-1 sm:col-span-2">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Description</label>
+      <input type="text" id="su-desc" value="My background service"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1 sm:col-span-2">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">ExecStart command</label>
+      <input type="text" id="su-exec" value="/usr/local/bin/myapp --port 8080"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Type</label>
+      <select id="su-type"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="simple" selected>simple — process is the service</option>
+        <option value="forking">forking — daemonizes (writes pid)</option>
+        <option value="oneshot">oneshot — runs once and exits</option>
+        <option value="notify">notify — uses sd_notify()</option>
+        <option value="idle">idle — waits for jobs to complete first</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Restart policy</label>
+      <select id="su-restart"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="on-failure" selected>on-failure (recommended)</option>
+        <option value="always">always</option>
+        <option value="on-abnormal">on-abnormal</option>
+        <option value="on-abort">on-abort</option>
+        <option value="no">no</option>
+      </select>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">User</label>
+      <input type="text" id="su-user" value="nobody"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Group (blank = same as user)</label>
+      <input type="text" id="su-group" placeholder="(optional)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Working directory</label>
+      <input type="text" id="su-wd" placeholder="(optional, e.g. /opt/myapp)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Restart delay (sec)</label>
+      <input type="number" id="su-restart-sec" min="0" max="3600" value="5"
+        inputmode="numeric"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1 sm:col-span-2">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Environment variables (KEY=value, one per line)</label>
+      <textarea id="su-env" rows="3" placeholder="DATABASE_URL=postgres://localhost/mydb&#10;LOG_LEVEL=info"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary leading-relaxed focus:outline-none transition-colors"></textarea>
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">EnvironmentFile (path)</label>
+      <input type="text" id="su-env-file" placeholder="(optional, e.g. /etc/myapp/env)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Memory limit (e.g. 512M, 2G)</label>
+      <input type="text" id="su-mem" placeholder="(optional)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">CPU quota % (e.g. 50)</label>
+      <input type="number" id="su-cpu" min="1" max="800" placeholder="(optional)"
+        inputmode="numeric"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1 sm:col-span-2">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">After= (other unit dependencies, comma-separated)</label>
+      <input type="text" id="su-after" placeholder="(optional, e.g. network.target,postgresql.service)"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+  </div>
+
+  <!-- Hardening toggles -->
+  <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Security hardening (recommended on)</p>
+      <button id="su-toggle-all" class="text-[10px] font-mono text-accent hover:underline">Toggle all</button>
+    </div>
+    <div id="su-hardening" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+  </div>
+
+  <!-- Output -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Generated unit file</p>
+      <p class="text-[10px] font-mono text-text-muted">
+        Save as <code class="bg-bg-elevated px-1.5 py-0.5 rounded">/etc/systemd/system/<span id="su-filename">myapp</span>.service</code>
+      </p>
+    </div>
+    <pre id="su-output" class="bg-bg-elevated border border-border-subtle rounded-xl p-4 text-xs font-mono text-text-secondary overflow-x-auto whitespace-pre"></pre>
+    <p class="text-[10px] font-mono text-text-muted">
+      After saving: <code class="bg-bg-elevated px-1.5 py-0.5 rounded">sudo systemctl daemon-reload && sudo systemctl enable --now <span id="su-filename2">myapp</span>.service</code>
+    </p>
+  </div>
+</div>
+
+<script>
+  /**
+   * systemd Unit Generator — client logic.
+   * Templating only. The "complexity" lives in the hardening directive list.
+   */
+
+  interface Hardening { key: string; value: string; comment: string; defaultOn: boolean; }
+
+  const HARDENING: Hardening[] = [
+    { key: 'NoNewPrivileges',         value: 'true',                                comment: 'Prevent setuid/setgid escalation',                                  defaultOn: true },
+    { key: 'ProtectSystem',           value: 'strict',                              comment: '/usr, /boot, /etc read-only',                                       defaultOn: true },
+    { key: 'ProtectHome',             value: 'true',                                comment: 'Hide /home, /root, /run/user',                                      defaultOn: true },
+    { key: 'PrivateTmp',              value: 'true',                                comment: 'Per-service /tmp (blocks shared tmp attacks)',                      defaultOn: true },
+    { key: 'PrivateDevices',          value: 'true',                                comment: 'No /dev access except null/zero/random',                             defaultOn: true },
+    { key: 'ProtectKernelTunables',   value: 'true',                                comment: '/proc/sys, /sys read-only',                                         defaultOn: true },
+    { key: 'ProtectKernelModules',    value: 'true',                                comment: 'Cannot load/unload kernel modules',                                 defaultOn: true },
+    { key: 'ProtectControlGroups',    value: 'true',                                comment: '/sys/fs/cgroup read-only',                                          defaultOn: true },
+    { key: 'RestrictAddressFamilies', value: 'AF_INET AF_INET6 AF_UNIX',            comment: 'Drop AF_NETLINK/AF_PACKET unless needed',                           defaultOn: true },
+    { key: 'RestrictNamespaces',      value: 'true',                                comment: 'Cannot create new namespaces',                                      defaultOn: true },
+    { key: 'LockPersonality',         value: 'true',                                comment: 'Cannot change exec personality',                                    defaultOn: true },
+    { key: 'MemoryDenyWriteExecute',  value: 'true',                                comment: 'Block W^X violations (may break JIT runtimes)',                     defaultOn: true },
+    { key: 'RestrictRealtime',        value: 'true',                                comment: 'No SCHED_FIFO/SCHED_RR',                                            defaultOn: true },
+    { key: 'SystemCallFilter',        value: '@system-service',                     comment: 'Allow only common service syscalls',                                defaultOn: true },
+  ];
+
+  const initSu = () => {
+    const app = document.getElementById('su-app');
+    if (!app || (app as any)._suInit) return;
+    (app as any)._suInit = true;
+
+    const descEl    = document.getElementById('su-desc')        as HTMLInputElement;
+    const execEl    = document.getElementById('su-exec')        as HTMLInputElement;
+    const typeEl    = document.getElementById('su-type')        as HTMLSelectElement;
+    const restartEl = document.getElementById('su-restart')     as HTMLSelectElement;
+    const userEl    = document.getElementById('su-user')        as HTMLInputElement;
+    const groupEl   = document.getElementById('su-group')       as HTMLInputElement;
+    const wdEl      = document.getElementById('su-wd')          as HTMLInputElement;
+    const restartSecEl = document.getElementById('su-restart-sec') as HTMLInputElement;
+    const envEl     = document.getElementById('su-env')         as HTMLTextAreaElement;
+    const envFileEl = document.getElementById('su-env-file')    as HTMLInputElement;
+    const memEl     = document.getElementById('su-mem')         as HTMLInputElement;
+    const cpuEl     = document.getElementById('su-cpu')         as HTMLInputElement;
+    const afterEl   = document.getElementById('su-after')       as HTMLInputElement;
+    const hardeningEl = document.getElementById('su-hardening')!;
+    const toggleAllBtn = document.getElementById('su-toggle-all')!;
+    const outputEl  = document.getElementById('su-output')!;
+    const filenameEl  = document.getElementById('su-filename')!;
+    const filenameEl2 = document.getElementById('su-filename2')!;
+
+    const hardenState: Record<string, boolean> = {};
+    HARDENING.forEach(h => { hardenState[h.key] = h.defaultOn; });
+
+    // Render hardening checkboxes
+    hardeningEl.innerHTML = HARDENING.map(h => `
+      <label class="flex items-start gap-2 text-xs font-mono cursor-pointer hover:bg-bg-elevated px-2 py-1 rounded transition-colors">
+        <input type="checkbox" class="su-harden mt-1 accent-[var(--color-accent)] w-3.5 h-3.5"
+          data-key="${h.key}" ${h.defaultOn ? 'checked' : ''} />
+        <span class="flex-1 min-w-0">
+          <span class="text-text-secondary block truncate" title="${h.key}=${h.value}">${h.key}</span>
+          <span class="text-[10px] text-text-muted/70 block truncate" title="${h.comment}">${h.comment}</span>
+        </span>
+      </label>
+    `).join('');
+
+    hardeningEl.querySelectorAll<HTMLInputElement>('.su-harden').forEach(cb => {
+      cb.addEventListener('change', () => {
+        hardenState[cb.dataset.key!] = cb.checked;
+        render();
+      });
+    });
+
+    toggleAllBtn.addEventListener('click', () => {
+      const anyOn = Object.values(hardenState).some(v => v);
+      const newState = !anyOn;
+      Object.keys(hardenState).forEach(k => { hardenState[k] = newState; });
+      hardeningEl.querySelectorAll<HTMLInputElement>('.su-harden').forEach(cb => {
+        cb.checked = newState;
+      });
+      render();
+    });
+
+    const slugify = (s: string): string =>
+      s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'myapp';
+
+    const generate = (): string => {
+      const desc = descEl.value || 'My service';
+      const exec = execEl.value || '/usr/local/bin/myapp';
+      const type = typeEl.value;
+      const restart = restartEl.value;
+      const restartSec = parseInt(restartSecEl.value) || 5;
+      const user = userEl.value.trim();
+      const group = groupEl.value.trim();
+      const wd = wdEl.value.trim();
+      const envLines = envEl.value.trim().split('\n').filter(l => l.trim() && l.includes('='));
+      const envFile = envFileEl.value.trim();
+      const mem = memEl.value.trim();
+      const cpu = cpuEl.value.trim();
+      const after = afterEl.value.trim().split(',').map(s => s.trim()).filter(Boolean);
+
+      const lines: string[] = [];
+      lines.push('# Generated by gekro.com/apps/systemd-unit-generator');
+      lines.push('# Save to /etc/systemd/system/SERVICENAME.service');
+      lines.push('# Then: sudo systemctl daemon-reload && sudo systemctl enable --now SERVICENAME.service');
+      lines.push('');
+
+      lines.push('[Unit]');
+      lines.push(`Description=${desc}`);
+      if (after.length > 0) {
+        lines.push(`After=${after.join(' ')}`);
+        lines.push(`Requires=${after.join(' ')}`);
+      }
+      lines.push('');
+
+      lines.push('[Service]');
+      lines.push(`Type=${type}`);
+      lines.push(`ExecStart=${exec}`);
+      if (user) lines.push(`User=${user}`);
+      if (group) lines.push(`Group=${group}`);
+      if (wd) lines.push(`WorkingDirectory=${wd}`);
+      if (restart !== 'no') {
+        lines.push(`Restart=${restart}`);
+        lines.push(`RestartSec=${restartSec}`);
+      }
+      if (envFile) lines.push(`EnvironmentFile=${envFile}`);
+      envLines.forEach(line => lines.push(`Environment="${line.trim()}"`));
+      if (mem) lines.push(`MemoryMax=${mem}`);
+      if (cpu) lines.push(`CPUQuota=${cpu}%`);
+
+      const enabledHardening = HARDENING.filter(h => hardenState[h.key]);
+      if (enabledHardening.length > 0) {
+        lines.push('');
+        lines.push('# ── Security hardening ──────────────────────────────────────');
+        enabledHardening.forEach(h => {
+          lines.push(`${h.key}=${h.value}  # ${h.comment}`);
+        });
+        lines.push('# Run `systemd-analyze security <unit>` to score this unit.');
+      }
+
+      lines.push('');
+      lines.push('[Install]');
+      lines.push('WantedBy=multi-user.target');
+
+      return lines.join('\n');
+    };
+
+    const render = () => {
+      const unit = generate();
+      outputEl.textContent = unit;
+      const slug = slugify(descEl.value);
+      filenameEl.textContent = slug;
+      filenameEl2.textContent = slug;
+    };
+
+    [descEl, execEl, typeEl, restartEl, userEl, groupEl, wdEl, restartSecEl, envEl, envFileEl, memEl, cpuEl, afterEl].forEach(el => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+
+    document.addEventListener('app:reset', () => {
+      descEl.value = 'My background service';
+      execEl.value = '/usr/local/bin/myapp --port 8080';
+      typeEl.value = 'simple';
+      restartEl.value = 'on-failure';
+      userEl.value = 'nobody';
+      groupEl.value = '';
+      wdEl.value = '';
+      restartSecEl.value = '5';
+      envEl.value = '';
+      envFileEl.value = '';
+      memEl.value = '';
+      cpuEl.value = '';
+      afterEl.value = '';
+      Object.keys(hardenState).forEach(k => {
+        const def = HARDENING.find(h => h.key === k)?.defaultOn ?? true;
+        hardenState[k] = def;
+      });
+      hardeningEl.querySelectorAll<HTMLInputElement>('.su-harden').forEach(cb => {
+        const def = HARDENING.find(h => h.key === cb.dataset.key)?.defaultOn ?? true;
+        cb.checked = def;
+      });
+      render();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(outputEl.textContent || ''); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      const slug = slugify(descEl.value);
+      const blob = new Blob([outputEl.textContent || ''], { type: 'text/plain' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `${slug}.service`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    render();
+  };
+
+  initSu();
+  document.addEventListener('astro:after-swap', initSu);
+</script>

@@ -53,6 +53,12 @@ import QrCodeGenerator from '../../components/apps/qr-code-generator/Calculator.
 import Tokenizer from '../../components/apps/tokenizer/Calculator.astro';
 import RagChunkInspector from '../../components/apps/rag-chunk-inspector/Calculator.astro';
 import GpuVramCalculator from '../../components/apps/gpu-vram-calculator/Calculator.astro';
+import EvChargingCost from '../../components/apps/ev-charging-cost/Calculator.astro';
+import DockerComposeVisualizer from '../../components/apps/docker-compose-visualizer/Calculator.astro';
+import JsonSchemaToTool from '../../components/apps/json-schema-to-tool/Calculator.astro';
+import SystemPromptLinter from '../../components/apps/system-prompt-linter/Calculator.astro';
+import ContextWindowVisualizer from '../../components/apps/context-window-visualizer/Calculator.astro';
+import SystemdUnitGenerator from '../../components/apps/systemd-unit-generator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -89,6 +95,12 @@ const CALCULATOR_MAP: Record<string, any> = {
   'tokenizer': Tokenizer,
   'rag-chunk-inspector': RagChunkInspector,
   'gpu-vram-calculator': GpuVramCalculator,
+  'ev-charging-cost': EvChargingCost,
+  'docker-compose-visualizer': DockerComposeVisualizer,
+  'json-schema-to-tool': JsonSchemaToTool,
+  'system-prompt-linter': SystemPromptLinter,
+  'context-window-visualizer': ContextWindowVisualizer,
+  'systemd-unit-generator': SystemdUnitGenerator,
 };
 
 export async function getStaticPaths() {

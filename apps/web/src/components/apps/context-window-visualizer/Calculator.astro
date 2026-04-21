@@ -1,0 +1,465 @@
+---
+/**
+ * Context Window Visualizer — Calculator.astro
+ *
+ * Parses multi-turn conversations (plain-text ChatML or JSON), estimates
+ * tokens per message, shows fit against major context windows, and
+ * simulates four truncation strategies side-by-side.
+ *
+ * Zero deps.
+ */
+---
+
+<div id="cw-app" class="space-y-5">
+
+  <!-- Input -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="cw-input" class="text-sm font-medium text-text-secondary">Conversation (plain text or JSON)</label>
+      <div class="flex items-center gap-2 text-[11px] font-mono text-text-muted">
+        <span id="cw-stats">0 messages · 0 ~tokens</span>
+        <span class="opacity-30">·</span>
+        <button id="cw-load-example" class="text-accent hover:underline">Load example</button>
+      </div>
+    </div>
+    <textarea
+      id="cw-input"
+      rows="10"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="SYSTEM: You are a helpful assistant.&#10;&#10;USER: First question…&#10;&#10;ASSISTANT: First answer…&#10;&#10;USER: Follow-up…"
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Window targets -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Context window fit</p>
+    <div id="cw-windows" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+  </div>
+
+  <!-- Message stack -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Message stack (sized by tokens)</p>
+      <p class="text-[10px] font-mono text-text-muted">
+        <span class="inline-block w-2 h-2 rounded-full bg-purple-500/60 mr-1"></span>system
+        <span class="inline-block w-2 h-2 rounded-full bg-blue-500/60 ml-2 mr-1"></span>user
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500/60 ml-2 mr-1"></span>assistant
+      </p>
+    </div>
+    <div id="cw-stack" class="space-y-1"></div>
+  </div>
+
+  <!-- Truncation simulation -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Truncation simulation</p>
+      <div class="flex items-center gap-2">
+        <label class="text-[10px] font-mono text-text-muted">Target window:</label>
+        <select id="cw-target"
+          class="bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1
+                 text-[11px] font-mono text-text-primary focus:outline-none">
+          <option value="8192">8K</option>
+          <option value="32768" selected>32K</option>
+          <option value="131072">128K</option>
+          <option value="200000">200K</option>
+          <option value="1000000">1M</option>
+        </select>
+      </div>
+    </div>
+    <div id="cw-strategies" class="grid grid-cols-1 lg:grid-cols-2 gap-3"></div>
+  </div>
+</div>
+
+<script>
+  /**
+   * Context Window Visualizer — client logic.
+   * Parses conversations, estimates tokens, simulates truncation.
+   */
+
+  const CL100K_PATTERN =
+    /'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+/gu;
+
+  const estimateTokens = (s: string): number => {
+    if (!s) return 0;
+    const matches = s.match(CL100K_PATTERN);
+    return Math.round((matches?.length || 0) * 0.92);
+  };
+
+  type Role = 'system' | 'user' | 'assistant' | 'tool';
+
+  interface Msg {
+    role: Role;
+    content: string;
+    tokens: number;
+  }
+
+  /* ── Parsers ──────────────────────────────────────────────────*/
+  // Try JSON first, fall back to plain-text role tags
+  const parseConversation = (text: string): Msg[] => {
+    const trimmed = text.trim();
+    if (!trimmed) return [];
+
+    // JSON array of {role, content}
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .filter(m => m && typeof m === 'object' && m.role && typeof m.content === 'string')
+            .map(m => ({
+              role: (m.role === 'tool' ? 'assistant' : m.role) as Role,
+              content: m.content,
+              tokens: estimateTokens(m.content),
+            }));
+        }
+      } catch { /* fall through to text parser */ }
+    }
+
+    // Plain text: SYSTEM: / USER: / ASSISTANT: / A: / S: / U: separators
+    const ROLE_RE = /^\s*(SYSTEM|SYS|S|USER|U|ASSISTANT|A|TOOL|T)\s*:\s*/i;
+    const lines = trimmed.split('\n');
+    const messages: { role: Role; content: string }[] = [];
+    let current: { role: Role; content: string } | null = null;
+
+    for (const line of lines) {
+      const m = line.match(ROLE_RE);
+      if (m) {
+        if (current) messages.push(current);
+        const tag = m[1].toUpperCase();
+        const role: Role =
+          tag === 'SYSTEM' || tag === 'SYS' || tag === 'S' ? 'system' :
+          tag === 'USER' || tag === 'U' ? 'user' :
+          'assistant';
+        current = { role, content: line.slice(m[0].length) };
+      } else if (current) {
+        current.content += '\n' + line;
+      }
+    }
+    if (current) messages.push(current);
+
+    return messages.map(m => ({
+      role: m.role,
+      content: m.content.trim(),
+      tokens: estimateTokens(m.content.trim()),
+    }));
+  };
+
+  /* ── Truncation strategies ────────────────────────────────────*/
+  // Each returns: { kept: Msg[], dropped: number[] (indices), tokens: number }
+
+  const strategyDropOldest = (msgs: Msg[], target: number): { kept: Msg[]; dropped: number[]; tokens: number } => {
+    // Always preserve system message (first one), then drop oldest non-system
+    const sysIdx = msgs.findIndex(m => m.role === 'system');
+    const sys = sysIdx >= 0 ? [msgs[sysIdx]] : [];
+    const rest = msgs.filter((_, i) => i !== sysIdx);
+    const dropped: number[] = [];
+    let total = sys.reduce((s, m) => s + m.tokens, 0);
+    const kept: Msg[] = [];
+    // Walk from the end backward to fit as many as possible
+    for (let i = rest.length - 1; i >= 0; i--) {
+      const t = rest[i].tokens;
+      if (total + t <= target) {
+        kept.unshift(rest[i]);
+        total += t;
+      } else {
+        // Find original index of this message in msgs to mark dropped
+        const origIdx = msgs.indexOf(rest[i]);
+        if (origIdx >= 0) dropped.push(origIdx);
+      }
+    }
+    return { kept: [...sys, ...kept], dropped, tokens: total };
+  };
+
+  const strategySummarizePrefix = (msgs: Msg[], target: number): { kept: Msg[]; dropped: number[]; tokens: number; summaryTokens: number } => {
+    // Replace earliest non-system messages with a summary that compresses 3:1
+    const sysIdx = msgs.findIndex(m => m.role === 'system');
+    const sys = sysIdx >= 0 ? [msgs[sysIdx]] : [];
+    const rest = msgs.filter((_, i) => i !== sysIdx);
+    const sysTokens = sys.reduce((s, m) => s + m.tokens, 0);
+
+    // Find how many recent messages fit, then summarize the rest
+    let total = sysTokens;
+    const kept: Msg[] = [];
+    let firstKeptIdx = rest.length;
+    for (let i = rest.length - 1; i >= 0; i--) {
+      const t = rest[i].tokens;
+      if (total + t <= target * 0.7) {
+        kept.unshift(rest[i]);
+        total += t;
+        firstKeptIdx = i;
+      } else {
+        break;
+      }
+    }
+
+    const droppedMessages = rest.slice(0, firstKeptIdx);
+    const droppedTokens = droppedMessages.reduce((s, m) => s + m.tokens, 0);
+    const summaryTokens = Math.ceil(droppedTokens / 3);
+    const dropped = droppedMessages.map(m => msgs.indexOf(m));
+
+    if (droppedMessages.length > 0) {
+      const summary: Msg = {
+        role: 'system',
+        content: `[Summary of ${droppedMessages.length} earlier turns: ~${droppedTokens} tokens compressed to ~${summaryTokens}]`,
+        tokens: summaryTokens,
+      };
+      return { kept: [...sys, summary, ...kept], dropped, tokens: total + summaryTokens, summaryTokens };
+    }
+    return { kept: [...sys, ...kept], dropped, tokens: total, summaryTokens: 0 };
+  };
+
+  const strategySlidingWindow = (msgs: Msg[], target: number, lastN: number): { kept: Msg[]; dropped: number[]; tokens: number } => {
+    const sysIdx = msgs.findIndex(m => m.role === 'system');
+    const sys = sysIdx >= 0 ? [msgs[sysIdx]] : [];
+    const rest = msgs.filter((_, i) => i !== sysIdx);
+    const lastMsgs = rest.slice(-lastN);
+    const droppedMessages = rest.slice(0, -lastN);
+    const dropped = droppedMessages.map(m => msgs.indexOf(m));
+    const tokens = sys.reduce((s, m) => s + m.tokens, 0) + lastMsgs.reduce((s, m) => s + m.tokens, 0);
+    return { kept: [...sys, ...lastMsgs], dropped, tokens };
+  };
+
+  const strategyKeepFirstAndLast = (msgs: Msg[], target: number): { kept: Msg[]; dropped: number[]; tokens: number } => {
+    // Keep system + first 2 user/assistant pairs (likely few-shot examples) + last N
+    const sysIdx = msgs.findIndex(m => m.role === 'system');
+    const sys = sysIdx >= 0 ? [msgs[sysIdx]] : [];
+    const rest = msgs.filter((_, i) => i !== sysIdx);
+    const keepFirst = rest.slice(0, 4); // ~2 turns
+    const sysAndFirst = [...sys, ...keepFirst];
+    let total = sysAndFirst.reduce((s, m) => s + m.tokens, 0);
+    const kept: Msg[] = [];
+    for (let i = rest.length - 1; i >= 4; i--) {
+      const t = rest[i].tokens;
+      if (total + t <= target) {
+        kept.unshift(rest[i]);
+        total += t;
+      } else {
+        break;
+      }
+    }
+    const allKept = [...sysAndFirst, ...kept];
+    const dropped = msgs.filter(m => !allKept.includes(m)).map(m => msgs.indexOf(m));
+    return { kept: allKept, dropped, tokens: total };
+  };
+
+  /* ── Rendering ────────────────────────────────────────────────*/
+  const ROLE_COLORS: Record<Role, string> = {
+    system:    'bg-purple-500/60',
+    user:      'bg-blue-500/60',
+    assistant: 'bg-emerald-500/60',
+    tool:      'bg-emerald-500/60',
+  };
+
+  const ROLE_LABELS: Record<Role, string> = {
+    system: 'sys', user: 'user', assistant: 'asst', tool: 'tool',
+  };
+
+  const escapeHtml = (s: string): string =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const WINDOWS = [
+    { label: '8K',   tokens: 8192,    name: 'GPT-3.5 / older' },
+    { label: '32K',  tokens: 32768,   name: 'GPT-4-32K, Mistral' },
+    { label: '128K', tokens: 131072,  name: 'GPT-4o, Llama 3.1' },
+    { label: '200K', tokens: 200000,  name: 'Claude 3 / 3.5 / 4' },
+    { label: '1M',   tokens: 1000000, name: 'Gemini 1.5 / 2.0' },
+  ];
+
+  const initCw = () => {
+    const app = document.getElementById('cw-app');
+    if (!app || (app as any)._cwInit) return;
+    (app as any)._cwInit = true;
+
+    const inputEl    = document.getElementById('cw-input')    as HTMLTextAreaElement;
+    const statsEl    = document.getElementById('cw-stats')!;
+    const windowsEl  = document.getElementById('cw-windows')!;
+    const stackEl    = document.getElementById('cw-stack')!;
+    const strategiesEl = document.getElementById('cw-strategies')!;
+    const targetEl   = document.getElementById('cw-target')   as HTMLSelectElement;
+    const exampleBtn = document.getElementById('cw-load-example')!;
+
+    let lastMsgs: Msg[] = [];
+
+    const render = () => {
+      const text = inputEl.value;
+      const msgs = parseConversation(text);
+      lastMsgs = msgs;
+      const total = msgs.reduce((s, m) => s + m.tokens, 0);
+
+      statsEl.textContent = `${msgs.length} messages · ${total.toLocaleString()} ~tokens`;
+
+      // Window fit cards
+      windowsEl.innerHTML = WINDOWS.map(w => {
+        const fits = total <= w.tokens;
+        const pct = w.tokens > 0 ? Math.min(100, (total / w.tokens) * 100) : 0;
+        const cls = fits ? 'border-emerald-500/30' : 'border-red-500/30';
+        const fillCls = fits ? (pct > 80 ? 'bg-amber-500/60' : 'bg-emerald-500/60') : 'bg-red-500/60';
+        return `
+          <div class="p-2.5 bg-bg-elevated border ${cls} rounded-lg space-y-1.5">
+            <div class="flex items-baseline justify-between">
+              <p class="text-xs font-mono font-bold text-text-primary">${w.label}</p>
+              <p class="text-[9px] font-mono ${fits ? 'text-emerald-400' : 'text-red-400'}">${fits ? '✓' : '✗'} ${pct.toFixed(0)}%</p>
+            </div>
+            <div class="h-1 bg-bg-base rounded-full overflow-hidden">
+              <div class="h-full ${fillCls}" style="width:${Math.min(100, pct).toFixed(1)}%"></div>
+            </div>
+            <p class="text-[9px] font-mono text-text-muted truncate" title="${w.name}">${w.name}</p>
+          </div>
+        `;
+      }).join('');
+
+      // Message stack — each message bar sized by tokens (relative to the largest)
+      if (msgs.length === 0) {
+        stackEl.innerHTML = '<p class="text-text-muted italic text-xs p-3 bg-bg-elevated border border-border-subtle rounded-xl">Conversation appears here as you type…</p>';
+        strategiesEl.innerHTML = '';
+        return;
+      }
+      const maxTokens = Math.max(...msgs.map(m => m.tokens), 1);
+      stackEl.innerHTML = msgs.map((m, i) => {
+        const widthPct = (m.tokens / maxTokens) * 100;
+        const preview = escapeHtml(m.content.slice(0, 80));
+        const ellipsis = m.content.length > 80 ? '…' : '';
+        return `
+          <div class="flex items-center gap-2 text-xs">
+            <span class="w-8 text-[9px] font-mono text-text-muted shrink-0">${i + 1}.</span>
+            <span class="w-12 text-[9px] font-mono ${m.role === 'system' ? 'text-purple-400' : m.role === 'user' ? 'text-blue-400' : 'text-emerald-400'} shrink-0">${ROLE_LABELS[m.role]}</span>
+            <div class="flex-1 h-5 bg-bg-elevated rounded relative overflow-hidden border border-border-subtle">
+              <div class="h-full ${ROLE_COLORS[m.role]}" style="width:${widthPct.toFixed(1)}%" title="${m.tokens} tokens"></div>
+              <div class="absolute inset-0 flex items-center px-2 pointer-events-none">
+                <span class="text-[10px] font-mono text-text-primary truncate">${preview}${ellipsis}</span>
+              </div>
+            </div>
+            <span class="w-14 text-[9px] font-mono text-text-muted text-right shrink-0">${m.tokens.toLocaleString()}t</span>
+          </div>
+        `;
+      }).join('');
+
+      // Truncation strategies for target window
+      const target = parseInt(targetEl.value);
+      const strategies = [
+        { name: 'Drop oldest', desc: 'Default in most chat APIs. Earliest non-system messages cut first.', result: strategyDropOldest(msgs, target) },
+        { name: 'Summarize prefix', desc: 'Replace early turns with ~3:1 compressed summary. Preserves goal continuity.', result: strategySummarizePrefix(msgs, target) },
+        { name: 'Sliding window (last 8)', desc: 'Keep only the last 8 turns + system. Best when recency dominates relevance.', result: strategySlidingWindow(msgs, target, 8) },
+        { name: 'Keep first + last', desc: 'Preserve the first 4 messages (likely few-shot examples) + recent history.', result: strategyKeepFirstAndLast(msgs, target) },
+      ];
+
+      strategiesEl.innerHTML = strategies.map(s => {
+        const r = s.result;
+        const fits = r.tokens <= target;
+        const pct = (r.tokens / target * 100);
+        const cls = fits ? 'border-emerald-500/20' : 'border-red-500/20';
+        const droppedCount = r.dropped.length;
+        const summaryNote = (s as any).result?.summaryTokens > 0 ? `<span class="text-amber-400">+ summary token cost</span>` : '';
+        return `
+          <div class="p-3 bg-bg-elevated border ${cls} rounded-xl space-y-2">
+            <div class="flex items-baseline justify-between gap-2">
+              <h4 class="text-xs font-mono font-bold text-accent">${s.name}</h4>
+              <p class="text-[10px] font-mono ${fits ? 'text-emerald-400' : 'text-red-400'}">${r.tokens.toLocaleString()} / ${target.toLocaleString()}t (${pct.toFixed(0)}%)</p>
+            </div>
+            <p class="text-[10px] font-mono text-text-muted">${s.desc}</p>
+            <p class="text-[10px] font-mono text-text-muted">
+              ${r.kept.length} messages kept · ${droppedCount} dropped ${summaryNote}
+            </p>
+          </div>
+        `;
+      }).join('');
+    };
+
+    inputEl.addEventListener('input', render);
+    targetEl.addEventListener('change', render);
+
+    const EXAMPLE = `SYSTEM: You are a senior Python tutor. Always show runnable code, then explain.
+
+USER: How do I read a CSV in Python?
+
+ASSISTANT: Use the csv module from the standard library.
+
+\`\`\`python
+import csv
+with open('data.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        print(row)
+\`\`\`
+
+This reads each row as a dictionary keyed by the header row.
+
+USER: What if the file is huge?
+
+ASSISTANT: For large files, iterate row-by-row instead of loading everything into memory:
+
+\`\`\`python
+import csv
+with open('big.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        process(row)  # one at a time
+\`\`\`
+
+The csv.DictReader is already a generator — it lazy-reads. The key is to never call list(reader) on a huge file.
+
+USER: Can pandas do this faster?
+
+ASSISTANT: For sequential processing, no — csv module is already streaming. Pandas wins when you need vectorized operations across columns. For a 10GB CSV, use pandas with chunksize:
+
+\`\`\`python
+import pandas as pd
+for chunk in pd.read_csv('big.csv', chunksize=10000):
+    process(chunk)
+\`\`\`
+
+USER: What about parquet vs csv for storing this kind of data?
+
+ASSISTANT: Parquet is dramatically better for analytical workloads. Three reasons:
+1. Columnar storage — queries that touch only a few columns read only those columns
+2. Built-in compression — typically 5-10× smaller than CSV
+3. Schema preservation — types survive round-trips
+
+Use \`df.to_parquet('out.parquet')\` to write. CSV is still useful for human-readable interchange or when consumers can't read parquet.
+
+USER: One more — how do I append to a parquet file?`;
+
+    exampleBtn.addEventListener('click', () => { inputEl.value = EXAMPLE; render(); });
+
+    document.addEventListener('app:reset', () => { inputEl.value = ''; render(); });
+
+    document.addEventListener('app:copy', async () => {
+      if (lastMsgs.length === 0) return;
+      const total = lastMsgs.reduce((s, m) => s + m.tokens, 0);
+      const lines = [
+        `Conversation: ${lastMsgs.length} messages, ${total.toLocaleString()} ~tokens`,
+        ``,
+        `Window fit:`,
+        ...WINDOWS.map(w => {
+          const fits = total <= w.tokens;
+          return `  ${fits ? '✓' : '✗'} ${w.label} (${w.tokens.toLocaleString()}): ${(total / w.tokens * 100).toFixed(0)}%`;
+        }),
+      ];
+      try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (lastMsgs.length === 0) return;
+      const rows = ['index,role,tokens,chars,content_preview'];
+      lastMsgs.forEach((m, i) => {
+        const preview = `"${m.content.slice(0, 100).replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+        rows.push(`${i + 1},${m.role},${m.tokens},${m.content.length},${preview}`);
+      });
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `context-window-${Date.now()}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    render();
+  };
+
+  initCw();
+  document.addEventListener('astro:after-swap', initCw);
+</script>

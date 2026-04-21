@@ -1,0 +1,308 @@
+---
+/**
+ * EV Charging Cost Calculator — Calculator.astro
+ *
+ * Models the three things most online EV cost calculators ignore:
+ *   1. Solar offset (free marginal kWh from your own panels)
+ *   2. Charger efficiency loss (10-15% AC, 5% DC fast)
+ *   3. Time-of-use rate variation
+ *
+ * Live recalc on input. Compares against gasoline at any pump price for
+ * the "should I have rented an ICE for this trip?" question.
+ *
+ * Zero deps. Pure math.
+ */
+---
+
+<div id="ev-app" class="space-y-5">
+
+  <!-- Vehicle + charging context grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Vehicle</label>
+      <select id="ev-vehicle"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="0.245" selected>Tesla Model Y RWD (0.245 kWh/mi)</option>
+        <option value="0.236">Tesla Model 3 LR (0.236 kWh/mi)</option>
+        <option value="0.305">Tesla Model S Plaid (0.305 kWh/mi)</option>
+        <option value="0.32">Ford Mustang Mach-E (0.32 kWh/mi)</option>
+        <option value="0.30">Hyundai Ioniq 5 (0.30 kWh/mi)</option>
+        <option value="0.50">Rivian R1T (0.50 kWh/mi)</option>
+        <option value="0.31">Polestar 2 (0.31 kWh/mi)</option>
+        <option value="custom">Custom kWh/mi…</option>
+      </select>
+    </div>
+
+    <div id="ev-custom-eff-wrap" class="space-y-1 hidden">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Custom kWh/mi</label>
+      <input type="number" id="ev-custom-eff" min="0.1" max="1.0" step="0.01" value="0.30"
+        inputmode="decimal"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Charging context</label>
+      <select id="ev-context"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors">
+        <option value="home-off|0.10|0.88" selected>Home off-peak (~$0.10/kWh)</option>
+        <option value="home-peak|0.30|0.88">Home peak (~$0.30/kWh)</option>
+        <option value="supercharger|0.40|0.95">Tesla Supercharger (~$0.40/kWh)</option>
+        <option value="evgo|0.50|0.95">EVgo / Electrify America (~$0.50/kWh)</option>
+        <option value="public-l2|0.25|0.88">Public L2 paid (~$0.25/kWh)</option>
+        <option value="workplace|0.00|0.88">Workplace free</option>
+        <option value="custom">Custom rate…</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Manual inputs grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Session kWh delivered</label>
+      <input type="number" id="ev-kwh" min="0" step="0.5" value="50"
+        inputmode="decimal"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Rate ($/kWh)</label>
+      <input type="number" id="ev-rate" min="0" step="0.01" value="0.10"
+        inputmode="decimal"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Charger efficiency</label>
+      <input type="number" id="ev-eff" min="0.5" max="1.0" step="0.01" value="0.88"
+        inputmode="decimal"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+               text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+    </div>
+
+    <div class="space-y-1">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Solar offset <span id="ev-solar-val" class="text-text-secondary">0%</span>
+      </label>
+      <input type="range" id="ev-solar" min="0" max="100" step="5" value="0"
+        class="w-full accent-[var(--color-accent)]" />
+    </div>
+  </div>
+
+  <!-- Hero: cost results -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-accent mb-1">Session cost</p>
+      <p id="ev-cost" class="text-2xl font-heading font-bold text-text-primary">$0.00</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5"><span id="ev-grid-kwh">0</span> kWh from grid</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Per kWh (effective)</p>
+      <p id="ev-per-kwh" class="text-2xl font-heading font-bold text-text-primary">$0.00</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5">after solar offset</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Per mile</p>
+      <p id="ev-per-mile" class="text-2xl font-heading font-bold text-text-primary">$0.00</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5"><span id="ev-miles">0</span> mi this session</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Gas equivalent</p>
+      <p id="ev-gas-eq" class="text-2xl font-heading font-bold text-text-primary">$0.00</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5">@ <span id="ev-mpg">30</span> mpg</p>
+    </div>
+  </div>
+
+  <!-- Gas comparison row -->
+  <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Compare against gasoline</p>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono text-text-muted">ICE comparison MPG</label>
+        <input type="number" id="ev-cmp-mpg" min="5" max="100" step="1" value="30"
+          inputmode="numeric"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono text-text-muted">Gas pump price ($/gal)</label>
+        <input type="number" id="ev-cmp-gas" min="1" max="10" step="0.10" value="3.50"
+          inputmode="decimal"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <p class="text-[10px] font-mono text-text-muted">Verdict</p>
+        <p id="ev-verdict" class="text-sm font-mono text-accent">EV is cheaper by $0.00</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const initEv = () => {
+    const app = document.getElementById('ev-app');
+    if (!app || (app as any)._evInit) return;
+    (app as any)._evInit = true;
+
+    const vehicleEl   = document.getElementById('ev-vehicle')      as HTMLSelectElement;
+    const customEffWrap = document.getElementById('ev-custom-eff-wrap')!;
+    const customEffEl = document.getElementById('ev-custom-eff')   as HTMLInputElement;
+    const contextEl   = document.getElementById('ev-context')      as HTMLSelectElement;
+    const kwhEl       = document.getElementById('ev-kwh')          as HTMLInputElement;
+    const rateEl      = document.getElementById('ev-rate')         as HTMLInputElement;
+    const effEl       = document.getElementById('ev-eff')          as HTMLInputElement;
+    const solarEl     = document.getElementById('ev-solar')        as HTMLInputElement;
+    const solarValEl  = document.getElementById('ev-solar-val')!;
+    const cmpMpgEl    = document.getElementById('ev-cmp-mpg')      as HTMLInputElement;
+    const cmpGasEl    = document.getElementById('ev-cmp-gas')      as HTMLInputElement;
+
+    const costEl      = document.getElementById('ev-cost')!;
+    const gridKwhEl   = document.getElementById('ev-grid-kwh')!;
+    const perKwhEl    = document.getElementById('ev-per-kwh')!;
+    const perMileEl   = document.getElementById('ev-per-mile')!;
+    const milesEl     = document.getElementById('ev-miles')!;
+    const gasEqEl     = document.getElementById('ev-gas-eq')!;
+    const mpgEl       = document.getElementById('ev-mpg')!;
+    const verdictEl   = document.getElementById('ev-verdict')!;
+
+    // Sync the rate + efficiency from the chosen context preset
+    contextEl.addEventListener('change', () => {
+      const v = contextEl.value;
+      if (v === 'custom') return;
+      const parts = v.split('|');
+      if (parts.length === 3) {
+        rateEl.value = parts[1];
+        effEl.value = parts[2];
+      }
+      render();
+    });
+
+    vehicleEl.addEventListener('change', () => {
+      customEffWrap.classList.toggle('hidden', vehicleEl.value !== 'custom');
+      render();
+    });
+
+    let lastResult: any = null;
+
+    const render = () => {
+      const vehicleEff = vehicleEl.value === 'custom'
+        ? parseFloat(customEffEl.value) || 0.30
+        : parseFloat(vehicleEl.value);
+      const sessionKwh = Math.max(0, parseFloat(kwhEl.value) || 0);
+      const rate = Math.max(0, parseFloat(rateEl.value) || 0);
+      const eff = Math.min(1, Math.max(0.5, parseFloat(effEl.value) || 0.88));
+      const solarPct = parseInt(solarEl.value);
+      const cmpMpg = Math.max(1, parseInt(cmpMpgEl.value) || 30);
+      const cmpGas = Math.max(0, parseFloat(cmpGasEl.value) || 0);
+
+      solarValEl.textContent = `${solarPct}%`;
+      mpgEl.textContent = String(cmpMpg);
+
+      // The kWh actually drawn from the wall (more than what reaches the battery)
+      const kwhFromWall = sessionKwh / eff;
+      // Of that, what fraction is from the grid (rest is from solar)
+      const kwhFromGrid = kwhFromWall * (1 - solarPct / 100);
+      const sessionCost = kwhFromGrid * rate;
+      // Effective $ per kWh delivered to battery
+      const effPerKwh = sessionKwh > 0 ? sessionCost / sessionKwh : 0;
+      const miles = sessionKwh / vehicleEff;
+      const perMile = miles > 0 ? sessionCost / miles : 0;
+      // Gas equivalent: same trip in an ICE at cmpMpg
+      const gasGallons = miles / cmpMpg;
+      const gasCost = gasGallons * cmpGas;
+      const evVsGas = gasCost - sessionCost;
+
+      lastResult = { sessionKwh, sessionCost, effPerKwh, miles, perMile, gasCost, evVsGas, kwhFromGrid, solarPct };
+
+      costEl.textContent = `$${sessionCost.toFixed(2)}`;
+      gridKwhEl.textContent = kwhFromGrid.toFixed(1);
+      perKwhEl.textContent = `$${effPerKwh.toFixed(3)}`;
+      perMileEl.textContent = `$${perMile.toFixed(3)}`;
+      milesEl.textContent = miles.toFixed(0);
+      gasEqEl.textContent = `$${gasCost.toFixed(2)}`;
+
+      if (sessionCost === 0 && gasCost === 0) {
+        verdictEl.textContent = '—';
+        verdictEl.className = 'text-sm font-mono text-text-muted';
+      } else if (evVsGas > 0) {
+        verdictEl.textContent = `EV cheaper by $${evVsGas.toFixed(2)}`;
+        verdictEl.className = 'text-sm font-mono text-emerald-400';
+      } else if (evVsGas < 0) {
+        verdictEl.textContent = `Gas cheaper by $${Math.abs(evVsGas).toFixed(2)}`;
+        verdictEl.className = 'text-sm font-mono text-red-400';
+      } else {
+        verdictEl.textContent = 'Tied';
+        verdictEl.className = 'text-sm font-mono text-amber-400';
+      }
+    };
+
+    [vehicleEl, customEffEl, contextEl, kwhEl, rateEl, effEl, solarEl, cmpMpgEl, cmpGasEl].forEach(el => {
+      el.addEventListener('input', render);
+    });
+
+    document.addEventListener('app:reset', () => {
+      vehicleEl.value = '0.245';
+      contextEl.value = 'home-off|0.10|0.88';
+      kwhEl.value = '50';
+      rateEl.value = '0.10';
+      effEl.value = '0.88';
+      solarEl.value = '0';
+      cmpMpgEl.value = '30';
+      cmpGasEl.value = '3.50';
+      customEffWrap.classList.add('hidden');
+      render();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastResult) return;
+      const r = lastResult;
+      const text = [
+        `EV Charging Session — ${r.sessionKwh} kWh delivered`,
+        `Solar offset: ${r.solarPct}%  ·  Grid kWh: ${r.kwhFromGrid.toFixed(1)}`,
+        ``,
+        `Session cost: $${r.sessionCost.toFixed(2)}`,
+        `Effective $/kWh: $${r.effPerKwh.toFixed(3)}`,
+        `Miles added: ${r.miles.toFixed(0)}`,
+        `Cost per mile: $${r.perMile.toFixed(3)}`,
+        ``,
+        `Gas equivalent: $${r.gasCost.toFixed(2)} (same trip @ ${cmpMpgEl.value} mpg, $${cmpGasEl.value}/gal)`,
+        r.evVsGas > 0 ? `EV cheaper by $${r.evVsGas.toFixed(2)}` : `Gas cheaper by $${Math.abs(r.evVsGas).toFixed(2)}`,
+      ].join('\n');
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastResult) return;
+      const r = lastResult;
+      const rows = [
+        ['metric', 'value'],
+        ['session_kwh', r.sessionKwh],
+        ['solar_offset_pct', r.solarPct],
+        ['kwh_from_grid', r.kwhFromGrid.toFixed(2)],
+        ['session_cost_usd', r.sessionCost.toFixed(2)],
+        ['effective_per_kwh', r.effPerKwh.toFixed(4)],
+        ['miles_added', r.miles.toFixed(1)],
+        ['cost_per_mile', r.perMile.toFixed(4)],
+        ['gas_equivalent_cost', r.gasCost.toFixed(2)],
+      ];
+      const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `ev-charging-${Date.now()}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    render();
+  };
+
+  initEv();
+  document.addEventListener('astro:after-swap', initEv);
+</script>

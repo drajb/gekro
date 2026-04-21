@@ -1,0 +1,438 @@
+---
+/**
+ * System Prompt Linter — Calculator.astro
+ *
+ * Heuristic-based static analysis of LLM system prompts. Each rule is a
+ * deterministic check against documented prompt-engineering anti-patterns.
+ * No LLM judge, no API calls — pure regex + text statistics.
+ *
+ * Zero deps.
+ */
+---
+
+<div id="spl-app" class="space-y-5">
+
+  <!-- Input -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="spl-input" class="text-sm font-medium text-text-secondary">System prompt</label>
+      <div class="flex items-center gap-2 text-[11px] font-mono text-text-muted">
+        <span id="spl-stats">0 chars · 0 lines</span>
+        <span class="opacity-30">·</span>
+        <button id="spl-load-bad" class="text-accent hover:underline">Load bad example</button>
+        <span class="opacity-30">·</span>
+        <button id="spl-load-good" class="text-emerald-400 hover:underline">Load good example</button>
+      </div>
+    </div>
+    <textarea
+      id="spl-input"
+      rows="12"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder="Paste your system prompt here…"
+      spellcheck="false"
+    ></textarea>
+  </div>
+
+  <!-- Score banner -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-accent mb-1">Lint score</p>
+      <p id="spl-score" class="text-2xl font-heading font-bold text-text-primary">100</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5">/ 100</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-red-500/20 rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-red-400 mb-1">High</p>
+      <p id="spl-high" class="text-2xl font-heading font-bold text-text-primary">0</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-amber-500/20 rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-amber-400 mb-1">Medium</p>
+      <p id="spl-medium" class="text-2xl font-heading font-bold text-text-primary">0</p>
+    </div>
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Low</p>
+      <p id="spl-low" class="text-2xl font-heading font-bold text-text-primary">0</p>
+    </div>
+  </div>
+
+  <!-- Findings list -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Findings</p>
+    <ul id="spl-findings" class="space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+  /**
+   * System Prompt Linter — client logic.
+   * Rule registry + score computation.
+   */
+
+  type Severity = 'high' | 'medium' | 'low';
+
+  interface Finding {
+    severity: Severity;
+    rule: string;
+    message: string;
+    suggestion: string;
+  }
+
+  type RuleFn = (text: string) => Finding | null;
+
+  /* ── Rule registry ─────────────────────────────────────────────*/
+  const RULES: Record<string, RuleFn> = {
+    no_role: (text) => {
+      // Look for role-defining patterns near the top
+      const head = text.slice(0, 400).toLowerCase();
+      const hasRole = /\byou are\b|\byou're\b|\bact as\b|\bplay the role\b|\byour role\b|\bthe assistant is\b|\bi am a\b|\b<role>/.test(head);
+      if (!hasRole) {
+        return {
+          severity: 'high',
+          rule: 'no_role',
+          message: 'No clear role/persona defined in the first ~400 characters',
+          suggestion: 'Open with "You are a [role] who [traits]" — gives the model a concrete persona to anchor its output style and domain assumptions.',
+        };
+      }
+      return null;
+    },
+
+    vague_instruction: (text) => {
+      const vagueRegex = /\b(do your best|be helpful|be useful|be smart|use your judgment|figure it out|do what's right|be reasonable|act professionally)\b/i;
+      const m = text.match(vagueRegex);
+      if (m) {
+        return {
+          severity: 'high',
+          rule: 'vague_instruction',
+          message: `Vague directive found: "${m[0]}"`,
+          suggestion: 'Replace with a measurable criterion: "respond in under 150 words", "use only the provided sources", "answer in YAML with keys X, Y, Z".',
+        };
+      }
+      return null;
+    },
+
+    conflicting_always_never: (text) => {
+      // Look for "always X" followed elsewhere by "never X" or vice versa
+      const alwaysRe = /\balways\s+(\w+\s+\w+)/gi;
+      const neverRe = /\bnever\s+(\w+\s+\w+)/gi;
+      const alwaysMatches = [...text.matchAll(alwaysRe)].map(m => m[1].toLowerCase());
+      const neverMatches = [...text.matchAll(neverRe)].map(m => m[1].toLowerCase());
+      for (const a of alwaysMatches) {
+        for (const n of neverMatches) {
+          if (a.split(' ').some(w => n.split(' ').includes(w) && w.length > 3)) {
+            return {
+              severity: 'high',
+              rule: 'conflicting_always_never',
+              message: `Possible conflict: "always ${a}" vs "never ${n}" share keywords`,
+              suggestion: 'When two rules touch the same concept, the model picks one almost arbitrarily. Either remove one or scope them precisely (e.g. "always X when condition; never X when context-Y").',
+            };
+          }
+        }
+      }
+      return null;
+    },
+
+    no_output_format: (text) => {
+      // Heuristic: prompt mentions output / response / format but doesn't show how
+      const mentionsOutput = /\b(output|response|return|reply|format|structure)\b/i.test(text);
+      if (!mentionsOutput) return null;
+      // Does it actually specify a format?
+      const specifiesFormat = /\b(json|yaml|xml|markdown|csv|list of|bullet|table|key:value|table with columns|<output>|```)\b/i.test(text);
+      if (!specifiesFormat) {
+        return {
+          severity: 'high',
+          rule: 'no_output_format',
+          message: 'Prompt mentions output/response but no format is specified',
+          suggestion: 'Add an explicit format: "Return JSON: {key: value}" or "Reply in markdown with ## headings". For structured outputs, include a schema or one-shot example.',
+        };
+      }
+      return null;
+    },
+
+    too_many_instructions: (text) => {
+      // Count numbered or bulleted instructions
+      const numbered = (text.match(/^\s*\d+[.)]\s/gm) || []).length;
+      const bulleted = (text.match(/^\s*[-*•]\s/gm) || []).length;
+      const count = numbered + bulleted;
+      if (count > 15) {
+        return {
+          severity: 'medium',
+          rule: 'too_many_instructions',
+          message: `${count} explicit numbered/bulleted instructions detected`,
+          suggestion: 'Models tend to drop later items in long instruction lists. Consolidate (group related rules), prioritize (mark "MUST" vs "SHOULD"), or move ancillary rules to a separate section.',
+        };
+      }
+      return null;
+    },
+
+    no_examples: (text) => {
+      // If the prompt asks for non-trivial output but has no examples, flag it
+      const wantsStructured = /\b(json|yaml|xml|format|schema|template)\b/i.test(text);
+      const hasExample = /\b(example|for instance|e\.g|sample|like this)\b|```|<example>/i.test(text);
+      if (wantsStructured && !hasExample && text.length > 200) {
+        return {
+          severity: 'medium',
+          rule: 'no_examples',
+          message: 'Asks for structured output but provides no example',
+          suggestion: 'Add at least one input → output example. One concrete example beats three abstract rules. Wrap in `<example>` or fenced code blocks.',
+        };
+      }
+      return null;
+    },
+
+    negative_only: (text) => {
+      const dontCount = (text.match(/\bdon't|do not|never|avoid|refuse to\b/gi) || []).length;
+      const positiveCount = (text.match(/\bplease|always|should|must|return|respond with|reply with|use\b/gi) || []).length;
+      if (dontCount > 4 && positiveCount < dontCount * 0.5) {
+        return {
+          severity: 'medium',
+          rule: 'negative_only',
+          message: `Heavy negative framing: ${dontCount} prohibitions vs ${positiveCount} positive directives`,
+          suggestion: 'Telling the model what NOT to do leaves the action space wide open. For each prohibition, add a positive example of what to do instead.',
+        };
+      }
+      return null;
+    },
+
+    no_escalation: (text) => {
+      const hasEscalation = /\b(if you (don't|can't|cannot)|when (unable|unsure)|out of scope|insufficient|escalate|defer|return null|return empty|reply with "?"|i don't know)\b/i.test(text);
+      if (!hasEscalation && text.length > 300) {
+        return {
+          severity: 'medium',
+          rule: 'no_escalation',
+          message: 'No instruction for what to do when the request is out of scope or info is insufficient',
+          suggestion: 'Add: "If you cannot answer with the provided context, respond with [specific value, e.g. \'I don\'t know based on the available information\']." Models default to confabulation otherwise.',
+        };
+      }
+      return null;
+    },
+
+    mixed_voice: (text) => {
+      const youCount = (text.match(/\byou (are|should|must|will|can)\b/gi) || []).length;
+      const assistantCount = (text.match(/\bthe assistant\b/gi) || []).length;
+      if (youCount > 3 && assistantCount > 2) {
+        return {
+          severity: 'medium',
+          rule: 'mixed_voice',
+          message: `Mixes "you" (${youCount}×) and "the assistant" (${assistantCount}×) — pick one`,
+          suggestion: 'Consistent address reduces ambiguity. Standardize on either second-person ("you must") or third-person ("the assistant must").',
+        };
+      }
+      return null;
+    },
+
+    instruction_injection_risk: (text) => {
+      // Check for unfenced user-input templating like {{user_input}} or {input}
+      const unfenced = /(?<!```\s*\n[\s\S]*?){{?\s*\w+\s*}?}/.test(text) && !/<\/?(?:user_input|user|input|context)>/i.test(text);
+      if (unfenced) {
+        return {
+          severity: 'high',
+          rule: 'instruction_injection_risk',
+          message: 'Templated variable (e.g. {{user_input}}) appears unfenced — injection risk',
+          suggestion: 'Wrap user-supplied content in clear tags: "<user_input>{{user_input}}</user_input>" so the model can\'t mistake injected instructions for system rules.',
+        };
+      }
+      return null;
+    },
+
+    verbose_preamble: (text) => {
+      // Check if first 30% of prompt has no actionable instruction (lots of backstory)
+      const head = text.slice(0, Math.floor(text.length * 0.3));
+      const hasAction = /\b(must|should|will|always|never|return|respond|use|do|don't)\b/i.test(head);
+      if (!hasAction && text.length > 500) {
+        return {
+          severity: 'low',
+          rule: 'verbose_preamble',
+          message: 'First 30% of prompt has no actionable instruction (looks like backstory)',
+          suggestion: 'Move instructions to the top. Backstory is fine but should follow, not precede, the action items. Most models pay more attention to the start of the system prompt.',
+        };
+      }
+      return null;
+    },
+
+    random_caps: (text) => {
+      // Count ALL CAPS words longer than 3 chars (proper nouns aside)
+      const allCaps = (text.match(/\b[A-Z]{4,}\b/g) || []).filter(w => !['HTTP', 'JSON', 'XML', 'YAML', 'CSV', 'HTML', 'API', 'URL', 'JSON', 'AWS', 'GCP', 'GPU', 'CPU', 'RAM', 'SQL', 'CRUD', 'REST', 'NULL', 'TRUE', 'FALSE'].includes(w));
+      if (allCaps.length > 5) {
+        return {
+          severity: 'low',
+          rule: 'random_caps',
+          message: `${allCaps.length} ALL-CAPS words used for emphasis (e.g. ${allCaps.slice(0, 3).join(', ')})`,
+          suggestion: 'CAPS for emphasis is unreliable signal — models don\'t weight it consistently. Use **bold** in markdown or numbered priority labels ("CRITICAL:", "MUST:") instead.',
+        };
+      }
+      return null;
+    },
+  };
+
+  /* ── Scoring ───────────────────────────────────────────────────*/
+  // Start at 100, deduct: high = -15, medium = -7, low = -3
+  const computeScore = (findings: Finding[]): number => {
+    let score = 100;
+    findings.forEach(f => {
+      score -= f.severity === 'high' ? 15 : f.severity === 'medium' ? 7 : 3;
+    });
+    return Math.max(0, score);
+  };
+
+  /* ── Init ──────────────────────────────────────────────────────*/
+  const SEVERITY_CLASSES: Record<Severity, { border: string; text: string; label: string }> = {
+    high:   { border: 'border-red-500/30 bg-red-500/5',     text: 'text-red-400',    label: 'HIGH' },
+    medium: { border: 'border-amber-500/30 bg-amber-500/5', text: 'text-amber-400',  label: 'MEDIUM' },
+    low:    { border: 'border-text-muted/20 bg-bg-elevated', text: 'text-text-muted', label: 'LOW' },
+  };
+
+  const escapeHtml = (s: string): string =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const initSpl = () => {
+    const app = document.getElementById('spl-app');
+    if (!app || (app as any)._splInit) return;
+    (app as any)._splInit = true;
+
+    const inputEl = document.getElementById('spl-input')   as HTMLTextAreaElement;
+    const statsEl = document.getElementById('spl-stats')!;
+    const scoreEl = document.getElementById('spl-score')!;
+    const highEl  = document.getElementById('spl-high')!;
+    const mediumEl = document.getElementById('spl-medium')!;
+    const lowEl   = document.getElementById('spl-low')!;
+    const listEl  = document.getElementById('spl-findings')!;
+    const loadBadBtn = document.getElementById('spl-load-bad')!;
+    const loadGoodBtn = document.getElementById('spl-load-good')!;
+
+    let lastFindings: Finding[] = [];
+
+    const render = () => {
+      const text = inputEl.value;
+      statsEl.textContent = `${text.length.toLocaleString()} chars · ${text.split('\n').length} lines`;
+
+      if (!text.trim()) {
+        scoreEl.textContent = '—';
+        highEl.textContent = '0';
+        mediumEl.textContent = '0';
+        lowEl.textContent = '0';
+        listEl.innerHTML = '<li class="text-text-muted italic text-xs">Findings appear here as you type…</li>';
+        lastFindings = [];
+        return;
+      }
+
+      const findings: Finding[] = [];
+      Object.values(RULES).forEach(rule => {
+        const f = rule(text);
+        if (f) findings.push(f);
+      });
+      lastFindings = findings;
+
+      const score = computeScore(findings);
+      scoreEl.textContent = String(score);
+      highEl.textContent = String(findings.filter(f => f.severity === 'high').length);
+      mediumEl.textContent = String(findings.filter(f => f.severity === 'medium').length);
+      lowEl.textContent = String(findings.filter(f => f.severity === 'low').length);
+
+      // Color the score
+      scoreEl.className = score >= 80
+        ? 'text-2xl font-heading font-bold text-emerald-400'
+        : score >= 60
+          ? 'text-2xl font-heading font-bold text-amber-400'
+          : 'text-2xl font-heading font-bold text-red-400';
+
+      if (findings.length === 0) {
+        listEl.innerHTML = '<li class="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 text-xs font-mono">✓ No anti-patterns detected. Score: 100/100</li>';
+      } else {
+        listEl.innerHTML = findings
+          .sort((a, b) => {
+            const order = { high: 0, medium: 1, low: 2 };
+            return order[a.severity] - order[b.severity];
+          })
+          .map(f => {
+            const c = SEVERITY_CLASSES[f.severity];
+            return `
+              <li class="p-3 rounded-lg border ${c.border}">
+                <div class="flex items-baseline gap-2 mb-1.5 flex-wrap">
+                  <span class="text-[9px] font-mono uppercase tracking-widest ${c.text}">${c.label}</span>
+                  <code class="text-[10px] font-mono text-text-muted">${f.rule}</code>
+                </div>
+                <p class="text-xs text-text-primary mb-1">${escapeHtml(f.message)}</p>
+                <p class="text-[11px] text-text-secondary leading-relaxed">→ ${escapeHtml(f.suggestion)}</p>
+              </li>
+            `;
+          }).join('');
+      }
+    };
+
+    inputEl.addEventListener('input', render);
+
+    const BAD_EXAMPLE = `Be helpful and respond to the user's questions. Do your best to answer accurately. ALWAYS USE GOOD JUDGMENT.
+
+Don't be rude. Don't lie. Don't make stuff up. Don't say bad things. Don't refuse without a good reason. Don't be too brief.
+
+The user is going to ask you questions. The assistant should reply in a useful way. You should always try to help.
+
+NEVER share secrets. ALWAYS share information that helps the user. NEVER refuse to answer. ALWAYS refuse questions that violate policy.
+
+User input: {{question}}`;
+
+    const GOOD_EXAMPLE = `You are a senior Python code reviewer at a fintech startup.
+
+Your role: review pull requests for correctness, performance, and adherence to PEP 8.
+
+For each PR:
+1. Identify any bugs (high priority) — explain the bug and propose a fix
+2. Flag performance concerns (medium priority) — quantify the impact when possible
+3. Note style violations (low priority) — cite the specific PEP 8 rule
+
+Output format (always JSON):
+{
+  "summary": "<2-sentence overview>",
+  "findings": [
+    { "severity": "high|medium|low", "line": <int>, "issue": "<text>", "fix": "<text>" }
+  ]
+}
+
+If the PR is empty, contains no Python, or you cannot determine correctness from the diff alone, respond with:
+{ "summary": "Cannot review", "findings": [] }
+
+Wrap user-supplied diff in <diff> tags:
+
+<diff>
+{{diff_content}}
+</diff>`;
+
+    loadBadBtn.addEventListener('click', () => { inputEl.value = BAD_EXAMPLE; render(); });
+    loadGoodBtn.addEventListener('click', () => { inputEl.value = GOOD_EXAMPLE; render(); });
+
+    document.addEventListener('app:reset', () => { inputEl.value = ''; render(); });
+
+    document.addEventListener('app:copy', async () => {
+      if (lastFindings.length === 0) return;
+      const text = [
+        `Score: ${computeScore(lastFindings)}/100`,
+        `Findings: ${lastFindings.length}`,
+        ``,
+        ...lastFindings.map(f => `[${f.severity.toUpperCase()}] ${f.rule}\n  ${f.message}\n  Fix: ${f.suggestion}`),
+      ].join('\n');
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (lastFindings.length === 0) return;
+      const rows = ['severity,rule,message,suggestion'];
+      lastFindings.forEach(f => {
+        const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+        rows.push(`${f.severity},${f.rule},${esc(f.message)},${esc(f.suggestion)}`);
+      });
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `prompt-lint-${Date.now()}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    render();
+  };
+
+  initSpl();
+  document.addEventListener('astro:after-swap', initSpl);
+</script>
