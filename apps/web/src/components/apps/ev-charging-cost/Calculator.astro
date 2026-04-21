@@ -144,6 +144,20 @@
 </div>
 
 <script>
+  /**
+   * EV Charging Cost Calculator — client logic.
+   *
+   * Core formula:
+   *   kWhFromWall = sessionKwh / chargerEfficiency   (wall draw > battery fill)
+   *   kWhFromGrid = kWhFromWall × (1 − solarPct/100) (solar covers the rest)
+   *   sessionCost = kWhFromGrid × rate
+   *   miles       = sessionKwh / vehicleEff (kWh/mi)
+   *   perMile     = sessionCost / miles
+   *   gasCost     = (miles / mpg) × gasPricePerGallon
+   *
+   * The charging context preset syncs rate and efficiency from the select value
+   * (format: "label|rate|efficiency"). Custom rate/efficiency can be set manually.
+   */
   const initEv = () => {
     const app = document.getElementById('ev-app');
     if (!app || (app as any)._evInit) return;

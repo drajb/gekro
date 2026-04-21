@@ -16,7 +16,11 @@
  *  2. Three most-recent posts via PostCard (getAllPosts — merged source)
  *  3. Link to /blog archive for full browsing
  *
- * SEO: <noindex> is set via SEOHead's default meta robots when status is 404.
+ * SEO: noindex={true} is EXPLICITLY passed to BaseLayout, which threads it down
+ *  to SEOHead where it renders `<meta name="robots" content="noindex, follow">`.
+ *  This is NOT automatic based on the HTTP 404 response — it requires the prop.
+ *  (The prior JSDoc claimed "SEOHead sets noindex when status is 404" — that was
+ *  incorrect; it never detected 404 automatically. The explicit prop is the fix.)
  *  We don't emit JSON-LD here — a 404 page has no canonical entity to describe.
  */
 
