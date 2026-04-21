@@ -37,7 +37,7 @@ export async function getStaticPaths() {
 export const GET: APIRoute = async ({ props }) => {
   const { title, date, eyebrow } = props as { title: string; date: string; eyebrow: string };
   const buffer = await renderOgCard({ title, date, eyebrow });
-  return new Response(buffer, {
+  return new Response(buffer as unknown as BodyInit, {
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=31536000, immutable',

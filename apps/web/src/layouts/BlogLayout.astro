@@ -86,7 +86,7 @@ const schema = {
   "description": seoDescription,
   "image": [absoluteOgImage],
   "datePublished": post.publishedAt,
-  "dateModified": (post as any).updatedAt || post.publishedAt,
+  "dateModified": post.updatedAt || post.publishedAt,
   "author": {
     "@type": "Person",
     "@id": "https://gekro.com/about/#person",
@@ -132,7 +132,7 @@ const breadcrumbs = {
   ogImage={ogImage}
   ogType="article"
   publishedTime={post.publishedAt}
-  modifiedTime={(post as any).updatedAt || post.publishedAt}
+  modifiedTime={post.updatedAt || post.publishedAt}
   author="Rohit Burani"
   section={primaryTopic}
   tags={post.topics}

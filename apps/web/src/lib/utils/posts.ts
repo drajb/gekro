@@ -47,6 +47,10 @@ export interface FormattedPost {
   // Some older posts use `summary` as an alias for description — preserved
   // in the union so local post flattening doesn't lose the field.
   summary?: string;
+  // ISO date of last significant content update (optional). When set,
+  // BlogLayout uses it for dateModified in JSON-LD and OG article:modified_time.
+  // Falls back to publishedAt when absent.
+  updatedAt?: string;
 }
 
 /**

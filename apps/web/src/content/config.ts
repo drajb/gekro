@@ -68,6 +68,8 @@ const experiments = defineCollection({
     githubUrl: z.string().optional(),
     demoUrl: z.string().optional(),
     difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']),
+    // ISO date when the experiment concluded (optional — ongoing experiments omit this)
+    endDate: z.string().optional(),
   }),
 });
 

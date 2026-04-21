@@ -162,7 +162,7 @@ const breadcrumbs = {
         </div>
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Started</span>
-          <span class="text-sm text-text-primary">{new Date(experiment.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+          <span class="text-sm text-text-primary">{new Date(experiment.startDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
         </div>
         <!-- Show GitHub link if provided, otherwise fall back to lab navigation -->
         {experiment.githubUrl ? (
