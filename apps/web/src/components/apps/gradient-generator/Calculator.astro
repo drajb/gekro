@@ -467,6 +467,37 @@
     renderStopRows();
     updateGlass();
     updateMesh();
+
+    /* AppShell toolbar wiring. Reset restores both glass and mesh defaults
+       (the inline copy buttons stay; this is the toolbar fallback). Copy
+       sends the *active tab's* CSS to the clipboard. */
+    document.addEventListener('app:reset', () => {
+      // Glass defaults — match the input default values declared in the markup
+      blurEl.value = '12';     blurValEl.textContent = '12px';
+      cardColorEl.value = '#ffffff';
+      opacityEl.value = '10';  opacityValEl.textContent = '10%';
+      borderColorEl.value = '#ffffff';
+      bopEl.value = '20';      bopValEl.textContent = '20%';
+      radiusEl.value = '16';   radiusValEl.textContent = '16px';
+      shadowCb.checked = true;
+      activeBg = 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)';
+      gbSwatches.forEach((b, i) => b.classList.toggle('active', i === 0));
+      glassStage.style.background = activeBg;
+
+      // Mesh defaults
+      meshStops = DEFAULT_STOPS.map(s => ({ ...s }));
+      meshBgEl.value = '#0d1117';
+      blendEl.value = 'normal';
+      renderStopRows();
+
+      updateGlass();
+      updateMesh();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      const css = (activeTab === 'mesh' ? meshCssEl : glassCssEl).textContent || '';
+      try { await navigator.clipboard.writeText(css); } catch {}
+    });
   };
 
   initGg();

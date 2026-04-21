@@ -155,6 +155,24 @@
 
     (app as any)._gclFrame = requestAnimationFrame(tick);
     document.addEventListener('astro:before-swap', () => cancelAnimationFrame((app as any)._gclFrame), { once: true });
+
+    /* AppShell toolbar wiring. The clock is auto-updating with no user state,
+       so reset is essentially a forced redraw. Copy emits a multi-zone snapshot
+       suitable for pasting into a meeting invite or status update. */
+    document.addEventListener('app:reset', () => tick());
+
+    document.addEventListener('app:copy', async () => {
+      const now = new Date();
+      const lines: string[] = [`UTC: ${now.toUTCString().replace(' GMT', '')}`];
+      app.querySelectorAll<HTMLElement>('[data-tz]').forEach(el => {
+        const tz = el.dataset.tz!;
+        const label = el.dataset.label || tz;
+        const time = fmtCache[tz].format(now);
+        const date = dCache[tz].format(now);
+        lines.push(`${label} (${tz}): ${time} — ${date}`);
+      });
+      try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
+    });
   };
 
   initGcl();

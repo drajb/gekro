@@ -320,8 +320,10 @@
       applySettings();
     }));
 
-    /* Export PNG using html-to-image */
-    exportBtn.addEventListener('click', async () => {
+    /* Export PNG using html-to-image — extracted as a named function so the
+       AppShell toolbar's app:export event can reuse the same logic without
+       duplicating it (fixes silent-no-op when toolbar Export is clicked). */
+    const exportPng = async () => {
       if (!inputEl.value.trim()) return;
 
       exportBtn.disabled = true;
@@ -348,6 +350,19 @@
         exportBtn.disabled = false;
         exportBtn.textContent = 'Export PNG';
       }
+    };
+
+    exportBtn.addEventListener('click', exportPng);
+    document.addEventListener('app:export', exportPng);
+
+    /* Copy raw source to clipboard when AppShell toolbar Copy is clicked.
+       Copying the rendered PNG via ClipboardItem requires extra permissions
+       and is brittle across browsers — the source text is the more useful
+       thing to copy anyway. */
+    document.addEventListener('app:copy', async () => {
+      const text = inputEl.value;
+      if (!text) return;
+      try { await navigator.clipboard.writeText(text); } catch {}
     });
 
     document.addEventListener('app:reset', () => {
