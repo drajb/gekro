@@ -357,7 +357,11 @@
     };
 
     const render = () => {
-      const paramsB = modelEl.value === 'custom' ? parseFloat(customEl.value) : parseFloat(modelEl.value);
+      // Guard against NaN from empty/invalid custom input — falls back to 7B
+      const rawCustom = parseFloat(customEl.value);
+      const paramsB = modelEl.value === 'custom'
+        ? (Number.isFinite(rawCustom) && rawCustom > 0 ? rawCustom : 7)
+        : parseFloat(modelEl.value);
       customWrap.classList.toggle('hidden', modelEl.value !== 'custom');
       lastParams = paramsB;
 

@@ -40,7 +40,7 @@
     <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl">
       <p class="text-[9px] font-mono uppercase tracking-widest text-accent mb-1">Lint score</p>
       <p id="spl-score" class="text-2xl font-heading font-bold text-text-primary">100</p>
-      <p class="text-[10px] font-mono text-text-muted mt-0.5">/ 100</p>
+      <p class="text-[10px] font-mono text-text-muted mt-0.5" id="spl-score-label">/ 100</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-red-500/20 rounded-xl">
       <p class="text-[9px] font-mono uppercase tracking-widest text-red-400 mb-1">High</p>
@@ -293,6 +293,7 @@
     const inputEl = document.getElementById('spl-input')   as HTMLTextAreaElement;
     const statsEl = document.getElementById('spl-stats')!;
     const scoreEl = document.getElementById('spl-score')!;
+    const scoreLabelEl = document.getElementById('spl-score-label')!;
     const highEl  = document.getElementById('spl-high')!;
     const mediumEl = document.getElementById('spl-medium')!;
     const lowEl   = document.getElementById('spl-low')!;
@@ -308,6 +309,8 @@
 
       if (!text.trim()) {
         scoreEl.textContent = '—';
+        scoreEl.className = 'text-2xl font-heading font-bold text-text-muted';
+        scoreLabelEl.textContent = '/ 100';
         highEl.textContent = '0';
         mediumEl.textContent = '0';
         lowEl.textContent = '0';
@@ -329,12 +332,11 @@
       mediumEl.textContent = String(findings.filter(f => f.severity === 'medium').length);
       lowEl.textContent = String(findings.filter(f => f.severity === 'low').length);
 
-      // Color the score
-      scoreEl.className = score >= 80
-        ? 'text-2xl font-heading font-bold text-emerald-400'
-        : score >= 60
-          ? 'text-2xl font-heading font-bold text-amber-400'
-          : 'text-2xl font-heading font-bold text-red-400';
+      // Color the score + show interpretation label
+      const verdict = score >= 80 ? 'Good' : score >= 60 ? 'Needs work' : 'Rewrite';
+      const verdictColor = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-red-400';
+      scoreEl.className = `text-2xl font-heading font-bold ${verdictColor}`;
+      scoreLabelEl.innerHTML = `/ 100 · <span class="${verdictColor}">${verdict}</span>`;
 
       if (findings.length === 0) {
         listEl.innerHTML = '<li class="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 text-xs font-mono">✓ No anti-patterns detected. Score: 100/100</li>';

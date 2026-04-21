@@ -340,7 +340,14 @@
 
       // Render each chunk as a card with the overlap region (the leading
       // `overlapWithPrev` chars) highlighted in accent color.
-      chunksEl.innerHTML = chunks.map((c, i) => {
+      // Cap rendering at 50 chunks to keep the page responsive — a chunked
+      // 100KB document with 256-token chunks can produce 200+ chunks.
+      const RENDER_CAP = 50;
+      const truncatedNote = chunks.length > RENDER_CAP
+        ? `<div class="p-3 bg-amber-500/5 border border-amber-500/30 rounded-xl text-xs font-mono text-amber-400">Showing first ${RENDER_CAP} of ${chunks.length} chunks (truncated for perf). Export to JSON to see all.</div>`
+        : '';
+      const visibleChunks = chunks.slice(0, RENDER_CAP);
+      chunksEl.innerHTML = truncatedNote + visibleChunks.map((c, i) => {
         const tokens = tokenSizes[i];
         const overlapText = c.overlapWithPrev > 0 ? c.text.slice(0, c.overlapWithPrev) : '';
         const restText = c.text.slice(c.overlapWithPrev);

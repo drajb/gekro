@@ -29,6 +29,9 @@
         <span id="tk-bytes">0 bytes</span>
       </div>
     </div>
+    <p id="tk-large-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-400">
+      Large input (&gt;50 KB) — visualization rendering capped at first 2,000 tokens. The total counts above remain accurate.
+    </p>
     <textarea
       id="tk-input"
       rows="6"
@@ -233,7 +236,15 @@
       const showBytes = byteCb.checked;
       const visible = showWs ? lastTokens : lastTokens.filter(t => t.type !== 'whitespace');
 
-      vizEl.innerHTML = visible.map(t => {
+      // Cap rendered chips at 2,000 to prevent UI lock on huge inputs.
+      // The total counts in the hero stats stay accurate regardless.
+      const RENDER_CAP = 2000;
+      const isLarge = text.length > 50_000;
+      const largeWarning = document.getElementById('tk-large-warning');
+      if (largeWarning) largeWarning.classList.toggle('hidden', !isLarge);
+      const renderTokens = visible.slice(0, RENDER_CAP);
+
+      vizEl.innerHTML = renderTokens.map(t => {
         const cls = TYPE_CLASSES[t.type];
         const byteLabel = showBytes ? `<span class="ml-1 opacity-50 text-[9px]">${t.bytes}b</span>` : '';
         return `<span class="inline-block px-1.5 py-0.5 mr-0.5 mb-0.5 rounded border ${cls} text-xs" title="type: ${t.type} · ${t.bytes} bytes · ${t.text.length} chars">${visualizeText(t)}${byteLabel}</span>`;
