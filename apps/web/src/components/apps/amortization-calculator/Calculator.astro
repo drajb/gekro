@@ -14,19 +14,19 @@
     </div>
 
     <div class="space-y-1.5">
-      <label for="am-rate" class="text-sm font-medium text-text-secondary">Annual interest rate (%)</label>
+      <label for="am-rate" class="text-sm font-medium text-text-secondary">Annual interest rate (%)<span title="The APR (Annual Percentage Rate) — the yearly cost of the loan as a percentage. Divide by 12 internally to get the monthly rate used in calculations." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="am-rate" type="number" min="0" max="30" step="0.01" value="6.5"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
     </div>
 
     <div class="space-y-1.5">
-      <label for="am-term" class="text-sm font-medium text-text-secondary">Loan term (years)</label>
+      <label for="am-term" class="text-sm font-medium text-text-secondary">Loan term (years)<span title="The number of years to fully repay the loan. Common: 30 yr (lower payment, more interest) or 15 yr (higher payment, far less total interest). A 30-yr loan at the same rate costs roughly 2× the interest of a 15-yr." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="am-term" type="number" min="1" max="50" step="1" value="30"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
     </div>
 
     <div class="space-y-1.5">
-      <label for="am-extra" class="text-sm font-medium text-text-secondary">Extra monthly payment ($)</label>
+      <label for="am-extra" class="text-sm font-medium text-text-secondary">Extra monthly payment ($)<span title="Additional principal paid each month on top of your required payment. Goes directly to reducing the balance, which cuts total interest and shortens the loan term — even small amounts compound significantly over time." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="am-extra" type="number" min="0" step="50" value="0"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <p class="text-xs text-text-muted">Additional principal per month. Reduces term and total interest.</p>

@@ -287,6 +287,44 @@
       const bmr = 10*kg + 6.25*cm - 5*(parseFloat(ageEl.value)||30) + ((app.querySelector<HTMLInputElement>('input[name="bmi-sex"]:checked')?.value||'male')==='male'?5:-161);
       try { await navigator.clipboard.writeText(`BMI: ${fmt(bmi)} (${label})\nBMR: ${Math.round(bmr)} kcal/day\nTDEE: ${Math.round(bmr*parseFloat(activityEl.value))} kcal/day`); } catch {}
     });
+    document.addEventListener('app:export', () => {
+      const { kg, cm } = getKgCm();
+      if (kg <= 0 || cm <= 0) return;
+      const age = parseFloat(ageEl.value) || 0;
+      const sex = (app.querySelector<HTMLInputElement>('input[name="bmi-sex"]:checked')?.value) || 'male';
+      const activity = parseFloat(activityEl.value);
+      const hm = cm / 100;
+      const bmi = kg / (hm * hm);
+      const { label } = bmiCategory(bmi);
+      const bmr = 10*kg + 6.25*cm - 5*age + (sex === 'male' ? 5 : -161);
+      const tdee = bmr * activity;
+      const idealLow  = 18.5 * hm * hm;
+      const idealHigh = 24.9 * hm * hm;
+      const toDisplay = (kgv: number) => isImperial ? fmt(kgv * 2.20462) + ' lbs' : fmt(kgv) + ' kg';
+      const weightDisplay = toDisplay(kg);
+      const heightDisplay = isImperial
+        ? `${feetEl.value} ft ${inchesEl.value} in`
+        : `${cmEl.value} cm`;
+      const lines = [
+        'BMI Health Metrics Summary',
+        '==========================',
+        '',
+        `Weight:          ${weightDisplay}`,
+        `Height:          ${heightDisplay}`,
+        `Age:             ${age}`,
+        `Sex:             ${sex}`,
+        '',
+        `BMI:             ${fmt(bmi)} — ${label}`,
+        `BMR:             ${Math.round(bmr)} kcal/day`,
+        `TDEE:            ${Math.round(tdee)} kcal/day`,
+        `Healthy range:   ${toDisplay(idealLow)} – ${toDisplay(idealHigh)}`,
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'bmi-summary.txt'; a.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   initBmi();

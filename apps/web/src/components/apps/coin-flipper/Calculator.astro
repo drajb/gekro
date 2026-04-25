@@ -339,6 +339,25 @@
       const text = `Coin Flipper: ${total} flips — ${heads} heads (${total?((heads/total)*100).toFixed(1):'0'}%), ${tails} tails`;
       try { await navigator.clipboard.writeText(text); } catch {}
     });
+    document.addEventListener('app:export', () => {
+      const total = heads + tails;
+      if (total === 0) return;
+      const lines = [
+        'Coin Flipper — Flip History',
+        '===========================',
+        '',
+        `Total flips: ${total.toLocaleString()}`,
+        `Heads: ${heads.toLocaleString()} (${total ? (heads/total*100).toFixed(1) : '0'}%)`,
+        `Tails: ${tails.toLocaleString()} (${total ? (tails/total*100).toFixed(1) : '0'}%)`,
+        `Current streak: ${curStreak > 0 ? curStreak + '× ' + curSide : '—'}`,
+        `Longest streak: ${longestStreak > 0 ? longestStreak + '× ' + longestSide : '—'}`,
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'coin-flip-history.txt'; a.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   initCf();

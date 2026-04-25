@@ -97,19 +97,19 @@ const DEFAULT_HW_PRICE = LOCAL_HARDWARE.find(h => h.id === DEFAULT_HARDWARE)?.ms
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-secondary">Input tokens / day</label>
+          <label class="block text-sm font-medium text-text-secondary">Input tokens / day<span title="Prompt + context tokens sent to the model per day — counts every token in the system prompt, conversation history, and user messages, not just the number of requests" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <input id="api-input-tokens" type="number" value={DEFAULT_INPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
             class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
           <p class="text-xs text-text-muted">System prompt + user message combined</p>
         </div>
         <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-secondary">Output tokens / day</label>
+          <label class="block text-sm font-medium text-text-secondary">Output tokens / day<span title="Generated tokens in the model's response per day — typically 10–20% of input for Q&A workloads; much lower for classification or routing tasks" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <input id="api-output-tokens" type="number" value={DEFAULT_OUTPUT_PER_DAY} min="0" step="1000" inputmode="numeric"
             class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
           <p class="text-xs text-text-muted">The model's response — usually 5–20% of input</p>
         </div>
         <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-secondary">Cache hit rate</label>
+          <label class="block text-sm font-medium text-text-secondary">Cache hit rate<span title="% of input tokens served from Anthropic's prefix cache instead of reprocessed — cached tokens cost ~0.1× the normal input price; use 0% if you're not sending a repeated system prompt" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <div class="relative">
             <input id="api-cache-hit" type="number" value={DEFAULT_CACHE_HIT} min="0" max="100" step="5" inputmode="numeric"
               class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-8 text-text-primary font-mono text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
@@ -177,7 +177,7 @@ const DEFAULT_HW_PRICE = LOCAL_HARDWARE.find(h => h.id === DEFAULT_HARDWARE)?.ms
       <p class="text-sm font-medium text-text-secondary">Usage & running costs</p>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-secondary">Tokens / day</label>
+          <label class="block text-sm font-medium text-text-secondary">Tokens / day<span title="Combined input + output tokens processed locally per day — used with benchmark tok/s to calculate how many hours your GPU runs and therefore your electricity cost" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <input id="local-tokens" type="number" value={DEFAULT_INPUT_PER_DAY + DEFAULT_OUTPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
             class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
           <p class="text-xs text-text-muted">Input + output combined</p>
@@ -192,7 +192,7 @@ const DEFAULT_HW_PRICE = LOCAL_HARDWARE.find(h => h.id === DEFAULT_HARDWARE)?.ms
           <p class="text-xs text-text-muted">US average is 17.45¢ — check your electricity bill</p>
         </div>
         <div class="space-y-1.5">
-          <label class="block text-sm font-medium text-text-secondary">Amortize hardware over</label>
+          <label class="block text-sm font-medium text-text-secondary">Amortize hardware over<span title="Spreads the upfront purchase price across this many years — e.g. a $500 GPU over 3 years adds ~$14/mo to your cost baseline" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <div class="relative">
             <input id="local-amort" type="number" value={DEFAULT_AMORT_YEARS} min="1" max="10" step="1" inputmode="numeric"
               class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 pr-12 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
@@ -276,7 +276,7 @@ const DEFAULT_HW_PRICE = LOCAL_HARDWARE.find(h => h.id === DEFAULT_HARDWARE)?.ms
         </div>
       </div>
       <div class="space-y-1.5">
-        <label class="block text-sm font-medium text-text-secondary">Total tokens / day</label>
+        <label class="block text-sm font-medium text-text-secondary">Total tokens / day<span title="Input + output tokens combined — the calculator assumes an 83/17 split between input and output for the cloud cost side" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input id="cmp-tokens" type="number" value={DEFAULT_INPUT_PER_DAY + DEFAULT_OUTPUT_PER_DAY} min="0" step="10000" inputmode="numeric"
           class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-text-primary font-mono text-sm focus:outline-none focus:border-accent transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none" />
         <p class="text-xs text-text-muted">Input + output combined</p>

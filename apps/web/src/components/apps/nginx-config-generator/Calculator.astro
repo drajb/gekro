@@ -1,0 +1,558 @@
+---
+/**
+ * Nginx Config Generator — Calculator.astro
+ *
+ * Form-driven nginx server block generator.
+ * Supports static sites, reverse proxies, PHP-FPM, and redirect configs.
+ * Output includes inline comments explaining each non-obvious directive.
+ *
+ * Zero deps. Pure string templating.
+ */
+---
+
+<div id="ngx-app" class="space-y-5">
+
+  <!-- Server type tabs -->
+  <div class="flex gap-1 p-1 bg-bg-elevated rounded-lg border border-border-subtle flex-wrap">
+    <button class="ngx-tab-btn flex-1 min-w-[80px] py-1.5 px-3 rounded-md text-[10px] font-mono uppercase tracking-widest transition-colors" data-tab="static">Static site</button>
+    <button class="ngx-tab-btn flex-1 min-w-[80px] py-1.5 px-3 rounded-md text-[10px] font-mono uppercase tracking-widest transition-colors" data-tab="proxy">Reverse proxy</button>
+    <button class="ngx-tab-btn flex-1 min-w-[80px] py-1.5 px-3 rounded-md text-[10px] font-mono uppercase tracking-widest transition-colors" data-tab="phpfpm">PHP-FPM</button>
+    <button class="ngx-tab-btn flex-1 min-w-[80px] py-1.5 px-3 rounded-md text-[10px] font-mono uppercase tracking-widest transition-colors" data-tab="redirect">Redirect</button>
+  </div>
+
+  <!-- Common inputs -->
+  <div class="space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70">Common</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Server name / domain</label>
+        <input type="text" id="ngx-server-name" value="example.com www.example.com"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Listen port</label>
+        <input type="number" id="ngx-listen-port" value="80" min="1" max="65535" inputmode="numeric"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="ngx-ssl" class="accent-[var(--color-accent)] w-3.5 h-3.5" />
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+            Enable SSL / HTTPS
+            <span title="Adds listen 443 ssl with certificate paths. Typically used with Let's Encrypt / Certbot." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SSL fields (hidden unless SSL checked) -->
+    <div id="ngx-ssl-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          SSL certificate path
+          <span title="Full path to the fullchain.pem certificate file. Let's Encrypt stores this in /etc/letsencrypt/live/domain/." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+        <input type="text" id="ngx-ssl-cert" value="/etc/letsencrypt/live/example.com/fullchain.pem"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">SSL private key path</label>
+        <input type="text" id="ngx-ssl-key" value="/etc/letsencrypt/live/example.com/privkey.pem"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="flex items-center gap-2 sm:col-span-2">
+        <input type="checkbox" id="ngx-https-redirect" class="accent-[var(--color-accent)] w-3.5 h-3.5" checked />
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">HTTP → HTTPS redirect (301)</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Type-specific: Static site -->
+  <div id="ngx-section-static" class="space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70">Static site options</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Document root</label>
+        <input type="text" id="ngx-static-root" value="/var/www/example.com"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Index files</label>
+        <input type="text" id="ngx-static-index" value="index.html index.htm"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          try_files pattern
+          <span title="Controls how nginx resolves a request. '$uri $uri/ =404' tries the exact file, then as a directory, then returns 404. SPAs often use '$uri $uri/ /index.html' to let the JS router handle 404s." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+        <input type="text" id="ngx-static-try-files" value="$uri $uri/ =404"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="ngx-gzip" class="accent-[var(--color-accent)] w-3.5 h-3.5" checked />
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Gzip compression</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="ngx-cache-headers" class="accent-[var(--color-accent)] w-3.5 h-3.5" checked />
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Cache-Control for static assets</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Type-specific: Reverse proxy -->
+  <div id="ngx-section-proxy" class="hidden space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70">Reverse proxy options</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          Proxy target URL
+          <span title="The upstream backend address nginx will proxy requests to. Usually a local process: http://127.0.0.1:3000. Use http:// not https:// for local sockets." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+        <input type="text" id="ngx-proxy-target" value="http://127.0.0.1:3000"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">proxy_set_header presets</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer">
+            <input type="checkbox" class="ngx-proxy-header accent-[var(--color-accent)] w-3.5 h-3.5" data-header="host" checked />
+            Host
+          </label>
+          <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer">
+            <input type="checkbox" class="ngx-proxy-header accent-[var(--color-accent)] w-3.5 h-3.5" data-header="real-ip" checked />
+            X-Real-IP
+          </label>
+          <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer">
+            <input type="checkbox" class="ngx-proxy-header accent-[var(--color-accent)] w-3.5 h-3.5" data-header="forwarded-for" checked />
+            X-Forwarded-For
+          </label>
+          <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer">
+            <input type="checkbox" class="ngx-proxy-header accent-[var(--color-accent)] w-3.5 h-3.5" data-header="forwarded-proto" checked />
+            X-Forwarded-Proto
+          </label>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:col-span-2">
+        <input type="checkbox" id="ngx-websocket" class="accent-[var(--color-accent)] w-3.5 h-3.5" />
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          WebSocket support
+          <span title="Adds Upgrade and Connection headers so WebSocket connections can pass through nginx. Required for Socket.IO, Next.js HMR, or any ws:// service." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">proxy_connect_timeout (sec)</label>
+        <input type="number" id="ngx-proxy-connect-timeout" value="60" min="1" max="300" inputmode="numeric"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">proxy_read_timeout (sec)</label>
+        <input type="number" id="ngx-proxy-read-timeout" value="60" min="1" max="3600" inputmode="numeric"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Type-specific: PHP-FPM -->
+  <div id="ngx-section-phpfpm" class="hidden space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70">PHP-FPM options</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Document root</label>
+        <input type="text" id="ngx-php-root" value="/var/www/example.com"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          PHP-FPM socket path
+          <span title="The Unix socket (or TCP address) your PHP-FPM pool is listening on. Unix sockets are faster than TCP for local connections. Find yours with: grep 'listen =' /etc/php/*/fpm/pool.d/www.conf" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+        <input type="text" id="ngx-php-socket" value="unix:/var/run/php/php8.2-fpm.sock"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Type-specific: Redirect -->
+  <div id="ngx-section-redirect" class="hidden space-y-3">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70">Redirect options</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="space-y-1 sm:col-span-2">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Redirect target URL</label>
+        <input type="text" id="ngx-redirect-target" value="https://newdomain.com$request_uri"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors" />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Redirect type</label>
+        <select id="ngx-redirect-type"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                 text-xs font-mono text-text-primary focus:outline-none transition-colors">
+          <option value="301">301 — Permanent (search engines update index)</option>
+          <option value="302">302 — Temporary (search engines keep old URL)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Generated nginx config</p>
+      <p class="text-[10px] font-mono text-text-muted">
+        Save to <code class="bg-bg-elevated px-1.5 py-0.5 rounded">/etc/nginx/sites-available/example.com</code>
+        then <code class="bg-bg-elevated px-1.5 py-0.5 rounded">nginx -t && systemctl reload nginx</code>
+      </p>
+    </div>
+    <pre id="ngx-output"
+      class="bg-bg-elevated border border-border-subtle rounded-xl p-4 text-xs font-mono text-text-secondary overflow-x-auto whitespace-pre"></pre>
+  </div>
+</div>
+
+<script>
+  /**
+   * Nginx Config Generator — client logic.
+   * Tab-driven generator for 4 server block types with SSL, headers, timeouts.
+   */
+
+  type NgxTab = 'static' | 'proxy' | 'phpfpm' | 'redirect';
+
+  let currentTab: NgxTab = 'static';
+
+  const get = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+  const v = (id: string): string => (get<HTMLInputElement>(id)?.value ?? '').trim();
+  const checked = (id: string): boolean => (get<HTMLInputElement>(id)?.checked ?? false);
+
+  const indent = (lines: string[], depth = 4): string[] =>
+    lines.map(l => l === '' ? '' : ' '.repeat(depth) + l);
+
+  const generateStatic = (
+    serverName: string, listenPort: string, ssl: boolean,
+    sslCert: string, sslKey: string
+  ): string[] => {
+    const root   = v('ngx-static-root')       || '/var/www/example.com';
+    const index  = v('ngx-static-index')      || 'index.html index.htm';
+    const tryFiles = v('ngx-static-try-files') || '$uri $uri/ =404';
+    const gzip   = checked('ngx-gzip');
+    const cache  = checked('ngx-cache-headers');
+
+    const lines: string[] = [];
+    lines.push(`server {`);
+    lines.push(`    listen ${listenPort};`);
+    if (ssl) {
+      lines.push(`    listen 443 ssl;`);
+      lines.push(`    # Path to fullchain.pem from Let's Encrypt / your CA`);
+      lines.push(`    ssl_certificate ${sslCert};`);
+      lines.push(`    ssl_certificate_key ${sslKey};`);
+      lines.push(`    # Modern TLS only — drops TLS 1.0/1.1`);
+      lines.push(`    ssl_protocols TLSv1.2 TLSv1.3;`);
+      lines.push(`    ssl_ciphers HIGH:!aNULL:!MD5;`);
+    }
+    lines.push(`    server_name ${serverName};`);
+    lines.push(``);
+    lines.push(`    root ${root};`);
+    lines.push(`    index ${index};`);
+    lines.push(``);
+    lines.push(`    location / {`);
+    lines.push(`        # Try exact file, then directory, then 404 (change last arg to /index.html for SPAs)`);
+    lines.push(`        try_files ${tryFiles};`);
+    lines.push(`    }`);
+
+    if (gzip) {
+      lines.push(``);
+      lines.push(`    # Compress text responses — saves bandwidth for JS/CSS/HTML`);
+      lines.push(`    gzip on;`);
+      lines.push(`    gzip_types text/plain text/css text/javascript application/javascript application/json image/svg+xml;`);
+      lines.push(`    gzip_vary on;`);
+    }
+
+    if (cache) {
+      lines.push(``);
+      lines.push(`    # Long-lived cache for versioned static assets`);
+      lines.push(`    location ~* \\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot)$ {`);
+      lines.push(`        expires 1y;`);
+      lines.push(`        add_header Cache-Control "public, immutable";`);
+      lines.push(`        access_log off;`);
+      lines.push(`    }`);
+    }
+
+    lines.push(`}`);
+    return lines;
+  };
+
+  const generateProxy = (
+    serverName: string, listenPort: string, ssl: boolean,
+    sslCert: string, sslKey: string
+  ): string[] => {
+    const target  = v('ngx-proxy-target')         || 'http://127.0.0.1:3000';
+    const ws      = checked('ngx-websocket');
+    const connTimeout = v('ngx-proxy-connect-timeout') || '60';
+    const readTimeout = v('ngx-proxy-read-timeout')    || '60';
+    const headerHost    = document.querySelector<HTMLInputElement>('.ngx-proxy-header[data-header="host"]')?.checked ?? true;
+    const headerRealIp  = document.querySelector<HTMLInputElement>('.ngx-proxy-header[data-header="real-ip"]')?.checked ?? true;
+    const headerFwdFor  = document.querySelector<HTMLInputElement>('.ngx-proxy-header[data-header="forwarded-for"]')?.checked ?? true;
+    const headerFwdProto = document.querySelector<HTMLInputElement>('.ngx-proxy-header[data-header="forwarded-proto"]')?.checked ?? true;
+
+    const lines: string[] = [];
+    lines.push(`server {`);
+    lines.push(`    listen ${listenPort};`);
+    if (ssl) {
+      lines.push(`    listen 443 ssl;`);
+      lines.push(`    ssl_certificate ${sslCert};`);
+      lines.push(`    ssl_certificate_key ${sslKey};`);
+      lines.push(`    ssl_protocols TLSv1.2 TLSv1.3;`);
+      lines.push(`    ssl_ciphers HIGH:!aNULL:!MD5;`);
+    }
+    lines.push(`    server_name ${serverName};`);
+    lines.push(``);
+    lines.push(`    location / {`);
+    lines.push(`        # Forward all requests to the upstream backend`);
+    lines.push(`        proxy_pass ${target};`);
+    if (headerHost)    lines.push(`        proxy_set_header Host $host;`);
+    if (headerRealIp)  lines.push(`        # Pass client IP to the backend (use $remote_addr, not $proxy_add_x_forwarded_for, for real IP)`);
+    if (headerRealIp)  lines.push(`        proxy_set_header X-Real-IP $remote_addr;`);
+    if (headerFwdFor)  lines.push(`        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`);
+    if (headerFwdProto) lines.push(`        proxy_set_header X-Forwarded-Proto $scheme;`);
+    if (ws) {
+      lines.push(``);
+      lines.push(`        # WebSocket upgrade headers — required for ws:// / wss:// connections`);
+      lines.push(`        proxy_http_version 1.1;`);
+      lines.push(`        proxy_set_header Upgrade $http_upgrade;`);
+      lines.push(`        proxy_set_header Connection "upgrade";`);
+    }
+    lines.push(`        proxy_connect_timeout ${connTimeout}s;`);
+    lines.push(`        proxy_read_timeout ${readTimeout}s;`);
+    lines.push(`    }`);
+    lines.push(`}`);
+    return lines;
+  };
+
+  const generatePhpFpm = (
+    serverName: string, listenPort: string, ssl: boolean,
+    sslCert: string, sslKey: string
+  ): string[] => {
+    const root   = v('ngx-php-root')   || '/var/www/example.com';
+    const socket = v('ngx-php-socket') || 'unix:/var/run/php/php8.2-fpm.sock';
+
+    const lines: string[] = [];
+    lines.push(`server {`);
+    lines.push(`    listen ${listenPort};`);
+    if (ssl) {
+      lines.push(`    listen 443 ssl;`);
+      lines.push(`    ssl_certificate ${sslCert};`);
+      lines.push(`    ssl_certificate_key ${sslKey};`);
+      lines.push(`    ssl_protocols TLSv1.2 TLSv1.3;`);
+      lines.push(`    ssl_ciphers HIGH:!aNULL:!MD5;`);
+    }
+    lines.push(`    server_name ${serverName};`);
+    lines.push(`    root ${root};`);
+    lines.push(`    index index.php index.html;`);
+    lines.push(``);
+    lines.push(`    location / {`);
+    lines.push(`        try_files $uri $uri/ /index.php?$query_string;`);
+    lines.push(`    }`);
+    lines.push(``);
+    lines.push(`    location ~ \\.php$ {`);
+    lines.push(`        # Security: only process .php files that actually exist`);
+    lines.push(`        try_files $uri =404;`);
+    lines.push(`        fastcgi_split_path_info ^(.+\\.php)(/.+)$;`);
+    lines.push(`        # Unix socket is faster than TCP for local PHP-FPM`);
+    lines.push(`        fastcgi_pass ${socket};`);
+    lines.push(`        fastcgi_index index.php;`);
+    lines.push(`        include fastcgi_params;`);
+    lines.push(`        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;`);
+    lines.push(`        fastcgi_param PATH_INFO $fastcgi_path_info;`);
+    lines.push(`    }`);
+    lines.push(``);
+    lines.push(`    # Block access to hidden files (.htaccess, .git, etc.)`);
+    lines.push(`    location ~ /\\. {`);
+    lines.push(`        deny all;`);
+    lines.push(`    }`);
+    lines.push(`}`);
+    return lines;
+  };
+
+  const generateRedirect = (serverName: string, listenPort: string): string[] => {
+    const target = v('ngx-redirect-target') || 'https://newdomain.com$request_uri';
+    const code   = v('ngx-redirect-type') || '301';
+    const codeLabel = code === '301' ? 'permanent' : 'temporary';
+
+    const lines: string[] = [];
+    lines.push(`server {`);
+    lines.push(`    listen ${listenPort};`);
+    lines.push(`    server_name ${serverName};`);
+    lines.push(``);
+    lines.push(`    # ${codeLabel.charAt(0).toUpperCase() + codeLabel.slice(1)} redirect — all traffic goes to the target URL`);
+    lines.push(`    # Use $request_uri to preserve the path (/about → newdomain.com/about)`);
+    lines.push(`    return ${code} ${target};`);
+    lines.push(`}`);
+    return lines;
+  };
+
+  const generateConfig = (): string => {
+    const serverName  = v('ngx-server-name')  || 'example.com';
+    const listenPort  = v('ngx-listen-port')  || '80';
+    const ssl         = checked('ngx-ssl');
+    const httpsRedir  = ssl && checked('ngx-https-redirect');
+    const sslCert     = v('ngx-ssl-cert');
+    const sslKey      = v('ngx-ssl-key');
+
+    const header = [
+      '# Generated by gekro.com/apps/nginx-config-generator',
+      '# Save to /etc/nginx/sites-available/example.com',
+      '# Enable: sudo ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/',
+      '# Test:   sudo nginx -t',
+      '# Reload: sudo systemctl reload nginx',
+      '',
+    ];
+
+    let blocks: string[] = [];
+
+    // HTTP → HTTPS redirect block
+    if (httpsRedir) {
+      blocks.push(
+        `# HTTP → HTTPS redirect block`,
+        `server {`,
+        `    listen 80;`,
+        `    server_name ${serverName};`,
+        `    # 301 redirect all HTTP traffic to HTTPS`,
+        `    return 301 https://$host$request_uri;`,
+        `}`,
+        '',
+      );
+    }
+
+    let mainBlock: string[] = [];
+    if (currentTab === 'static') {
+      mainBlock = generateStatic(serverName, httpsRedir ? '443 ssl' : listenPort, ssl && !httpsRedir, sslCert, sslKey);
+    } else if (currentTab === 'proxy') {
+      mainBlock = generateProxy(serverName, httpsRedir ? '443 ssl' : listenPort, ssl && !httpsRedir, sslCert, sslKey);
+    } else if (currentTab === 'phpfpm') {
+      mainBlock = generatePhpFpm(serverName, httpsRedir ? '443 ssl' : listenPort, ssl && !httpsRedir, sslCert, sslKey);
+    } else {
+      mainBlock = generateRedirect(serverName, listenPort);
+    }
+
+    blocks.push(...mainBlock);
+
+    return [...header, ...blocks].join('\n');
+  };
+
+  const setTab = (tab: NgxTab) => {
+    currentTab = tab;
+    const sections: NgxTab[] = ['static', 'proxy', 'phpfpm', 'redirect'];
+    sections.forEach(t => {
+      const sec = document.getElementById(`ngx-section-${t}`);
+      if (sec) sec.classList.toggle('hidden', t !== tab);
+      const btn = document.querySelector<HTMLButtonElement>(`.ngx-tab-btn[data-tab="${t}"]`);
+      if (btn) {
+        btn.classList.toggle('bg-bg-surface', t === tab);
+        btn.classList.toggle('text-text-primary', t === tab);
+        btn.classList.toggle('text-text-muted', t !== tab);
+      }
+    });
+    render();
+  };
+
+  const render = () => {
+    const outputEl = document.getElementById('ngx-output');
+    if (outputEl) outputEl.textContent = generateConfig();
+  };
+
+  const initNgx = () => {
+    const app = document.getElementById('ngx-app');
+    if (!app || (app as any)._ngxInit) return;
+    (app as any)._ngxInit = true;
+
+    // Tab buttons
+    document.querySelectorAll<HTMLButtonElement>('.ngx-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => setTab(btn.dataset.tab as NgxTab));
+    });
+
+    // SSL toggle
+    const sslEl = get<HTMLInputElement>('ngx-ssl');
+    const sslFields = document.getElementById('ngx-ssl-fields');
+    sslEl?.addEventListener('change', () => {
+      sslFields?.classList.toggle('hidden', !sslEl.checked);
+      render();
+    });
+
+    // Listen to all relevant inputs
+    const watchIds = [
+      'ngx-server-name', 'ngx-listen-port', 'ngx-ssl-cert', 'ngx-ssl-key',
+      'ngx-https-redirect',
+      'ngx-static-root', 'ngx-static-index', 'ngx-static-try-files', 'ngx-gzip', 'ngx-cache-headers',
+      'ngx-proxy-target', 'ngx-websocket', 'ngx-proxy-connect-timeout', 'ngx-proxy-read-timeout',
+      'ngx-php-root', 'ngx-php-socket',
+      'ngx-redirect-target', 'ngx-redirect-type',
+    ];
+    watchIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.addEventListener('input', render); el.addEventListener('change', render); }
+    });
+
+    document.querySelectorAll<HTMLInputElement>('.ngx-proxy-header').forEach(cb => {
+      cb.addEventListener('change', render);
+    });
+
+    // AppShell events
+    document.addEventListener('app:copy', async () => {
+      const outputEl = document.getElementById('ngx-output');
+      try { await navigator.clipboard.writeText(outputEl?.textContent || ''); } catch {}
+    });
+
+    document.addEventListener('app:reset', () => {
+      (get<HTMLInputElement>('ngx-server-name')).value      = 'example.com www.example.com';
+      (get<HTMLInputElement>('ngx-listen-port')).value      = '80';
+      (get<HTMLInputElement>('ngx-ssl')).checked            = false;
+      (get<HTMLInputElement>('ngx-https-redirect')).checked = true;
+      (get<HTMLInputElement>('ngx-ssl-cert')).value         = '/etc/letsencrypt/live/example.com/fullchain.pem';
+      (get<HTMLInputElement>('ngx-ssl-key')).value          = '/etc/letsencrypt/live/example.com/privkey.pem';
+      document.getElementById('ngx-ssl-fields')?.classList.add('hidden');
+      (get<HTMLInputElement>('ngx-static-root')).value      = '/var/www/example.com';
+      (get<HTMLInputElement>('ngx-static-index')).value     = 'index.html index.htm';
+      (get<HTMLInputElement>('ngx-static-try-files')).value = '$uri $uri/ =404';
+      (get<HTMLInputElement>('ngx-gzip')).checked           = true;
+      (get<HTMLInputElement>('ngx-cache-headers')).checked  = true;
+      (get<HTMLInputElement>('ngx-proxy-target')).value     = 'http://127.0.0.1:3000';
+      (get<HTMLInputElement>('ngx-websocket')).checked      = false;
+      (get<HTMLInputElement>('ngx-proxy-connect-timeout')).value = '60';
+      (get<HTMLInputElement>('ngx-proxy-read-timeout')).value    = '60';
+      document.querySelectorAll<HTMLInputElement>('.ngx-proxy-header').forEach(cb => { cb.checked = true; });
+      (get<HTMLInputElement>('ngx-php-root')).value    = '/var/www/example.com';
+      (get<HTMLInputElement>('ngx-php-socket')).value  = 'unix:/var/run/php/php8.2-fpm.sock';
+      (get<HTMLInputElement>('ngx-redirect-target')).value = 'https://newdomain.com$request_uri';
+      (get<HTMLSelectElement>('ngx-redirect-type')).value  = '301';
+      setTab('static');
+    });
+
+    document.addEventListener('app:export', () => {
+      const outputEl = document.getElementById('ngx-output');
+      const blob = new Blob([outputEl?.textContent || ''], { type: 'text/plain' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: 'nginx.conf',
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    setTab('static');
+  };
+
+  initNgx();
+  document.addEventListener('astro:after-swap', initNgx);
+</script>

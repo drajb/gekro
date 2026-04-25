@@ -1,0 +1,496 @@
+---
+// Drawdown & Sharpe Calculator — risk metrics from a return series, zero deps
+---
+
+<div id="dd-app" class="space-y-6">
+
+  <!-- Return series input -->
+  <div class="space-y-3">
+    <div class="flex items-center justify-between">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Return Series</p>
+      <button id="dd-load-example" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors border border-border-subtle rounded px-2 py-1 hover:border-accent/30">
+        Load example (50 returns)
+      </button>
+    </div>
+    <textarea
+      id="dd-returns"
+      rows="8"
+      placeholder="One return per line, or comma-separated.&#10;Decimal: 0.015 (means 1.5%)&#10;Percent: 1.5 (auto-detected)"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors resize-y placeholder:text-text-muted/40"
+    ></textarea>
+    <p class="text-[10px] text-text-muted">Accepts decimal (0.015 = 1.5%) or percent (1.5 = 1.5%) format — auto-detected if any value exceeds 1. Comma or newline delimited.</p>
+  </div>
+
+  <!-- Settings -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    <div class="space-y-1.5">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Period
+        <span title="The frequency of your return data. Affects annualization: Daily × √252, Weekly × √52, Monthly × √12." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <div class="flex gap-2" id="dd-period-tabs">
+        {['Daily', 'Weekly', 'Monthly'].map((p, i) => (
+          <button
+            data-period={p.toLowerCase()}
+            class={`dd-period-btn px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
+              i === 0
+                ? 'bg-accent/10 border-accent/40 text-accent'
+                : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="dd-rfr" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Risk-Free Rate (annual %)
+        <span title="The return of a 'safe' investment like T-bills. Used as the hurdle rate in Sharpe and Sortino. Current US 3-month T-bill ≈ 5.0%." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <input id="dd-rfr" type="number" min="0" max="20" step="0.1" value="5.0"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+    </div>
+
+  </div>
+
+  <!-- Hero stats: 6 cards -->
+  <div id="dd-hero" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Distribution summary -->
+  <div id="dd-distribution" class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3 hidden">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Return Distribution</p>
+    <div id="dd-dist-content" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Equity curve -->
+  <div id="dd-equity-wrap" class="space-y-2 hidden">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Equity Curve — $1 invested</p>
+    <div id="dd-equity-chart" class="overflow-x-auto rounded-xl border border-border-subtle p-4 bg-bg-elevated">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Drawdown history: top 5 episodes -->
+  <div id="dd-drawdown-wrap" class="space-y-2 hidden">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Top 5 Drawdown Episodes</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-xs font-mono">
+        <thead>
+          <tr class="border-b border-border-subtle">
+            <th class="text-left px-4 py-2.5 text-text-muted font-normal">#</th>
+            <th class="text-left px-4 py-2.5 text-text-muted font-normal">Peak (period)</th>
+            <th class="text-left px-4 py-2.5 text-text-muted font-normal">Trough (period)</th>
+            <th class="text-left px-4 py-2.5 text-text-muted font-normal">Recovery (period)</th>
+            <th class="text-right px-4 py-2.5 text-text-muted font-normal">Depth</th>
+            <th class="text-right px-4 py-2.5 text-text-muted font-normal">Duration</th>
+          </tr>
+        </thead>
+        <tbody id="dd-dd-table">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+    <p class="text-[10px] text-text-muted px-1">Duration = periods from peak to trough. Recovery = periods from trough back to prior equity peak (or "ongoing" if not yet recovered).</p>
+  </div>
+
+</div>
+
+<script>
+  // ── Math helpers ──────────────────────────────────────────────────────────────
+  const mean = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+  const stddev = (arr: number[], avg?: number) => {
+    const m = avg ?? mean(arr);
+    return Math.sqrt(arr.reduce((s, x) => s + (x - m) ** 2, 0) / arr.length);
+  };
+
+  const fmt2 = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt3 = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+  const fmtPct = (n: number, dec = 2) => (n * 100).toFixed(dec) + '%';
+
+  const PERIOD_FACTOR: Record<string, number> = { daily: 252, weekly: 52, monthly: 12 };
+
+  // Parse raw textarea input → array of decimal returns
+  function parseReturns(raw: string): number[] {
+    const tokens = raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    const nums = tokens.map(Number).filter(n => !isNaN(n));
+    if (nums.length === 0) return [];
+    // Auto-detect percent format: if any value > 1, treat as percentage
+    const isPercent = nums.some(n => Math.abs(n) > 1);
+    return isPercent ? nums.map(n => n / 100) : nums;
+  }
+
+  // Compute equity curve from returns (starting at 1.0)
+  function equityCurve(returns: number[]): number[] {
+    const curve: number[] = [1];
+    for (const r of returns) {
+      curve.push(curve[curve.length - 1] * (1 + r));
+    }
+    return curve;
+  }
+
+  // Find all drawdown episodes: { peakIdx, troughIdx, recoveryIdx|null, depth }
+  interface DDEpisode {
+    peakIdx: number;
+    troughIdx: number;
+    recoveryIdx: number | null;
+    depth: number; // positive fraction, e.g. 0.12 = 12% drawdown
+  }
+
+  function findDrawdowns(curve: number[]): DDEpisode[] {
+    const episodes: DDEpisode[] = [];
+    let peakIdx = 0;
+    let peakVal = curve[0];
+    let inDD = false;
+    let troughIdx = 0;
+    let troughVal = curve[0];
+
+    for (let i = 1; i < curve.length; i++) {
+      if (curve[i] > peakVal) {
+        if (inDD) {
+          // recovery achieved
+          episodes.push({ peakIdx, troughIdx, recoveryIdx: i, depth: (peakVal - troughVal) / peakVal });
+          inDD = false;
+        }
+        peakIdx = i;
+        peakVal = curve[i];
+        troughIdx = i;
+        troughVal = curve[i];
+      } else {
+        inDD = true;
+        if (curve[i] < troughVal) {
+          troughIdx = i;
+          troughVal = curve[i];
+        }
+      }
+    }
+    if (inDD) {
+      episodes.push({ peakIdx, troughIdx, recoveryIdx: null, depth: (peakVal - troughVal) / peakVal });
+    }
+    return episodes;
+  }
+
+  function calcStats(returns: number[], period: string, rfrAnnual: number) {
+    const n = returns.length;
+    const ppy = PERIOD_FACTOR[period] ?? 252;
+    const rfr = rfrAnnual / 100 / ppy; // per-period risk-free rate
+
+    const m = mean(returns);
+    const excess = returns.map(r => r - rfr);
+    const excessMean = mean(excess);
+    const sd = stddev(returns, m);
+
+    // Sharpe
+    const sharpe = sd > 0 ? (excessMean / sd) * Math.sqrt(ppy) : 0;
+
+    // Sortino — downside std uses only negative excess returns
+    const downside = excess.filter(r => r < 0);
+    const downsideStd = downside.length > 0
+      ? Math.sqrt(downside.reduce((s, r) => s + r * r, 0) / downside.length)
+      : 0;
+    const sortino = downsideStd > 0 ? (excessMean / downsideStd) * Math.sqrt(ppy) : 0;
+
+    // Equity curve + drawdown
+    const curve = equityCurve(returns);
+    const episodes = findDrawdowns(curve);
+    const maxDD = episodes.length > 0 ? Math.max(...episodes.map(e => e.depth)) : 0;
+
+    // Annualized return — geometric
+    const totalReturn = curve[curve.length - 1] - 1;
+    const annReturn = Math.pow(1 + totalReturn, ppy / n) - 1;
+
+    // Calmar
+    const calmar = maxDD > 0 ? annReturn / maxDD : 0;
+
+    // Win rate
+    const wins = returns.filter(r => r > 0).length;
+    const losses = returns.filter(r => r < 0).length;
+    const winRate = n > 0 ? wins / n : 0;
+
+    // Avg win / avg loss ratio
+    const avgWin = wins > 0 ? mean(returns.filter(r => r > 0)) : 0;
+    const avgLoss = losses > 0 ? Math.abs(mean(returns.filter(r => r < 0))) : 0;
+    const winLossRatio = avgLoss > 0 ? avgWin / avgLoss : 0;
+
+    // Distribution
+    const best = Math.max(...returns);
+    const worst = Math.min(...returns);
+
+    return {
+      n, sharpe, sortino, maxDD, calmar, winRate, winLossRatio,
+      annReturn, totalReturn, avgWin, avgLoss, best, worst,
+      wins, losses, curve, episodes,
+    };
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  const EXAMPLE_RETURNS = [
+    0.012, -0.005, 0.023, -0.018, 0.008, 0.031, -0.042, 0.015, 0.009, -0.011,
+    0.027, -0.003, 0.019, 0.041, -0.028, 0.006, -0.015, 0.033, 0.011, -0.007,
+    0.024, -0.019, 0.038, 0.002, -0.022, 0.017, 0.044, -0.031, 0.013, -0.008,
+    0.029, -0.004, 0.021, 0.036, -0.013, 0.007, -0.025, 0.018, 0.043, -0.016,
+    0.005, 0.026, -0.009, 0.032, -0.047, 0.014, 0.022, -0.006, 0.039, -0.020,
+  ].map(r => r.toFixed(4)).join('\n');
+
+  const initDd = () => {
+    const app = document.getElementById('dd-app');
+    if (!app || (app as any)._ddInit) return;
+    (app as any)._ddInit = true;
+
+    const returnsEl     = app.querySelector<HTMLTextAreaElement>('#dd-returns')!;
+    const rfrEl         = app.querySelector<HTMLInputElement>('#dd-rfr')!;
+    const periodBtns    = app.querySelectorAll<HTMLButtonElement>('.dd-period-btn');
+    const heroEl        = app.querySelector<HTMLDivElement>('#dd-hero')!;
+    const distEl        = app.querySelector<HTMLDivElement>('#dd-distribution')!;
+    const distContent   = app.querySelector<HTMLDivElement>('#dd-dist-content')!;
+    const equityWrap    = app.querySelector<HTMLDivElement>('#dd-equity-wrap')!;
+    const equityChart   = app.querySelector<HTMLDivElement>('#dd-equity-chart')!;
+    const ddWrap        = app.querySelector<HTMLDivElement>('#dd-drawdown-wrap')!;
+    const ddTable       = app.querySelector<HTMLTableSectionElement>('#dd-dd-table')!;
+    const loadExample   = app.querySelector<HTMLButtonElement>('#dd-load-example')!;
+
+    let currentPeriod = 'daily';
+    let lastStats: ReturnType<typeof calcStats> | null = null;
+    let lastReturns: number[] = [];
+
+    const statCard = (
+      label: string,
+      value: string,
+      color: string,
+      tip: string,
+      sub?: string
+    ) => `
+      <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          ${label}
+          <span title="${tip}" class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </p>
+        <p class="text-xl font-heading font-bold" style="color:${color}">${value}</p>
+        ${sub ? `<p class="text-[10px] font-mono text-text-muted">${sub}</p>` : ''}
+      </div>`;
+
+    const distItem = (label: string, value: string, color?: string) => `
+      <div class="space-y-0.5">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${label}</p>
+        <p class="text-sm font-semibold ${color ?? 'text-text-primary'}">${value}</p>
+      </div>`;
+
+    const recalc = () => {
+      const raw = returnsEl.value;
+      const returns = parseReturns(raw);
+      const rfr = parseFloat(rfrEl.value) || 5.0;
+
+      if (returns.length < 3) {
+        heroEl.innerHTML = `<p class="col-span-full text-text-muted text-sm">Enter at least 3 return values to see results.</p>`;
+        distEl.classList.add('hidden');
+        equityWrap.classList.add('hidden');
+        ddWrap.classList.add('hidden');
+        lastStats = null;
+        lastReturns = [];
+        return;
+      }
+
+      lastReturns = returns;
+      const s = calcStats(returns, currentPeriod, rfr);
+      lastStats = s;
+
+      // Sharpe color
+      const sharpeColor = s.sharpe >= 1.5 ? '#22c55e' : s.sharpe >= 0.5 ? 'var(--color-accent-warm)' : '#f87171';
+      // Sortino color
+      const sortinoColor = s.sortino >= 2 ? '#22c55e' : s.sortino >= 1 ? 'var(--color-accent-warm)' : '#f87171';
+      // MaxDD color
+      const ddColor = s.maxDD <= 0.10 ? '#22c55e' : s.maxDD <= 0.25 ? 'var(--color-accent-warm)' : '#f87171';
+      // Calmar color
+      const calmarColor = s.calmar >= 1 ? '#22c55e' : s.calmar >= 0.5 ? 'var(--color-accent-warm)' : '#f87171';
+
+      heroEl.innerHTML = [
+        statCard('Sharpe Ratio', fmt3(s.sharpe), sharpeColor,
+          'Annualized excess return per unit of total volatility. Above 1.0 is generally good; above 2.0 is excellent. Penalizes upside volatility equally with downside.',
+          `${s.n} periods, ${currentPeriod}`),
+        statCard('Sortino Ratio', fmt3(s.sortino), sortinoColor,
+          'Like Sharpe, but only penalizes downside volatility (negative returns). Better for asymmetric strategies. Above 1.0 = good; above 2.0 = excellent.',
+          'downside-deviation adjusted'),
+        statCard('Max Drawdown', fmtPct(s.maxDD), ddColor,
+          'The largest peak-to-trough decline in the equity curve. The most psychologically important metric — most traders abandon strategies during max drawdown.',
+          'peak-to-trough'),
+        statCard('Calmar Ratio', fmt3(s.calmar), calmarColor,
+          'Annualized return divided by maximum drawdown. Measures return per unit of worst-case pain. Above 1.0 is good; hedge funds typically target > 0.5.',
+          'ann.return / max drawdown'),
+        statCard('Win Rate', fmtPct(s.winRate, 1), 'var(--color-accent)',
+          'Percentage of periods with positive returns. Not as important as risk-adjusted metrics alone — a 30% win rate can be highly profitable with a high reward/risk ratio.',
+          `${s.wins}W / ${s.losses}L`),
+        statCard('Avg Win/Loss', fmt3(s.winLossRatio) + 'x', 'var(--color-accent-warm)',
+          'Average winning period return divided by average losing period return (in absolute terms). Combined with win rate, determines expected value per trade.',
+          `avg W: ${fmtPct(s.avgWin)} / avg L: ${fmtPct(s.avgLoss)}`),
+      ].join('');
+
+      // Distribution
+      distEl.classList.remove('hidden');
+      distContent.innerHTML = [
+        distItem('Total Return', fmtPct(s.totalReturn), s.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'),
+        distItem('Ann. Return', fmtPct(s.annReturn), s.annReturn >= 0 ? 'text-emerald-400' : 'text-red-400'),
+        distItem('Best Period', '+' + fmtPct(s.best), 'text-emerald-400'),
+        distItem('Worst Period', fmtPct(s.worst), 'text-red-400'),
+      ].join('');
+
+      // Equity curve — CSS bar chart
+      const curve = s.curve;
+      const minVal = Math.min(...curve);
+      const maxVal = Math.max(...curve);
+      const range = maxVal - minVal || 1;
+      const MAX_BARS = 80;
+      const step = Math.ceil(curve.length / MAX_BARS);
+      const sampled = curve.filter((_, i) => i % step === 0);
+
+      const bars = sampled.map((v, i) => {
+        const h = Math.max(4, Math.round(((v - minVal) / range) * 80) + 4);
+        const color = v >= 1 ? 'var(--color-accent)' : '#f87171';
+        const label = `Period ${i * step}: $${fmt2(v)}`;
+        return `<div style="width:4px;height:${h}px;background:${color};border-radius:1px;flex-shrink:0;" title="${label}"></div>`;
+      }).join('');
+
+      equityWrap.classList.remove('hidden');
+      equityChart.innerHTML = `
+        <div class="flex items-end gap-px" style="min-height:88px;">
+          ${bars}
+        </div>
+        <div class="flex justify-between mt-2 text-[9px] font-mono text-text-muted">
+          <span>Start: $1.00</span>
+          <span>End: $${fmt2(curve[curve.length - 1])}</span>
+        </div>`;
+
+      // Drawdown episodes
+      ddWrap.classList.remove('hidden');
+      const topEps = [...s.episodes]
+        .sort((a, b) => b.depth - a.depth)
+        .slice(0, 5);
+
+      if (topEps.length === 0) {
+        ddTable.innerHTML = `<tr><td colspan="6" class="px-4 py-3 text-text-muted">No drawdown episodes found — all periods were gains.</td></tr>`;
+      } else {
+        ddTable.innerHTML = topEps.map((ep, i) => {
+          const dur = ep.troughIdx - ep.peakIdx;
+          const recov = ep.recoveryIdx !== null
+            ? String(ep.recoveryIdx - ep.troughIdx)
+            : '<span class="text-amber-400">ongoing</span>';
+          return `
+            <tr class="border-b border-border-subtle/30">
+              <td class="px-4 py-2.5 text-text-muted">${i + 1}</td>
+              <td class="px-4 py-2.5 text-text-secondary">${ep.peakIdx}</td>
+              <td class="px-4 py-2.5 text-text-secondary">${ep.troughIdx}</td>
+              <td class="px-4 py-2.5 text-text-secondary">${ep.recoveryIdx ?? '<span class="text-amber-400">—</span>'}</td>
+              <td class="px-4 py-2.5 text-right text-red-400 font-semibold">−${fmtPct(ep.depth, 1)}</td>
+              <td class="px-4 py-2.5 text-right text-text-muted">${dur} periods</td>
+            </tr>`;
+        }).join('');
+      }
+    };
+
+    // Period tab switching
+    periodBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentPeriod = btn.dataset.period!;
+        periodBtns.forEach(b => {
+          const active = b.dataset.period === currentPeriod;
+          b.className = `dd-period-btn px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
+            active
+              ? 'bg-accent/10 border-accent/40 text-accent'
+              : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
+          }`;
+        });
+        recalc();
+      });
+    });
+
+    returnsEl.addEventListener('input', recalc);
+    rfrEl.addEventListener('input', recalc);
+    rfrEl.addEventListener('change', recalc);
+
+    loadExample.addEventListener('click', () => {
+      returnsEl.value = EXAMPLE_RETURNS;
+      recalc();
+    });
+
+    // AppShell events
+    document.addEventListener('app:copy', async () => {
+      if (!lastStats) return;
+      const s = lastStats;
+      const text = [
+        `Sharpe Ratio: ${fmt3(s.sharpe)}`,
+        `Sortino Ratio: ${fmt3(s.sortino)}`,
+        `Max Drawdown: ${fmtPct(s.maxDD)}`,
+        `Calmar Ratio: ${fmt3(s.calmar)}`,
+        `Win Rate: ${fmtPct(s.winRate, 1)} (${s.wins}W / ${s.losses}L)`,
+        `Avg Win/Loss: ${fmt3(s.winLossRatio)}x`,
+        `Annualized Return: ${fmtPct(s.annReturn)}`,
+        `Total Return: ${fmtPct(s.totalReturn)}`,
+        `Best Period: +${fmtPct(s.best)}`,
+        `Worst Period: ${fmtPct(s.worst)}`,
+        `Periods: ${s.n} (${currentPeriod})`,
+      ].join('\n');
+      try { await navigator.clipboard.writeText(text); } catch {}
+    });
+
+    document.addEventListener('app:reset', () => {
+      returnsEl.value = '';
+      rfrEl.value = '5.0';
+      currentPeriod = 'daily';
+      periodBtns.forEach((b, i) => {
+        b.className = `dd-period-btn px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
+          i === 0
+            ? 'bg-accent/10 border-accent/40 text-accent'
+            : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
+        }`;
+      });
+      heroEl.innerHTML = '';
+      distEl.classList.add('hidden');
+      equityWrap.classList.add('hidden');
+      ddWrap.classList.add('hidden');
+      lastStats = null;
+      lastReturns = [];
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastReturns.length || !lastStats) return;
+      const s = lastStats;
+      const lines = [
+        'Period,Return',
+        ...lastReturns.map((r, i) => `${i + 1},${r.toFixed(6)}`),
+        '',
+        'Metric,Value',
+        `Sharpe Ratio,${fmt3(s.sharpe)}`,
+        `Sortino Ratio,${fmt3(s.sortino)}`,
+        `Max Drawdown,${fmtPct(s.maxDD)}`,
+        `Calmar Ratio,${fmt3(s.calmar)}`,
+        `Win Rate,${fmtPct(s.winRate, 1)}`,
+        `Avg Win/Loss Ratio,${fmt3(s.winLossRatio)}`,
+        `Annualized Return,${fmtPct(s.annReturn)}`,
+        `Total Return,${fmtPct(s.totalReturn)}`,
+        `Best Period,${fmtPct(s.best)}`,
+        `Worst Period,${fmtPct(s.worst)}`,
+        `Period Count,${s.n}`,
+        `Period Frequency,${currentPeriod}`,
+      ];
+      const csv = lines.join('\n');
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+        download: `drawdown-stats-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    // Initial state — empty
+    recalc();
+  };
+
+  initDd();
+  document.addEventListener('astro:after-swap', initDd);
+</script>

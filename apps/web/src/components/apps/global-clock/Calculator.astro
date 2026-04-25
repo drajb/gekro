@@ -161,6 +161,24 @@
        suitable for pasting into a meeting invite or status update. */
     document.addEventListener('app:reset', () => tick());
 
+    document.addEventListener('app:export', () => {
+      const now = new Date();
+      const lines: string[] = [`UTC: ${now.toUTCString().replace(' GMT', ' UTC')}`];
+      app.querySelectorAll<HTMLElement>('[data-tz]').forEach(el => {
+        const tz = el.dataset.tz!;
+        const time = fmtCache[tz].format(now);
+        const date = dCache[tz].format(now);
+        lines.push(`${tz}: ${time} — ${date}`);
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'world-clock-snapshot.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
     document.addEventListener('app:copy', async () => {
       const now = new Date();
       const lines: string[] = [`UTC: ${now.toUTCString().replace(' GMT', '')}`];

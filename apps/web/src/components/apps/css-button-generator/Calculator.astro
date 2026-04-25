@@ -91,7 +91,7 @@
 
       <!-- Border radius -->
       <fieldset class="space-y-2">
-        <legend class="cbg-label">Border radius</legend>
+        <legend class="cbg-label">Border radius<span title="px or % — 50% on equal width/height = circle; 9999px = pill shape" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></legend>
         <div class="flex flex-wrap gap-2 mb-1">
           {[['0px','Square'],['4px','Slight'],['8px','Rounded'],['12px','More'],['24px','Pill'],['9999px','Full']].map(([v,l]) => (
             <button class="cbg-preset-btn" data-target="cbg-radius" data-value={v}>{l}</button>
@@ -126,25 +126,25 @@
 
       <!-- Shadow -->
       <fieldset class="space-y-2">
-        <legend class="cbg-label">Box shadow</legend>
+        <legend class="cbg-label">Box shadow<span title="offset-x offset-y blur spread color — each component controls a different dimension of depth perception" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></legend>
         <div class="grid grid-cols-2 gap-2">
           <div class="flex items-center gap-1.5">
-            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">X</label>
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">X<span title="Horizontal offset — positive = shadow right, negative = shadow left" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
             <input type="range" id="cbg-sh-x" min="-20" max="20" value="0" class="flex-1 accent-[var(--color-accent)]" />
             <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-x-val">0px</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Y</label>
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Y<span title="Vertical offset — positive = shadow below, negative = shadow above; 4px is a natural drop-shadow look" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
             <input type="range" id="cbg-sh-y" min="-20" max="20" value="4" class="flex-1 accent-[var(--color-accent)]" />
             <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-y-val">4px</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Blur</label>
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Blur<span title="Blur radius — 0 = hard edge, higher = softer shadow; 12–20px is typical for floating elements" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
             <input type="range" id="cbg-sh-blur" min="0" max="40" value="12" class="flex-1 accent-[var(--color-accent)]" />
             <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-blur-val">12px</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Spread</label>
+            <label class="text-[10px] font-mono text-text-muted w-10 shrink-0">Spread<span title="Spread radius — expands or contracts the shadow; negative values create a tighter, more realistic shadow" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
             <input type="range" id="cbg-sh-spread" min="-10" max="20" value="0" class="flex-1 accent-[var(--color-accent)]" />
             <span class="text-xs font-mono text-text-muted w-8 text-right" id="cbg-sh-spread-val">0px</span>
           </div>
@@ -181,7 +181,7 @@
           </label>
         </div>
         <div class="flex items-center gap-2">
-          <label class="cbg-label shrink-0">Transition</label>
+          <label class="cbg-label shrink-0">Transition<span title="Duration for hover animations — 150–200ms feels snappy, 300ms+ feels slow; applies to all animated properties" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <input type="range" id="cbg-transition" min="0" max="600" value="200" step="50" class="flex-1 accent-[var(--color-accent)]" />
           <span class="text-xs font-mono text-text-muted w-14 text-right" id="cbg-transition-val">200ms</span>
         </div>
@@ -719,6 +719,14 @@
     document.addEventListener('app:copy', async () => {
       const { css } = buildCss(state());
       try { await navigator.clipboard.writeText(css); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      const { css } = buildCss(state());
+      const blob = new Blob([css], { type: 'text/css' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'button.css'; a.click();
+      URL.revokeObjectURL(url);
     });
 
     // Initial render

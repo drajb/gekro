@@ -32,7 +32,7 @@
   <!-- Row count + format -->
   <div class="flex flex-wrap items-center gap-4">
     <div class="flex items-center gap-3">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted shrink-0">Rows</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted shrink-0">Rows<span title="Each row = one JSON object / CSV row / XML record; counts above 10k may slow the browser" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="ddg-rows" min="1" max="1000" value="10"
         class="w-20 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
                text-sm font-mono text-center text-text-primary
@@ -392,6 +392,15 @@
 
     document.addEventListener('app:copy', async () => {
       try { await navigator.clipboard.writeText(lastOutput); } catch {}
+    });
+    document.addEventListener('app:export', () => {
+      if (!lastOutput) return;
+      const mime = fmt === 'json' ? 'application/json' : fmt === 'csv' ? 'text/csv' : 'application/xml';
+      const blob = new Blob([lastOutput], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `data-${Date.now()}.${fmt}`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
 
     // Start with sensible defaults

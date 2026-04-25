@@ -1,0 +1,705 @@
+---
+/**
+ * LLM Response Unpacker — Calculator.astro
+ *
+ * Paste a raw JSON response from any major LLM API and instantly:
+ *   1. Auto-detect provider (OpenAI / Anthropic / Gemini / Unknown)
+ *   2. Extract content, stop reason, model name, token usage, tool calls,
+ *      thinking blocks (Claude extended thinking), and timestamps
+ *   3. Compute cost estimate from hardcoded per-model pricing table
+ *
+ * Detection logic:
+ *   OpenAI:    has choices[0].message or choices[0].delta
+ *   Anthropic: has content[0].type or content[0].text
+ *   Gemini:    has candidates[0].content.parts
+ *
+ * Zero deps. Pure DOM + JSON.parse.
+ * Idempotency guard: _luInit flag on #lu-app.
+ */
+---
+
+<div id="lu-app" class="space-y-5">
+
+  <!-- Input area -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="lu-input" class="text-sm font-medium text-text-secondary">Paste raw API response JSON</label>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="lu-ex-openai"
+          class="px-3 py-1 rounded-lg bg-bg-elevated border border-border-subtle text-[10px] font-mono text-text-muted hover:border-accent hover:text-accent transition-colors">
+          Load OpenAI example
+        </button>
+        <button id="lu-ex-anthropic"
+          class="px-3 py-1 rounded-lg bg-bg-elevated border border-border-subtle text-[10px] font-mono text-text-muted hover:border-accent hover:text-accent transition-colors">
+          Load Anthropic example
+        </button>
+        <button id="lu-ex-gemini"
+          class="px-3 py-1 rounded-lg bg-bg-elevated border border-border-subtle text-[10px] font-mono text-text-muted hover:border-accent hover:text-accent transition-colors">
+          Load Gemini example
+        </button>
+      </div>
+    </div>
+
+    <textarea
+      id="lu-input"
+      rows="10"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary leading-relaxed resize-y
+             focus:outline-none focus:border-accent/40 transition-colors"
+      placeholder='Paste JSON here — e.g. {"choices":[{"message":{"role":"assistant","content":"Hello!"}}], ...}'
+      spellcheck="false"
+    ></textarea>
+
+    <p id="lu-parse-error" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-red-500/30 bg-red-500/5 text-red-400">
+      Invalid JSON — check for truncated responses or extra characters outside the root object.
+    </p>
+  </div>
+
+  <!-- Provider badge -->
+  <div class="flex items-center gap-3">
+    <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Detected provider</span>
+    <span id="lu-provider-badge"
+      class="px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border border-border-subtle text-text-muted">
+      —
+    </span>
+  </div>
+
+  <!-- Extracted fields panel -->
+  <div id="lu-results" class="hidden space-y-4">
+
+    <!-- Content -->
+    <div class="space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Content</p>
+      <pre id="lu-content"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed whitespace-pre-wrap break-words
+               max-h-72 overflow-y-auto"></pre>
+    </div>
+
+    <!-- Thinking block (Claude extended thinking) -->
+    <div id="lu-thinking-wrap" class="hidden space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Thinking content (extended thinking)</p>
+      <pre id="lu-thinking"
+        class="w-full bg-bg-elevated border border-accent/10 rounded-xl px-4 py-3
+               text-sm font-mono text-text-muted leading-relaxed whitespace-pre-wrap break-words
+               max-h-48 overflow-y-auto"></pre>
+    </div>
+
+    <!-- Tool calls -->
+    <div id="lu-tools-wrap" class="hidden space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Tool calls</p>
+      <div id="lu-tools" class="space-y-2"></div>
+    </div>
+
+    <!-- Meta row: stop reason, model, timestamps -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+          Stop reason
+          <span
+            title="Why the model stopped generating. Common values — stop/end_turn: model finished naturally; length/max_tokens: hit the token limit (response may be truncated); tool_use/tool_calls: model wants to call a function; content_filter: output blocked; null/unknown: streaming or unrecognised value."
+            class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </p>
+        <p id="lu-stop-reason" class="text-sm font-mono text-text-primary">—</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Model</p>
+        <p id="lu-model-name" class="text-sm font-mono text-text-primary">—</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Created / ID</p>
+        <p id="lu-created" class="text-sm font-mono text-text-primary break-all">—</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">System fingerprint</p>
+        <p id="lu-fingerprint" class="text-sm font-mono text-text-primary break-all">—</p>
+      </div>
+    </div>
+
+    <!-- Token usage -->
+    <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Token usage
+        <span
+          title="Input tokens: all tokens sent to the model including system prompt, conversation history, and your message. Output tokens: tokens generated by the model. Cached tokens (if shown): input tokens served from the provider's prompt cache at a discounted rate. Total = input + output (+ any cached delta)."
+          class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Input</p>
+          <p id="lu-tok-in" class="text-2xl font-heading font-bold text-text-primary">—</p>
+        </div>
+        <div>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Output</p>
+          <p id="lu-tok-out" class="text-2xl font-heading font-bold text-text-primary">—</p>
+        </div>
+        <div>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Total</p>
+          <p id="lu-tok-total" class="text-2xl font-heading font-bold text-accent">—</p>
+        </div>
+        <div id="lu-tok-cache-wrap" class="hidden">
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Cached</p>
+          <p id="lu-tok-cache" class="text-2xl font-heading font-bold text-emerald-400">—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost estimate -->
+    <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Cost estimate</p>
+
+      <!-- Known model — show direct estimate -->
+      <div id="lu-cost-known" class="hidden space-y-2">
+        <div class="flex items-end gap-4">
+          <div>
+            <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">This request</p>
+            <p id="lu-cost-total" class="text-3xl font-heading font-bold text-text-primary">$0.0000</p>
+          </div>
+          <div class="pb-1 space-y-0.5">
+            <p id="lu-cost-in-line" class="text-xs font-mono text-text-muted">Input: $0.0000</p>
+            <p id="lu-cost-out-line" class="text-xs font-mono text-text-muted">Output: $0.0000</p>
+          </div>
+        </div>
+        <p id="lu-cost-model-label" class="text-[10px] font-mono text-text-muted">Model: — · Rates: $0.00 in / $0.00 out per 1M tokens</p>
+      </div>
+
+      <!-- Unknown model — show dropdown picker -->
+      <div id="lu-cost-unknown" class="space-y-3">
+        <p class="text-xs font-mono text-text-muted">Model not recognized. Select the model family to estimate cost:</p>
+        <div class="space-y-1">
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Model family</label>
+          <select id="lu-cost-picker"
+            class="w-full sm:w-64 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
+                   text-xs font-mono text-text-primary focus:outline-none transition-colors">
+            <option value="">— select —</option>
+          </select>
+        </div>
+        <div id="lu-cost-picker-result" class="hidden flex items-end gap-4">
+          <div>
+            <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Estimated cost</p>
+            <p id="lu-cost-picker-total" class="text-3xl font-heading font-bold text-text-primary">$0.0000</p>
+          </div>
+          <div class="pb-1 space-y-0.5">
+            <p id="lu-cost-picker-in" class="text-xs font-mono text-text-muted">Input: $0.0000</p>
+            <p id="lu-cost-picker-out" class="text-xs font-mono text-text-muted">Output: $0.0000</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /lu-results -->
+
+  <!-- Empty state -->
+  <div id="lu-empty" class="py-10 text-center text-text-muted text-sm font-mono">
+    Paste an API response above to unpack it.
+  </div>
+
+</div>
+
+<script>
+  /**
+   * LLM Response Unpacker — client logic.
+   * Pure DOM, zero deps.
+   */
+
+  /* ── Pricing table (per 1M tokens, USD, April 2026) ────────────*/
+  interface PricingEntry {
+    label: string;
+    priceIn: number;
+    priceOut: number;
+    // model ID substring matches (lowercased) — longest match wins
+    matches: string[];
+  }
+
+  const PRICING: PricingEntry[] = [
+    // OpenAI
+    { label: 'o3',                 priceIn: 10.00, priceOut: 40.00, matches: ['/o3',  '-o3',  'openai/o3']  },
+    { label: 'o4-mini',            priceIn: 1.10,  priceOut: 4.40,  matches: ['o4-mini']                    },
+    { label: 'o1',                 priceIn: 15.00, priceOut: 60.00, matches: ['o1-preview', 'o1-2024']       },
+    { label: 'o1-mini',            priceIn: 1.10,  priceOut: 4.40,  matches: ['o1-mini']                    },
+    { label: 'GPT-4o',             priceIn: 2.50,  priceOut: 10.00, matches: ['gpt-4o-2024', 'gpt-4o-mini'.slice(0,0), 'gpt-4o'] },
+    { label: 'GPT-4o mini',        priceIn: 0.15,  priceOut: 0.60,  matches: ['gpt-4o-mini']               },
+    { label: 'GPT-4 Turbo',        priceIn: 10.00, priceOut: 30.00, matches: ['gpt-4-turbo']               },
+    { label: 'GPT-4',              priceIn: 30.00, priceOut: 60.00, matches: ['gpt-4-0314', 'gpt-4-0613']  },
+    { label: 'GPT-3.5 Turbo',      priceIn: 0.50,  priceOut: 1.50,  matches: ['gpt-3.5-turbo']            },
+    // Anthropic
+    { label: 'Claude Opus 4',      priceIn: 15.00, priceOut: 75.00, matches: ['claude-opus-4', 'claude-4-opus'] },
+    { label: 'Claude 3.7 Sonnet',  priceIn: 3.00,  priceOut: 15.00, matches: ['claude-3-7-sonnet', 'claude-sonnet-4-5', 'claude-sonnet-4-6'] },
+    { label: 'Claude 3.5 Sonnet',  priceIn: 3.00,  priceOut: 15.00, matches: ['claude-3-5-sonnet']        },
+    { label: 'Claude 3.5 Haiku',   priceIn: 0.80,  priceOut: 4.00,  matches: ['claude-3-5-haiku', 'claude-haiku-4'] },
+    { label: 'Claude 3 Opus',      priceIn: 15.00, priceOut: 75.00, matches: ['claude-3-opus']            },
+    { label: 'Claude 3 Sonnet',    priceIn: 3.00,  priceOut: 15.00, matches: ['claude-3-sonnet']          },
+    { label: 'Claude 3 Haiku',     priceIn: 0.25,  priceOut: 1.25,  matches: ['claude-3-haiku']           },
+    // Google
+    { label: 'Gemini 2.5 Pro',     priceIn: 1.25,  priceOut: 10.00, matches: ['gemini-2.5-pro']           },
+    { label: 'Gemini 2.0 Flash',   priceIn: 0.10,  priceOut: 0.40,  matches: ['gemini-2.0-flash']         },
+    { label: 'Gemini 1.5 Pro',     priceIn: 1.25,  priceOut: 5.00,  matches: ['gemini-1.5-pro']           },
+    { label: 'Gemini 1.5 Flash',   priceIn: 0.075, priceOut: 0.30,  matches: ['gemini-1.5-flash']         },
+    // DeepSeek
+    { label: 'DeepSeek R1',        priceIn: 0.55,  priceOut: 2.19,  matches: ['deepseek-r1']              },
+    { label: 'DeepSeek V3',        priceIn: 0.27,  priceOut: 1.10,  matches: ['deepseek-v3', 'deepseek-chat'] },
+    // Mistral
+    { label: 'Mistral Large',      priceIn: 2.00,  priceOut: 6.00,  matches: ['mistral-large']            },
+    { label: 'Mistral Small',      priceIn: 0.20,  priceOut: 0.60,  matches: ['mistral-small']            },
+    { label: 'Mixtral 8x22B',      priceIn: 1.20,  priceOut: 1.20,  matches: ['mixtral-8x22b']            },
+  ];
+
+  /* ── Example responses ─────────────────────────────────────────*/
+  const EXAMPLES: Record<string, string> = {
+    openai: JSON.stringify({
+      id: 'chatcmpl-abc123XYZ',
+      object: 'chat.completion',
+      created: 1714000000,
+      model: 'gpt-4o-2024-08-06',
+      system_fingerprint: 'fp_abc123',
+      choices: [{
+        index: 0,
+        message: {
+          role: 'assistant',
+          content: 'The quick brown fox jumps over the lazy dog. This classic pangram contains every letter of the English alphabet at least once.',
+          refusal: null,
+        },
+        logprobs: null,
+        finish_reason: 'stop',
+      }],
+      usage: {
+        prompt_tokens: 18,
+        completion_tokens: 31,
+        total_tokens: 49,
+        prompt_tokens_details: { cached_tokens: 0 },
+        completion_tokens_details: { reasoning_tokens: 0 },
+      },
+    }, null, 2),
+
+    anthropic: JSON.stringify({
+      id: 'msg_01XyZAbC123',
+      type: 'message',
+      role: 'assistant',
+      model: 'claude-3-7-sonnet-20250219',
+      content: [
+        {
+          type: 'thinking',
+          thinking: 'The user wants a pangram explanation. I should provide a clear, concise answer about what a pangram is and give the classic example.',
+        },
+        {
+          type: 'text',
+          text: 'A pangram is a sentence that uses every letter of the alphabet at least once. The most famous English example is "The quick brown fox jumps over the lazy dog."',
+        },
+      ],
+      stop_reason: 'end_turn',
+      stop_sequence: null,
+      usage: {
+        input_tokens: 14,
+        output_tokens: 42,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 0,
+      },
+    }, null, 2),
+
+    gemini: JSON.stringify({
+      candidates: [{
+        content: {
+          parts: [{
+            text: 'A pangram is a sentence that uses every letter of the alphabet. "The quick brown fox jumps over the lazy dog" is the classic English example, containing all 26 letters.',
+          }],
+          role: 'model',
+        },
+        finishReason: 'STOP',
+        index: 0,
+      }],
+      usageMetadata: {
+        promptTokenCount: 12,
+        candidatesTokenCount: 38,
+        totalTokenCount: 50,
+      },
+      modelVersion: 'gemini-2.0-flash-001',
+    }, null, 2),
+  };
+
+  /* ── Provider detection ─────────────────────────────────────────*/
+  type Provider = 'OpenAI' | 'Anthropic' | 'Gemini' | 'Unknown';
+
+  const detectProvider = (obj: any): Provider => {
+    if (obj?.choices?.[0]?.message !== undefined || obj?.choices?.[0]?.delta !== undefined) return 'OpenAI';
+    if (obj?.content !== undefined && Array.isArray(obj.content) && obj.content.length > 0 &&
+        (obj.content[0]?.type !== undefined || obj.content[0]?.text !== undefined)) return 'Anthropic';
+    if (obj?.candidates?.[0]?.content?.parts !== undefined) return 'Gemini';
+    return 'Unknown';
+  };
+
+  /* ── Extraction ─────────────────────────────────────────────────*/
+  interface Extraction {
+    provider: Provider;
+    content: string;
+    thinking: string;
+    stopReason: string;
+    modelName: string;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    totalTokens: number | null;
+    cachedTokens: number | null;
+    toolCalls: { name: string; args: string }[];
+    created: string;
+    fingerprint: string;
+  }
+
+  const extract = (obj: any): Extraction => {
+    const provider = detectProvider(obj);
+
+    let content = '';
+    let thinking = '';
+    let stopReason = '';
+    let modelName = '';
+    let inputTokens: number | null = null;
+    let outputTokens: number | null = null;
+    let totalTokens: number | null = null;
+    let cachedTokens: number | null = null;
+    let toolCalls: { name: string; args: string }[] = [];
+    let created = '';
+    let fingerprint = '';
+
+    if (provider === 'OpenAI') {
+      const choice = obj.choices?.[0];
+      const msg = choice?.message ?? choice?.delta ?? {};
+      content = msg.content ?? '';
+      stopReason = choice?.finish_reason ?? '';
+      modelName = obj.model ?? '';
+      const usage = obj.usage ?? {};
+      inputTokens  = usage.prompt_tokens ?? null;
+      outputTokens = usage.completion_tokens ?? null;
+      totalTokens  = usage.total_tokens ?? (inputTokens !== null && outputTokens !== null ? inputTokens + outputTokens : null);
+      cachedTokens = usage.prompt_tokens_details?.cached_tokens ?? null;
+      created = obj.created ? new Date(obj.created * 1000).toISOString() : (obj.id ?? '');
+      fingerprint = obj.system_fingerprint ?? '';
+      // Tool calls
+      const tc = msg.tool_calls ?? [];
+      toolCalls = tc.map((t: any) => ({
+        name: t.function?.name ?? t.id ?? 'unknown',
+        args: typeof t.function?.arguments === 'string' ? t.function.arguments : JSON.stringify(t.function?.arguments ?? {}, null, 2),
+      }));
+    } else if (provider === 'Anthropic') {
+      const contentArr = obj.content ?? [];
+      contentArr.forEach((block: any) => {
+        if (block.type === 'text') content += block.text ?? '';
+        else if (block.type === 'thinking') thinking += block.thinking ?? '';
+        else if (block.type === 'tool_use') {
+          toolCalls.push({
+            name: block.name ?? 'unknown',
+            args: JSON.stringify(block.input ?? {}, null, 2),
+          });
+        }
+      });
+      stopReason = obj.stop_reason ?? '';
+      modelName  = obj.model ?? '';
+      const usage = obj.usage ?? {};
+      inputTokens  = usage.input_tokens ?? null;
+      outputTokens = usage.output_tokens ?? null;
+      totalTokens  = (inputTokens !== null && outputTokens !== null) ? inputTokens + outputTokens : null;
+      cachedTokens = (usage.cache_read_input_tokens ?? 0) || null;
+      created = obj.id ?? '';
+      fingerprint = '';
+    } else if (provider === 'Gemini') {
+      const candidate = obj.candidates?.[0];
+      const parts = candidate?.content?.parts ?? [];
+      content = parts.map((p: any) => p.text ?? '').join('');
+      stopReason = candidate?.finishReason ?? '';
+      modelName  = obj.modelVersion ?? obj.model ?? '';
+      const usage = obj.usageMetadata ?? {};
+      inputTokens  = usage.promptTokenCount ?? null;
+      outputTokens = usage.candidatesTokenCount ?? null;
+      totalTokens  = usage.totalTokenCount ?? null;
+      cachedTokens = usage.cachedContentTokenCount ?? null;
+      created = '';
+      fingerprint = '';
+      // Function calls
+      const funcCalls = candidate?.content?.parts?.filter((p: any) => p.functionCall) ?? [];
+      toolCalls = funcCalls.map((p: any) => ({
+        name: p.functionCall.name ?? 'unknown',
+        args: JSON.stringify(p.functionCall.args ?? {}, null, 2),
+      }));
+    } else {
+      // Unknown — best-effort extraction
+      content = JSON.stringify(obj, null, 2);
+      stopReason = '';
+      modelName = obj.model ?? '';
+    }
+
+    return { provider, content, thinking, stopReason, modelName, inputTokens, outputTokens, totalTokens, cachedTokens, toolCalls, created, fingerprint };
+  };
+
+  /* ── Cost computation ───────────────────────────────────────────*/
+  const findPricing = (modelId: string): PricingEntry | null => {
+    if (!modelId) return null;
+    const lower = modelId.toLowerCase();
+    // Find longest matching entry
+    let best: PricingEntry | null = null;
+    let bestLen = 0;
+    for (const entry of PRICING) {
+      for (const m of entry.matches) {
+        if (lower.includes(m) && m.length > bestLen) {
+          best = entry;
+          bestLen = m.length;
+        }
+      }
+    }
+    return best;
+  };
+
+  const computeCost = (entry: PricingEntry, inputTok: number, outputTok: number) => {
+    const inCost  = (inputTok  / 1_000_000) * entry.priceIn;
+    const outCost = (outputTok / 1_000_000) * entry.priceOut;
+    return { inCost, outCost, total: inCost + outCost };
+  };
+
+  const fmtCost = (n: number) => {
+    if (n < 0.00001) return '$0.0000';
+    if (n < 0.001)   return `$${n.toFixed(6)}`;
+    if (n < 0.01)    return `$${n.toFixed(5)}`;
+    return `$${n.toFixed(4)}`;
+  };
+
+  const fmtNum = (n: number | null) => n === null ? '—' : n.toLocaleString();
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initLu = () => {
+    const app = document.getElementById('lu-app');
+    if (!app || (app as any)._luInit) return;
+    (app as any)._luInit = true;
+
+    const inputEl     = document.getElementById('lu-input')      as HTMLTextAreaElement;
+    const parseErr    = document.getElementById('lu-parse-error')!;
+    const provBadge   = document.getElementById('lu-provider-badge')!;
+    const results     = document.getElementById('lu-results')!;
+    const emptyState  = document.getElementById('lu-empty')!;
+    const contentEl   = document.getElementById('lu-content')!;
+    const thinkingWrap = document.getElementById('lu-thinking-wrap')!;
+    const thinkingEl  = document.getElementById('lu-thinking')!;
+    const toolsWrap   = document.getElementById('lu-tools-wrap')!;
+    const toolsEl     = document.getElementById('lu-tools')!;
+    const stopEl      = document.getElementById('lu-stop-reason')!;
+    const modelEl     = document.getElementById('lu-model-name')!;
+    const createdEl   = document.getElementById('lu-created')!;
+    const fpEl        = document.getElementById('lu-fingerprint')!;
+    const tokIn       = document.getElementById('lu-tok-in')!;
+    const tokOut      = document.getElementById('lu-tok-out')!;
+    const tokTotal    = document.getElementById('lu-tok-total')!;
+    const tokCacheWrap = document.getElementById('lu-tok-cache-wrap')!;
+    const tokCache    = document.getElementById('lu-tok-cache')!;
+    const costKnown   = document.getElementById('lu-cost-known')!;
+    const costUnknown = document.getElementById('lu-cost-unknown')!;
+    const costTotal   = document.getElementById('lu-cost-total')!;
+    const costInLine  = document.getElementById('lu-cost-in-line')!;
+    const costOutLine = document.getElementById('lu-cost-out-line')!;
+    const costLabel   = document.getElementById('lu-cost-model-label')!;
+    const costPicker  = document.getElementById('lu-cost-picker')  as HTMLSelectElement;
+    const costPickRes = document.getElementById('lu-cost-picker-result')!;
+    const costPickTot = document.getElementById('lu-cost-picker-total')!;
+    const costPickIn  = document.getElementById('lu-cost-picker-in')!;
+    const costPickOut = document.getElementById('lu-cost-picker-out')!;
+
+    // Populate cost picker dropdown
+    PRICING.forEach(entry => {
+      const opt = document.createElement('option');
+      opt.value = entry.label;
+      opt.textContent = `${entry.label} ($${entry.priceIn}/M in · $${entry.priceOut}/M out)`;
+      costPicker.appendChild(opt);
+    });
+
+    let lastExtraction: Extraction | null = null;
+
+    /* ── Render ───────────────────────────────────────────────────*/
+    const render = (ex: Extraction) => {
+      lastExtraction = ex;
+
+      // Provider badge
+      const badgeColors: Record<Provider, string> = {
+        OpenAI:    'border-emerald-500/40 text-emerald-400',
+        Anthropic: 'border-orange-500/40 text-orange-400',
+        Gemini:    'border-blue-500/40 text-blue-400',
+        Unknown:   'border-border-subtle text-text-muted',
+      };
+      provBadge.className = `px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border ${badgeColors[ex.provider]}`;
+      provBadge.textContent = ex.provider;
+
+      // Content
+      contentEl.textContent = ex.content || '(empty)';
+
+      // Thinking
+      thinkingWrap.classList.toggle('hidden', !ex.thinking);
+      if (ex.thinking) thinkingEl.textContent = ex.thinking;
+
+      // Tool calls
+      toolsWrap.classList.toggle('hidden', ex.toolCalls.length === 0);
+      toolsEl.innerHTML = ex.toolCalls.map(tc => `
+        <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-1.5">
+          <p class="text-[10px] font-mono uppercase tracking-widest text-accent">${tc.name}</p>
+          <pre class="text-xs font-mono text-text-secondary whitespace-pre-wrap break-words max-h-36 overflow-y-auto">${tc.args}</pre>
+        </div>
+      `).join('');
+
+      // Meta
+      stopEl.textContent      = ex.stopReason  || '—';
+      modelEl.textContent     = ex.modelName   || '—';
+      createdEl.textContent   = ex.created     || '—';
+      fpEl.textContent        = ex.fingerprint || '—';
+
+      // Token counts
+      tokIn.textContent    = fmtNum(ex.inputTokens);
+      tokOut.textContent   = fmtNum(ex.outputTokens);
+      tokTotal.textContent = fmtNum(ex.totalTokens);
+      tokCacheWrap.classList.toggle('hidden', ex.cachedTokens === null || ex.cachedTokens === 0);
+      if (ex.cachedTokens !== null) tokCache.textContent = fmtNum(ex.cachedTokens);
+
+      // Cost
+      const pricing = findPricing(ex.modelName);
+      if (pricing && ex.inputTokens !== null && ex.outputTokens !== null) {
+        const c = computeCost(pricing, ex.inputTokens, ex.outputTokens);
+        costTotal.textContent  = fmtCost(c.total);
+        costInLine.textContent = `Input: ${fmtCost(c.inCost)}`;
+        costOutLine.textContent= `Output: ${fmtCost(c.outCost)}`;
+        costLabel.textContent  = `Model: ${pricing.label} · Rates: $${pricing.priceIn.toFixed(2)} in / $${pricing.priceOut.toFixed(2)} out per 1M tokens`;
+        costKnown.classList.remove('hidden');
+        costUnknown.classList.add('hidden');
+      } else {
+        costKnown.classList.add('hidden');
+        costUnknown.classList.remove('hidden');
+        costPickRes.classList.add('hidden');
+      }
+
+      results.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+    };
+
+    /* ── Parse and unpack ─────────────────────────────────────────*/
+    const unpack = () => {
+      const raw = inputEl.value.trim();
+      if (!raw) {
+        results.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        parseErr.classList.add('hidden');
+        provBadge.textContent = '—';
+        provBadge.className = 'px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border border-border-subtle text-text-muted';
+        return;
+      }
+      let obj: any;
+      try {
+        obj = JSON.parse(raw);
+        parseErr.classList.add('hidden');
+      } catch {
+        parseErr.classList.remove('hidden');
+        results.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        provBadge.textContent = '—';
+        provBadge.className = 'px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border border-border-subtle text-text-muted';
+        return;
+      }
+      render(extract(obj));
+    };
+
+    /* ── Example loaders ─────────────────────────────────────────*/
+    (['openai', 'anthropic', 'gemini'] as const).forEach(key => {
+      const btn = document.getElementById(`lu-ex-${key}`);
+      btn?.addEventListener('click', () => {
+        inputEl.value = EXAMPLES[key];
+        unpack();
+      });
+    });
+
+    /* ── Live parse on input ─────────────────────────────────────*/
+    inputEl.addEventListener('input', unpack);
+    inputEl.addEventListener('paste', () => setTimeout(unpack, 0));
+
+    /* ── Cost picker ─────────────────────────────────────────────*/
+    costPicker.addEventListener('change', () => {
+      const label = costPicker.value;
+      if (!label || !lastExtraction) { costPickRes.classList.add('hidden'); return; }
+      const entry = PRICING.find(p => p.label === label);
+      if (!entry) { costPickRes.classList.add('hidden'); return; }
+      const inT  = lastExtraction.inputTokens  ?? 0;
+      const outT = lastExtraction.outputTokens ?? 0;
+      const c = computeCost(entry, inT, outT);
+      costPickTot.textContent = fmtCost(c.total);
+      costPickIn.textContent  = `Input: ${fmtCost(c.inCost)} (${fmtNum(inT)} tokens)`;
+      costPickOut.textContent = `Output: ${fmtCost(c.outCost)} (${fmtNum(outT)} tokens)`;
+      costPickRes.classList.remove('hidden');
+    });
+
+    /* ── AppShell toolbar wiring ─────────────────────────────────*/
+    document.addEventListener('app:reset', () => {
+      inputEl.value = '';
+      results.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+      parseErr.classList.add('hidden');
+      provBadge.textContent = '—';
+      provBadge.className = 'px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border border-border-subtle text-text-muted';
+      lastExtraction = null;
+      costPicker.value = '';
+      costPickRes.classList.add('hidden');
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastExtraction) return;
+      const ex = lastExtraction;
+      const lines: string[] = [
+        `LLM Response Unpacker — gekro.com`,
+        `Provider: ${ex.provider}`,
+        `Model: ${ex.modelName || '—'}`,
+        `Stop reason: ${ex.stopReason || '—'}`,
+        ``,
+        `--- Content ---`,
+        ex.content || '(empty)',
+      ];
+      if (ex.thinking) {
+        lines.push('', '--- Thinking ---', ex.thinking);
+      }
+      if (ex.toolCalls.length) {
+        lines.push('', '--- Tool calls ---');
+        ex.toolCalls.forEach(tc => {
+          lines.push(`${tc.name}:`, tc.args);
+        });
+      }
+      lines.push(
+        '', '--- Token usage ---',
+        `Input:  ${fmtNum(ex.inputTokens)}`,
+        `Output: ${fmtNum(ex.outputTokens)}`,
+        `Total:  ${fmtNum(ex.totalTokens)}`,
+      );
+      if (ex.cachedTokens !== null && ex.cachedTokens > 0) {
+        lines.push(`Cached: ${fmtNum(ex.cachedTokens)}`);
+      }
+      try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastExtraction) return;
+      const ex = lastExtraction;
+      const payload = {
+        provider:     ex.provider,
+        model:        ex.modelName,
+        stop_reason:  ex.stopReason,
+        content:      ex.content,
+        thinking:     ex.thinking || null,
+        tool_calls:   ex.toolCalls,
+        tokens: {
+          input:   ex.inputTokens,
+          output:  ex.outputTokens,
+          total:   ex.totalTokens,
+          cached:  ex.cachedTokens,
+        },
+        created:     ex.created || null,
+        fingerprint: ex.fingerprint || null,
+        extracted_at: new Date().toISOString(),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `llm-response-${Date.now()}.json`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  };
+
+  initLu();
+  document.addEventListener('astro:after-swap', initLu);
+</script>

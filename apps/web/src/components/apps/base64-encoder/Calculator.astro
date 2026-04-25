@@ -1,0 +1,544 @@
+---
+/**
+ * Base64 & URL Encoder — Calculator.astro
+ *
+ * Four encoding modes, all in-browser, zero external deps:
+ *  - Base64: standard (btoa/atob), URL-safe (-_ instead of +/), no-padding
+ *  - URL:    encodeURIComponent vs encodeURI variants
+ *  - HTML:   named entities (&amp;) and numeric entities (&#38;)
+ *  - Hex:    UTF-8 text ↔ hex string with configurable separators
+ *
+ * File-to-Base64 encoding supported in Base64 mode.
+ * Auto-detect direction available per mode.
+ */
+---
+
+<div id="b64-app" class="space-y-5">
+
+  <!-- Mode tabs -->
+  <div class="flex flex-wrap gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
+    <button class="b64-mode-tab active px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="base64">Base64</button>
+    <button class="b64-mode-tab px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="url">URL</button>
+    <button class="b64-mode-tab px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="html">HTML Entities</button>
+    <button class="b64-mode-tab px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="hex">Hex</button>
+  </div>
+
+  <!-- ── Mode-specific options ─────────────────────────────────── -->
+
+  <!-- Base64 options -->
+  <div id="b64-opts-base64" class="flex flex-wrap items-center gap-4">
+    <div class="flex items-center gap-2">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Variant
+        <span title="URL-safe Base64 replaces + with - and / with _ so the output can be used directly in URLs and filenames without percent-encoding. Used in JWTs, OAuth tokens, and URL parameters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+        <button class="b64-variant-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="standard">Standard</button>
+        <button class="b64-variant-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="url-safe">URL-safe</button>
+        <button class="b64-variant-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="no-padding">No padding</button>
+      </div>
+    </div>
+    <label class="flex items-center gap-2 cursor-pointer select-none">
+      <input type="checkbox" id="b64-file-mode" class="accent-[var(--color-accent)] w-4 h-4" />
+      <span class="text-xs font-mono text-text-muted">Encode file</span>
+    </label>
+  </div>
+
+  <!-- URL options -->
+  <div id="b64-opts-url" class="hidden flex-wrap items-center gap-4">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      Variant
+      <span title="encodeURIComponent encodes everything except A-Z a-z 0-9 - _ . ! ~ * ' ( ) — ideal for query string values. encodeURI preserves / ? = & # : @ and is meant for full URLs where you want to encode only unsafe characters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+    </label>
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+      <button class="b64-url-variant-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="component">encodeURIComponent</button>
+      <button class="b64-url-variant-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="uri">encodeURI</button>
+    </div>
+  </div>
+
+  <!-- Hex options -->
+  <div id="b64-opts-hex" class="hidden flex-wrap items-center gap-4">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      Separator
+      <span title="Space: '48 65 6c 6c 6f' — easiest to read. 0x prefix: '0x48 0x65 0x6c' — common in code snippets. None: '48656c6c6f' — compact, copy-paste into tools that expect a raw hex string." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+    </label>
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+      <button class="b64-hex-sep-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-sep="space">Space</button>
+      <button class="b64-hex-sep-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-sep="0x">0x prefix</button>
+      <button class="b64-hex-sep-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-sep="none">None</button>
+    </div>
+  </div>
+
+  <!-- ── Direction + split view ────────────────────────────────── -->
+  <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-start">
+
+    <!-- Input -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <label id="b64-input-label" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input</label>
+        <div class="flex items-center gap-2">
+          <span id="b64-input-bytes" class="text-[10px] font-mono text-text-muted/60"></span>
+          <button id="b64-clear-btn" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">Clear</button>
+        </div>
+      </div>
+      <textarea
+        id="b64-input"
+        rows="6"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder="Type or paste here..."
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors"
+      ></textarea>
+      <!-- File input for Base64 mode -->
+      <div id="b64-file-zone" class="hidden">
+        <div
+          id="b64-file-drop"
+          class="flex flex-col items-center gap-2 p-5 border-2 border-dashed border-border-subtle rounded-xl
+                 bg-bg-elevated hover:border-accent/40 transition-colors cursor-pointer"
+        >
+          <span class="text-2xl select-none">📂</span>
+          <p class="text-xs font-mono text-text-muted">Drop file or <button id="b64-file-browse" class="text-accent underline">browse</button></p>
+          <input type="file" id="b64-file-input" class="hidden" />
+        </div>
+        <div id="b64-file-info" class="hidden mt-2 flex items-center gap-2 text-xs font-mono text-text-muted">
+          <span id="b64-file-name" class="truncate flex-1"></span>
+          <button id="b64-file-remove" class="text-text-muted hover:text-accent shrink-0">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Direction controls -->
+    <div class="flex md:flex-col items-center justify-center gap-2 py-2 md:py-8">
+      <button id="b64-encode-btn"
+        class="b64-dir-btn active flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle bg-bg-elevated text-xs font-mono text-text-muted hover:border-accent/30 hover:text-accent transition-all whitespace-nowrap">
+        Encode →
+      </button>
+      <button id="b64-decode-btn"
+        class="b64-dir-btn flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle bg-bg-elevated text-xs font-mono text-text-muted hover:border-accent/30 hover:text-accent transition-all whitespace-nowrap">
+        ← Decode
+      </button>
+      <button id="b64-auto-detect-btn"
+        class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border-subtle bg-bg-elevated text-[10px] font-mono text-text-muted hover:border-accent/30 hover:text-accent transition-all whitespace-nowrap">
+        ⚡ Auto
+      </button>
+    </div>
+
+    <!-- Output -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <label id="b64-output-label" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</label>
+        <div class="flex items-center gap-2">
+          <span id="b64-output-bytes" class="text-[10px] font-mono text-text-muted/60"></span>
+          <button id="b64-swap-btn" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">⇄ Swap</button>
+        </div>
+      </div>
+      <textarea
+        id="b64-output"
+        rows="6"
+        readonly
+        spellcheck="false"
+        placeholder="Output appears here..."
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors
+               cursor-text select-all"
+      ></textarea>
+      <!-- Error message -->
+      <div id="b64-error" class="hidden p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg">
+        <p id="b64-error-msg" class="text-xs font-mono text-red-400"></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .b64-mode-tab {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .b64-mode-tab.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .b64-mode-tab:hover:not(.active) { color: var(--color-text-secondary); }
+
+  .b64-variant-btn, .b64-url-variant-btn, .b64-hex-sep-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .b64-variant-btn.active, .b64-url-variant-btn.active, .b64-hex-sep-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .b64-dir-btn { transition: all 0.15s; }
+  .b64-dir-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  #b64-opts-url { display: none; }
+  #b64-opts-url.visible { display: flex; }
+  #b64-opts-hex { display: none; }
+  #b64-opts-hex.visible { display: flex; }
+</style>
+
+<script>
+  /* ─────────────────────────────────────────────────────────────────
+   * HTML entity maps
+   * ───────────────────────────────────────────────────────────────── */
+  const HTML_ENTITIES: Record<string, string> = {
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    '¢': '&cent;', '£': '&pound;', '¥': '&yen;', '€': '&euro;', '©': '&copy;', '®': '&reg;',
+  };
+  const HTML_DECODE: Record<string, string> = Object.fromEntries(
+    Object.entries(HTML_ENTITIES).map(([k, v]) => [v, k])
+  );
+
+  /* ─────────────────────────────────────────────────────────────────
+   * Encoding functions
+   * ───────────────────────────────────────────────────────────────── */
+  const toBase64 = (str: string, variant: string): string => {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    let b64 = btoa(binary);
+    if (variant === 'url-safe' || variant === 'no-padding') {
+      b64 = b64.replace(/\+/g, '-').replace(/\//g, '_');
+    }
+    if (variant === 'no-padding') {
+      b64 = b64.replace(/=+$/, '');
+    }
+    return b64;
+  };
+
+  const fromBase64 = (str: string): string => {
+    // Normalize URL-safe chars and restore padding
+    let normalized = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (normalized.length % 4 !== 0) normalized += '=';
+    const binary = atob(normalized);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  };
+
+  const fileTo64 = (file: File, variant: string): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        // result is data:mime;base64,<b64>
+        let b64 = result.split(',')[1] || '';
+        if (variant === 'url-safe' || variant === 'no-padding') {
+          b64 = b64.replace(/\+/g, '-').replace(/\//g, '_');
+        }
+        if (variant === 'no-padding') b64 = b64.replace(/=+$/, '');
+        resolve(b64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const encodeUrl = (str: string, variant: string): string =>
+    variant === 'component' ? encodeURIComponent(str) : encodeURI(str);
+
+  const decodeUrl = (str: string): string => {
+    try { return decodeURIComponent(str); } catch { return unescape(str); }
+  };
+
+  const encodeHtml = (str: string): string =>
+    str.replace(/[&<>"'¢£¥€©®]/g, (c) => HTML_ENTITIES[c] || c);
+
+  const decodeHtml = (str: string): string => {
+    // Named entities
+    let result = str.replace(/&[a-z]+;/gi, (e) => HTML_DECODE[e] || e);
+    // Numeric entities (decimal)
+    result = result.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)));
+    // Numeric entities (hex)
+    result = result.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
+    return result;
+  };
+
+  const encodeHex = (str: string, sep: string): string => {
+    const bytes = new TextEncoder().encode(str);
+    const hexBytes = [...bytes].map(b => b.toString(16).padStart(2, '0'));
+    if (sep === 'space')  return hexBytes.join(' ');
+    if (sep === '0x')     return hexBytes.map(h => '0x' + h).join(' ');
+    return hexBytes.join('');
+  };
+
+  const decodeHex = (str: string): string => {
+    // Strip 0x prefixes, spaces, and any other separators
+    const cleaned = str.replace(/0x/gi, '').replace(/\s+/g, '').replace(/[^0-9a-fA-F]/g, '');
+    if (cleaned.length % 2 !== 0) throw new Error('Odd number of hex digits');
+    const bytes = new Uint8Array(cleaned.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(cleaned.slice(i * 2, i * 2 + 2), 16);
+    }
+    return new TextDecoder().decode(bytes);
+  };
+
+  /* ─────────────────────────────────────────────────────────────────
+   * Auto-detect direction
+   * ───────────────────────────────────────────────────────────────── */
+  const looksLikeBase64 = (s: string): boolean => /^[A-Za-z0-9+/\-_]+=*$/.test(s.trim()) && s.length % 4 === 0 || /^[A-Za-z0-9\-_]+=*$/.test(s.trim());
+  const looksUrlEncoded  = (s: string): boolean => /%[0-9a-fA-F]{2}/.test(s);
+  const looksHtmlEncoded = (s: string): boolean => /&[a-z]+;|&#\d+;/i.test(s);
+  const looksHexEncoded  = (s: string): boolean => /^(0x[0-9a-f]{2}\s*)+$/i.test(s.trim()) || /^([0-9a-f]{2}\s*)+$/i.test(s.trim());
+
+  /* ─────────────────────────────────────────────────────────────────
+   * Init
+   * ───────────────────────────────────────────────────────────────── */
+  const initB64 = () => {
+    const app = document.getElementById('b64-app');
+    if (!app || (app as any)._b64Init) return;
+    (app as any)._b64Init = true;
+
+    const modeTabs      = app.querySelectorAll<HTMLButtonElement>('.b64-mode-tab');
+    const variantBtns   = app.querySelectorAll<HTMLButtonElement>('.b64-variant-btn');
+    const urlVariants   = app.querySelectorAll<HTMLButtonElement>('.b64-url-variant-btn');
+    const hexSepBtns    = app.querySelectorAll<HTMLButtonElement>('.b64-hex-sep-btn');
+    const inputEl       = document.getElementById('b64-input')   as HTMLTextAreaElement;
+    const outputEl      = document.getElementById('b64-output')  as HTMLTextAreaElement;
+    const inputLabel    = document.getElementById('b64-input-label')!;
+    const outputLabel   = document.getElementById('b64-output-label')!;
+    const inputBytes    = document.getElementById('b64-input-bytes')!;
+    const outputBytes   = document.getElementById('b64-output-bytes')!;
+    const clearBtn      = document.getElementById('b64-clear-btn')!;
+    const swapBtn       = document.getElementById('b64-swap-btn')!;
+    const encodeBtn     = document.getElementById('b64-encode-btn')!;
+    const decodeBtn     = document.getElementById('b64-decode-btn')!;
+    const autoDetectBtn = document.getElementById('b64-auto-detect-btn')!;
+    const errorBox      = document.getElementById('b64-error')!;
+    const errorMsg      = document.getElementById('b64-error-msg')!;
+    const fileModeChk   = document.getElementById('b64-file-mode') as HTMLInputElement;
+    const fileZone      = document.getElementById('b64-file-zone')!;
+    const fileDrop      = document.getElementById('b64-file-drop')!;
+    const fileBrowse    = document.getElementById('b64-file-browse')!;
+    const fileInput     = document.getElementById('b64-file-input') as HTMLInputElement;
+    const fileInfo      = document.getElementById('b64-file-info')!;
+    const fileNameEl    = document.getElementById('b64-file-name')!;
+    const fileRemove    = document.getElementById('b64-file-remove')!;
+    const optsBase64    = document.getElementById('b64-opts-base64')!;
+    const optsUrl       = document.getElementById('b64-opts-url')!;
+    const optsHex       = document.getElementById('b64-opts-hex')!;
+
+    let mode: string     = 'base64';
+    let direction: 'encode' | 'decode' = 'encode';
+    let b64Variant: string  = 'standard';
+    let urlVariant: string  = 'component';
+    let hexSep: string      = 'space';
+    let fileObj: File | null = null;
+
+    /* Byte size display */
+    const byteLen = (s: string): string => {
+      const n = new TextEncoder().encode(s).length;
+      return n > 0 ? `${n} B` : '';
+    };
+
+    /* Error display */
+    const showError = (msg: string) => {
+      errorMsg.textContent = msg;
+      errorBox.classList.remove('hidden');
+    };
+    const clearError = () => errorBox.classList.add('hidden');
+
+    /* Labels */
+    const updateLabels = () => {
+      if (direction === 'encode') {
+        inputLabel.textContent  = 'Input (plain)';
+        outputLabel.textContent = 'Output (encoded)';
+        encodeBtn.classList.add('active');
+        decodeBtn.classList.remove('active');
+      } else {
+        inputLabel.textContent  = 'Input (encoded)';
+        outputLabel.textContent = 'Output (decoded)';
+        decodeBtn.classList.add('active');
+        encodeBtn.classList.remove('active');
+      }
+    };
+
+    /* Mode switching */
+    const setMode = (m: string) => {
+      mode = m;
+      modeTabs.forEach(t => t.classList.toggle('active', t.dataset.mode === m));
+      optsBase64.style.display = m === 'base64' ? 'flex' : 'none';
+      optsUrl.classList.toggle('visible', m === 'url');
+      optsHex.classList.toggle('visible', m === 'hex');
+      compute();
+    };
+    modeTabs.forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode!)));
+
+    /* Direction */
+    const setDirection = (d: 'encode' | 'decode') => {
+      direction = d;
+      updateLabels();
+      compute();
+    };
+    encodeBtn.addEventListener('click', () => setDirection('encode'));
+    decodeBtn.addEventListener('click', () => setDirection('decode'));
+
+    /* Auto-detect */
+    autoDetectBtn.addEventListener('click', () => {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      if (mode === 'base64' && looksLikeBase64(text)) { setDirection('decode'); return; }
+      if (mode === 'url'    && looksUrlEncoded(text))  { setDirection('decode'); return; }
+      if (mode === 'html'   && looksHtmlEncoded(text)) { setDirection('decode'); return; }
+      if (mode === 'hex'    && looksHexEncoded(text))  { setDirection('decode'); return; }
+      setDirection('encode');
+    });
+
+    /* Base64 variants */
+    variantBtns.forEach(b => b.addEventListener('click', () => {
+      b64Variant = b.dataset.variant!;
+      variantBtns.forEach(x => x.classList.toggle('active', x.dataset.variant === b64Variant));
+      compute();
+    }));
+
+    /* URL variants */
+    urlVariants.forEach(b => b.addEventListener('click', () => {
+      urlVariant = b.dataset.variant!;
+      urlVariants.forEach(x => x.classList.toggle('active', x.dataset.variant === urlVariant));
+      compute();
+    }));
+
+    /* Hex separators */
+    hexSepBtns.forEach(b => b.addEventListener('click', () => {
+      hexSep = b.dataset.sep!;
+      hexSepBtns.forEach(x => x.classList.toggle('active', x.dataset.sep === hexSep));
+      compute();
+    }));
+
+    /* File mode toggle */
+    fileModeChk.addEventListener('change', () => {
+      const on = fileModeChk.checked;
+      fileZone.classList.toggle('hidden', !on);
+      inputEl.classList.toggle('hidden', on);
+      if (on) { direction = 'encode'; updateLabels(); }
+      if (!on) { fileObj = null; fileInfo.classList.add('hidden'); }
+      compute();
+    });
+
+    fileBrowse.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) loadFile(fileInput.files[0]); });
+    fileDrop.addEventListener('dragover', (e) => { e.preventDefault(); fileDrop.classList.add('border-accent/60'); });
+    fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('border-accent/60'));
+    fileDrop.addEventListener('drop', (e) => {
+      e.preventDefault(); fileDrop.classList.remove('border-accent/60');
+      if (e.dataTransfer?.files[0]) loadFile(e.dataTransfer.files[0]);
+    });
+    fileRemove.addEventListener('click', () => { fileObj = null; fileInfo.classList.add('hidden'); outputEl.value = ''; clearError(); });
+
+    const loadFile = (f: File) => {
+      fileObj = f;
+      fileNameEl.textContent = `${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+      fileInfo.classList.remove('hidden');
+      compute();
+    };
+
+    /* Swap input/output */
+    swapBtn.addEventListener('click', () => {
+      const out = outputEl.value;
+      if (!out) return;
+      inputEl.value = out;
+      outputEl.value = '';
+      setDirection(direction === 'encode' ? 'decode' : 'encode');
+    });
+
+    /* Clear */
+    clearBtn.addEventListener('click', () => {
+      inputEl.value = ''; outputEl.value = '';
+      inputBytes.textContent = ''; outputBytes.textContent = '';
+      fileObj = null; fileInfo.classList.add('hidden');
+      clearError();
+    });
+
+    /* Core compute */
+    const compute = async () => {
+      clearError();
+
+      if (mode === 'base64' && fileModeChk.checked && direction === 'encode') {
+        if (!fileObj) { outputEl.value = ''; return; }
+        try {
+          const result = await fileTo64(fileObj, b64Variant);
+          outputEl.value = result;
+          inputBytes.textContent  = `${(fileObj.size / 1024).toFixed(1)} KB`;
+          outputBytes.textContent = byteLen(result);
+        } catch (e) { showError(String(e)); }
+        return;
+      }
+
+      const input = inputEl.value;
+      inputBytes.textContent = byteLen(input);
+
+      if (!input) { outputEl.value = ''; outputBytes.textContent = ''; return; }
+
+      try {
+        let result = '';
+        if (mode === 'base64') {
+          result = direction === 'encode' ? toBase64(input, b64Variant) : fromBase64(input);
+        } else if (mode === 'url') {
+          result = direction === 'encode' ? encodeUrl(input, urlVariant) : decodeUrl(input);
+        } else if (mode === 'html') {
+          result = direction === 'encode' ? encodeHtml(input) : decodeHtml(input);
+        } else if (mode === 'hex') {
+          result = direction === 'encode' ? encodeHex(input, hexSep) : decodeHex(input);
+        }
+        outputEl.value = result;
+        outputBytes.textContent = byteLen(result);
+      } catch (err: any) {
+        showError(err.message || 'Decoding failed — check input format');
+        outputEl.value = '';
+        outputBytes.textContent = '';
+      }
+    };
+
+    inputEl.addEventListener('input', compute);
+
+    /* App shell events */
+    document.addEventListener('app:copy', async () => {
+      const text = outputEl.value;
+      if (text) { try { await navigator.clipboard.writeText(text); } catch {} }
+    });
+
+    document.addEventListener('app:reset', () => {
+      mode = 'base64'; direction = 'encode';
+      b64Variant = 'standard'; urlVariant = 'component'; hexSep = 'space';
+      inputEl.value = ''; outputEl.value = '';
+      inputBytes.textContent = ''; outputBytes.textContent = '';
+      fileObj = null; fileInfo.classList.add('hidden'); fileInput.value = '';
+      fileModeChk.checked = false; fileZone.classList.add('hidden'); inputEl.classList.remove('hidden');
+      clearError();
+      setMode('base64');
+      updateLabels();
+      variantBtns.forEach(b => b.classList.toggle('active', b.dataset.variant === 'standard'));
+      urlVariants.forEach(b => b.classList.toggle('active', b.dataset.variant === 'component'));
+      hexSepBtns.forEach(b => b.classList.toggle('active', b.dataset.sep === 'space'));
+    });
+
+    document.addEventListener('app:export', () => {
+      const text = outputEl.value;
+      if (!text) return;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `encoded-output-${Date.now()}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    updateLabels();
+  };
+
+  initB64();
+  document.addEventListener('astro:after-swap', initB64);
+</script>

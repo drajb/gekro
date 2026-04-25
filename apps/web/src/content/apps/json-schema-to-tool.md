@@ -13,13 +13,19 @@ license: "MIT"
 icon: "🔧"
 ---
 
-## How this works
+## What It Does
 
-Each major LLM provider has its own format for tool/function calling. The schemas are *almost* the same but not quite — and the differences silently break tool calls when you migrate code between providers.
+JSON Schema → LLM Tool Definition takes a JSON Schema (or OpenAPI operation object) and converts it into the tool/function calling format for all three major LLM providers simultaneously — OpenAI, Anthropic, and Google Gemini. The formats look similar but differ in key ways that silently break tool calls when you migrate code. This tool handles the differences and flags incompatibilities inline.
 
-This tool takes a single JSON Schema input and emits all three formats side by side.
+## How to Use It
 
-### The three formats
+1. Paste a JSON Schema object, an OpenAPI 3.x operation, or an existing tool definition from any of the three providers.
+2. The tool validates the input as JSON and surfaces any parse errors immediately.
+3. Three output panels appear side by side: OpenAI format, Anthropic format, Gemini format.
+4. Any provider-specific incompatibilities (features your schema uses that a provider doesn't support) are flagged with explanations.
+5. Copy the output for each provider you need.
+
+## The Three Formats
 
 **OpenAI** (Chat Completions + Responses API):
 ```json
@@ -27,8 +33,17 @@ This tool takes a single JSON Schema input and emits all three formats side by s
   "type": "function",
   "function": {
     "name": "get_weather",
-    "description": "Get current weather",
-    "parameters": { /* JSON Schema */ }
+    "description": "Get current weather for a location",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "location": { "type": "string" },
+        "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+      },
+      "required": ["location"],
+      "additionalProperties": false
+    },
+    "strict": true
   }
 }
 ```
@@ -37,8 +52,15 @@ This tool takes a single JSON Schema input and emits all three formats side by s
 ```json
 {
   "name": "get_weather",
-  "description": "Get current weather",
-  "input_schema": { /* JSON Schema */ }
+  "description": "Get current weather for a location",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "location": { "type": "string" },
+      "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+    },
+    "required": ["location"]
+  }
 }
 ```
 
@@ -47,40 +69,78 @@ This tool takes a single JSON Schema input and emits all three formats side by s
 {
   "function_declarations": [{
     "name": "get_weather",
-    "description": "Get current weather",
-    "parameters": { /* JSON Schema with type restrictions */ }
+    "description": "Get current weather for a location",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "location": { "type": "string" },
+        "unit": { "type": "string", "format": "enum", "enum": ["celsius", "fahrenheit"] }
+      },
+      "required": ["location"]
+    }
   }]
 }
 ```
 
-### Per-provider quirks the tool handles
+## Per-Provider Quirks the Tool Handles
 
 | Quirk | OpenAI | Anthropic | Gemini |
 |---|---|---|---|
-| Wrapper key for params | `function.parameters` | `input_schema` | `function_declarations[].parameters` |
-| `additionalProperties` | Required `false` in strict mode | Optional | **Not supported** (warns) |
-| Enum types | Supported | Supported | Strings only |
-| `$ref` | Supported | Supported | **Not supported** (warns) |
-| `oneOf` / `anyOf` | Supported | Supported | **Not supported** (warns) |
+| Wrapper key for schema | `function.parameters` | `input_schema` | `function_declarations[].parameters` |
+| `additionalProperties` | Required `false` in strict mode | Optional, allowed | **Not supported** — removed with warning |
+| Enum types | Supported | Supported | Strings only — non-string enums coerced |
+| `$ref` | Supported | Supported | **Not supported** — referenced schemas must be inlined |
+| `oneOf` / `anyOf` | Supported | Supported | **Not supported** — flagged with explanation |
 | Strict mode | Opt-in via `strict: true` | Always strict | Always strict |
-| Description position | `function.description` | top-level `description` | top-level `description` |
+| Description key position | `function.description` | top-level `description` | top-level `description` |
 
-## What you can paste
+## Why Tool Schemas Are the Function Calling Ecosystem
 
-The tool accepts:
-- A bare JSON Schema (with `type`, `properties`, `required`)
-- An OpenAPI 3.x operation object (with `operationId`, `summary`, `requestBody.content."application/json".schema`)
-- A complete tool definition in any of the three provider formats (round-trips them)
+LLM function calling (also called tool use) is how LLMs take actions in the real world. Instead of just generating text, a model can emit a structured JSON object requesting that a function be called with specific arguments — and your code can actually call that function and return the result to the model. This is the core mechanism behind agents.
 
-## Why I built this
+All three major providers support this. The model receives a list of tool definitions (schema + description), generates text or a tool call request, your code runs the requested tool, and the result is fed back into the next model call. The model can then call more tools or generate a final response.
 
-The amount of time I've wasted hand-translating schemas between OpenAI and Anthropic format is embarrassing. The format differences are all in the wrapper keys, but you don't notice them until your tool call returns "Function not callable" with no useful debug info.
+The schema you provide does two things: it tells the model *what arguments are available* (schema validation), and it tells the model *when to call this tool and why* (the description). Both matter. A tool with a clear, specific description gets called at the right moments. A tool with a vague description gets ignored or called with wrong arguments.
 
-Companion to the [Tokenizer Visualizer](/apps/tokenizer/) and [Prompt Token Counter](/apps/prompt-token-counter/) — together they cover the most common LLM-engineer prep tasks.
+## What `strict: true` Means in OpenAI (And Why It Matters)
+
+OpenAI's Structured Outputs feature, enabled via `strict: true` on a tool definition, guarantees that the model's function call arguments will be valid JSON that strictly matches the provided schema — no extra fields, no schema violations. Without `strict: true`, the model is strongly prompted to follow the schema but not guaranteed.
+
+The implications for reliability are significant. In a production agent that calls tools in a loop, a single malformed tool call can break the agent's action chain. With `strict: true`, you get a hard guarantee that the arguments are schema-valid before they reach your function. The tradeoff: `strict: true` requires `additionalProperties: false` throughout the schema tree, and doesn't support `oneOf`/`anyOf`. This tool adds `additionalProperties: false` automatically when generating the OpenAI strict output.
+
+## Gemini's Schema Restrictions and Why They Exist
+
+Gemini's function calling uses a subset of OpenJSON Schema. The restrictions — no `$ref`, no `oneOf`/`anyOf`, no `additionalProperties`, enum values must be strings — exist because Gemini's function calling is implemented over a proprietary schema format internally, and the JSON Schema surface area is mapped to that internal format at API parsing time.
+
+The practical implication: if your schema uses advanced JSON Schema features (`$ref` for shared definitions, `oneOf` for discriminated unions), it will work with OpenAI and Anthropic but silently fail or be rejected by Gemini. This tool inlines `$ref` references and flags `oneOf`/`anyOf` usage so you know where to simplify.
+
+## How to Design Good Tool Schemas
+
+Schema design is where most tool call reliability issues originate.
+
+**Required fields:** Mark every field the model should always provide as `required`. Optional fields with defaults should have those defaults described in the `description` string, not modeled as nullable types — models follow description guidance more reliably than schema optionality.
+
+**Clear, specific descriptions:** The description is the most important part. Compare:
+- Bad: `"location": { "type": "string", "description": "The location" }`
+- Good: `"location": { "type": "string", "description": "City and country in English, e.g. 'Chicago, US' or 'Tokyo, Japan'" }`
+
+The specific format example in the description dramatically improves the model's output for that field.
+
+**Avoid `oneOf` when possible.** Use separate named tools instead of a single tool with a discriminated union parameter. Models call the right tool more reliably than they fill in a discriminator field. This also maps cleanly to all three providers.
+
+**Limit required fields to what's truly required.** Every required field the model must fill in is an opportunity for an error. For optional context fields, make them optional with clear descriptions of when to omit them.
+
+## Tips & Power Use
+
+- **Round-trip existing definitions.** If you have an OpenAI tool definition, paste it in and get the Anthropic equivalent immediately — useful when porting an agent between providers.
+- **Use the incompatibility flags as a compatibility matrix.** If Gemini compatibility is important, design your schema without `oneOf`, `$ref`, or `additionalProperties`. The tool tells you exactly which features to avoid.
+- **Pair with the [System Prompt Linter](/apps/system-prompt-linter/)** — linting the system prompt and validating the tool schemas are the two most impactful pre-deployment checks for agentic systems.
+- **OpenAPI operations.** If your backend has an OpenAPI spec, paste individual operation objects here to generate LLM tool definitions that map to your real API endpoints. Keeps the tool schema in sync with the backend spec.
 
 ## Limitations
 
 - **Doesn't generate the function implementation** — only the schema half of the tool call
-- **No validation against the provider's runtime API** — emits the format; doesn't verify the API will accept it
-- **OpenAPI parsing handles common cases** — complex `$ref` chains across files aren't resolved
-- **No streaming format** — Gemini's streaming function call format is identical except for delta wrapping; not modeled here
+- **No runtime API validation** — emits the format; doesn't verify that a specific API version will accept it
+- **OpenAPI parsing handles common cases** — complex `$ref` chains across files aren't resolved (inline only)
+- **No streaming format** — Gemini's streaming function call format is identical except for delta wrapping; not modeled
+- **No tool choice / forced calling** — the `tool_choice` parameter (OpenAI) and `tool_choice: { type: "tool" }` (Anthropic) aren't part of the schema; add those to your SDK call separately

@@ -59,6 +59,16 @@ import JsonSchemaToTool from '../../components/apps/json-schema-to-tool/Calculat
 import SystemPromptLinter from '../../components/apps/system-prompt-linter/Calculator.astro';
 import ContextWindowVisualizer from '../../components/apps/context-window-visualizer/Calculator.astro';
 import SystemdUnitGenerator from '../../components/apps/systemd-unit-generator/Calculator.astro';
+import HashGenerator from '../../components/apps/hash-generator/Calculator.astro';
+import Base64Encoder from '../../components/apps/base64-encoder/Calculator.astro';
+import SshConfigGenerator from '../../components/apps/ssh-config-generator/Calculator.astro';
+import NginxConfigGenerator from '../../components/apps/nginx-config-generator/Calculator.astro';
+import FineTuningFormatter from '../../components/apps/finetuning-formatter/Calculator.astro';
+import PromptDiff from '../../components/apps/prompt-diff/Calculator.astro';
+import ModelBenchmark from '../../components/apps/model-benchmark/Calculator.astro';
+import LlmResponseUnpacker from '../../components/apps/llm-response-unpacker/Calculator.astro';
+import OptionsPnl from '../../components/apps/options-pnl/Calculator.astro';
+import DrawdownCalculator from '../../components/apps/drawdown-calculator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -101,6 +111,16 @@ const CALCULATOR_MAP: Record<string, any> = {
   'system-prompt-linter': SystemPromptLinter,
   'context-window-visualizer': ContextWindowVisualizer,
   'systemd-unit-generator': SystemdUnitGenerator,
+  'hash-generator': HashGenerator,
+  'base64-encoder': Base64Encoder,
+  'ssh-config-generator': SshConfigGenerator,
+  'nginx-config-generator': NginxConfigGenerator,
+  'finetuning-formatter': FineTuningFormatter,
+  'prompt-diff': PromptDiff,
+  'model-benchmark': ModelBenchmark,
+  'llm-response-unpacker': LlmResponseUnpacker,
+  'options-pnl': OptionsPnl,
+  'drawdown-calculator': DrawdownCalculator,
 };
 
 export async function getStaticPaths() {

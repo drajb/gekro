@@ -178,6 +178,30 @@
       if (ua) lines.push(`[User Agent] ${ua}`);
       try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
     });
+    document.addEventListener('app:export', () => {
+      const sections = ['di-browser', 'di-platform', 'di-hardware', 'di-screen', 'di-network', 'di-locale', 'di-ip'];
+      const data: Record<string, Record<string, string>> = {};
+      sections.forEach(id => {
+        const sectionEl = document.getElementById(id);
+        if (!sectionEl) return;
+        const sectionLabel = (sectionEl.previousElementSibling?.textContent?.trim() || id).toLowerCase().replace(/\s+/g, '_');
+        const obj: Record<string, string> = {};
+        sectionEl.querySelectorAll('.di-row').forEach(row => {
+          const k = row.querySelector('.di-key')?.textContent?.trim() || '';
+          const v = row.querySelector('.di-val')?.textContent?.trim() || '';
+          if (k) obj[k] = v;
+        });
+        data[sectionLabel] = obj;
+      });
+      const ua = document.getElementById('di-ua')?.textContent?.trim();
+      if (ua) data['user_agent'] = { raw: ua };
+      data['exported_at'] = { timestamp: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'device-info.json'; a.click();
+      URL.revokeObjectURL(url);
+    });
 
     populate();
   };

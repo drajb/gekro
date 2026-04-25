@@ -1,0 +1,449 @@
+---
+/**
+ * SSH Config Generator — Calculator.astro
+ *
+ * Form-driven ~/.ssh/config host block generator.
+ * Supports multiple hosts, ProxyJump, IdentityFile, forwarding, keepalives.
+ * Output includes inline comments explaining each non-obvious directive.
+ *
+ * Zero deps. Pure string templating.
+ */
+---
+
+<div id="sshcg-app" class="space-y-5">
+
+  <!-- Host list -->
+  <div id="sshcg-host-list" class="space-y-3"></div>
+
+  <!-- Add host button -->
+  <button id="sshcg-add-host"
+    class="w-full py-2 border border-dashed border-border-subtle rounded-lg
+           text-[10px] font-mono uppercase tracking-widest text-text-muted
+           hover:border-accent hover:text-accent transition-colors">
+    + Add host
+  </button>
+
+  <!-- Output -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Generated ~/.ssh/config</p>
+      <p class="text-[10px] font-mono text-text-muted">
+        Save to <code class="bg-bg-elevated px-1.5 py-0.5 rounded">~/.ssh/config</code>
+        then run <code class="bg-bg-elevated px-1.5 py-0.5 rounded">chmod 600 ~/.ssh/config</code>
+      </p>
+    </div>
+    <pre id="sshcg-output"
+      class="bg-bg-elevated border border-border-subtle rounded-xl p-4 text-xs font-mono text-text-secondary overflow-x-auto whitespace-pre"></pre>
+  </div>
+</div>
+
+<script>
+  /**
+   * SSH Config Generator — client logic.
+   * Manages a dynamic list of host entries and renders a complete ~/.ssh/config.
+   */
+
+  interface HostEntry {
+    id: string;
+    alias: string;
+    hostname: string;
+    user: string;
+    port: string;
+    identityFile: string;
+    identitiesOnly: boolean;
+    forwardAgent: boolean;
+    localForward: string;
+    proxyJump: string;
+    serverAliveInterval: boolean;
+    serverAliveIntervalSec: string;
+    serverAliveCountMax: string;
+    strictHostKeyChecking: string;
+    logLevel: string;
+  }
+
+  let hosts: HostEntry[] = [];
+
+  const DEFAULT_HOST = (): HostEntry => ({
+    id: Math.random().toString(36).slice(2, 8),
+    alias: 'myserver',
+    hostname: '192.168.1.100',
+    user: 'ubuntu',
+    port: '22',
+    identityFile: '~/.ssh/id_ed25519',
+    identitiesOnly: false,
+    forwardAgent: false,
+    localForward: '',
+    proxyJump: '',
+    serverAliveInterval: true,
+    serverAliveIntervalSec: '60',
+    serverAliveCountMax: '3',
+    strictHostKeyChecking: 'default',
+    logLevel: 'default',
+  });
+
+  const escHtml = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const renderHostCard = (h: HostEntry, idx: number): string => {
+    const otherAliases = hosts.filter(x => x.id !== h.id && x.alias.trim()).map(x => x.alias.trim());
+    const proxyJumpOptions = otherAliases.map(a =>
+      `<option value="${escHtml(a)}" ${h.proxyJump === a ? 'selected' : ''}>${escHtml(a)}</option>`
+    ).join('');
+
+    const inputCls = `w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+                      text-xs font-mono text-text-primary focus:outline-none transition-colors`;
+    const checkboxCls = `accent-[var(--color-accent)] w-3.5 h-3.5`;
+    const labelCls = `text-[10px] font-mono uppercase tracking-widest text-text-muted`;
+    const tooltipCls = `ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none`;
+
+    return `
+      <div class="border border-border-subtle rounded-xl overflow-hidden" data-host-id="${h.id}">
+        <!-- Host card header -->
+        <div class="flex items-center justify-between px-4 py-2.5 bg-bg-elevated cursor-pointer sshcg-toggle-collapse"
+             data-host-id="${h.id}">
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-mono uppercase tracking-widest text-accent">Host ${idx + 1}</span>
+            <span class="text-xs font-mono text-text-primary sshcg-alias-label">${escHtml(h.alias || '(unnamed)')}</span>
+            <span class="text-[10px] font-mono text-text-muted">${escHtml(h.hostname || '')}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            ${hosts.length > 1 ? `<button class="sshcg-remove text-[10px] font-mono text-text-muted/50 hover:text-red-400 transition-colors px-2 py-1" data-host-id="${h.id}">✕ Remove</button>` : ''}
+            <span class="sshcg-chevron text-text-muted text-xs transition-transform">▾</span>
+          </div>
+        </div>
+
+        <!-- Host card body -->
+        <div class="sshcg-host-body px-4 py-4 space-y-4">
+
+          <!-- Basic -->
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70 mb-2">Basic</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="${labelCls}">
+                  Host alias
+                  <span title="The short name you type: ssh alias. Must be unique across your config." class="${tooltipCls}">?</span>
+                </label>
+                <input type="text" class="${inputCls} sshcg-field" data-field="alias" value="${escHtml(h.alias)}" placeholder="e.g. pi5, prod" />
+              </div>
+              <div class="space-y-1">
+                <label class="${labelCls}">HostName (IP or FQDN)</label>
+                <input type="text" class="${inputCls} sshcg-field" data-field="hostname" value="${escHtml(h.hostname)}" placeholder="192.168.1.100" />
+              </div>
+              <div class="space-y-1">
+                <label class="${labelCls}">User</label>
+                <input type="text" class="${inputCls} sshcg-field" data-field="user" value="${escHtml(h.user)}" placeholder="ubuntu" />
+              </div>
+              <div class="space-y-1">
+                <label class="${labelCls}">Port (omitted if 22)</label>
+                <input type="number" class="${inputCls} sshcg-field" data-field="port" value="${escHtml(h.port)}" min="1" max="65535" inputmode="numeric" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Authentication -->
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70 mb-2">Authentication</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1 sm:col-span-2">
+                <label class="${labelCls}">IdentityFile path</label>
+                <input type="text" class="${inputCls} sshcg-field" data-field="identityFile" value="${escHtml(h.identityFile)}" placeholder="~/.ssh/id_ed25519" />
+              </div>
+              <div class="flex items-center gap-2 sm:col-span-2">
+                <input type="checkbox" class="${checkboxCls} sshcg-field" data-field="identitiesOnly" ${h.identitiesOnly ? 'checked' : ''} />
+                <label class="${labelCls} flex items-center gap-1">
+                  IdentitiesOnly
+                  <span title="Forces SSH to use only the specified IdentityFile. Without this, the agent may offer other keys first, which some servers reject." class="${tooltipCls}">?</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Forwarding -->
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70 mb-2">Forwarding</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="flex items-center gap-2 sm:col-span-2">
+                <input type="checkbox" class="${checkboxCls} sshcg-field" data-field="forwardAgent" ${h.forwardAgent ? 'checked' : ''} />
+                <label class="${labelCls} flex items-center gap-1">
+                  ForwardAgent
+                  <span title="Forwards your local SSH agent to the remote host. Useful for jump hosts: you can SSH onwards without copying your private key there. Security risk on untrusted servers." class="${tooltipCls}">?</span>
+                </label>
+              </div>
+              <div class="space-y-1 sm:col-span-2">
+                <label class="${labelCls}">LocalForward (local_port remote:port)</label>
+                <input type="text" class="${inputCls} sshcg-field" data-field="localForward" value="${escHtml(h.localForward)}" placeholder="e.g. 5432 localhost:5432" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced -->
+          <div>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-accent/70 mb-2">Advanced</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1 sm:col-span-2">
+                <label class="${labelCls} flex items-center gap-1">
+                  ProxyJump
+                  <span title="Route this connection through another SSH host (bastion/jump server). Select a defined alias above or type a custom host. Uses the -J flag internally." class="${tooltipCls}">?</span>
+                </label>
+                <div class="flex gap-2">
+                  <select class="${inputCls} sshcg-field flex-1" data-field="proxyJump" style="max-width:180px">
+                    <option value="">— none —</option>
+                    ${proxyJumpOptions}
+                    <option value="__custom__" ${!otherAliases.includes(h.proxyJump) && h.proxyJump ? 'selected' : ''}>custom…</option>
+                  </select>
+                  <input type="text" class="${inputCls} sshcg-proxyjump-custom flex-1 ${!otherAliases.includes(h.proxyJump) && h.proxyJump && h.proxyJump !== '__custom__' ? '' : 'hidden'}"
+                         data-host-id="${h.id}" value="${!otherAliases.includes(h.proxyJump) && h.proxyJump ? escHtml(h.proxyJump) : ''}" placeholder="user@bastion.example.com" />
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="${labelCls} flex items-center gap-1">
+                  ServerAliveInterval
+                  <span title="Sends a keepalive packet to the server every N seconds. Prevents dropped idle connections. Especially important on Pi clusters and VPNs." class="${tooltipCls}">?</span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <input type="checkbox" class="${checkboxCls} sshcg-field" data-field="serverAliveInterval" ${h.serverAliveInterval ? 'checked' : ''} />
+                  <input type="number" class="${inputCls} sshcg-field w-24" data-field="serverAliveIntervalSec"
+                         value="${escHtml(h.serverAliveIntervalSec)}" min="10" max="3600" inputmode="numeric"
+                         ${h.serverAliveInterval ? '' : 'disabled'} />
+                  <span class="text-[10px] font-mono text-text-muted">sec</span>
+                </div>
+              </div>
+
+              <div class="space-y-1 sshcg-countmax-wrap ${h.serverAliveInterval ? '' : 'opacity-40'}">
+                <label class="${labelCls}">ServerAliveCountMax</label>
+                <input type="number" class="${inputCls} sshcg-field w-24" data-field="serverAliveCountMax"
+                       value="${escHtml(h.serverAliveCountMax)}" min="1" max="100" inputmode="numeric"
+                       ${h.serverAliveInterval ? '' : 'disabled'} />
+              </div>
+
+              <div class="space-y-1">
+                <label class="${labelCls} flex items-center gap-1">
+                  StrictHostKeyChecking
+                  <span title="Controls whether SSH auto-accepts unknown host keys. 'accept-new' trusts new hosts but rejects changed keys (best for dynamic infra). 'no' accepts all (risky). 'yes' requires manual known_hosts entry." class="${tooltipCls}">?</span>
+                </label>
+                <select class="${inputCls} sshcg-field" data-field="strictHostKeyChecking">
+                  <option value="default" ${h.strictHostKeyChecking === 'default' ? 'selected' : ''}>default (SSH default)</option>
+                  <option value="yes" ${h.strictHostKeyChecking === 'yes' ? 'selected' : ''}>yes — strict</option>
+                  <option value="no" ${h.strictHostKeyChecking === 'no' ? 'selected' : ''}>no — trust all (risky)</option>
+                  <option value="accept-new" ${h.strictHostKeyChecking === 'accept-new' ? 'selected' : ''}>accept-new — trust new only</option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="${labelCls}">LogLevel</label>
+                <select class="${inputCls} sshcg-field" data-field="logLevel">
+                  <option value="default" ${h.logLevel === 'default' ? 'selected' : ''}>default (INFO)</option>
+                  <option value="QUIET" ${h.logLevel === 'QUIET' ? 'selected' : ''}>QUIET</option>
+                  <option value="VERBOSE" ${h.logLevel === 'VERBOSE' ? 'selected' : ''}>VERBOSE</option>
+                  <option value="DEBUG" ${h.logLevel === 'DEBUG' ? 'selected' : ''}>DEBUG</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+  };
+
+  const generateConfig = (): string => {
+    const lines: string[] = [
+      '# Generated by gekro.com/apps/ssh-config-generator',
+      '# Save to ~/.ssh/config | chmod 600 ~/.ssh/config',
+      '',
+    ];
+
+    hosts.forEach(h => {
+      const alias = h.alias.trim() || 'myserver';
+      lines.push(`Host ${alias}`);
+      lines.push(`    HostName ${h.hostname.trim() || '127.0.0.1'}`);
+      if (h.user.trim()) lines.push(`    User ${h.user.trim()}`);
+      if (h.port.trim() && h.port.trim() !== '22') lines.push(`    Port ${h.port.trim()}`);
+      if (h.identityFile.trim()) {
+        lines.push(`    # Path to the private key for this host`);
+        lines.push(`    IdentityFile ${h.identityFile.trim()}`);
+      }
+      if (h.identitiesOnly) {
+        lines.push(`    # Only use the above key — ignore any keys offered by the agent`);
+        lines.push(`    IdentitiesOnly yes`);
+      }
+      if (h.forwardAgent) {
+        lines.push(`    # Forward your local SSH agent to this host (enables onward SSH without copying keys)`);
+        lines.push(`    ForwardAgent yes`);
+      }
+      if (h.localForward.trim()) {
+        lines.push(`    # Tunnel: local_port → remote:port (e.g. local DB port forwarding)`);
+        lines.push(`    LocalForward ${h.localForward.trim()}`);
+      }
+      const pj = h.proxyJump === '__custom__' ? '' : h.proxyJump.trim();
+      if (pj) {
+        lines.push(`    # Route this connection through a jump/bastion host`);
+        lines.push(`    ProxyJump ${pj}`);
+      }
+      if (h.serverAliveInterval) {
+        const sec = parseInt(h.serverAliveIntervalSec) || 60;
+        const max = parseInt(h.serverAliveCountMax) || 3;
+        lines.push(`    # Send keepalive packets every ${sec}s to prevent idle connection drops`);
+        lines.push(`    ServerAliveInterval ${sec}`);
+        lines.push(`    # Disconnect after ${max} unanswered keepalives (${sec * max}s total)`);
+        lines.push(`    ServerAliveCountMax ${max}`);
+      }
+      if (h.strictHostKeyChecking !== 'default') {
+        const comments: Record<string, string> = {
+          yes: 'Strict: rejects unknown hosts — requires manual known_hosts entry',
+          no: 'Permissive: accepts all host keys (use only in trusted/isolated networks)',
+          'accept-new': 'Trusts new hosts automatically but rejects changed keys (recommended for dynamic infra)',
+        };
+        lines.push(`    # ${comments[h.strictHostKeyChecking] ?? ''}`);
+        lines.push(`    StrictHostKeyChecking ${h.strictHostKeyChecking}`);
+      }
+      if (h.logLevel !== 'default') {
+        lines.push(`    LogLevel ${h.logLevel}`);
+      }
+      lines.push('');
+    });
+
+    return lines.join('\n').trimEnd();
+  };
+
+  const initSshCg = () => {
+    const app = document.getElementById('sshcg-app');
+    if (!app || (app as any)._sshcgInit) return;
+    (app as any)._sshcgInit = true;
+
+    hosts = [DEFAULT_HOST()];
+
+    const hostListEl = document.getElementById('sshcg-host-list')!;
+    const outputEl   = document.getElementById('sshcg-output')!;
+    const addHostBtn = document.getElementById('sshcg-add-host')!;
+
+    const render = () => {
+      outputEl.textContent = generateConfig();
+    };
+
+    const rebuildHostList = () => {
+      hostListEl.innerHTML = hosts.map((h, i) => renderHostCard(h, i)).join('');
+      attachHostListeners();
+      render();
+    };
+
+    const attachHostListeners = () => {
+      // Toggle collapse
+      hostListEl.querySelectorAll<HTMLElement>('.sshcg-toggle-collapse').forEach(header => {
+        header.addEventListener('click', (e) => {
+          if ((e.target as HTMLElement).closest('.sshcg-remove')) return;
+          const id = header.dataset.hostId!;
+          const card = hostListEl.querySelector<HTMLElement>(`[data-host-id="${id}"]`);
+          const body = card?.querySelector<HTMLElement>('.sshcg-host-body');
+          const chevron = card?.querySelector<HTMLElement>('.sshcg-chevron');
+          if (body) {
+            const collapsed = body.style.display === 'none';
+            body.style.display = collapsed ? '' : 'none';
+            if (chevron) chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
+          }
+        });
+      });
+
+      // Remove host
+      hostListEl.querySelectorAll<HTMLButtonElement>('.sshcg-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.hostId!;
+          hosts = hosts.filter(h => h.id !== id);
+          rebuildHostList();
+        });
+      });
+
+      // Field inputs
+      hostListEl.querySelectorAll<HTMLInputElement | HTMLSelectElement>('.sshcg-field').forEach(el => {
+        const card = el.closest<HTMLElement>('[data-host-id]');
+        const id = card?.dataset.hostId;
+        if (!id) return;
+
+        const onChange = () => {
+          const h = hosts.find(x => x.id === id);
+          if (!h) return;
+          const field = el.dataset.field as keyof HostEntry;
+          if (el.type === 'checkbox') {
+            (h as any)[field] = (el as HTMLInputElement).checked;
+            // toggle ServerAliveInterval dependents
+            if (field === 'serverAliveInterval') {
+              const secInput = card!.querySelector<HTMLInputElement>('[data-field="serverAliveIntervalSec"]');
+              const maxInput = card!.querySelector<HTMLInputElement>('[data-field="serverAliveCountMax"]');
+              const countMaxWrap = card!.querySelector<HTMLElement>('.sshcg-countmax-wrap');
+              if (secInput) secInput.disabled = !h.serverAliveInterval;
+              if (maxInput) maxInput.disabled = !h.serverAliveInterval;
+              if (countMaxWrap) countMaxWrap.classList.toggle('opacity-40', !h.serverAliveInterval);
+            }
+          } else {
+            (h as any)[field] = (el as HTMLInputElement).value;
+            // ProxyJump custom input toggle
+            if (field === 'proxyJump') {
+              const customInput = card!.querySelector<HTMLInputElement>('.sshcg-proxyjump-custom');
+              if (customInput) {
+                const isCustom = (el as HTMLSelectElement).value === '__custom__';
+                customInput.classList.toggle('hidden', !isCustom);
+                if (!isCustom) h.proxyJump = (el as HTMLSelectElement).value;
+                else h.proxyJump = customInput.value;
+              }
+            }
+          }
+          // Update alias label in header
+          if (field === 'alias') {
+            const aliasLabel = card!.querySelector<HTMLElement>('.sshcg-alias-label');
+            if (aliasLabel) aliasLabel.textContent = h.alias || '(unnamed)';
+          }
+          // Rebuild ProxyJump dropdowns across all cards (alias may have changed)
+          if (field === 'alias') {
+            rebuildHostList();
+            return;
+          }
+          render();
+        };
+
+        el.addEventListener('input', onChange);
+        el.addEventListener('change', onChange);
+      });
+
+      // ProxyJump custom text inputs
+      hostListEl.querySelectorAll<HTMLInputElement>('.sshcg-proxyjump-custom').forEach(el => {
+        const id = el.dataset.hostId!;
+        el.addEventListener('input', () => {
+          const h = hosts.find(x => x.id === id);
+          if (h) { h.proxyJump = el.value; render(); }
+        });
+      });
+    };
+
+    addHostBtn.addEventListener('click', () => {
+      hosts.push(DEFAULT_HOST());
+      rebuildHostList();
+    });
+
+    document.addEventListener('app:reset', () => {
+      hosts = [DEFAULT_HOST()];
+      rebuildHostList();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      try { await navigator.clipboard.writeText(outputEl.textContent || ''); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      const blob = new Blob([outputEl.textContent || ''], { type: 'text/plain' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: 'config',
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    rebuildHostList();
+  };
+
+  initSshCg();
+  document.addEventListener('astro:after-swap', initSshCg);
+</script>

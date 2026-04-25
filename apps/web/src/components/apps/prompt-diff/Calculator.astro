@@ -1,0 +1,413 @@
+---
+/**
+ * Prompt Diff — Calculator.astro
+ *
+ * Compare two prompt versions with line-level and word-level diff highlighting.
+ * Uses a clean Myers / LCS diff implemented from scratch — zero npm deps.
+ *
+ * Features:
+ *  - Line diff (LCS-based Myers)
+ *  - Word diff (tokenize on whitespace+punctuation, then LCS diff)
+ *  - Stats: char delta, line delta, approx cl100k token delta
+ *  - Similarity score: 2×|intersection| / (|A|+|B|) — Sørensen-Dice on lines/words
+ *  - app:copy → unified diff plain text
+ *  - app:reset → clear both panes
+ *  - app:export → download .txt
+ */
+---
+
+<div id="pd-app" class="space-y-5">
+
+  <!-- Two-column input -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Version A — Before</p>
+      <textarea id="pd-left" rows="6" spellcheck="false"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors"
+        placeholder="Paste the original prompt here…"></textarea>
+    </div>
+    <div class="space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Version B — After</p>
+      <textarea id="pd-right" rows="6" spellcheck="false"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+               text-sm font-mono text-text-primary leading-relaxed resize-none
+               focus:outline-none focus:border-accent/40 transition-colors"
+        placeholder="Paste the revised prompt here…"></textarea>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Char delta</p>
+      <p id="pd-stat-chars" class="text-lg font-heading font-bold text-text-primary">—</p>
+    </div>
+    <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Line delta</p>
+      <p id="pd-stat-lines" class="text-lg font-heading font-bold text-text-primary">—</p>
+    </div>
+    <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Token delta</p>
+      <p id="pd-stat-tokens" class="text-lg font-heading font-bold text-text-primary">—</p>
+    </div>
+    <div class="p-3 bg-bg-elevated border border-accent/20 rounded-xl">
+      <p class="text-[9px] font-mono uppercase tracking-widest text-accent mb-1">Similarity</p>
+      <p id="pd-stat-sim" class="text-lg font-heading font-bold text-text-primary">—</p>
+    </div>
+  </div>
+
+  <!-- Diff mode tabs -->
+  <div class="flex items-center gap-2">
+  <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Mode
+    <span title="Line diff: highlights entire added/removed lines — best for structural prompt changes. Word diff: highlights individual word additions/removals within lines — best for wording refinements." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+  </span>
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg w-fit">
+    <button class="pd-mode-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-mode="line">Line diff</button>
+    <button class="pd-mode-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-mode="word">Word diff</button>
+  </div>
+  </div>
+
+  <!-- Diff output -->
+  <div class="space-y-1.5">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Diff</p>
+    <div id="pd-output"
+      class="min-h-[120px] max-h-[480px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl text-sm font-mono leading-relaxed">
+      <div id="pd-output-inner" class="p-4">
+        <span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="flex flex-wrap gap-4 text-[10px] font-mono text-text-muted">
+    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-emerald-500/20 border-l-2 border-emerald-500/60"></span>Added</span>
+    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-red-500/20 border-l-2 border-red-500/60"></span>Removed</span>
+    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-bg-elevated border border-border-subtle"></span>Unchanged</span>
+  </div>
+
+</div>
+
+<style>
+  .pd-mode-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .pd-mode-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+  }
+  .pd-mode-btn:hover:not(.active) {
+    color: var(--color-text-secondary);
+    background: color-mix(in srgb, var(--color-bg-base) 50%, transparent);
+  }
+
+  /* Line-level diff blocks */
+  .pd-add {
+    display: block;
+    background: rgb(16 185 129 / 0.10);
+    border-left: 2px solid rgb(16 185 129 / 0.60);
+    color: #6ee7b7;
+    padding: 0 12px;
+    margin: 0 -16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .pd-rem {
+    display: block;
+    background: rgb(239 68 68 / 0.10);
+    border-left: 2px solid rgb(239 68 68 / 0.60);
+    color: #fca5a5;
+    padding: 0 12px;
+    margin: 0 -16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .pd-eq {
+    display: block;
+    color: var(--color-text-muted);
+    padding: 0 12px;
+    margin: 0 -16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Gutter prefix */
+  .pd-add::before { content: '+ '; opacity: 0.6; }
+  .pd-rem::before { content: '− '; opacity: 0.6; }
+  .pd-eq::before  { content: '  '; }
+
+  /* Word-level inline highlights */
+  .pd-word-add { background: rgb(16 185 129 / 0.30); border-radius: 2px; color: #6ee7b7; }
+  .pd-word-rem { background: rgb(239 68 68 / 0.30); border-radius: 2px; color: #fca5a5; text-decoration: line-through; }
+</style>
+
+<script>
+  /**
+   * Prompt Diff — client logic.
+   *
+   * Myers diff algorithm implemented as LCS (longest common subsequence)
+   * via dynamic programming, then mapped to edit operations.
+   * No external dependencies.
+   */
+
+  /* ── HTML escape ─────────────────────────────────────────────────*/
+  const esc = (s: string): string =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  /* ── cl100k token estimator ──────────────────────────────────────*/
+  const CL100K =
+    /'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+/gu;
+
+  const estimateTokens = (s: string): number => {
+    const m = s.match(CL100K);
+    return Math.round((m?.length || 0) * 0.92);
+  };
+
+  /* ── LCS-based diff ──────────────────────────────────────────────
+   * Returns an array of Change objects: { type: 'eq'|'add'|'rem', value: string }
+   * Works on any string array (lines or word tokens).
+   */
+  type ChangeType = 'eq' | 'add' | 'rem';
+  interface Change { type: ChangeType; value: string; }
+
+  const lcsTable = (a: string[], b: string[]): number[][] => {
+    const m = a.length, n = b.length;
+    // Use flat typed array for performance on large prompts
+    const dp = new Uint32Array((m + 1) * (n + 1));
+    const W = n + 1;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i * W + j] = a[i - 1] === b[j - 1]
+          ? dp[(i - 1) * W + (j - 1)] + 1
+          : Math.max(dp[(i - 1) * W + j], dp[i * W + (j - 1)]);
+      }
+    }
+    return { get: (i: number, j: number) => dp[i * W + j] } as any; // typed accessor
+  };
+
+  const diff = (a: string[], b: string[]): Change[] => {
+    const m = a.length, n = b.length;
+    const W = n + 1;
+    // Build dp table as flat Uint32Array
+    const dp = new Uint32Array((m + 1) * (n + 1));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i * W + j] = a[i - 1] === b[j - 1]
+          ? dp[(i - 1) * W + (j - 1)] + 1
+          : Math.max(dp[(i - 1) * W + j], dp[i * W + (j - 1)]);
+      }
+    }
+
+    // Backtrack to build edit script
+    const changes: Change[] = [];
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+        changes.push({ type: 'eq', value: a[i - 1] });
+        i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i * W + (j - 1)] >= dp[(i - 1) * W + j])) {
+        changes.push({ type: 'add', value: b[j - 1] });
+        j--;
+      } else {
+        changes.push({ type: 'rem', value: a[i - 1] });
+        i--;
+      }
+    }
+    return changes.reverse();
+  };
+
+  /* ── Word tokenizer ──────────────────────────────────────────────
+   * Splits on whitespace and punctuation boundaries, keeping delimiters,
+   * so the diff can reconstruct the original text faithfully.
+   */
+  const tokenizeWords = (s: string): string[] =>
+    s.match(/\S+|\s+/g) ?? [];
+
+  /* ── Similarity score (Sørensen-Dice on set) ─────────────────────
+   * similarity = 2 × |intersection| / (|A| + |B|)
+   * Intersection is the count of matching elements (from LCS).
+   */
+  const similarity = (a: string[], b: string[]): number => {
+    if (a.length === 0 && b.length === 0) return 1;
+    if (a.length === 0 || b.length === 0) return 0;
+    const changes = diff(a, b);
+    const matched = changes.filter(c => c.type === 'eq').length;
+    return (2 * matched) / (a.length + b.length);
+  };
+
+  /* ── Build line diff HTML ────────────────────────────────────────*/
+  const buildLineDiff = (changes: Change[]): string => {
+    let html = '';
+    for (const c of changes) {
+      const cls = c.type === 'add' ? 'pd-add' : c.type === 'rem' ? 'pd-rem' : 'pd-eq';
+      html += `<span class="${cls}">${esc(c.value)}</span>`;
+    }
+    return html;
+  };
+
+  /* ── Build word diff HTML ────────────────────────────────────────
+   * For word diff, we run LCS on tokens. Unchanged runs are shown in muted text;
+   * added words get pd-word-add; removed words get pd-word-rem.
+   * We then re-join the display preserving newlines as block breaks.
+   */
+  const buildWordDiff = (changes: Change[]): string => {
+    let html = '';
+    for (const c of changes) {
+      const v = esc(c.value);
+      if (c.type === 'eq')  html += v;
+      else if (c.type === 'add') html += `<span class="pd-word-add">${v}</span>`;
+      else                       html += `<span class="pd-word-rem">${v}</span>`;
+    }
+    // Wrap the whole thing in a block that preserves newlines
+    return `<span class="pd-eq" style="white-space:pre-wrap;display:block;padding:0 12px;margin:0 -16px;">${html}</span>`;
+  };
+
+  /* ── Plain-text unified diff for copy/export ─────────────────────*/
+  const buildPlainDiff = (changes: Change[], mode: 'line' | 'word'): string => {
+    if (mode === 'line') {
+      return changes.map(c => {
+        const prefix = c.type === 'add' ? '+ ' : c.type === 'rem' ? '- ' : '  ';
+        return prefix + c.value;
+      }).join('\n');
+    }
+    // Word mode — reconstruct as one block with +/- markers around words
+    return changes.map(c => {
+      if (c.type === 'eq')  return c.value;
+      if (c.type === 'add') return `[+${c.value}]`;
+      return `[-${c.value}]`;
+    }).join('');
+  };
+
+  /* ── Delta formatter ─────────────────────────────────────────────*/
+  const delta = (n: number): string =>
+    n === 0 ? '±0' : n > 0 ? `+${n}` : `${n}`;
+
+  /* ── Init ────────────────────────────────────────────────────────*/
+  const initPd = () => {
+    const app = document.getElementById('pd-app');
+    if (!app || (app as any)._pdInit) return;
+    (app as any)._pdInit = true;
+
+    const leftEl    = document.getElementById('pd-left')  as HTMLTextAreaElement;
+    const rightEl   = document.getElementById('pd-right') as HTMLTextAreaElement;
+    const outputEl  = document.getElementById('pd-output-inner')!;
+    const statChars = document.getElementById('pd-stat-chars')!;
+    const statLines = document.getElementById('pd-stat-lines')!;
+    const statToks  = document.getElementById('pd-stat-tokens')!;
+    const statSim   = document.getElementById('pd-stat-sim')!;
+    const modeBtns  = app.querySelectorAll<HTMLButtonElement>('.pd-mode-btn');
+
+    let mode: 'line' | 'word' = 'line';
+    let lastPlainDiff = '';
+
+    const run = () => {
+      const a = leftEl.value;
+      const b = rightEl.value;
+
+      if (!a && !b) {
+        outputEl.innerHTML = '<span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>';
+        statChars.textContent = '—';
+        statLines.textContent = '—';
+        statToks.textContent = '—';
+        statSim.textContent = '—';
+        lastPlainDiff = '';
+        return;
+      }
+
+      // Stats
+      const charDelta = b.length - a.length;
+      const lineA = a ? a.split('\n').length : 0;
+      const lineB = b ? b.split('\n').length : 0;
+      const tokDelta = estimateTokens(b) - estimateTokens(a);
+
+      statChars.textContent = delta(charDelta) + ' chars';
+      statLines.textContent = delta(lineB - lineA) + ' lines';
+      statToks.textContent = delta(tokDelta) + ' tokens';
+
+      // Diff + similarity
+      let html = '';
+      let simScore = 0;
+
+      if (mode === 'line') {
+        const linesA = a ? a.split('\n') : [];
+        const linesB = b ? b.split('\n') : [];
+        const changes = diff(linesA, linesB);
+        html = buildLineDiff(changes);
+        simScore = similarity(linesA, linesB);
+        lastPlainDiff = buildPlainDiff(changes, 'line');
+      } else {
+        const wordsA = tokenizeWords(a);
+        const wordsB = tokenizeWords(b);
+        const changes = diff(wordsA, wordsB);
+        html = buildWordDiff(changes);
+        simScore = similarity(wordsA, wordsB);
+        lastPlainDiff = buildPlainDiff(changes, 'word');
+      }
+
+      outputEl.innerHTML = html || '<span class="text-text-muted/40 italic text-xs">No differences — prompts are identical.</span>';
+
+      const pct = Math.round(simScore * 100);
+      const simColor = pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400';
+      statSim.innerHTML = `<span class="${simColor}">${pct}%</span>`;
+    };
+
+    /* Debounce on input */
+    let timer: ReturnType<typeof setTimeout>;
+    const debounced = () => { clearTimeout(timer); timer = setTimeout(run, 150); };
+
+    leftEl.addEventListener('input', debounced);
+    rightEl.addEventListener('input', debounced);
+
+    modeBtns.forEach(btn => btn.addEventListener('click', () => {
+      modeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode as 'line' | 'word';
+      run();
+    }));
+
+    /* ── AppShell events ──────────────────────────────────────────*/
+    document.addEventListener('app:reset', () => {
+      leftEl.value = '';
+      rightEl.value = '';
+      run();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastPlainDiff) return;
+      try { await navigator.clipboard.writeText(lastPlainDiff); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastPlainDiff) return;
+      const header = [
+        `Prompt Diff — exported ${new Date().toISOString()}`,
+        `Mode: ${mode} diff`,
+        `Char delta: ${delta(rightEl.value.length - leftEl.value.length)}`,
+        `Token delta: ${delta(estimateTokens(rightEl.value) - estimateTokens(leftEl.value))}`,
+        '',
+        '=== VERSION A ===',
+        leftEl.value,
+        '',
+        '=== VERSION B ===',
+        rightEl.value,
+        '',
+        '=== DIFF ===',
+        lastPlainDiff,
+      ].join('\n');
+      const blob = new Blob([header], { type: 'text/plain' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `prompt-diff-${Date.now()}.txt`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    run();
+  };
+
+  initPd();
+  document.addEventListener('astro:after-swap', initPd);
+</script>

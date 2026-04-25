@@ -35,7 +35,7 @@
     </div>
 
     <div id="ev-custom-eff-wrap" class="space-y-1 hidden">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Custom kWh/mi</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Custom kWh/mi<span title="Energy consumed per mile — lower is more efficient. Check your car's EPA rating or onboard trip computer. Typical range: 0.20–0.50 kWh/mi." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="ev-custom-eff" min="0.1" max="1.0" step="0.01" value="0.30"
         inputmode="decimal"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
@@ -77,7 +77,7 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Charger efficiency</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Charger efficiency<span title="Fraction of wall energy that actually reaches the battery. AC home charging ≈ 0.85–0.90; DC fast charging ≈ 0.90–0.95. The preset adjusts automatically when you pick a charging context." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="ev-eff" min="0.5" max="1.0" step="0.01" value="0.88"
         inputmode="decimal"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
@@ -86,7 +86,7 @@
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
-        Solar offset <span id="ev-solar-val" class="text-text-secondary">0%</span>
+        Solar offset<span title="Percentage of charging energy supplied by your own solar panels — that portion costs $0 from the grid. Set to 0 if you charge purely from the grid." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span> <span id="ev-solar-val" class="text-text-secondary">0%</span>
       </label>
       <input type="range" id="ev-solar" min="0" max="100" step="5" value="0"
         class="w-full accent-[var(--color-accent)]" />
@@ -122,14 +122,14 @@
     <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Compare against gasoline</p>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <div class="space-y-1">
-        <label class="text-[10px] font-mono text-text-muted">ICE comparison MPG</label>
+        <label class="text-[10px] font-mono text-text-muted">ICE comparison MPG<span title="The fuel economy of the equivalent gas car you're comparing against. Used to compute what the same trip would cost in a gasoline vehicle." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input type="number" id="ev-cmp-mpg" min="5" max="100" step="1" value="30"
           inputmode="numeric"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                  text-xs font-mono text-text-primary focus:outline-none transition-colors" />
       </div>
       <div class="space-y-1">
-        <label class="text-[10px] font-mono text-text-muted">Gas pump price ($/gal)</label>
+        <label class="text-[10px] font-mono text-text-muted">Gas pump price ($/gal)<span title="Current pump price for gasoline in your area — used only for the cost-comparison verdict. Does not affect your EV session cost." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input type="number" id="ev-cmp-gas" min="1" max="10" step="0.10" value="3.50"
           inputmode="decimal"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5

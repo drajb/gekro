@@ -1,0 +1,528 @@
+---
+/**
+ * Hash Generator — Calculator.astro
+ *
+ * SHA-1/256/384/512: Web Crypto API (crypto.subtle.digest)
+ * HMAC: crypto.subtle.importKey + crypto.subtle.sign
+ * MD5: Pure-JS RFC 1321 implementation (~80 lines) — no external deps
+ * File hashing: FileReader + ArrayBuffer piped to crypto.subtle.digest
+ *
+ * Nothing leaves the browser. Zero external dependencies.
+ */
+---
+
+<div id="hg-app" class="space-y-5">
+
+  <!-- Input mode tabs -->
+  <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
+    <button class="hg-tab active px-5 py-2 rounded-lg text-sm font-mono transition-all" data-tab="text">Text</button>
+    <button class="hg-tab px-5 py-2 rounded-lg text-sm font-mono transition-all" data-tab="file">File</button>
+  </div>
+
+  <!-- ── Text input panel ─────────────────────────────────────── -->
+  <div id="hg-text-panel" class="space-y-2">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+      <label for="hg-text-input" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input text</label>
+      <span id="hg-char-count" class="text-[10px] font-mono text-text-muted/60">0 chars</span>
+    </div>
+    <textarea
+      id="hg-text-input"
+      rows="4"
+      spellcheck="false"
+      autocomplete="off"
+      placeholder="Type or paste text to hash..."
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary leading-relaxed resize-none
+             focus:outline-none focus:border-accent/40 transition-colors"
+    ></textarea>
+  </div>
+
+  <!-- ── File input panel ─────────────────────────────────────── -->
+  <div id="hg-file-panel" class="hidden space-y-3">
+    <div
+      id="hg-drop-zone"
+      class="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border-subtle rounded-2xl
+             bg-bg-elevated hover:border-accent/40 transition-colors cursor-pointer"
+    >
+      <span class="text-3xl select-none">📂</span>
+      <p class="text-sm font-mono text-text-muted text-center">Drop a file here or click to browse</p>
+      <button id="hg-file-browse-btn"
+        class="px-4 py-2 bg-accent/15 border border-accent/30 rounded-lg text-xs font-mono text-accent hover:bg-accent/25 transition-all">
+        Choose file
+      </button>
+      <input type="file" id="hg-file-input" class="hidden" />
+    </div>
+    <div id="hg-file-info" class="hidden flex items-center gap-3 p-3 bg-bg-elevated border border-border-subtle rounded-xl">
+      <span class="text-lg">📄</span>
+      <div class="flex-1 min-w-0">
+        <p id="hg-file-name" class="text-sm font-mono text-text-primary truncate"></p>
+        <p id="hg-file-size" class="text-[10px] font-mono text-text-muted"></p>
+      </div>
+      <button id="hg-file-clear-btn" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors shrink-0">✕ Remove</button>
+    </div>
+  </div>
+
+  <!-- ── HMAC section ──────────────────────────────────────────── -->
+  <div class="space-y-3">
+    <label class="flex items-center gap-2.5 cursor-pointer select-none w-fit">
+      <input type="checkbox" id="hg-hmac-toggle" class="accent-[var(--color-accent)] w-4 h-4" />
+      <span class="text-sm font-mono text-text-muted">Enable HMAC
+        <span title="HMAC (Hash-based Message Authentication Code) combines a secret key with your message before hashing. Unlike a plain hash, the same input produces different output for each key — making it impossible to verify or forge without knowing the secret. Use it for API request signing, webhooks, and anywhere you need to prove a message came from someone who knows the key." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </span>
+    </label>
+    <div id="hg-hmac-key-wrap" class="hidden">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted block mb-1.5">Secret key</label>
+      <input
+        type="text"
+        id="hg-hmac-key"
+        placeholder="Enter HMAC secret key..."
+        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+               text-sm font-mono text-text-primary placeholder:text-text-muted/50
+               focus:outline-none focus:border-accent/40 transition-colors"
+      />
+    </div>
+  </div>
+
+  <!-- ── Algorithm selection ───────────────────────────────────── -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Algorithms</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+      {[
+        { id: 'hg-alg-md5',    label: 'MD5',    note: 'Not cryptographically secure — use for checksums only', warn: true },
+        { id: 'hg-alg-sha1',   label: 'SHA-1',  note: 'Deprecated for security use',                           warn: true },
+        { id: 'hg-alg-sha256', label: 'SHA-256', note: 'Recommended for general use',                          warn: false },
+        { id: 'hg-alg-sha384', label: 'SHA-384', note: 'Higher security margin',                               warn: false },
+        { id: 'hg-alg-sha512', label: 'SHA-512', note: 'Maximum strength, larger output',                      warn: false },
+      ].map(alg => (
+        <label class="flex items-start gap-2.5 p-3 rounded-xl border border-border-subtle bg-bg-elevated cursor-pointer hover:border-accent/30 transition-all select-none">
+          <input type="checkbox" id={alg.id} checked class="accent-[var(--color-accent)] w-4 h-4 shrink-0 mt-0.5" />
+          <span class="flex flex-col leading-tight gap-0.5">
+            <span class={`text-xs font-mono font-semibold ${alg.warn ? 'text-amber-400' : 'text-text-primary'}`}>{alg.label}</span>
+            <span class="text-[10px] font-mono text-text-muted">{alg.note}</span>
+          </span>
+        </label>
+      ))}
+    </div>
+  </div>
+
+  <!-- ── Encoding selector ─────────────────────────────────────── -->
+  <div class="flex items-center gap-4 flex-wrap">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      Output encoding
+      <span title="Hex encodes each byte as two hexadecimal characters (0–9, a–f). Base64 compresses the same data into a shorter string using 64 printable characters — roughly 33% more compact. Use hex for checksums and debugging; use base64 when embedding hashes in JSON, HTTP headers, or URLs." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+    </label>
+    <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
+      <button class="hg-enc-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-enc="hex">Hex</button>
+      <button class="hg-enc-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-enc="base64">Base64</button>
+    </div>
+  </div>
+
+  <!-- ── Output area ───────────────────────────────────────────── -->
+  <div id="hg-output-area" class="space-y-3">
+    <!-- Populated by JS -->
+  </div>
+
+  <!-- Empty state -->
+  <div id="hg-empty-state" class="py-8 text-center">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted/50">Enter text or drop a file to see hashes</p>
+  </div>
+
+</div>
+
+<style>
+  .hg-tab {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .hg-tab.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+  .hg-tab:hover:not(.active) { color: var(--color-text-secondary); }
+
+  .hg-enc-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .hg-enc-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .hg-hash-row {
+    padding: 14px 16px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 12px;
+    transition: border-color 0.15s;
+  }
+  .hg-hash-row:hover { border-color: color-mix(in srgb, var(--color-accent) 25%, transparent); }
+</style>
+
+<script>
+  /* ─────────────────────────────────────────────────────────────────
+   * MD5 — Pure JS implementation of RFC 1321
+   * No imports, no external libs. Self-contained.
+   * ───────────────────────────────────────────────────────────────── */
+  function md5(inputStr: string): ArrayBuffer {
+    const str = unescape(encodeURIComponent(inputStr));
+    const msg = new Uint8Array(str.length);
+    for (let i = 0; i < str.length; i++) msg[i] = str.charCodeAt(i);
+    return md5Bytes(msg.buffer);
+  }
+
+  function md5Bytes(buffer: ArrayBuffer): ArrayBuffer {
+    const msg8 = new Uint8Array(buffer);
+    const len = msg8.length;
+    // Pre-processing: padding
+    const bitLen = len * 8;
+    const padLen = ((len % 64) < 56 ? 56 - (len % 64) : 120 - (len % 64));
+    const padded = new Uint8Array(len + padLen + 8);
+    padded.set(msg8);
+    padded[len] = 0x80;
+    const dv = new DataView(padded.buffer);
+    dv.setUint32(len + padLen,     bitLen & 0xffffffff, true);
+    dv.setUint32(len + padLen + 4, Math.floor(bitLen / 0x100000000), true);
+
+    // Per-round shift amounts & constants (precomputed from sin)
+    const S = [7,12,17,22, 7,12,17,22, 7,12,17,22, 7,12,17,22,
+               5, 9,14,20, 5, 9,14,20, 5, 9,14,20, 5, 9,14,20,
+               4,11,16,23, 4,11,16,23, 4,11,16,23, 4,11,16,23,
+               6,10,15,21, 6,10,15,21, 6,10,15,21, 6,10,15,21];
+    const K: number[] = [];
+    for (let i = 0; i < 64; i++) K[i] = (Math.abs(Math.sin(i + 1)) * 0x100000000) >>> 0;
+
+    let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+
+    for (let off = 0; off < padded.length; off += 64) {
+      const W: number[] = [];
+      for (let j = 0; j < 16; j++) W[j] = dv.getUint32(off + j * 4, true);
+      let a = a0, b = b0, c = c0, d = d0;
+      for (let i = 0; i < 64; i++) {
+        let f: number, g: number;
+        if      (i < 16) { f = (b & c) | (~b & d); g = i; }
+        else if (i < 32) { f = (d & b) | (~d & c); g = (5 * i + 1) % 16; }
+        else if (i < 48) { f = b ^ c ^ d;           g = (3 * i + 5) % 16; }
+        else             { f = c ^ (b | ~d);         g = (7 * i) % 16; }
+        const temp = d;
+        d = c; c = b;
+        const sum = (a + f + K[i] + W[g]) >>> 0;
+        const rot = S[i];
+        b = (b + ((sum << rot) | (sum >>> (32 - rot)))) >>> 0;
+        a = temp;
+      }
+      a0 = (a0 + a) >>> 0; b0 = (b0 + b) >>> 0;
+      c0 = (c0 + c) >>> 0; d0 = (d0 + d) >>> 0;
+    }
+
+    const result = new ArrayBuffer(16);
+    const rv = new DataView(result);
+    rv.setUint32(0,  a0, true); rv.setUint32(4,  b0, true);
+    rv.setUint32(8,  c0, true); rv.setUint32(12, d0, true);
+    return result;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+   * Encoding helpers
+   * ───────────────────────────────────────────────────────────────── */
+  const bufToHex = (buf: ArrayBuffer): string =>
+    [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+
+  const bufToBase64 = (buf: ArrayBuffer): string =>
+    btoa(String.fromCharCode(...new Uint8Array(buf)));
+
+  /* ─────────────────────────────────────────────────────────────────
+   * Web Crypto helpers
+   * ───────────────────────────────────────────────────────────────── */
+  const textToBuffer = (s: string): ArrayBuffer =>
+    new TextEncoder().encode(s).buffer;
+
+  async function webDigest(algo: string, buf: ArrayBuffer): Promise<ArrayBuffer> {
+    return crypto.subtle.digest(algo, buf);
+  }
+
+  async function hmacDigest(algo: string, keyStr: string, buf: ArrayBuffer): Promise<ArrayBuffer> {
+    const keyBuf = textToBuffer(keyStr);
+    const key = await crypto.subtle.importKey(
+      'raw', keyBuf,
+      { name: 'HMAC', hash: algo },
+      false, ['sign']
+    );
+    return crypto.subtle.sign('HMAC', key, buf);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+   * Init
+   * ───────────────────────────────────────────────────────────────── */
+  const initHg = () => {
+    const app = document.getElementById('hg-app');
+    if (!app || (app as any)._hgInit) return;
+    (app as any)._hgInit = true;
+
+    const tabs         = app.querySelectorAll<HTMLButtonElement>('.hg-tab');
+    const textPanel    = document.getElementById('hg-text-panel')!;
+    const filePanel    = document.getElementById('hg-file-panel')!;
+    const textInput    = document.getElementById('hg-text-input') as HTMLTextAreaElement;
+    const charCount    = document.getElementById('hg-char-count')!;
+    const dropZone     = document.getElementById('hg-drop-zone')!;
+    const fileBrowse   = document.getElementById('hg-file-browse-btn')!;
+    const fileInput    = document.getElementById('hg-file-input') as HTMLInputElement;
+    const fileInfo     = document.getElementById('hg-file-info')!;
+    const fileName     = document.getElementById('hg-file-name')!;
+    const fileSize     = document.getElementById('hg-file-size')!;
+    const fileClearBtn = document.getElementById('hg-file-clear-btn')!;
+    const hmacToggle   = document.getElementById('hg-hmac-toggle') as HTMLInputElement;
+    const hmacKeyWrap  = document.getElementById('hg-hmac-key-wrap')!;
+    const hmacKey      = document.getElementById('hg-hmac-key') as HTMLInputElement;
+    const encBtns      = app.querySelectorAll<HTMLButtonElement>('.hg-enc-btn');
+    const outputArea   = document.getElementById('hg-output-area')!;
+    const emptyState   = document.getElementById('hg-empty-state')!;
+
+    // Algorithm checkboxes
+    const algMd5    = document.getElementById('hg-alg-md5')    as HTMLInputElement;
+    const algSha1   = document.getElementById('hg-alg-sha1')   as HTMLInputElement;
+    const algSha256 = document.getElementById('hg-alg-sha256') as HTMLInputElement;
+    const algSha384 = document.getElementById('hg-alg-sha384') as HTMLInputElement;
+    const algSha512 = document.getElementById('hg-alg-sha512') as HTMLInputElement;
+
+    let mode: 'text' | 'file' = 'text';
+    let encoding: 'hex' | 'base64' = 'hex';
+    let fileBuffer: ArrayBuffer | null = null;
+
+    /* Helpers */
+    const formatBytes = (n: number): string => {
+      if (n < 1024) return `${n} B`;
+      if (n < 1048576) return `${(n / 1024).toFixed(1)} KB`;
+      return `${(n / 1048576).toFixed(2)} MB`;
+    };
+
+    /* Tab switching */
+    const setMode = (m: 'text' | 'file') => {
+      mode = m;
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === m));
+      textPanel.classList.toggle('hidden', m !== 'text');
+      filePanel.classList.toggle('hidden', m !== 'file');
+      compute();
+    };
+    tabs.forEach(t => t.addEventListener('click', () => setMode(t.dataset.tab as 'text' | 'file')));
+
+    /* Encoding toggle */
+    const setEncoding = (enc: 'hex' | 'base64') => {
+      encoding = enc;
+      encBtns.forEach(b => b.classList.toggle('active', b.dataset.enc === enc));
+      compute();
+    };
+    encBtns.forEach(b => b.addEventListener('click', () => setEncoding(b.dataset.enc as 'hex' | 'base64')));
+
+    /* HMAC toggle */
+    hmacToggle.addEventListener('change', () => {
+      hmacKeyWrap.classList.toggle('hidden', !hmacToggle.checked);
+      compute();
+    });
+    hmacKey.addEventListener('input', () => compute());
+
+    /* Text input — live hashing */
+    textInput.addEventListener('input', () => {
+      charCount.textContent = `${textInput.value.length} chars`;
+      compute();
+    });
+
+    /* File handling */
+    const loadFile = (file: File) => {
+      fileName.textContent = file.name;
+      fileSize.textContent = `${formatBytes(file.size)} · ${file.type || 'unknown type'}`;
+      fileInfo.classList.remove('hidden');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        fileBuffer = e.target?.result as ArrayBuffer;
+        compute();
+      };
+      reader.readAsArrayBuffer(file);
+    };
+
+    fileBrowse.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) loadFile(fileInput.files[0]); });
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-accent/60'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-accent/60'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-accent/60');
+      if (e.dataTransfer?.files[0]) loadFile(e.dataTransfer.files[0]);
+    });
+
+    fileClearBtn.addEventListener('click', () => {
+      fileBuffer = null;
+      fileInfo.classList.add('hidden');
+      fileInput.value = '';
+      compute();
+    });
+
+    /* Core hash computation */
+    const compute = async () => {
+      // Determine input buffer
+      let buf: ArrayBuffer | null = null;
+      if (mode === 'text') {
+        const text = textInput.value;
+        if (!text) { showEmpty(); return; }
+        buf = textToBuffer(text);
+      } else {
+        if (!fileBuffer) { showEmpty(); return; }
+        buf = fileBuffer;
+      }
+
+      const useHmac = hmacToggle.checked;
+      const secretKey = hmacKey.value;
+
+      // Build algorithm list
+      const algos: Array<{ key: string; label: string; bits: number }> = [];
+      if (algMd5.checked)    algos.push({ key: 'md5',     label: 'MD5',     bits: 128 });
+      if (algSha1.checked)   algos.push({ key: 'SHA-1',   label: 'SHA-1',   bits: 160 });
+      if (algSha256.checked) algos.push({ key: 'SHA-256', label: 'SHA-256', bits: 256 });
+      if (algSha384.checked) algos.push({ key: 'SHA-384', label: 'SHA-384', bits: 384 });
+      if (algSha512.checked) algos.push({ key: 'SHA-512', label: 'SHA-512', bits: 512 });
+
+      if (!algos.length) { showEmpty(); return; }
+
+      emptyState.classList.add('hidden');
+      outputArea.innerHTML = '<p class="text-[10px] font-mono text-text-muted/50 animate-pulse">Computing…</p>';
+
+      const rows: Array<{ label: string; hash: string; bits: number; bytes: number }> = [];
+
+      for (const alg of algos) {
+        try {
+          let hashBuf: ArrayBuffer;
+          if (alg.key === 'md5') {
+            if (useHmac) {
+              // HMAC-MD5 via manual key padding (HMAC spec, RFC 2104)
+              hashBuf = hmacMd5(secretKey, buf);
+            } else {
+              hashBuf = md5Bytes(buf);
+            }
+          } else {
+            if (useHmac && secretKey) {
+              hashBuf = await hmacDigest(alg.key, secretKey, buf);
+            } else {
+              hashBuf = await webDigest(alg.key, buf);
+            }
+          }
+          const hash = encoding === 'hex' ? bufToHex(hashBuf) : bufToBase64(hashBuf);
+          rows.push({ label: alg.label, hash, bits: alg.bits, bytes: alg.bits / 8 });
+        } catch {
+          rows.push({ label: alg.label, hash: '[error computing hash]', bits: alg.bits, bytes: alg.bits / 8 });
+        }
+      }
+
+      renderRows(rows);
+    };
+
+    const showEmpty = () => {
+      outputArea.innerHTML = '';
+      emptyState.classList.remove('hidden');
+    };
+
+    const renderRows = (rows: Array<{ label: string; hash: string; bits: number; bytes: number }>) => {
+      outputArea.innerHTML = rows.map(r => `
+        <div class="hg-hash-row space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-accent/15 text-accent">${r.label}</span>
+              <span class="text-[10px] font-mono text-text-muted/60">${r.bits} bits · ${r.bytes} bytes</span>
+            </div>
+            <button
+              class="hg-copy-btn text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-accent hover:border-accent/30 transition-all"
+              data-hash="${r.hash}"
+            >Copy</button>
+          </div>
+          <p class="text-xs font-mono text-text-primary break-all leading-relaxed select-all">${r.hash}</p>
+        </div>
+      `).join('');
+
+      outputArea.querySelectorAll<HTMLButtonElement>('.hg-copy-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(btn.dataset.hash || ''); } catch {}
+          btn.textContent = 'Copied!';
+          btn.style.color = 'var(--color-accent)';
+          setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 1500);
+        });
+      });
+    };
+
+    /* HMAC-MD5 (RFC 2104) */
+    function hmacMd5(key: string, message: ArrayBuffer): ArrayBuffer {
+      const blockSize = 64;
+      let keyBytes: Uint8Array;
+      if (key.length > blockSize) {
+        keyBytes = new Uint8Array(md5Bytes(textToBuffer(key)));
+      } else {
+        keyBytes = new Uint8Array(new TextEncoder().encode(key));
+      }
+      const paddedKey = new Uint8Array(blockSize);
+      paddedKey.set(keyBytes);
+      const ipad = new Uint8Array(blockSize + message.byteLength);
+      const opad = new Uint8Array(blockSize + 16);
+      for (let i = 0; i < blockSize; i++) { ipad[i] = paddedKey[i] ^ 0x36; opad[i] = paddedKey[i] ^ 0x5c; }
+      ipad.set(new Uint8Array(message), blockSize);
+      const innerHash = new Uint8Array(md5Bytes(ipad.buffer));
+      opad.set(innerHash, blockSize);
+      return md5Bytes(opad.buffer);
+    }
+
+    /* App shell events */
+    document.addEventListener('app:copy', async () => {
+      // Copy SHA-256 hash (most common use case)
+      const sha256Row = outputArea.querySelector('[data-hash]') as HTMLButtonElement;
+      // Find the SHA-256 row specifically
+      const allRows = outputArea.querySelectorAll<HTMLElement>('.hg-hash-row');
+      let sha256Hash = '';
+      allRows.forEach(row => {
+        const badge = row.querySelector('.px-2')?.textContent;
+        if (badge === 'SHA-256') {
+          sha256Hash = (row.querySelector('.hg-copy-btn') as HTMLButtonElement)?.dataset.hash || '';
+        }
+      });
+      const toCopy = sha256Hash || (sha256Row?.dataset.hash ?? '');
+      if (toCopy) { try { await navigator.clipboard.writeText(toCopy); } catch {} }
+    });
+
+    document.addEventListener('app:reset', () => {
+      mode = 'text'; encoding = 'hex';
+      textInput.value = ''; charCount.textContent = '0 chars';
+      fileBuffer = null; fileInfo.classList.add('hidden'); fileInput.value = '';
+      hmacToggle.checked = false; hmacKeyWrap.classList.add('hidden'); hmacKey.value = '';
+      algMd5.checked = true; algSha1.checked = true; algSha256.checked = true;
+      algSha384.checked = true; algSha512.checked = true;
+      setMode('text');
+      setEncoding('hex');
+      showEmpty();
+    });
+
+    document.addEventListener('app:export', () => {
+      const rows = outputArea.querySelectorAll<HTMLElement>('.hg-hash-row');
+      if (!rows.length) return;
+      const data: Record<string, string> = {};
+      rows.forEach(row => {
+        const label = row.querySelector('.px-2')?.textContent || '';
+        const hash  = (row.querySelector('.hg-copy-btn') as HTMLButtonElement)?.dataset.hash || '';
+        if (label && hash) data[label] = hash;
+      });
+      const json = JSON.stringify({
+        mode,
+        encoding,
+        hmac: hmacToggle.checked,
+        hashes: data,
+        generatedAt: new Date().toISOString(),
+      }, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'hashes.json'; a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
+  initHg();
+  document.addEventListener('astro:after-swap', initHg);
+</script>

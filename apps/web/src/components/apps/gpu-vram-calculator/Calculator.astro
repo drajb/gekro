@@ -68,7 +68,7 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quantization</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quantization<span title="Numeric precision used to store each model weight: FP16/BF16 = 2 bytes/param (quality baseline), INT8 = 1 byte (~half the VRAM), Q4 = 0.5 bytes (~quarter) — lower precision trades a small accuracy loss for large memory savings" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-quant"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -84,7 +84,7 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Context length</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Context length<span title="Max tokens in a single forward pass — KV cache memory grows proportionally with context length, so 128K context uses ~32× more KV cache VRAM than 4K" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-context"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -100,14 +100,14 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Batch size</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Batch size<span title="Number of requests processed simultaneously — each additional request multiplies the KV cache linearly; use 1 for personal/dev use, higher for serving multiple users concurrently" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="vr-batch" min="1" max="64" step="1" value="1"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">KV cache dtype</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">KV cache dtype<span title="Precision used to store attention key/value pairs during generation — FP16 is the safe default; FP8 halves KV cache memory with minimal quality loss on most modern models" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-kv-bytes"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -118,7 +118,7 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Attention type</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Attention type<span title="Architecture of the attention mechanism: MHA (multi-head) stores one KV head per attention head; GQA (grouped-query, used in Llama 3+, Qwen 2) shares KV heads across groups, cutting KV cache to ~25%; MQA uses a single KV head for all queries" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-attn"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -130,7 +130,7 @@
 
     <!-- LoRA-only controls -->
     <div id="vr-lora-controls" class="space-y-1 hidden">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">LoRA rank</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">LoRA rank<span title="Dimensionality of the low-rank adapter matrices — rank 16 is a common default (~0.5% of base parameters); higher rank improves fit on complex tasks but increases adapter VRAM, optimizer states, and gradients" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-lora-rank"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">

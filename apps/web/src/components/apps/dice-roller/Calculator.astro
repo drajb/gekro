@@ -357,6 +357,27 @@
         .map(r => r.textContent?.trim().replace(/\s+/g,' ') || '');
       try { await navigator.clipboard.writeText(rows.join('\n')); } catch {}
     });
+    document.addEventListener('app:export', () => {
+      if (totalRolls === 0) return;
+      const historyRows = [...histEl.querySelectorAll('div:not(#dr-history-empty)')]
+        .map(r => r.textContent?.trim().replace(/\s+/g,' ') || '').filter(Boolean);
+      const lines = [
+        'Dice Roller — Roll History',
+        '==========================',
+        '',
+        `Total rolls: ${totalRolls}`,
+        `Average total: ${totalRolls > 0 ? (sumOfTotals / totalRolls).toFixed(1) : '—'}`,
+        `Best roll: ${bestTotal > 0 ? bestTotal : '—'}`,
+        '',
+        'History (newest first):',
+        ...historyRows,
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'dice-roll-history.txt'; a.click();
+      URL.revokeObjectURL(url);
+    });
 
     setCount(1);
   };

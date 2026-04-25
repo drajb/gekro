@@ -16,14 +16,14 @@
     <!-- 5-field inputs with aligned labels -->
     <div class="grid grid-cols-5 gap-2">
       {[
-        { id:'cf-min',  label:'Minute',  val:'0',  ex:'*/5  0-30' },
-        { id:'cf-hour', label:'Hour',    val:'9',  ex:'9  8-17' },
-        { id:'cf-dom',  label:'Day',     val:'*',  ex:'1  15' },
-        { id:'cf-mon',  label:'Month',   val:'*',  ex:'1,6  */3' },
-        { id:'cf-dow',  label:'Weekday', val:'1-5', ex:'1-5  0,6' },
+        { id:'cf-min',  label:'Minute',  val:'0',  ex:'*/5  0-30', tip:'0–59, or */5 = every 5 min, 0,30 = at minutes 0 and 30' },
+        { id:'cf-hour', label:'Hour',    val:'9',  ex:'9  8-17',   tip:'0–23 (24h clock); */2 = every 2 hours, 8-17 = 8 AM to 5 PM' },
+        { id:'cf-dom',  label:'Day',     val:'*',  ex:'1  15',     tip:'1–31 (day of month); beware Feb 28/29 edge cases with specific day values' },
+        { id:'cf-mon',  label:'Month',   val:'*',  ex:'1,6  */3',  tip:'1–12 or JAN-DEC abbreviations; 1,6 = Jan & Jun, */3 = every 3 months' },
+        { id:'cf-dow',  label:'Weekday', val:'1-5', ex:'1-5  0,6', tip:'0–6 where 0=Sunday (or SUN-SAT); 1-5 = Mon–Fri, 0,6 = weekends' },
       ].map(f => (
         <div class="space-y-1.5">
-          <label for={f.id} class="block text-[10px] font-mono uppercase tracking-widest text-text-muted text-center">{f.label}</label>
+          <label for={f.id} class="block text-[10px] font-mono uppercase tracking-widest text-text-muted text-center">{f.label}<span title={f.tip} class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <input
             id={f.id}
             type="text"
@@ -374,6 +374,23 @@
 
     document.addEventListener('app:copy',async()=>{try{await navigator.clipboard.writeText(composedEl.textContent||'');}catch{}});
     document.addEventListener('app:reset',()=>{fEls.forEach(el=>el.value='*');fEls[0].value='*';runBuilder();nlIn.value='';runNlp();});
+    document.addEventListener('app:export', () => {
+      const expr = composedEl.textContent || '';
+      const desc = descEl.textContent || '';
+      if (!expr || expr === '—') return;
+      const lines = [
+        'Cron Expression',
+        '===============',
+        '',
+        `Expression: ${expr}`,
+        `Description: ${desc}`,
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'cron-expression.txt'; a.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   initCron();

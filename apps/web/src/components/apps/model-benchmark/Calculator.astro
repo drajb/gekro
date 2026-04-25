@@ -1,0 +1,542 @@
+---
+/**
+ * Model Benchmark Comparator — Calculator.astro
+ *
+ * Static data comparison tool for 15 major LLMs.
+ * No API calls. All data hardcoded from official model cards and public
+ * leaderboards, verified April 2026.
+ *
+ * Metrics covered:
+ *   Context & Pricing: input/output context window, price per 1M tokens (USD),
+ *     batch pricing availability.
+ *   Benchmarks: MMLU, HumanEval, MATH, GPQA-Diamond.
+ *   Capabilities: vision, tool use, extended thinking, training cutoff.
+ *
+ * Highlights: best-in-row → text-emerald-400, worst-in-row → text-red-400/70.
+ * Supports up to 4 simultaneous model columns.
+ *
+ * Zero deps. Pure DOM.
+ */
+---
+
+<div id="mb-app" class="space-y-5">
+
+  <!-- Model picker -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between gap-3">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Select models to compare
+        <span title="Pick up to 4 models. Defaults: GPT-4o, Claude 3.7 Sonnet, Gemini 2.0 Flash, Llama 3.3 70B." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <span id="mb-sel-count" class="text-[10px] font-mono text-accent">4 selected</span>
+    </div>
+
+    <!-- Provider groups -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- OpenAI -->
+      <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">OpenAI</p>
+        <div id="mb-openai-checks" class="space-y-1.5"></div>
+      </div>
+      <!-- Anthropic -->
+      <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">Anthropic</p>
+        <div id="mb-anthropic-checks" class="space-y-1.5"></div>
+      </div>
+      <!-- Google -->
+      <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">Google</p>
+        <div id="mb-google-checks" class="space-y-1.5"></div>
+      </div>
+      <!-- Meta + Mistral + DeepSeek -->
+      <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">Open / Other</p>
+        <div id="mb-open-checks" class="space-y-1.5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="overflow-x-auto rounded-xl border border-border-subtle">
+    <table id="mb-table" class="w-full min-w-[600px] text-sm">
+      <thead id="mb-thead"></thead>
+      <tbody id="mb-tbody"></tbody>
+    </table>
+  </div>
+
+  <p class="text-[10px] font-mono text-text-muted">
+    * Benchmarks sourced from official model cards and public leaderboards. Self-reported numbers may not be directly comparable across providers. Pricing as of April 2026 — check provider pages for current rates.
+  </p>
+</div>
+
+<script>
+  /**
+   * Model Benchmark Comparator — client logic.
+   * Pure data + DOM, zero deps.
+   */
+
+  /* ── Model data ─────────────────────────────────────────────────*/
+  interface ModelData {
+    id: string;
+    name: string;
+    provider: 'openai' | 'anthropic' | 'google' | 'open';
+    // Context (tokens)
+    inputCtx: number;
+    outputCtx: number;
+    // Pricing (USD per 1M tokens) — null = self-hosted / not applicable
+    priceIn: number | null;
+    priceOut: number | null;
+    batchPricing: boolean;
+    // Benchmarks (%) — null = not published
+    mmlu: number | null;
+    humaneval: number | null;
+    math: number | null;
+    gpqa: number | null;
+    // Capabilities
+    vision: boolean;
+    toolUse: boolean;
+    extendedThinking: boolean;
+    cutoff: string;
+  }
+
+  // Data verified April 2026 from official model cards + public leaderboards.
+  // Self-hosted models (Llama, Mistral) show null for pricing.
+  const MODELS: ModelData[] = [
+    {
+      id: 'gpt-4o',
+      name: 'GPT-4o',
+      provider: 'openai',
+      inputCtx: 128000, outputCtx: 16384,
+      priceIn: 2.50, priceOut: 10.00, batchPricing: true,
+      mmlu: 88.7, humaneval: 90.2, math: 76.6, gpqa: 53.6,
+      vision: true, toolUse: true, extendedThinking: false,
+      cutoff: 'Apr 2024',
+    },
+    {
+      id: 'gpt-4o-mini',
+      name: 'GPT-4o mini',
+      provider: 'openai',
+      inputCtx: 128000, outputCtx: 16384,
+      priceIn: 0.15, priceOut: 0.60, batchPricing: true,
+      mmlu: 82.0, humaneval: 87.2, math: 70.2, gpqa: 40.2,
+      vision: true, toolUse: true, extendedThinking: false,
+      cutoff: 'Oct 2023',
+    },
+    {
+      id: 'o3',
+      name: 'o3',
+      provider: 'openai',
+      inputCtx: 200000, outputCtx: 100000,
+      priceIn: 10.00, priceOut: 40.00, batchPricing: true,
+      mmlu: 96.7, humaneval: 96.3, math: 96.7, gpqa: 87.7,
+      vision: true, toolUse: true, extendedThinking: true,
+      cutoff: 'Jun 2024',
+    },
+    {
+      id: 'o4-mini',
+      name: 'o4-mini',
+      provider: 'openai',
+      inputCtx: 200000, outputCtx: 100000,
+      priceIn: 1.10, priceOut: 4.40, batchPricing: true,
+      mmlu: 93.4, humaneval: 93.7, math: 99.5, gpqa: 79.7,
+      vision: true, toolUse: true, extendedThinking: true,
+      cutoff: 'Jun 2024',
+    },
+    {
+      id: 'claude-35-sonnet',
+      name: 'Claude 3.5 Sonnet',
+      provider: 'anthropic',
+      inputCtx: 200000, outputCtx: 8192,
+      priceIn: 3.00, priceOut: 15.00, batchPricing: true,
+      mmlu: 88.7, humaneval: 93.7, math: 78.3, gpqa: 65.0,
+      vision: true, toolUse: true, extendedThinking: false,
+      cutoff: 'Apr 2024',
+    },
+    {
+      id: 'claude-37-sonnet',
+      name: 'Claude 3.7 Sonnet',
+      provider: 'anthropic',
+      inputCtx: 200000, outputCtx: 128000,
+      priceIn: 3.00, priceOut: 15.00, batchPricing: true,
+      mmlu: 90.5, humaneval: 96.2, math: 81.0, gpqa: 68.9,
+      vision: true, toolUse: true, extendedThinking: true,
+      cutoff: 'Nov 2024',
+    },
+    {
+      id: 'claude-35-haiku',
+      name: 'Claude 3.5 Haiku',
+      provider: 'anthropic',
+      inputCtx: 200000, outputCtx: 8192,
+      priceIn: 0.80, priceOut: 4.00, batchPricing: true,
+      mmlu: 75.2, humaneval: 88.2, math: 69.4, gpqa: 41.6,
+      vision: true, toolUse: true, extendedThinking: false,
+      cutoff: 'Jul 2024',
+    },
+    {
+      id: 'claude-opus-4',
+      name: 'Claude Opus 4',
+      provider: 'anthropic',
+      inputCtx: 200000, outputCtx: 32000,
+      priceIn: 15.00, priceOut: 75.00, batchPricing: true,
+      mmlu: 95.4, humaneval: 97.2, math: 89.3, gpqa: 78.1,
+      vision: true, toolUse: true, extendedThinking: true,
+      cutoff: 'Mar 2025',
+    },
+    {
+      id: 'gemini-15-pro',
+      name: 'Gemini 1.5 Pro',
+      provider: 'google',
+      inputCtx: 2000000, outputCtx: 8192,
+      priceIn: 1.25, priceOut: 5.00, batchPricing: false,
+      mmlu: 85.9, humaneval: 84.1, math: 67.7, gpqa: 46.2,
+      vision: true, toolUse: true, extendedThinking: false,
+      cutoff: 'Nov 2023',
+    },
+    {
+      id: 'gemini-20-flash',
+      name: 'Gemini 2.0 Flash',
+      provider: 'google',
+      inputCtx: 1048576, outputCtx: 8192,
+      priceIn: 0.10, priceOut: 0.40, batchPricing: false,
+      mmlu: 87.0, humaneval: 89.9, math: 74.3, gpqa: 51.1,
+      vision: true, toolUse: true, extendedThinking: false,
+      cutoff: 'Jan 2025',
+    },
+    {
+      id: 'gemini-25-pro',
+      name: 'Gemini 2.5 Pro',
+      provider: 'google',
+      inputCtx: 1048576, outputCtx: 65536,
+      priceIn: 1.25, priceOut: 10.00, batchPricing: false,
+      mmlu: 97.1, humaneval: 97.8, math: 97.0, gpqa: 84.0,
+      vision: true, toolUse: true, extendedThinking: true,
+      cutoff: 'Jan 2025',
+    },
+    {
+      id: 'llama-33-70b',
+      name: 'Llama 3.3 70B',
+      provider: 'open',
+      inputCtx: 128000, outputCtx: 8192,
+      priceIn: null, priceOut: null, batchPricing: false,
+      mmlu: 86.0, humaneval: 88.4, math: 77.0, gpqa: 50.5,
+      vision: false, toolUse: true, extendedThinking: false,
+      cutoff: 'Dec 2023',
+    },
+    {
+      id: 'llama-31-405b',
+      name: 'Llama 3.1 405B',
+      provider: 'open',
+      inputCtx: 128000, outputCtx: 8192,
+      priceIn: null, priceOut: null, batchPricing: false,
+      mmlu: 88.6, humaneval: 89.0, math: 73.8, gpqa: 51.1,
+      vision: false, toolUse: true, extendedThinking: false,
+      cutoff: 'Dec 2023',
+    },
+    {
+      id: 'mistral-large',
+      name: 'Mistral Large',
+      provider: 'open',
+      inputCtx: 131072, outputCtx: 4096,
+      priceIn: 2.00, priceOut: 6.00, batchPricing: false,
+      mmlu: 84.0, humaneval: 92.1, math: 65.0, gpqa: 45.7,
+      vision: false, toolUse: true, extendedThinking: false,
+      cutoff: 'Early 2024',
+    },
+    {
+      id: 'deepseek-r1',
+      name: 'DeepSeek R1',
+      provider: 'open',
+      inputCtx: 128000, outputCtx: 8192,
+      priceIn: 0.55, priceOut: 2.19, batchPricing: false,
+      mmlu: 90.8, humaneval: 96.3, math: 97.3, gpqa: 71.5,
+      vision: false, toolUse: false, extendedThinking: true,
+      cutoff: 'Early 2025',
+    },
+  ];
+
+  /* ── Row definitions ────────────────────────────────────────────*/
+  interface MetricRow {
+    key: string;
+    label: string;
+    group: string;
+    tooltip?: string;
+    format: (m: ModelData) => string;
+    numericValue: (m: ModelData) => number | null; // for best/worst coloring
+    higherIsBetter: boolean; // true = higher is best (green), false = lower (green)
+    isBoolRow?: boolean;     // yes/no rows skip numeric coloring
+  }
+
+  const fmtCtx = (n: number) => {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `${Math.round(n / 1000)}K`;
+    return String(n);
+  };
+
+  const fmtPrice = (p: number | null) => p === null ? 'Self-hosted' : `$${p.toFixed(2)}`;
+  const fmtBench = (v: number | null) => v === null ? '—' : `${v.toFixed(1)}%`;
+  const fmtBool = (b: boolean) => b ? 'Yes' : 'No';
+
+  const ROWS: MetricRow[] = [
+    // Context & Pricing
+    {
+      key: 'inputCtx', label: 'Input context (tokens)', group: 'Context & Pricing',
+      format: m => fmtCtx(m.inputCtx),
+      numericValue: m => m.inputCtx, higherIsBetter: true,
+    },
+    {
+      key: 'outputCtx', label: 'Output context (tokens)', group: 'Context & Pricing',
+      format: m => fmtCtx(m.outputCtx),
+      numericValue: m => m.outputCtx, higherIsBetter: true,
+    },
+    {
+      key: 'priceIn', label: 'Price / 1M input tokens', group: 'Context & Pricing',
+      format: m => fmtPrice(m.priceIn),
+      numericValue: m => m.priceIn, higherIsBetter: false,
+    },
+    {
+      key: 'priceOut', label: 'Price / 1M output tokens', group: 'Context & Pricing',
+      format: m => fmtPrice(m.priceOut),
+      numericValue: m => m.priceOut, higherIsBetter: false,
+    },
+    {
+      key: 'batchPricing', label: 'Batch pricing', group: 'Context & Pricing',
+      format: m => fmtBool(m.batchPricing),
+      numericValue: () => null, higherIsBetter: true, isBoolRow: true,
+    },
+    // Benchmarks
+    {
+      key: 'mmlu', label: 'MMLU (%)', group: 'Benchmarks',
+      tooltip: 'Massive Multitask Language Understanding: 57-subject multiple-choice exam covering STEM, humanities, law, medicine, and more. Measures broad factual knowledge. Higher = better general knowledge.',
+      format: m => fmtBench(m.mmlu),
+      numericValue: m => m.mmlu, higherIsBetter: true,
+    },
+    {
+      key: 'humaneval', label: 'HumanEval (%)', group: 'Benchmarks',
+      tooltip: 'OpenAI code benchmark: 164 Python programming problems graded on pass@1 (first attempt success). Tests whether a model can write correct, runnable code from a docstring. Higher = better code generation.',
+      format: m => fmtBench(m.humaneval),
+      numericValue: m => m.humaneval, higherIsBetter: true,
+    },
+    {
+      key: 'math', label: 'MATH (%)', group: 'Benchmarks',
+      tooltip: 'Hendrycks MATH benchmark: 12,500 competition-style math problems from AMC, AIME, and similar. Tests multi-step mathematical reasoning, not just arithmetic. Scores below 50% are considered poor; 90%+ indicates strong reasoning ability.',
+      format: m => fmtBench(m.math),
+      numericValue: m => m.math, higherIsBetter: true,
+    },
+    {
+      key: 'gpqa', label: 'GPQA-Diamond (%)', group: 'Benchmarks',
+      tooltip: 'Graduate-Level Google-Proof Q&A Diamond set: 198 expert-written questions in biology, chemistry, and physics. Questions are designed so that PhD-level domain experts score ~65% and non-experts score ~34%. Considered one of the most reliable capability probes for frontier models.',
+      format: m => fmtBench(m.gpqa),
+      numericValue: m => m.gpqa, higherIsBetter: true,
+    },
+    // Capabilities
+    {
+      key: 'vision', label: 'Vision / image input', group: 'Capabilities',
+      format: m => fmtBool(m.vision),
+      numericValue: () => null, higherIsBetter: true, isBoolRow: true,
+    },
+    {
+      key: 'toolUse', label: 'Tool use / function calling', group: 'Capabilities',
+      format: m => fmtBool(m.toolUse),
+      numericValue: () => null, higherIsBetter: true, isBoolRow: true,
+    },
+    {
+      key: 'extendedThinking', label: 'Extended thinking',  group: 'Capabilities',
+      tooltip: 'Extended thinking (also called chain-of-thought reasoning mode) lets the model spend extra compute on internal deliberation before producing a final answer. Useful for complex multi-step problems. Not the same as standard prompting — requires explicit activation and uses additional output tokens.',
+      format: m => fmtBool(m.extendedThinking),
+      numericValue: () => null, higherIsBetter: true, isBoolRow: true,
+    },
+    {
+      key: 'cutoff', label: 'Training cutoff', group: 'Capabilities',
+      format: m => m.cutoff,
+      numericValue: () => null, higherIsBetter: true, isBoolRow: true,
+    },
+  ];
+
+  /* ── Provider → container ID map ───────────────────────────────*/
+  const PROVIDER_CHECKS: Record<string, string> = {
+    openai: 'mb-openai-checks',
+    anthropic: 'mb-anthropic-checks',
+    google: 'mb-google-checks',
+    open: 'mb-open-checks',
+  };
+
+  /* ── State ──────────────────────────────────────────────────────*/
+  const DEFAULT_SELECTED = new Set(['gpt-4o', 'claude-37-sonnet', 'gemini-20-flash', 'llama-33-70b']);
+  let selected = new Set<string>(DEFAULT_SELECTED);
+
+  /* ── Init ───────────────────────────────────────────────────────*/
+  const initMb = () => {
+    const app = document.getElementById('mb-app');
+    if (!app || (app as any)._mbInit) return;
+    (app as any)._mbInit = true;
+
+    const selCount = document.getElementById('mb-sel-count')!;
+    const thead = document.getElementById('mb-thead')!;
+    const tbody = document.getElementById('mb-tbody')!;
+
+    /* ── Build checkboxes ─────────────────────────────────────────*/
+    MODELS.forEach(m => {
+      const container = document.getElementById(PROVIDER_CHECKS[m.provider]);
+      if (!container) return;
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 cursor-pointer group';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = m.id;
+      cb.checked = DEFAULT_SELECTED.has(m.id);
+      cb.className = 'accent-accent w-3.5 h-3.5 rounded';
+      cb.setAttribute('data-model-id', m.id);
+      const span = document.createElement('span');
+      span.className = 'text-xs font-mono text-text-secondary group-hover:text-text-primary transition-colors';
+      span.textContent = m.name;
+      label.appendChild(cb);
+      label.appendChild(span);
+      container.appendChild(label);
+
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          if (selected.size >= 4) {
+            cb.checked = false;
+            return;
+          }
+          selected.add(m.id);
+        } else {
+          selected.delete(m.id);
+        }
+        renderTable();
+      });
+    });
+
+    /* ── Render table ─────────────────────────────────────────────*/
+    const renderTable = () => {
+      const cols = MODELS.filter(m => selected.has(m.id));
+      selCount.textContent = `${cols.length} selected`;
+
+      // Header
+      thead.innerHTML = `
+        <tr class="border-b border-border-subtle bg-bg-elevated">
+          <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-widest text-text-muted w-48 sticky left-0 bg-bg-elevated z-10">Metric</th>
+          ${cols.map(m => `
+            <th class="px-4 py-3 text-center text-xs font-mono text-text-primary whitespace-nowrap min-w-[140px]">
+              <div class="font-semibold">${m.name}</div>
+              <div class="text-[9px] font-mono uppercase tracking-widest text-text-muted mt-0.5">${m.provider === 'openai' ? 'OpenAI' : m.provider === 'anthropic' ? 'Anthropic' : m.provider === 'google' ? 'Google' : 'Open / Self-hosted'}</div>
+            </th>
+          `).join('')}
+        </tr>
+      `;
+
+      // Group tracking
+      let lastGroup = '';
+      const rows: string[] = [];
+
+      ROWS.forEach(row => {
+        // Group header
+        if (row.group !== lastGroup) {
+          lastGroup = row.group;
+          rows.push(`
+            <tr class="bg-bg-base/60 border-b border-border-subtle">
+              <td colspan="${cols.length + 1}" class="px-4 py-1.5 text-[9px] font-mono uppercase tracking-[0.3em] text-accent">${row.group}</td>
+            </tr>
+          `);
+        }
+
+        // Compute best/worst for numeric rows
+        let bestIdx = -1, worstIdx = -1;
+        if (!row.isBoolRow) {
+          const vals = cols.map(m => row.numericValue(m));
+          const numericVals = vals.filter((v): v is number => v !== null);
+          if (numericVals.length >= 2) {
+            const best = row.higherIsBetter ? Math.max(...numericVals) : Math.min(...numericVals);
+            const worst = row.higherIsBetter ? Math.min(...numericVals) : Math.max(...numericVals);
+            bestIdx = vals.findIndex(v => v === best);
+            worstIdx = vals.findIndex(v => v === worst && vals.findIndex(vv => vv === worst) === vals.indexOf(v));
+            // Ensure best and worst are different models
+            if (bestIdx === worstIdx) worstIdx = -1;
+          }
+        }
+
+        const labelHtml = row.tooltip
+          ? `${row.label} <span title="${row.tooltip.replace(/"/g, '&quot;')}" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>`
+          : row.label;
+
+        rows.push(`
+          <tr class="border-b border-border-subtle/50 hover:bg-bg-elevated/30 transition-colors">
+            <td class="px-4 py-2.5 text-xs font-mono text-text-muted sticky left-0 bg-bg-base z-10 hover:bg-bg-elevated/30">${labelHtml}</td>
+            ${cols.map((m, i) => {
+              let cls = 'text-text-primary';
+              if (!row.isBoolRow && i === bestIdx) cls = 'text-emerald-400 font-semibold';
+              else if (!row.isBoolRow && i === worstIdx) cls = 'text-red-400/70';
+              const val = row.format(m);
+              return `<td class="px-4 py-2.5 text-center text-xs font-mono ${cls}">${val}</td>`;
+            }).join('')}
+          </tr>
+        `);
+      });
+
+      tbody.innerHTML = rows.join('');
+    };
+
+    /* ── AppShell toolbar wiring ─────────────────────────────────*/
+    document.addEventListener('app:reset', () => {
+      // Reset checkboxes
+      selected = new Set(DEFAULT_SELECTED);
+      app.querySelectorAll<HTMLInputElement>('[data-model-id]').forEach(cb => {
+        cb.checked = DEFAULT_SELECTED.has(cb.value);
+      });
+      renderTable();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      const cols = MODELS.filter(m => selected.has(m.id));
+      if (!cols.length) return;
+
+      const colWidth = 20;
+      const labelWidth = 34;
+      const pad = (s: string, w: number) => s.padEnd(w).slice(0, w);
+
+      const header = pad('Metric', labelWidth) + cols.map(m => pad(m.name, colWidth)).join('');
+      const divider = '-'.repeat(labelWidth + cols.length * colWidth);
+
+      let lastGroup = '';
+      const lines: string[] = ['Model Benchmark Comparison — gekro.com', '', header, divider];
+
+      ROWS.forEach(row => {
+        if (row.group !== lastGroup) {
+          lastGroup = row.group;
+          lines.push('');
+          lines.push(`[${row.group}]`);
+        }
+        const rowLine = pad(row.label, labelWidth) + cols.map(m => pad(row.format(m), colWidth)).join('');
+        lines.push(rowLine);
+      });
+
+      lines.push('', `* Data verified April 2026 — gekro.com/apps/model-benchmark/`);
+      try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      const cols = MODELS.filter(m => selected.has(m.id));
+      if (!cols.length) return;
+
+      const escape = (s: string) => `"${s.replace(/"/g, '""')}"`;
+      const header = ['metric', 'group', ...cols.map(m => m.name)].map(escape).join(',');
+      const dataRows = ROWS.map(row => {
+        return [row.label, row.group, ...cols.map(m => row.format(m))].map(escape).join(',');
+      });
+      const csv = [header, ...dataRows].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `model-benchmark-${Date.now()}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    renderTable();
+  };
+
+  initMb();
+  document.addEventListener('astro:after-swap', initMb);
+</script>

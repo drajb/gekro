@@ -356,6 +356,18 @@
     });
 
     /* AppShell integration */
+    document.addEventListener('app:export', () => {
+      const content = lastFormatted || inputEl.value.trim();
+      if (!content) return;
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = indent === 0 ? 'output.min.json' : 'output.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
     document.addEventListener('app:copy', async () => {
       const text = lastFormatted || inputEl.value;
       try { await navigator.clipboard.writeText(text); } catch {}

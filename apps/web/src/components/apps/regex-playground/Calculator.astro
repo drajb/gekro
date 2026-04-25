@@ -21,6 +21,7 @@
       <span class="flex items-center px-2 bg-bg-elevated border border-l-0 border-border-subtle text-text-muted font-mono text-sm">/</span>
       <!-- Flags -->
       <div class="flex items-center gap-1 px-2 bg-bg-elevated border border-l-0 border-border-subtle rounded-r-lg">
+        <span title="Regex flags: g = match all occurrences (not just first), i = case-insensitive, m = multiline (^ and $ match line boundaries), s = dotAll (. matches newlines too)" class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none mr-0.5">?</span>
         {['g','i','m','s'].map(f => (
           <button
             data-flag={f}

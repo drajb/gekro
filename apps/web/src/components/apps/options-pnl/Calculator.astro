@@ -1,0 +1,493 @@
+---
+// Options P&L Calculator — Black-Scholes Greeks + expiry P&L table, zero deps
+---
+
+<div id="opnl-app" class="space-y-6">
+
+  <!-- Strategy selector -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Strategy</p>
+    <div class="flex flex-wrap gap-2" id="opnl-tabs">
+      {[
+        { id: 'long-call',   label: 'Long Call' },
+        { id: 'long-put',    label: 'Long Put' },
+        { id: 'covered-call',label: 'Covered Call' },
+        { id: 'csp',         label: 'Cash-Secured Put' },
+        { id: 'bull-call',   label: 'Bull Call Spread' },
+        { id: 'bear-put',    label: 'Bear Put Spread' },
+      ].map(s => (
+        <button
+          data-strat={s.id}
+          class={`opnl-tab px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
+            s.id === 'long-call'
+              ? 'bg-accent/10 border-accent/40 text-accent'
+              : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
+          }`}
+        >
+          {s.label}
+        </button>
+      ))}
+    </div>
+  </div>
+
+  <!-- Inputs grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="opnl-inputs">
+
+    <div class="space-y-1.5">
+      <label for="opnl-spot" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Underlying Price ($)
+        <span title="Current market price of the stock or ETF" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <input id="opnl-spot" type="number" min="1" step="1" value="500"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="opnl-strike" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Strike Price ($)
+        <span title="The price at which the option contract gives you the right to buy (call) or sell (put) the underlying" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <input id="opnl-strike" type="number" min="1" step="1" value="505"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="opnl-premium" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Premium ($/share)
+        <span title="The price paid (long) or received (short) per share for the option. One contract = 100 shares." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <input id="opnl-premium" type="number" min="0.01" step="0.05" value="2.50"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="opnl-contracts" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Contracts
+        <span title="1 contract = 100 shares. Multiply your P&L by this number." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <input id="opnl-contracts" type="number" min="1" step="1" value="1"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="opnl-dte" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Days to Expiry (DTE)
+      </label>
+      <input id="opnl-dte" type="number" min="1" max="730" step="1" value="30"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="opnl-iv" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+        Implied Volatility (IV %)
+        <span title="The market's forecast of the underlying's annualized price movement. Used for Greeks estimation only — expiry P&L is IV-independent." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      </label>
+      <input id="opnl-iv" type="number" min="1" max="500" step="1" value="30"
+        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+    </div>
+
+    <!-- Spread leg 2 (shown only for spread strategies) -->
+    <div id="opnl-spread-group" class="contents hidden-spread">
+      <div class="space-y-1.5">
+        <label for="opnl-strike2" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+          Strike 2 ($) — Short leg
+        </label>
+        <input id="opnl-strike2" type="number" min="1" step="1" value="510"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+      </div>
+      <div class="space-y-1.5">
+        <label for="opnl-premium2" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+          Premium 2 ($/share) — Short leg
+        </label>
+        <input id="opnl-premium2" type="number" min="0.01" step="0.05" value="1.00"
+          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Hero stats -->
+  <div id="opnl-hero" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- Greeks -->
+  <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3">
+    <div class="flex items-center gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Greeks (Black-Scholes estimates)</p>
+      <span class="text-[9px] font-mono text-amber-400/70 bg-amber-400/5 border border-amber-400/20 px-1.5 py-0.5 rounded">estimates only — use for intuition, not execution</span>
+    </div>
+    <div id="opnl-greeks" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <!-- P&L table -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">P&L at Expiry — Price Range (±50%)</p>
+    <div class="overflow-x-auto rounded-xl border border-border-subtle">
+      <table class="w-full text-xs font-mono">
+        <thead>
+          <tr class="border-b border-border-subtle">
+            <th class="text-left px-4 py-2.5 text-text-muted font-normal">Underlying Price</th>
+            <th class="text-left px-4 py-2.5 text-text-muted font-normal">vs Current</th>
+            <th class="text-right px-4 py-2.5 text-text-muted font-normal">P&L (total)</th>
+            <th class="text-right px-4 py-2.5 text-text-muted font-normal">Return on Premium</th>
+          </tr>
+        </thead>
+        <tbody id="opnl-table">
+          <!-- Rendered by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .opnl-spread-field { display: none; }
+  .show-spread .opnl-spread-field { display: block; }
+</style>
+
+<script>
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  const fmt2 = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt0 = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  // Abramowitz-Stegun rational approximation of standard normal CDF (max error < 7.5e-8)
+  function normCDF(x: number): number {
+    const a1 =  0.254829592;
+    const a2 = -0.284496736;
+    const a3 =  1.421413741;
+    const a4 = -1.453152027;
+    const a5 =  1.061405429;
+    const p  =  0.3275911;
+    const sign = x < 0 ? -1 : 1;
+    const t = 1 / (1 + p * Math.abs(x));
+    const poly = t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))));
+    return 0.5 * (1 + sign * (1 - poly * Math.exp(-x * x)));
+  }
+
+  // Standard normal PDF
+  function normPDF(x: number): number {
+    return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+  }
+
+  // Black-Scholes Greeks for a single leg
+  function bsGreeks(S: number, K: number, T: number, r: number, sigma: number, isCall: boolean) {
+    if (T <= 0 || sigma <= 0 || S <= 0 || K <= 0) {
+      return { delta: 0, gamma: 0, theta: 0, vega: 0 };
+    }
+    const sqrtT = Math.sqrt(T);
+    const d1 = (Math.log(S / K) + (r + sigma * sigma / 2) * T) / (sigma * sqrtT);
+    const d2 = d1 - sigma * sqrtT;
+    const Nd1 = normCDF(isCall ? d1 : -d1);
+    const Nd2 = normCDF(isCall ? d2 : -d2);
+    const nd1 = normPDF(d1);
+    const ert = Math.exp(-r * T);
+
+    const delta = isCall ? Nd1 : Nd1 - 1;
+    const gamma = nd1 / (S * sigma * sqrtT);
+    // Theta per calendar day (divide by 365)
+    const theta = (-(S * nd1 * sigma) / (2 * sqrtT) - (isCall ? 1 : -1) * r * K * ert * (isCall ? Nd2 : -Nd2)) / 365;
+    // Vega per 1% move in IV
+    const vega = S * nd1 * sqrtT / 100;
+
+    return { delta, gamma, theta, vega };
+  }
+
+  // P&L at expiry for each strategy
+  function calcPnL(
+    strat: string,
+    S: number, K1: number, prem1: number,
+    K2: number, prem2: number,
+    contracts: number,
+    spot: number
+  ): number {
+    const mult = contracts * 100;
+    let pnlPerShare = 0;
+
+    switch (strat) {
+      case 'long-call':
+        pnlPerShare = Math.max(0, S - K1) - prem1;
+        break;
+      case 'long-put':
+        pnlPerShare = Math.max(0, K1 - S) - prem1;
+        break;
+      case 'covered-call':
+        // Long stock at spot + short call at K1 receiving prem1
+        pnlPerShare = (S - spot) + prem1 - Math.max(0, S - K1);
+        break;
+      case 'csp':
+        // Short put at K1 receiving prem1 — max loss if stock goes to 0
+        pnlPerShare = prem1 - Math.max(0, K1 - S);
+        break;
+      case 'bull-call':
+        // Long K1 call, short K2 call (K2 > K1)
+        pnlPerShare = Math.max(0, S - K1) - prem1 - (Math.max(0, S - K2) - prem2);
+        break;
+      case 'bear-put':
+        // Long K1 put, short K2 put (K2 < K1, i.e. K1 > K2)
+        pnlPerShare = Math.max(0, K1 - S) - prem1 - (Math.max(0, K2 - S) - prem2);
+        break;
+    }
+    return pnlPerShare * mult;
+  }
+
+  // Compute hero stats
+  function heroStats(strat: string, K1: number, prem1: number, K2: number, prem2: number, contracts: number, spot: number) {
+    const mult = contracts * 100;
+    let maxProfit = Infinity;
+    let maxLoss = -Infinity;
+    let breakevens: number[] = [];
+
+    switch (strat) {
+      case 'long-call':
+        maxProfit = Infinity;
+        maxLoss = -prem1 * mult;
+        breakevens = [K1 + prem1];
+        break;
+      case 'long-put':
+        maxProfit = (K1 - prem1) * mult;
+        maxLoss = -prem1 * mult;
+        breakevens = [K1 - prem1];
+        break;
+      case 'covered-call':
+        maxProfit = (K1 - spot + prem1) * mult;
+        maxLoss = (-spot + prem1) * mult; // stock goes to 0
+        breakevens = [spot - prem1];
+        break;
+      case 'csp':
+        maxProfit = prem1 * mult;
+        maxLoss = -(K1 - prem1) * mult;
+        breakevens = [K1 - prem1];
+        break;
+      case 'bull-call': {
+        const netDebit = prem1 - prem2;
+        maxProfit = (Math.abs(K2 - K1) - netDebit) * mult;
+        maxLoss = -netDebit * mult;
+        breakevens = [K1 + netDebit];
+        break;
+      }
+      case 'bear-put': {
+        const netDebit = prem1 - prem2;
+        maxProfit = (Math.abs(K1 - K2) - netDebit) * mult;
+        maxLoss = -netDebit * mult;
+        breakevens = [K1 - netDebit];
+        break;
+      }
+    }
+    return { maxProfit, maxLoss, breakevens };
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+  const initOpnl = () => {
+    const app = document.getElementById('opnl-app');
+    if (!app || (app as any)._opnlInit) return;
+    (app as any)._opnlInit = true;
+
+    const tabs       = app.querySelectorAll<HTMLButtonElement>('.opnl-tab');
+    const spotEl     = app.querySelector<HTMLInputElement>('#opnl-spot')!;
+    const strikeEl   = app.querySelector<HTMLInputElement>('#opnl-strike')!;
+    const premEl     = app.querySelector<HTMLInputElement>('#opnl-premium')!;
+    const contractsEl= app.querySelector<HTMLInputElement>('#opnl-contracts')!;
+    const dteEl      = app.querySelector<HTMLInputElement>('#opnl-dte')!;
+    const ivEl       = app.querySelector<HTMLInputElement>('#opnl-iv')!;
+    const strike2El  = app.querySelector<HTMLInputElement>('#opnl-strike2')!;
+    const prem2El    = app.querySelector<HTMLInputElement>('#opnl-premium2')!;
+    const heroEl     = app.querySelector<HTMLDivElement>('#opnl-hero')!;
+    const greeksEl   = app.querySelector<HTMLDivElement>('#opnl-greeks')!;
+    const tableEl    = app.querySelector<HTMLTableSectionElement>('#opnl-table')!;
+    const inputsEl   = app.querySelector<HTMLDivElement>('#opnl-inputs')!;
+
+    const SPREAD_STRATS = new Set(['bull-call', 'bear-put']);
+    let currentStrat = 'long-call';
+    let lastTableText = '';
+
+    const statCard = (label: string, value: string, color: string, sub?: string) => `
+      <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${label}</p>
+        <p class="text-xl font-heading font-bold" style="color:${color}">${value}</p>
+        ${sub ? `<p class="text-[10px] font-mono text-text-muted">${sub}</p>` : ''}
+      </div>`;
+
+    const greekCard = (label: string, value: string, tip: string) => `
+      <div class="p-3 bg-bg-surface border border-border-subtle rounded-lg space-y-0.5">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+          ${label}
+          <span title="${tip}" class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </p>
+        <p class="text-base font-mono font-semibold text-text-primary">${value}</p>
+      </div>`;
+
+    const updateSpreadVisibility = () => {
+      const isSpread = SPREAD_STRATS.has(currentStrat);
+      const spreadFields = app.querySelectorAll<HTMLElement>('.opnl-spread-field');
+      spreadFields.forEach(el => { el.style.display = isSpread ? 'block' : 'none'; });
+    };
+
+    const recalc = () => {
+      const spot      = parseFloat(spotEl.value);
+      const K1        = parseFloat(strikeEl.value);
+      const prem1     = parseFloat(premEl.value);
+      const contracts = Math.max(1, parseInt(contractsEl.value) || 1);
+      const dte       = Math.max(1, parseFloat(dteEl.value));
+      const iv        = parseFloat(ivEl.value) / 100;
+      const K2        = parseFloat(strike2El.value) || K1 + 5;
+      const prem2     = parseFloat(prem2El.value) || 0;
+
+      if (isNaN(spot) || isNaN(K1) || isNaN(prem1) || isNaN(iv)) return;
+
+      const T = dte / 365;
+      const r = 0.05;
+      const isCall = ['long-call', 'covered-call', 'bull-call'].includes(currentStrat);
+      const greeks = bsGreeks(spot, K1, T, r, iv, isCall);
+
+      // Hero stats
+      const { maxProfit, maxLoss, breakevens } = heroStats(currentStrat, K1, prem1, K2, prem2, contracts, spot);
+      const beStr = breakevens.map(b => '$' + fmt2(b)).join(' / ');
+      const rrRatio = maxProfit === Infinity ? '∞' :
+        (Math.abs(maxLoss) > 0 ? fmt2(Math.abs(maxProfit / maxLoss)) + ':1' : '∞');
+
+      heroEl.innerHTML = [
+        statCard('Max Profit', maxProfit === Infinity ? 'Unlimited' : '$' + fmt0(maxProfit), '#22c55e'),
+        statCard('Max Loss', '$' + fmt0(Math.abs(maxLoss)), '#f87171', maxLoss < 0 ? 'Limited to premium paid' : ''),
+        statCard('Breakeven', beStr, 'var(--color-accent)'),
+        statCard('Risk / Reward', rrRatio, 'var(--color-accent-warm)'),
+      ].join('');
+
+      // Greeks
+      greeksEl.innerHTML = [
+        greekCard('Delta', greeks.delta.toFixed(4), 'Rate of change of option price per $1 move in the underlying. Call delta is 0–1; put delta is −1–0.'),
+        greekCard('Gamma', greeks.gamma.toFixed(4), 'Rate of change of delta per $1 move. High gamma means delta changes quickly — the position gets more sensitive near expiry.'),
+        greekCard('Theta', greeks.theta.toFixed(4) + '/day', 'Time decay — how much the option loses per calendar day holding IV constant. Long options have negative theta; short options have positive theta.'),
+        greekCard('Vega', greeks.vega.toFixed(4) + '/1%IV', 'Sensitivity to implied volatility. Long options gain when IV rises; short options lose. Measured per 1% change in IV.'),
+      ].join('');
+
+      // P&L table — spot ±50%, step 5%
+      const steps: number[] = [];
+      for (let pct = -50; pct <= 50; pct += 5) {
+        steps.push(spot * (1 + pct / 100));
+      }
+      const rows: string[] = [];
+      const tableLines: string[] = ['Underlying Price,vs Current (%),P&L ($),Return on Premium (%)'];
+
+      steps.forEach(s => {
+        const pnl = calcPnL(currentStrat, s, K1, prem1, K2, prem2, contracts, spot);
+        const pctVs = ((s / spot - 1) * 100).toFixed(1);
+        const costBasis = prem1 * contracts * 100;
+        const returnOnPrem = costBasis > 0 ? ((pnl / costBasis) * 100).toFixed(1) : '—';
+        const isZero = Math.abs(pnl) < 0.01;
+        const rowCls = isZero
+          ? 'border-b border-border-subtle/30 bg-amber-400/5'
+          : pnl > 0
+            ? 'border-b border-border-subtle/30 bg-emerald-500/5'
+            : 'border-b border-border-subtle/30 bg-red-500/5';
+        const pnlColor = isZero ? '#fbbf24' : pnl > 0 ? '#22c55e' : '#f87171';
+        const pnlStr = (pnl >= 0 ? '+' : '') + '$' + fmt0(Math.abs(pnl)) * (pnl < 0 ? -1 : 1);
+        const pnlFmt = (pnl >= 0 ? '+$' : '-$') + fmt0(Math.abs(pnl));
+
+        rows.push(`
+          <tr class="${rowCls}">
+            <td class="px-4 py-2 text-text-primary">$${fmt2(s)}</td>
+            <td class="px-4 py-2 text-text-muted">${parseFloat(pctVs) >= 0 ? '+' : ''}${pctVs}%</td>
+            <td class="px-4 py-2 text-right font-semibold" style="color:${pnlColor}">${pnlFmt}</td>
+            <td class="px-4 py-2 text-right text-text-muted">${returnOnPrem !== '—' ? (parseFloat(returnOnPrem) >= 0 ? '+' : '') + returnOnPrem + '%' : '—'}</td>
+          </tr>`);
+
+        tableLines.push(`${fmt2(s)},${parseFloat(pctVs) >= 0 ? '+' : ''}${pctVs}%,${pnl.toFixed(2)},${returnOnPrem}`);
+      });
+
+      tableEl.innerHTML = rows.join('');
+      lastTableText = tableLines.join('\n');
+    };
+
+    // Tab switching
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentStrat = btn.dataset.strat!;
+        tabs.forEach(t => {
+          const active = t.dataset.strat === currentStrat;
+          t.className = `opnl-tab px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
+            active
+              ? 'bg-accent/10 border-accent/40 text-accent'
+              : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
+          }`;
+        });
+        updateSpreadVisibility();
+
+        // Adjust defaults for spread strategies
+        if (currentStrat === 'bull-call') {
+          strike2El.value = String(parseFloat(strikeEl.value) + 5);
+          prem2El.value = '1.00';
+        } else if (currentStrat === 'bear-put') {
+          strike2El.value = String(parseFloat(strikeEl.value) - 5);
+          prem2El.value = '1.00';
+        }
+        recalc();
+      });
+    });
+
+    // Wire inputs
+    [spotEl, strikeEl, premEl, contractsEl, dteEl, ivEl, strike2El, prem2El].forEach(el => {
+      el.addEventListener('input', recalc);
+      el.addEventListener('change', recalc);
+    });
+
+    updateSpreadVisibility();
+    recalc();
+
+    // AppShell events
+    document.addEventListener('app:copy', async () => {
+      if (!lastTableText) return;
+      try { await navigator.clipboard.writeText(lastTableText); } catch {}
+    });
+
+    document.addEventListener('app:reset', () => {
+      currentStrat = 'long-call';
+      tabs.forEach(t => {
+        const active = t.dataset.strat === 'long-call';
+        t.className = `opnl-tab px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
+          active
+            ? 'bg-accent/10 border-accent/40 text-accent'
+            : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
+        }`;
+      });
+      spotEl.value = '500';
+      strikeEl.value = '505';
+      premEl.value = '2.50';
+      contractsEl.value = '1';
+      dteEl.value = '30';
+      ivEl.value = '30';
+      strike2El.value = '510';
+      prem2El.value = '1.00';
+      updateSpreadVisibility();
+      recalc();
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastTableText) return;
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(new Blob([lastTableText], { type: 'text/csv' })),
+        download: `options-pnl-${new Date().toISOString().split('T')[0]}.csv`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+  };
+
+  // Fix spread field visibility — set classes on actual elements
+  const initSpreadFields = () => {
+    const app = document.getElementById('opnl-app');
+    if (!app) return;
+    // Wrap strike2 and prem2 divs with the class
+    const strike2Parent = app.querySelector('#opnl-strike2')?.closest('.space-y-1\\.5') as HTMLElement | null;
+    const prem2Parent = app.querySelector('#opnl-premium2')?.closest('.space-y-1\\.5') as HTMLElement | null;
+    if (strike2Parent) strike2Parent.classList.add('opnl-spread-field');
+    if (prem2Parent) prem2Parent.classList.add('opnl-spread-field');
+  };
+
+  initSpreadFields();
+  initOpnl();
+  document.addEventListener('astro:after-swap', () => { initSpreadFields(); initOpnl(); });
+</script>

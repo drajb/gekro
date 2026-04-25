@@ -32,14 +32,14 @@
     </div>
 
     <div class="space-y-1.5">
-      <label for="tt-efficiency" class="text-sm font-medium text-text-secondary">Efficiency override (kWh/100mi)</label>
+      <label for="tt-efficiency" class="text-sm font-medium text-text-secondary">Efficiency override (kWh/100mi)<span title="Energy consumed per 100 miles. Auto-filled from the selected model's EPA rating. Adjust upward for highway speeds, cold temps, or heavy HVAC use. Typical real-world values run 10–30% above EPA." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="tt-efficiency" type="number" min="1" step="0.5" value="27"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <p class="text-xs text-text-muted">Auto-filled from model. Adjust for weather, speed, load.</p>
     </div>
 
     <div class="space-y-1.5">
-      <label class="text-sm font-medium text-text-secondary">Conditions adjustment</label>
+      <label class="text-sm font-medium text-text-secondary">Conditions adjustment<span title="Multiplier applied to the EPA efficiency rating. Ideal = EPA conditions (mild weather, mixed speeds). Mixed = typical real-world blend. Cold/Highway = sustained high speed or sub-freezing temps, which can cut range 20–40%." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <div class="flex gap-2">
         {[
           { id: 'cond-ideal', val: '1.0', label: 'Ideal' },
@@ -56,13 +56,13 @@
     </div>
 
     <div class="space-y-1.5">
-      <label for="tt-home-rate" class="text-sm font-medium text-text-secondary">Home electricity (¢/kWh)</label>
+      <label for="tt-home-rate" class="text-sm font-medium text-text-secondary">Home electricity (¢/kWh)<span title="Your utility rate in cents per kilowatt-hour. US average is ~16–18 ¢/kWh but varies widely — check your electricity bill. Used to calculate the cost of charging at home vs. a Supercharger." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="tt-home-rate" type="number" min="0" step="0.5" value="17.45"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
     </div>
 
     <div class="space-y-1.5">
-      <label for="tt-sc-rate" class="text-sm font-medium text-text-secondary">Supercharger rate ($/kWh)</label>
+      <label for="tt-sc-rate" class="text-sm font-medium text-text-secondary">Supercharger rate ($/kWh)<span title="Tesla Supercharger pricing in dollars per kWh (some locations bill per minute instead). Rates vary by region — check the Tesla app or plugshare.com for your route's stations. US average is roughly $0.25–0.35/kWh." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="tt-sc-rate" type="number" min="0" step="0.01" value="0.28"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <p class="text-xs text-text-muted">Varies by location. Check the Tesla app for your area.</p>

@@ -74,8 +74,8 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
           <tr class="border-b border-border-subtle bg-bg-elevated">
             <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Model</th>
             <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Input cost</th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Context used</th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Rate / 1M tok</th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Context used<span title="Percentage of the model's maximum context window consumed by this prompt — red means &gt;80% full, which can cause truncation or degraded reasoning" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Rate / 1M tok<span title="The price you pay per one million input tokens — multiply by your estimated token count and request volume to forecast monthly API spend" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle" id="ptc-tbody">

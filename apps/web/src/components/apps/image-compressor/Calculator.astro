@@ -40,7 +40,7 @@
       <!-- Quality -->
       <div class="space-y-1">
         <div class="flex justify-between">
-          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quality</label>
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quality<span title="JPEG/WebP lossy compression level — 85 is a good default for web; below 60 shows visible artifacts. PNG is lossless, so this setting has no effect on PNG output." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <span id="ic-quality-val" class="text-[10px] font-mono text-text-muted">80%</span>
         </div>
         <input type="range" id="ic-quality" min="10" max="100" value="80"
@@ -49,7 +49,7 @@
 
       <!-- Max width -->
       <div class="space-y-1">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Max width (px)</label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Max width (px)<span title="Resize before compressing — prevents sending 4K originals to the web. Aspect ratio is preserved automatically." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <select id="ic-maxw"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                  text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -61,7 +61,7 @@
 
       <!-- Output format -->
       <div class="space-y-1">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output format</label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output format<span title="WebP = best compression for modern browsers; JPEG = widest compatibility; PNG = lossless, best for screenshots or logos with transparency." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <select id="ic-format"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                  text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -266,6 +266,24 @@
         download: name,
       });
       a.click();
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!compressedBlob || !currentFile) return;
+      const ext = compressedBlob.type.split('/')[1] || 'jpg';
+      const name = currentFile.name.replace(/\.[^.]+$/, '') + '-compressed.' + ext;
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(compressedBlob),
+        download: name,
+      });
+      a.click();
+    });
+
+    document.addEventListener('app:copy', async () => {
+      if (!compressedBlob || !currentFile) return;
+      const saved = Math.max(0, 100 - (compressedBlob.size / currentFile.size) * 100);
+      const summary = `Image compression summary\nOriginal:   ${fmt(currentFile.size)}\nCompressed: ${fmt(compressedBlob.size)}\nReduction:  ${saved.toFixed(1)}% smaller`;
+      try { await navigator.clipboard.writeText(summary); } catch {}
     });
 
     document.addEventListener('app:reset', () => {

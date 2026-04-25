@@ -12,11 +12,33 @@ icon: "⚡"
 license: "MIT"
 ---
 
-## How this works
+## What It Does
 
-Enter your trip distance and Tesla model. The calculator uses EPA-rated efficiency figures to compute energy consumption, then applies your electricity and Supercharger rates to show the cost and time breakdown for each charging option.
+This calculator takes a trip distance and Tesla model and tells you exactly what the charging math looks like: energy consumed, home charging cost (L1 and L2), Supercharger cost, and estimated charge time for each method. It uses EPA-rated efficiency figures rather than Tesla's optimistic in-car estimates, so the numbers are grounded in real-world lab measurements.
 
-## Tesla efficiency data (EPA-rated)
+It's for Tesla owners planning trips longer than a single-charge range — deciding when and where to charge en route — or for EV-curious buyers who want to understand the actual operating cost of a specific model on specific trips.
+
+## How to Use It
+
+1. Enter your **trip distance** in miles.
+2. Select your **Tesla model** from the dropdown — all current variants (Model 3, Y, S, X, Cybertruck) are listed with their EPA efficiency figures.
+3. Enter your **home electricity rate** in $/kWh. US average is ~$0.17/kWh; enter your utility rate for accuracy.
+4. Enter the **Supercharger rate** for your region. Rates vary by location and market; check the Tesla app for your local rate.
+5. Read the output: energy required, home L1 cost, home L2 cost, Supercharger cost, and charge time for each method.
+
+The Supercharger charge time shown assumes charging from 10% to 80% (the fast range). The final 20% charges significantly slower due to battery protection.
+
+## The Math / How It Works
+
+**Energy consumed** = `(trip_distance / 100) × efficiency_kWh_per_100mi`
+
+**Charging cost** = `energy_consumed × rate_per_kWh`
+
+**Charge time** = `energy_consumed / charger_power_kW`
+
+For Supercharger V3: peak power is 250 kW, but the car only draws that rate briefly at lower states of charge. The effective average through the 10–80% window is substantially lower than 250 kW for all models — the charge curve tapers continuously. This tool uses a simplified linear model; actual time will vary by battery temperature and ambient conditions.
+
+EPA efficiency figures used:
 
 | Model | Efficiency | EPA Range |
 |-------|-----------|-----------|
@@ -33,15 +55,28 @@ Enter your trip distance and Tesla model. The calculator uses EPA-rated efficien
 
 Source: [fueleconomy.gov](https://www.fueleconomy.gov), Tesla spec sheets. Verified 2026-04-19.
 
-## Charging speed reference
+## Why EV Owners Need This
 
-| Method | Power | Real-world rate |
-|--------|-------|----------------|
-| L1 (120V/12A) | 1.4 kW | ~5 mi/hr |
-| L2 (240V/48A) | 11.5 kW | ~37 mi/hr |
-| Supercharger V3 | 250 kW peak | ~1000 mi/hr at peak |
+Range estimates in EVs are more variable than most people expect, and the variability has structure. Understanding it makes long-distance EV travel significantly less stressful.
 
-Supercharger charge time shown is for 10% → 80% (the fast range). 80% → 100% charge rate tapers significantly due to battery protection.
+**HVAC is the biggest non-speed factor.** In winter at 0°F, cabin heating can consume 3–6 kW continuously on top of traction power — that's 10–20% of energy budget on a highway cruise. Cold batteries also reduce regenerative braking efficiency and cell capacity. Real-world winter range for a Model 3 Long Range can drop 25–40% below EPA in severe cold. The calculator uses EPA figures (temperate conditions); add a 20–35% buffer for cold weather trips.
+
+**Speed matters more than most drivers realize.** Tesla's efficiency at 75 mph vs 65 mph is roughly 15–20% worse due to aerodynamic drag scaling with the cube of velocity. The EPA test cycle averages around 55–60 mph equivalent. Highway driving at 80 mph on a windy day in a Cybertruck (44 kWh/100mi EPA) can realistically reach 55–60 kWh/100mi.
+
+**The charge-to-80% rule exists for good reason.** Supercharger peak rates apply to a battery below roughly 80% SOC (state of charge). Above 80%, the battery management system tapers charging rate aggressively to protect cell longevity. On a multi-stop trip, leaving each stop at 80% rather than 90% means leaving sooner and arriving fresher — which usually makes the overall trip faster than waiting for that last 10%.
+
+The Supercharger network has fundamentally changed long-distance EV travel in the US. Planning a trip with well-spaced Supercharger stops at 20–30 minute intervals (just enough to reach the next stop comfortably) is now a viable strategy — but it requires knowing your actual energy consumption for each leg, not relying on the in-dash range estimate which is calibrated from recent driving history.
+
+## Tips & Power Use
+
+- **Add 15–20% buffer to the energy figure for highway trips** to account for higher speeds and real-world variability. The EPA figures are measured at moderate speeds in temperate conditions.
+- **Winter trips need a larger buffer** — plan 30–40% extra energy for ambient temperatures below 20°F, especially if you're using cabin heat.
+- **Use the L2 vs Supercharger cost comparison** to decide whether a home charge the night before makes financial sense vs charging en route. For a 200-mile round trip, the home L2 option often costs 40–60% less than Supercharging.
+- **Charging speed reference:**
+  - L1 (120V/12A): ~1.4 kW, adds ~5 mi/hr — overnight top-ups only
+  - L2 (240V/48A): ~11.5 kW, adds ~37 mi/hr — practical for daily charging
+  - Supercharger V3: 250 kW peak, adds ~1,000 mi/hr at peak (rarely sustained)
+- **For multi-stop trips**, calculate each leg separately based on your actual starting state of charge for that leg, not the full trip from 100%.
 
 ## Limitations
 

@@ -377,6 +377,16 @@
     });
 
     document.addEventListener('app:reset', () => { leftEl.value = ''; rightEl.value = ''; runDiff(); });
+    document.addEventListener('app:export', () => {
+      if (!lastUnifiedText) return;
+      const blob = new Blob([lastUnifiedText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'diff-output.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
     document.addEventListener('app:copy', async () => {
       try { await navigator.clipboard.writeText(lastUnifiedText); } catch {}
     });

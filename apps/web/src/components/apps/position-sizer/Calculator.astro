@@ -24,27 +24,27 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
     <div class="space-y-1.5">
-      <label for="ps-account" class="text-sm font-medium text-text-secondary">Account size ($)</label>
+      <label for="ps-account" class="text-sm font-medium text-text-secondary">Account size ($)<span title="Your total trading capital available for this strategy. Position sizes are calculated as a percentage of this value, so it must reflect your actual risk capital — not your total net worth." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="ps-account" type="number" min="100" step="1000" value="50000"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
     </div>
 
     <div class="space-y-1.5">
-      <label for="ps-winrate" class="text-sm font-medium text-text-secondary">Win rate (%)</label>
+      <label for="ps-winrate" class="text-sm font-medium text-text-secondary">Win rate (%)<span title="The percentage of your past trades that closed at a profit for this specific setup. Pull this from your trade log — do not guess. A 55% win rate with a 2R reward means positive expectancy." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="ps-winrate" type="number" min="1" max="99" step="0.5" value="55"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <p class="text-xs text-text-muted">Your historical win rate for this specific setup.</p>
     </div>
 
     <div class="space-y-1.5">
-      <label for="ps-rr" class="text-sm font-medium text-text-secondary">Reward/Risk ratio (R)</label>
+      <label for="ps-rr" class="text-sm font-medium text-text-secondary">Reward/Risk ratio (R)<span title="Average winner divided by average loser in dollar terms. An R of 2 means you make $2 for every $1 you risk. Determines the Kelly fraction together with win rate — higher R lets you be profitable even with a sub-50% win rate." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="ps-rr" type="number" min="0.1" step="0.1" value="2.0"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <p class="text-xs text-text-muted">Average winner ÷ average loser. Use realized R from your trade log.</p>
     </div>
 
     <div class="space-y-1.5">
-      <label for="ps-fixed-pct" class="text-sm font-medium text-text-secondary">Fixed-risk % (for comparison)</label>
+      <label for="ps-fixed-pct" class="text-sm font-medium text-text-secondary">Fixed-risk % (for comparison)<span title="A practitioner rule-of-thumb: risk this fixed percentage of your account on every trade regardless of Kelly. Commonly 1–2%. Shown alongside Kelly results so you can compare volatility vs. optimal sizing." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="ps-fixed-pct" type="number" min="0.1" max="10" step="0.25" value="2"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
     </div>

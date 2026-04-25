@@ -1,0 +1,407 @@
+---
+/**
+ * Fine-tuning Dataset Formatter — Calculator.astro
+ *
+ * Converts multi-turn Q&A conversations into JSONL / JSON training data
+ * for four major fine-tuning frameworks:
+ *   - OpenAI (chat fine-tuning JSONL)
+ *   - Alpaca (single-turn JSON — warns on multi-turn)
+ *   - ShareGPT (conversations JSONL with human/gpt roles)
+ *   - Unsloth / Llama (same schema as ShareGPT, note on chat template)
+ *
+ * Zero external npm dependencies. All logic runs in the browser.
+ */
+---
+
+<div id="ff-app" class="space-y-5">
+
+  <!-- Row builder header -->
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <p class="text-sm font-medium text-text-secondary">Conversation turns</p>
+    <div class="flex items-center gap-1.5 text-[11px] font-mono text-text-muted">
+      <span id="ff-stat-rows">0 turns</span>
+      <span class="opacity-30">·</span>
+      <span id="ff-stat-tokens">~0 tokens</span>
+      <span class="opacity-30">·</span>
+      <span id="ff-stat-chars">0 chars</span>
+    </div>
+  </div>
+
+  <!-- Dynamic rows list -->
+  <div id="ff-rows" class="space-y-2"></div>
+
+  <!-- Add row buttons -->
+  <div class="flex flex-wrap gap-2">
+    <button id="ff-add-user" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all">+ User</button>
+    <button id="ff-add-assistant" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all">+ Assistant</button>
+    <button id="ff-add-system" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all">+ System</button>
+  </div>
+
+  <!-- Validation warnings -->
+  <div id="ff-warnings" class="hidden space-y-1.5"></div>
+
+  <!-- Format selector -->
+  <div class="space-y-1.5">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      Output format
+      <span title="OpenAI: for OpenAI fine-tuning API (gpt-3.5-turbo, gpt-4o-mini). Alpaca: JSON format used by Alpaca/LLaMA trainers — single-turn only. ShareGPT: multi-turn JSONL used by LLaMA-Factory, Axolotl, Open-Hermes datasets. Unsloth/Llama: same as ShareGPT schema but optimized for Unsloth trainer with Llama chat template note." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+    </label>
+    <div class="flex flex-wrap gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg w-fit">
+      <button class="ff-fmt-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="openai">OpenAI (JSONL)</button>
+      <button class="ff-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="alpaca">Alpaca (JSON)</button>
+      <button class="ff-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="sharegpt">ShareGPT (JSONL)</button>
+      <button class="ff-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="unsloth">Unsloth/Llama</button>
+    </div>
+  </div>
+
+  <!-- Format note -->
+  <p id="ff-fmt-note" class="hidden text-[11px] font-mono text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2"></p>
+
+  <!-- Output -->
+  <div class="space-y-1.5">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
+    <pre id="ff-output"
+      class="min-h-[140px] max-h-[400px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+             text-xs font-mono text-text-secondary leading-relaxed whitespace-pre-wrap break-words"><span class="text-text-muted/40 italic">Add turns above to generate output…</span></pre>
+  </div>
+
+</div>
+
+<style>
+  .ff-fmt-btn {
+    color: var(--color-text-muted);
+    background: transparent;
+  }
+  .ff-fmt-btn.active {
+    background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+    color: var(--color-accent);
+  }
+  .ff-fmt-btn:hover:not(.active) {
+    color: var(--color-text-secondary);
+    background: color-mix(in srgb, var(--color-bg-base) 50%, transparent);
+  }
+
+  .ff-role-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+
+  .ff-row { animation: ff-slide-in 0.15s ease-out; }
+  @keyframes ff-slide-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<script>
+  /**
+   * Fine-tuning Dataset Formatter — client logic.
+   * Manages conversation rows, format transforms, and AppShell events.
+   */
+
+  type Role = 'system' | 'user' | 'assistant';
+  type Format = 'openai' | 'alpaca' | 'sharegpt' | 'unsloth';
+
+  interface Turn {
+    id: number;
+    role: Role;
+    content: string;
+  }
+
+  /* ── Token estimator (cl100k_base approximation) ─────────────────*/
+  const CL100K =
+    /'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+/gu;
+
+  const estimateTokens = (s: string): number => {
+    const m = s.match(CL100K);
+    return Math.round((m?.length || 0) * 0.92);
+  };
+
+  /* ── Format transforms ───────────────────────────────────────────*/
+  const toOpenAI = (turns: Turn[]): string => {
+    const messages = turns
+      .filter(t => t.content.trim())
+      .map(t => ({ role: t.role, content: t.content }));
+    return JSON.stringify({ messages });
+  };
+
+  const toAlpaca = (turns: Turn[]): string => {
+    const system = turns.find(t => t.role === 'system' && t.content.trim());
+    const user = turns.find(t => t.role === 'user' && t.content.trim());
+    const asst = turns.find(t => t.role === 'assistant' && t.content.trim());
+    return JSON.stringify(
+      {
+        instruction: user?.content ?? '',
+        input: system?.content ?? '',
+        output: asst?.content ?? '',
+      },
+      null,
+      2,
+    );
+  };
+
+  const toShareGPT = (turns: Turn[]): string => {
+    const roleMap: Record<Role, string> = {
+      system: 'system',
+      user: 'human',
+      assistant: 'gpt',
+    };
+    const conversations = turns
+      .filter(t => t.content.trim())
+      .map(t => ({ from: roleMap[t.role], value: t.content }));
+    return JSON.stringify({ conversations });
+  };
+
+  const toUnsloth = (turns: Turn[]): string => toShareGPT(turns);
+
+  /* ── Format notes ────────────────────────────────────────────────*/
+  const FORMAT_NOTES: Record<Format, string> = {
+    openai: '',
+    alpaca:
+      'Alpaca is single-turn only. Multi-turn will be collapsed — only the first user and assistant turn are used. System content goes into the "input" field.',
+    sharegpt: '',
+    unsloth:
+      'Unsloth uses the ShareGPT schema. When training with Llama models, apply the Llama chat template (llama-3 or chatml) via FastLanguageModel.get_chat_template() — the raw JSONL does not include template tokens.',
+  };
+
+  /* ── Validation ──────────────────────────────────────────────────*/
+  const validate = (turns: Turn[], fmt: Format): string[] => {
+    const warnings: string[] = [];
+    const hasFilled = (role: Role) => turns.some(t => t.role === role && t.content.trim());
+
+    if (!hasFilled('user')) warnings.push('No user turn — training data must have at least one user message.');
+    if (!hasFilled('assistant')) warnings.push('No assistant turn — training data must have at least one assistant (target) message.');
+
+    const systemTurns = turns.filter(t => t.role === 'system' && t.content.trim());
+    if (systemTurns.length > 1) warnings.push('More than one system message — most frameworks expect a single system prompt. Additional system turns will be included as-is but may cause training errors.');
+
+    const hasEmpty = turns.some(t => !t.content.trim());
+    if (hasEmpty) warnings.push('Some turns have empty content — empty turns are excluded from the output.');
+
+    if (fmt === 'alpaca') {
+      const userTurns = turns.filter(t => t.role === 'user' && t.content.trim());
+      const asstTurns = turns.filter(t => t.role === 'assistant' && t.content.trim());
+      if (userTurns.length > 1 || asstTurns.length > 1) {
+        warnings.push('Alpaca is single-turn: only the first user and assistant turns are included.');
+      }
+    }
+
+    return warnings;
+  };
+
+  /* ── Row counter ─────────────────────────────────────────────────*/
+  let rowId = 0;
+  const nextId = () => ++rowId;
+
+  /* ── Role accent colours ─────────────────────────────────────────*/
+  const ROLE_ACCENT: Record<Role, string> = {
+    system: 'border-amber-500/30 bg-amber-500/5',
+    user: 'border-accent/30 bg-accent/5',
+    assistant: 'border-emerald-500/30 bg-emerald-500/5',
+  };
+  const ROLE_LABEL: Record<Role, string> = {
+    system: 'text-amber-400',
+    user: 'text-accent',
+    assistant: 'text-emerald-400',
+  };
+
+  /* ── Init ────────────────────────────────────────────────────────*/
+  const initFf = () => {
+    const app = document.getElementById('ff-app');
+    if (!app || (app as any)._ffInit) return;
+    (app as any)._ffInit = true;
+
+    const rowsEl     = document.getElementById('ff-rows')!;
+    const outputEl   = document.getElementById('ff-output')!;
+    const statRowsEl = document.getElementById('ff-stat-rows')!;
+    const statTokensEl = document.getElementById('ff-stat-tokens')!;
+    const statCharsEl  = document.getElementById('ff-stat-chars')!;
+    const warningsEl = document.getElementById('ff-warnings')!;
+    const fmtNoteEl  = document.getElementById('ff-fmt-note')!;
+    const fmtBtns    = app.querySelectorAll<HTMLButtonElement>('.ff-fmt-btn');
+    const addUserBtn = document.getElementById('ff-add-user')!;
+    const addAsstBtn = document.getElementById('ff-add-assistant')!;
+    const addSysBtn  = document.getElementById('ff-add-system')!;
+
+    let fmt: Format = 'openai';
+    let lastOutput = '';
+
+    /* ── Turn data store (lives in the DOM, read on render) ─────*/
+    const getTurns = (): Turn[] => {
+      return Array.from(rowsEl.querySelectorAll<HTMLElement>('.ff-row')).map(row => ({
+        id: parseInt(row.dataset.id || '0'),
+        role: (row.querySelector('.ff-role') as HTMLSelectElement).value as Role,
+        content: (row.querySelector('.ff-content') as HTMLTextAreaElement).value,
+      }));
+    };
+
+    /* ── Render output + stats ──────────────────────────────────*/
+    const render = () => {
+      const turns = getTurns();
+      const allContent = turns.map(t => t.content).join(' ');
+      const totalChars = allContent.length;
+      const totalTokens = estimateTokens(allContent);
+
+      statRowsEl.textContent = `${turns.length} turn${turns.length !== 1 ? 's' : ''}`;
+      statTokensEl.textContent = `~${totalTokens.toLocaleString()} tokens`;
+      statCharsEl.textContent = `${totalChars.toLocaleString()} chars`;
+
+      // Warnings
+      const warnMsgs = validate(turns, fmt);
+      if (warnMsgs.length > 0) {
+        warningsEl.classList.remove('hidden');
+        warningsEl.innerHTML = warnMsgs.map(w =>
+          `<p class="text-[11px] font-mono text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">⚠ ${w}</p>`,
+        ).join('');
+      } else {
+        warningsEl.classList.add('hidden');
+        warningsEl.innerHTML = '';
+      }
+
+      // Format note
+      const note = FORMAT_NOTES[fmt];
+      if (note) {
+        fmtNoteEl.textContent = note;
+        fmtNoteEl.classList.remove('hidden');
+      } else {
+        fmtNoteEl.classList.add('hidden');
+      }
+
+      // Build output
+      if (turns.length === 0) {
+        outputEl.innerHTML = '<span class="text-text-muted/40 italic">Add turns above to generate output…</span>';
+        lastOutput = '';
+        return;
+      }
+
+      let text = '';
+      try {
+        switch (fmt) {
+          case 'openai':   text = toOpenAI(turns); break;
+          case 'alpaca':   text = toAlpaca(turns); break;
+          case 'sharegpt': text = toShareGPT(turns); break;
+          case 'unsloth':  text = toUnsloth(turns); break;
+        }
+      } catch (e) {
+        text = String(e);
+      }
+      lastOutput = text;
+      outputEl.textContent = text;
+    };
+
+    /* ── Build a row DOM element ────────────────────────────────*/
+    const buildRow = (role: Role, content = ''): HTMLElement => {
+      const id = nextId();
+      const row = document.createElement('div');
+      row.className = `ff-row border rounded-xl p-3 space-y-2 transition-colors ${ROLE_ACCENT[role]}`;
+      row.dataset.id = String(id);
+
+      row.innerHTML = `
+        <div class="flex items-center gap-2 flex-wrap">
+          <label class="text-[10px] font-mono uppercase tracking-widest ${ROLE_LABEL[role]}">
+            Role
+            <span title="system: sets overall behavior, injected once at the top. user: the human's message (your training input). assistant: the model's response (what you're teaching the model to produce)." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+          </label>
+          <select class="ff-role ff-role-select bg-bg-elevated border border-border-subtle rounded-md px-2 py-1 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors cursor-pointer">
+            <option value="system"${role === 'system' ? ' selected' : ''}>system</option>
+            <option value="user"${role === 'user' ? ' selected' : ''}>user</option>
+            <option value="assistant"${role === 'assistant' ? ' selected' : ''}>assistant</option>
+          </select>
+          <button class="ff-remove ml-auto text-text-muted/40 hover:text-red-400 transition-colors text-sm leading-none select-none px-1" title="Remove this turn">×</button>
+        </div>
+        <textarea class="ff-content w-full bg-transparent text-sm font-mono text-text-primary leading-relaxed resize-none focus:outline-none placeholder-text-muted/30"
+          rows="3" placeholder="${role === 'system' ? 'System instructions…' : role === 'user' ? 'User message…' : 'Assistant response…'}"
+          spellcheck="false">${content}</textarea>
+      `;
+
+      const roleEl = row.querySelector<HTMLSelectElement>('.ff-role')!;
+      const textarea = row.querySelector<HTMLTextAreaElement>('.ff-content')!;
+      const removeBtn = row.querySelector<HTMLButtonElement>('.ff-remove')!;
+
+      // Auto-resize textarea
+      const autoResize = () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+      };
+      textarea.addEventListener('input', () => { autoResize(); render(); });
+      setTimeout(autoResize, 0);
+
+      // Role change → update accent classes
+      roleEl.addEventListener('change', () => {
+        const newRole = roleEl.value as Role;
+        // Swap border/bg classes
+        row.className = `ff-row border rounded-xl p-3 space-y-2 transition-colors ${ROLE_ACCENT[newRole]}`;
+        // Update label colour
+        const labelEl = row.querySelector('label');
+        if (labelEl) labelEl.className = `text-[10px] font-mono uppercase tracking-widest ${ROLE_LABEL[newRole]}`;
+        // Update placeholder
+        textarea.placeholder = newRole === 'system'
+          ? 'System instructions…'
+          : newRole === 'user'
+          ? 'User message…'
+          : 'Assistant response…';
+        render();
+      });
+
+      removeBtn.addEventListener('click', () => {
+        row.remove();
+        render();
+      });
+
+      return row;
+    };
+
+    /* ── Add default rows ───────────────────────────────────────*/
+    const addDefaultRows = () => {
+      rowsEl.innerHTML = '';
+      rowsEl.appendChild(buildRow('system'));
+      rowsEl.appendChild(buildRow('user'));
+      rowsEl.appendChild(buildRow('assistant'));
+      render();
+    };
+
+    /* ── Add-row buttons ────────────────────────────────────────*/
+    addUserBtn.addEventListener('click', () => { rowsEl.appendChild(buildRow('user')); render(); });
+    addAsstBtn.addEventListener('click', () => { rowsEl.appendChild(buildRow('assistant')); render(); });
+    addSysBtn.addEventListener('click', () => { rowsEl.appendChild(buildRow('system')); render(); });
+
+    /* ── Format selector ────────────────────────────────────────*/
+    fmtBtns.forEach(btn => btn.addEventListener('click', () => {
+      fmtBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      fmt = btn.dataset.fmt as Format;
+      render();
+    }));
+
+    /* ── AppShell events ────────────────────────────────────────*/
+    document.addEventListener('app:reset', () => { addDefaultRows(); });
+
+    document.addEventListener('app:copy', async () => {
+      if (!lastOutput) return;
+      try { await navigator.clipboard.writeText(lastOutput); } catch {}
+    });
+
+    document.addEventListener('app:export', () => {
+      if (!lastOutput) return;
+      const isJson = fmt === 'alpaca';
+      const ext = isJson ? 'json' : 'jsonl';
+      const mime = isJson ? 'application/json' : 'application/x-ndjson';
+      const blob = new Blob([lastOutput], { type: mime });
+      const a = Object.assign(document.createElement('a'), {
+        href: URL.createObjectURL(blob),
+        download: `finetuning-${fmt}-${Date.now()}.${ext}`,
+      });
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    });
+
+    // Seed with defaults
+    addDefaultRows();
+  };
+
+  initFf();
+  document.addEventListener('astro:after-swap', initFf);
+</script>

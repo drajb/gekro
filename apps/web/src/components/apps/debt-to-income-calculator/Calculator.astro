@@ -9,7 +9,7 @@
     <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Income</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="space-y-1.5">
-        <label for="dti-income" class="text-sm font-medium text-text-secondary">Annual gross income ($)</label>
+        <label for="dti-income" class="text-sm font-medium text-text-secondary">Annual gross income ($)<span title="Your pre-tax income before any deductions. Lenders use gross (not take-home) income to calculate DTI. Include all sources: salary, bonuses, rental income, etc." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input id="dti-income" type="number" min="0" step="1000" value="80000"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>
@@ -30,7 +30,7 @@
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>
       <div class="space-y-1.5">
-        <label for="dti-taxes" class="text-sm font-medium text-text-secondary">Property taxes ($/mo)</label>
+        <label for="dti-taxes" class="text-sm font-medium text-text-secondary">Property taxes ($/mo)<span title="Your annual property tax bill divided by 12. Counted in the front-end DTI (PITI). If escrowed, it's already baked into your mortgage payment — don't double-count it." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input id="dti-taxes" type="number" min="0" step="10" value="200"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>
@@ -40,7 +40,7 @@
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>
       <div class="space-y-1.5">
-        <label for="dti-hoa" class="text-sm font-medium text-text-secondary">HOA fees ($/mo)</label>
+        <label for="dti-hoa" class="text-sm font-medium text-text-secondary">HOA fees ($/mo)<span title="Homeowners Association fees required by your community. Counted as a housing expense in the front-end DTI ratio alongside mortgage, taxes, and insurance." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input id="dti-hoa" type="number" min="0" step="10" value="0"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>
@@ -57,7 +57,7 @@
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>
       <div class="space-y-1.5">
-        <label for="dti-student" class="text-sm font-medium text-text-secondary">Student loan payment ($/mo)</label>
+        <label for="dti-student" class="text-sm font-medium text-text-secondary">Student loan payment ($/mo)<span title="Use your required minimum monthly payment, even on income-driven repayment plans. Lenders count the minimum due — not the full balance — against your DTI." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <input id="dti-student" type="number" min="0" step="25" value="250"
           class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       </div>

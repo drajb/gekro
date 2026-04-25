@@ -57,7 +57,7 @@
         <!-- Blur -->
         <div class="space-y-1">
           <div class="flex justify-between">
-            <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Backdrop blur</label>
+            <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Backdrop blur<span title="CSS backdrop-filter: blur() — blurs whatever is behind the glass card. Higher values = more frosted look. Requires a semi-transparent card fill to be visible." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
             <span id="gg-blur-val" class="text-[10px] font-mono text-text-muted">12px</span>
           </div>
           <input type="range" id="gg-blur" min="0" max="40" value="12"
@@ -174,7 +174,7 @@
 
         <!-- Blend mode -->
         <div class="space-y-1">
-          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Blend mode</label>
+          <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Blend mode<span title="How gradient layers composite together — screen brightens, overlay adds contrast, soft-light is subtle, multiply darkens. normal = no blending." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <select id="gg-blend"
             class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5 text-xs font-mono text-text-primary focus:outline-none transition-colors">
             {['normal','screen','overlay','soft-light','hard-light','color-dodge','multiply'].map(m => (
@@ -492,6 +492,18 @@
 
       updateGlass();
       updateMesh();
+    });
+
+    document.addEventListener('app:export', () => {
+      const css = (activeTab === 'mesh' ? meshCssEl : glassCssEl).textContent || '';
+      if (!css) return;
+      const blob = new Blob([css], { type: 'text/css' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = activeTab === 'mesh' ? 'mesh-gradient.css' : 'glass-card.css';
+      a.click();
+      URL.revokeObjectURL(url);
     });
 
     document.addEventListener('app:copy', async () => {

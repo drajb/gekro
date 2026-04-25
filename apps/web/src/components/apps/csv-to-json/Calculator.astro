@@ -62,7 +62,7 @@
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Delimiter</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Delimiter<span title="The character separating columns — usually comma, but sometimes tab, pipe, or semicolon. Auto-detect works for most files." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="ctj-delim"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -77,21 +77,21 @@
     <div class="space-y-1 flex flex-col justify-end">
       <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
         <input type="checkbox" id="ctj-header" checked class="accent-[var(--color-accent)] w-4 h-4" />
-        Header row
+        Header row<span title="First row contains column names — if unchecked, keys become col0, col1, etc." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
     </div>
 
     <div class="space-y-1 flex flex-col justify-end">
       <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
         <input type="checkbox" id="ctj-types" checked class="accent-[var(--color-accent)] w-4 h-4" />
-        Dynamic types
+        Dynamic types<span title="Auto-converts numeric strings to JSON numbers instead of keeping them as strings. Uncheck if you need zip codes or phone numbers to stay quoted." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
     </div>
 
     <div class="space-y-1 flex flex-col justify-end">
       <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
         <input type="checkbox" id="ctj-skip-empty" checked class="accent-[var(--color-accent)] w-4 h-4" />
-        Skip empty rows
+        Skip empty rows<span title="Omits rows that are entirely blank or contain only whitespace — keeps the JSON array clean." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
     </div>
   </div>
@@ -318,6 +318,14 @@
 
     document.addEventListener('app:copy', async () => {
       if (outputEl.value) { try { await navigator.clipboard.writeText(outputEl.value); } catch {} }
+    });
+    document.addEventListener('app:export', () => {
+      if (!outputEl.value) return;
+      const blob = new Blob([outputEl.value], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `converted-${Date.now()}.json`; a.click();
+      URL.revokeObjectURL(url);
     });
   };
 

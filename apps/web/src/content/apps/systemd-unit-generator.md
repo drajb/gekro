@@ -13,48 +13,114 @@ license: "MIT"
 icon: "⚙️"
 ---
 
-## How this works
+## What It Does
 
-Fill in the form. Tool emits a complete `.service` unit file with:
+systemd Unit File Generator produces a complete, properly-formatted `.service` file from a form — no manual lookup of directives, no copy-paste from outdated StackOverflow answers. Security-hardening directives are baked in by default. Output includes inline comments explaining each directive. Copy, install, enable, and run.
 
-- **The unit type and command** you specified
-- **Restart policy** (default: `on-failure` with 5s delay)
-- **Environment variables** — inline `Environment=` or pointing at `EnvironmentFile=`
-- **User / Group** — runs as the specified non-root user (default: `nobody`)
-- **Working directory** if you provided one
-- **Resource limits** — optional `MemoryMax`, `CPUQuota`
-- **Security hardening** — the directives you should always set but never remember
+## How to Use It
 
-## Security hardening defaults
+1. Enter your service **name** and **description**.
+2. Set the **unit type**: simple (default), forking, oneshot, notify, or idle.
+3. Enter the **ExecStart command** — the full path to the binary and its arguments.
+4. Choose a **restart policy**: `on-failure` (default), `always`, `no`, or `on-abnormal`.
+5. Add **environment variables** — inline `KEY=VALUE` pairs or an `EnvironmentFile` path.
+6. Optionally set **User / Group**, **WorkingDirectory**, **MemoryMax**, and **CPUQuota**.
+7. Copy the generated unit file.
 
-These are baked in by default (toggle off only with reason):
+Install and enable:
+```bash
+sudo cp myservice.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable myservice
+sudo systemctl start myservice
+```
 
-| Directive | Effect |
-|---|---|
-| `NoNewPrivileges=true` | Prevents `setuid` escalation |
-| `ProtectSystem=strict` | Mounts `/usr`, `/boot`, `/etc` read-only |
-| `ProtectHome=true` | Hides `/home`, `/root`, `/run/user` |
-| `PrivateTmp=true` | Per-service `/tmp` (no shared tmp attacks) |
-| `PrivateDevices=true` | No access to `/dev` except `/dev/null`, `/dev/zero`, `/dev/random` |
-| `ProtectKernelTunables=true` | `/proc/sys`, `/sys` read-only |
-| `ProtectKernelModules=true` | Cannot load/unload kernel modules |
-| `ProtectControlGroups=true` | `/sys/fs/cgroup` read-only |
-| `RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX` | Drops AF_NETLINK, AF_PACKET, etc. unless needed |
-| `RestrictNamespaces=true` | Cannot create new namespaces |
-| `LockPersonality=true` | Cannot change exec personality |
-| `MemoryDenyWriteExecute=true` | No W^X violations |
+Check status:
+```bash
+systemctl status myservice
+journalctl -u myservice -f
+```
 
-These pair well with `systemd-analyze security <unit>` which scores your unit and tells you which hardening you're missing.
+## Why Services Need Proper Unit Files
 
-## Why I built this
+The gap between "running a process" and "running a production service" is exactly the gap between `nohup ./app &` and a proper systemd unit file.
 
-The systemd unit format is verbose, the security directives are documented in 8 different man pages, and most copy-paste examples online were written before the security hardening directives existed. The result: most services running on the average Pi are running with privileges and access they don't need.
+`nohup ./app &` puts a process in the background. It doesn't restart if the process crashes. It doesn't start at boot. It runs as root (unless you manually `sudo -u`) . The process has access to your entire filesystem, all your devices, and can load kernel modules. If the process is compromised or buggy, it has maximum blast radius.
 
-This generates the unit file the way it should be written by default. Paste, install, run.
+A systemd unit with proper security hardening:
+- **Restarts automatically** on failure, with configurable backoff
+- **Starts at boot** when enabled
+- **Runs as a non-privileged user** with the minimum necessary permissions
+- **Has a restricted filesystem view** — can't see `/home`, can't write to `/usr` or `/etc`
+- **Has a private `/tmp`** — can't read files other services left in shared tmp
+- **Cannot escalate privileges** via setuid binaries
+- **Cannot load kernel modules** or modify kernel tunables
+- **Gets its own network socket namespace** restrictions
+
+The security directives aren't optional hardening — they're the correct default for any service you didn't explicitly design to need root or broad filesystem access.
+
+## Security Hardening Defaults — What Each Directive Does
+
+These are baked in by default and togglable with reason:
+
+| Directive | Effect | Attack surface closed |
+|---|---|---|
+| `NoNewPrivileges=true` | Prevents `setuid` binary execution | Privilege escalation via compromised binary |
+| `ProtectSystem=strict` | Mounts `/usr`, `/boot`, `/etc` read-only | Persistent filesystem modification |
+| `ProtectHome=true` | Hides `/home`, `/root`, `/run/user` | Credential theft from user home directories |
+| `PrivateTmp=true` | Per-service `/tmp` — not shared | Tmp file snooping and symlink attacks across services |
+| `PrivateDevices=true` | No `/dev` except null, zero, random | Raw device access, disk reads from other partitions |
+| `ProtectKernelTunables=true` | `/proc/sys`, `/sys` read-only | Kernel parameter manipulation |
+| `ProtectKernelModules=true` | Cannot load/unload kernel modules | Rootkit-via-module insertion |
+| `ProtectControlGroups=true` | `/sys/fs/cgroup` read-only | Container escape via cgroup manipulation |
+| `RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX` | Blocks AF_NETLINK, AF_PACKET, etc. | Raw network packet capture, low-level netlink operations |
+| `RestrictNamespaces=true` | Cannot create new namespaces | Container escape vectors |
+| `LockPersonality=true` | Cannot change exec personality | ABI compatibility attack vectors |
+| `MemoryDenyWriteExecute=true` | No writable+executable memory | JIT-based shellcode injection |
+
+The generator includes all of these with comments explaining each one. You can toggle off any directive that your specific service legitimately requires — for example, `PrivateDevices` needs to be off for services that access hardware devices directly.
+
+## How to Read `systemd-analyze security` Output
+
+After installing a unit, `systemd-analyze security myservice.service` gives it a security score and a table of each directive's status. The score ranges from 0 (fully exposed) to 10 (fully hardened). The table shows which directives are applied and which are missing.
+
+A typical unprotected service scores 4–5. A service generated by this tool with all hardening directives scores 8–9. Scores above 9 require additional hardening that most services don't need (system call filtering via `SystemCallFilter`, capability dropping beyond `NoNewPrivileges`, `MemoryAccounting`).
+
+The output looks like:
+```
+→ Overall exposure level for myservice.service: 2.4 SAFE
+  ✓ PrivateTmp=         Service has private tmp namespace
+  ✓ NoNewPrivileges=    Service cannot gain new privileges
+  ✗ SystemCallFilter=   System call allow list not defined
+```
+
+Use `systemd-analyze security` after every new unit file to confirm the hardening is taking effect.
+
+## The Pi Cluster Use Case for Long-Lived ML Inference Services
+
+Running an LLM inference server (llama.cpp, Ollama, vLLM lite) on a Raspberry Pi 5 or similar edge hardware as a persistent service is a real use case. The requirements are specific:
+
+- **Restart on OOM.** Inference servers can exhaust memory under heavy requests. `Restart=on-failure` with `RestartSec=10s` handles this automatically.
+- **MemoryMax.** Set a memory ceiling lower than total RAM to prevent the inference server from killing the OS. `MemoryMax=3G` on a 4GB Pi prevents total system lockup.
+- **CPUQuota.** If you're running other services alongside inference, `CPUQuota=80%` leaves headroom for system tasks and SSH.
+- **Working directory.** Inference servers often look for model files relative to their working directory. `WorkingDirectory=/opt/models` makes this explicit.
+- **EnvironmentFile.** API keys, model paths, and inference parameters belong in an environment file (`/etc/myservice/env`) with restricted permissions (`chmod 600`), not hardcoded in the unit file.
+- **Non-root user.** Create a dedicated system user (`adduser --system --no-create-home mlserve`) and run the inference server as that user. It doesn't need root for any inference task.
+
+The generated unit file for an inference service pairs naturally with the [Docker Compose Visualizer](/apps/docker-compose-visualizer/) approach — use Docker if you need container isolation; use systemd if you want native performance and simpler resource accounting on constrained hardware.
+
+## Tips & Power Use
+
+- **Check `journalctl -u myservice -f`** immediately after starting the service. The first 30 seconds often reveal permission issues that the security directives caused — a service trying to write to a path that's now read-only, for example. Fix these by removing only the specific directives your service needs.
+- **Use `EnvironmentFile=` for secrets.** Inline `Environment=API_KEY=secret` in the unit file is readable by `systemctl show`. Use `EnvironmentFile=/etc/myservice/env` with the file permissions set to 600 and owned by the service user.
+- **Set `After=network.target`** for any service that makes network connections on startup. Without this, the service may start before the network interface is configured, fail to connect, and exit.
+- **`oneshot` with `RemainAfterExit=yes`** is the right pattern for initialization scripts — tasks that run once at boot and don't keep a process running. The service appears as "active" even after the script exits.
+- **Resource limits are soft floors, not hard safety nets.** `MemoryMax=3G` triggers OOM kill when the service exceeds 3 GB. It doesn't prevent the service from accumulating memory up to that point. Watch `systemctl status` and `journalctl` for OOM kill events.
 
 ## Limitations
 
-- **No socket-activated unit support** — generates `.service` only, not `.socket` companions
-- **No user services** — emits system services (`/etc/systemd/system/`); user services (`~/.config/systemd/user/`) work the same but the install path differs
-- **No timer companion** — for cron-replacement use cases, the matching `.timer` unit is left as an exercise
-- **No drop-in overrides** — generates the full unit file, not partial drop-ins
+- **No socket-activated unit support** — generates `.service` only, not `.socket` companions for socket activation
+- **No user services** — emits system services (`/etc/systemd/system/`); user services (`~/.config/systemd/user/`) have the same format but different install paths and no network access by default
+- **No timer companion** — for cron-replacement use cases, the matching `.timer` unit is left as an exercise; `systemd-cron` handles the translation
+- **No drop-in overrides** — generates the full unit file; drop-ins (`.d/` directories) let you extend a unit without modifying the original, which is useful for distribution-managed services
+- **Security directives may conflict with specific services** — `MemoryDenyWriteExecute` breaks JIT compilers (Node.js V8, JVM JIT). Toggle off for services that use JIT compilation.
