@@ -384,7 +384,6 @@
             ? 'border-b border-border-subtle/30 bg-emerald-500/5'
             : 'border-b border-border-subtle/30 bg-red-500/5';
         const pnlColor = isZero ? '#fbbf24' : pnl > 0 ? '#22c55e' : '#f87171';
-        const pnlStr = (pnl >= 0 ? '+' : '') + '$' + fmt0(Math.abs(pnl)) * (pnl < 0 ? -1 : 1);
         const pnlFmt = (pnl >= 0 ? '+$' : '-$') + fmt0(Math.abs(pnl));
 
         rows.push(`
