@@ -156,7 +156,7 @@
             <input type="number" step="any" id="qrg-lng" class="qrg-input w-full" placeholder="-74.0060" />
           </div>
         </div>
-        <button id="qrg-use-location" class="text-xs font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg px-3 py-1.5 hover:bg-accent/10 transition-all w-fit">
+        <button id="qrg-use-location" class="app-btn-secondary text-xs rounded-lg px-3 py-1.5 w-fit">
           Use my current location
         </button>
         <p class="text-[10px] font-mono text-text-muted">Opens in Maps on mobile. On iOS use a Maps URL instead for native support.</p>
@@ -242,7 +242,7 @@
 
       <!-- Generate button -->
       <button id="qrg-generate-btn"
-        class="w-full py-3 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono font-semibold hover:bg-accent/30 active:scale-95 transition-all">
+        class="app-btn-primary w-full py-3 rounded-xl">
         Generate QR Code
       </button>
     </div>
@@ -264,10 +264,10 @@
 
       <!-- Download buttons -->
       <div id="qrg-download-row" class="hidden flex gap-3">
-        <button id="qrg-dl-png" class="px-5 py-2 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono text-sm font-semibold hover:bg-accent/30 active:scale-95 transition-all">
+        <button id="qrg-dl-png" class="app-btn-primary px-5 py-2 rounded-xl text-sm">
           Download PNG
         </button>
-        <button id="qrg-dl-svg" class="px-5 py-2 bg-bg-elevated border border-border-subtle rounded-xl text-text-secondary font-mono text-sm hover:border-accent/40 transition-all">
+        <button id="qrg-dl-svg" class="app-btn-secondary px-5 py-2 rounded-xl text-sm">
           Download SVG
         </button>
       </div>

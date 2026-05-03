@@ -124,6 +124,128 @@ body {
 #pagefind-search    { --pagefind-ui-scale: 0.85; }
 #search-modal-pagefind { --pagefind-ui-scale: 0.9;  }
 
+/* ── App tool button system ────────────────────────────────────────────────
+   Three tiers used across all 50+ browser tools. Pure CSS vars throughout
+   so both dark and .theme-light modes work with no extra overrides.
+
+   Tier 1 · app-btn-primary  — THE one action per app (Flip, Generate…)
+   Tier 2 · app-btn-secondary — supporting actions, multi-run, presets
+   Tier 3 · app-btn-tab      — segmented-control pills inside a container
+
+   Sizing (px/py/rounded/text-size) stays on the element as Tailwind utils.
+   These classes own: background, color, border, shadow, transition, states.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Tier 1 — Primary CTA -------------------------------------------------- */
+.app-btn-primary {
+  background: linear-gradient(145deg, #68c8ff 0%, var(--color-accent) 52%, #1a9bef 100%);
+  color: #07070a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(63, 177, 255, 0.18),
+    0 0 28px rgba(63, 177, 255, 0.38),
+    0 4px 18px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    box-shadow 150ms ease,
+    transform 120ms ease,
+    filter 150ms ease;
+}
+.app-btn-primary:hover {
+  filter: brightness(1.1) saturate(1.08);
+  box-shadow:
+    0 0 0 1px rgba(63, 177, 255, 0.28),
+    0 0 48px rgba(63, 177, 255, 0.56),
+    0 6px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px) scale(1.018);
+}
+.app-btn-primary:active {
+  transform: scale(0.952);
+  filter: brightness(0.92);
+  box-shadow:
+    0 0 0 1px rgba(63, 177, 255, 0.12),
+    0 0 14px rgba(63, 177, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.theme-light .app-btn-primary {
+  border-color: rgba(63, 177, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(63, 177, 255, 0.22),
+    0 0 22px rgba(63, 177, 255, 0.22),
+    0 4px 14px rgba(63, 177, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.theme-light .app-btn-primary:hover {
+  box-shadow:
+    0 0 0 1px rgba(63, 177, 255, 0.38),
+    0 0 36px rgba(63, 177, 255, 0.32),
+    0 6px 18px rgba(63, 177, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Tier 2 — Secondary action --------------------------------------------- */
+.app-btn-secondary {
+  background-color: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 80ms ease;
+}
+.app-btn-secondary:hover {
+  color: var(--color-accent);
+  border-color: rgba(63, 177, 255, 0.45);
+  background-color: rgba(63, 177, 255, 0.06);
+  box-shadow: 0 0 14px rgba(63, 177, 255, 0.12);
+}
+.app-btn-secondary:active {
+  transform: scale(0.97);
+  background-color: rgba(63, 177, 255, 0.1);
+}
+.app-btn-secondary.active {
+  color: var(--color-accent);
+  border-color: rgba(63, 177, 255, 0.42);
+  background-color: rgba(63, 177, 255, 0.1);
+  box-shadow: 0 0 10px rgba(63, 177, 255, 0.15);
+}
+
+/* Tier 3 — Tab / segmented-control pill ---------------------------------- */
+/* Per-app scoped .active CSS wins on specificity; this class handles rest. */
+.app-btn-tab {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+  white-space: nowrap;
+}
+.app-btn-tab:hover:not(.active) {
+  color: var(--color-text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.app-btn-tab.active {
+  background-color: rgba(63, 177, 255, 0.14);
+  color: var(--color-accent);
+}
+.theme-light .app-btn-tab:hover:not(.active) {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+.theme-light .app-btn-tab.active {
+  background-color: rgba(63, 177, 255, 0.11);
+}
+
 /* ── Prose spacing overrides — supplements @tailwindcss/typography defaults ── */
 .prose {
   @apply text-text-secondary leading-relaxed;

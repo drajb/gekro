@@ -8,7 +8,7 @@
   <div class="space-y-3">
     <div class="flex items-center justify-between">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Return Series</p>
-      <button id="dd-load-example" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors border border-border-subtle rounded px-2 py-1 hover:border-accent/30">
+      <button id="dd-load-example" class="app-btn-secondary text-[10px] px-2 py-1 rounded">
         Load example (50 returns)
       </button>
     </div>
@@ -33,11 +33,7 @@
         {['Daily', 'Weekly', 'Monthly'].map((p, i) => (
           <button
             data-period={p.toLowerCase()}
-            class={`dd-period-btn px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
-              i === 0
-                ? 'bg-accent/10 border-accent/40 text-accent'
-                : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
-            }`}
+            class={`dd-period-btn app-btn-tab px-3 py-1.5 rounded-lg text-xs ${i === 0 ? 'active' : ''}`}
           >
             {p}
           </button>
@@ -398,12 +394,8 @@
       btn.addEventListener('click', () => {
         currentPeriod = btn.dataset.period!;
         periodBtns.forEach(b => {
-          const active = b.dataset.period === currentPeriod;
-          b.className = `dd-period-btn px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
-            active
-              ? 'bg-accent/10 border-accent/40 text-accent'
-              : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
-          }`;
+          b.className = 'dd-period-btn app-btn-tab px-3 py-1.5 rounded-lg text-xs';
+          b.classList.toggle('active', b.dataset.period === currentPeriod);
         });
         recalc();
       });
@@ -443,11 +435,8 @@
       rfrEl.value = '5.0';
       currentPeriod = 'daily';
       periodBtns.forEach((b, i) => {
-        b.className = `dd-period-btn px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
-          i === 0
-            ? 'bg-accent/10 border-accent/40 text-accent'
-            : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
-        }`;
+        b.className = 'dd-period-btn app-btn-tab px-3 py-1.5 rounded-lg text-xs';
+        b.classList.toggle('active', i === 0);
       });
       heroEl.innerHTML = '';
       distEl.classList.add('hidden');

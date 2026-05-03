@@ -22,14 +22,14 @@
 
     <!-- Diff mode -->
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg shrink-0">
-      <button class="td-mode-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-mode="lines">Line diff</button>
-      <button class="td-mode-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-mode="chars">Char diff</button>
+      <button class="td-mode-btn app-btn-tab active px-3 py-1.5 rounded-md text-xs" data-mode="lines">Line diff</button>
+      <button class="td-mode-btn app-btn-tab px-3 py-1.5 rounded-md text-xs" data-mode="chars">Char diff</button>
     </div>
 
     <!-- View layout -->
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg shrink-0">
-      <button class="td-view-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-view="unified">Unified</button>
-      <button class="td-view-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-view="split">Split</button>
+      <button class="td-view-btn app-btn-tab active px-3 py-1.5 rounded-md text-xs" data-view="unified">Unified</button>
+      <button class="td-view-btn app-btn-tab px-3 py-1.5 rounded-md text-xs" data-view="split">Split</button>
     </div>
 
     <!-- Ignore whitespace toggle -->
@@ -47,17 +47,17 @@
 
     <!-- Actions -->
     <div class="flex gap-2 ml-auto">
-      <button id="td-clear-btn" class="px-3 py-1.5 text-xs font-mono text-text-muted border border-border-subtle rounded-lg hover:text-text-secondary hover:border-accent/30 transition-all">Clear</button>
-      <button id="td-copy-btn" class="px-3 py-1.5 text-xs font-mono text-accent border border-accent/30 bg-accent/5 rounded-lg hover:bg-accent/10 transition-all">Copy diff</button>
+      <button id="td-clear-btn" class="app-btn-secondary px-3 py-1.5 text-xs rounded-lg">Clear</button>
+      <button id="td-copy-btn" class="app-btn-secondary px-3 py-1.5 text-xs rounded-lg">Copy diff</button>
     </div>
   </div>
 
   <!-- Preset examples -->
   <div class="flex flex-wrap gap-1.5">
     <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest self-center mr-1">Presets:</span>
-    <button class="td-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="code">Code edit</button>
-    <button class="td-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="json">JSON schema</button>
-    <button class="td-preset text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary hover:border-accent/30 transition-all" data-preset="prose">Prose edit</button>
+    <button class="td-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="code">Code edit</button>
+    <button class="td-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="json">JSON schema</button>
+    <button class="td-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="prose">Prose edit</button>
   </div>
 
   <!-- Input row -->

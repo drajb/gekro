@@ -16,7 +16,7 @@
       <label class="text-sm font-medium text-text-secondary">Base currency</label>
       <div class="flex gap-1.5 flex-wrap">
         {(['USD','INR','EUR','GBP'] as const).map(c => (
-          <button class="fx-base-btn flex-1 py-2 text-xs font-mono border rounded-lg transition-all" data-base={c}>{c}</button>
+          <button class="fx-base-btn app-btn-tab flex-1 py-2 text-xs rounded-lg" data-base={c}>{c}</button>
         ))}
       </div>
     </div>
@@ -110,9 +110,8 @@
       base = code;
       baseBtns.forEach(b => {
         const active = b.dataset.base === code;
-        b.className = `fx-base-btn flex-1 py-2 text-xs font-mono border rounded-lg transition-all ${
-          active ? 'bg-accent/15 border-accent/40 text-accent' : 'bg-bg-elevated border-border-subtle text-text-muted hover:text-accent hover:border-accent/30'
-        }`;
+        b.className = 'fx-base-btn app-btn-tab flex-1 py-2 text-xs rounded-lg';
+        b.classList.toggle('active', active);
       });
       render();
     };

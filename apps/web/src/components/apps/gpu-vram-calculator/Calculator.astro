@@ -25,11 +25,11 @@
   <!-- Mode tabs -->
   <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
     <button id="vr-tab-inf" data-mode="inference"
-      class="vr-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all bg-accent/15 text-accent">
+      class="vr-tab app-btn-primary px-4 py-1.5 rounded-lg text-xs">
       Inference
     </button>
     <button id="vr-tab-lora" data-mode="lora"
-      class="vr-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all text-text-muted hover:text-text-primary">
+      class="vr-tab app-btn-tab px-4 py-1.5 rounded-lg text-xs">
       LoRA Fine-tune
     </button>
   </div>
@@ -348,9 +348,8 @@
       mode = m;
       [tabInf, tabLora].forEach(t => {
         const isActive = (t.dataset.mode || '') === m;
-        t.className = `vr-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${
-          isActive ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'
-        }`;
+        t.className = 'vr-tab app-btn-tab px-4 py-1.5 rounded-lg text-xs';
+        t.classList.toggle('active', isActive);
       });
       loraControls.classList.toggle('hidden', m !== 'lora');
       render();

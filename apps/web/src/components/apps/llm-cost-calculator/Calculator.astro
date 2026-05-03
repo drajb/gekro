@@ -85,7 +85,7 @@ const DEFAULT_HW_PRICE = LOCAL_HARDWARE.find(h => h.id === DEFAULT_HARDWARE)?.ms
             { label: 'Production',    input: 5000000, output: 1000000 },
           ].map(p => (
             <button
-              class="preset-btn text-xs px-3 py-1.5 rounded-full border border-border text-text-muted hover:border-accent hover:text-accent transition-all"
+              class="preset-btn app-btn-secondary text-xs px-3 py-1.5 rounded-full"
               data-preset-input={p.input}
               data-preset-output={p.output}
             >

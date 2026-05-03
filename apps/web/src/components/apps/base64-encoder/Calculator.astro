@@ -17,10 +17,10 @@
 
   <!-- Mode tabs -->
   <div class="flex flex-wrap gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
-    <button class="b64-mode-tab active px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="base64">Base64</button>
-    <button class="b64-mode-tab px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="url">URL</button>
-    <button class="b64-mode-tab px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="html">HTML Entities</button>
-    <button class="b64-mode-tab px-4 py-2 rounded-lg text-sm font-mono transition-all" data-mode="hex">Hex</button>
+    <button class="b64-mode-tab app-btn-tab active px-4 py-2 rounded-lg text-sm" data-mode="base64">Base64</button>
+    <button class="b64-mode-tab app-btn-tab px-4 py-2 rounded-lg text-sm" data-mode="url">URL</button>
+    <button class="b64-mode-tab app-btn-tab px-4 py-2 rounded-lg text-sm" data-mode="html">HTML Entities</button>
+    <button class="b64-mode-tab app-btn-tab px-4 py-2 rounded-lg text-sm" data-mode="hex">Hex</button>
   </div>
 
   <!-- ── Mode-specific options ─────────────────────────────────── -->
@@ -33,9 +33,9 @@
         <span title="URL-safe Base64 replaces + with - and / with _ so the output can be used directly in URLs and filenames without percent-encoding. Used in JWTs, OAuth tokens, and URL parameters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
-        <button class="b64-variant-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="standard">Standard</button>
-        <button class="b64-variant-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="url-safe">URL-safe</button>
-        <button class="b64-variant-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="no-padding">No padding</button>
+        <button class="b64-variant-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-variant="standard">Standard</button>
+        <button class="b64-variant-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-variant="url-safe">URL-safe</button>
+        <button class="b64-variant-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-variant="no-padding">No padding</button>
       </div>
     </div>
     <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -51,8 +51,8 @@
       <span title="encodeURIComponent encodes everything except A-Z a-z 0-9 - _ . ! ~ * ' ( ) — ideal for query string values. encodeURI preserves / ? = & # : @ and is meant for full URLs where you want to encode only unsafe characters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
-      <button class="b64-url-variant-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="component">encodeURIComponent</button>
-      <button class="b64-url-variant-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-variant="uri">encodeURI</button>
+      <button class="b64-url-variant-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-variant="component">encodeURIComponent</button>
+      <button class="b64-url-variant-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-variant="uri">encodeURI</button>
     </div>
   </div>
 
@@ -63,9 +63,9 @@
       <span title="Space: '48 65 6c 6c 6f' — easiest to read. 0x prefix: '0x48 0x65 0x6c' — common in code snippets. None: '48656c6c6f' — compact, copy-paste into tools that expect a raw hex string." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
-      <button class="b64-hex-sep-btn active px-3 py-1 rounded-md text-xs font-mono transition-all" data-sep="space">Space</button>
-      <button class="b64-hex-sep-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-sep="0x">0x prefix</button>
-      <button class="b64-hex-sep-btn px-3 py-1 rounded-md text-xs font-mono transition-all" data-sep="none">None</button>
+      <button class="b64-hex-sep-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-sep="space">Space</button>
+      <button class="b64-hex-sep-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-sep="0x">0x prefix</button>
+      <button class="b64-hex-sep-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-sep="none">None</button>
     </div>
   </div>
 
@@ -112,15 +112,15 @@
     <!-- Direction controls -->
     <div class="flex md:flex-col items-center justify-center gap-2 py-2 md:py-8">
       <button id="b64-encode-btn"
-        class="b64-dir-btn active flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle bg-bg-elevated text-xs font-mono text-text-muted hover:border-accent/30 hover:text-accent transition-all whitespace-nowrap">
+        class="b64-dir-btn app-btn-secondary active flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs whitespace-nowrap">
         Encode →
       </button>
       <button id="b64-decode-btn"
-        class="b64-dir-btn flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle bg-bg-elevated text-xs font-mono text-text-muted hover:border-accent/30 hover:text-accent transition-all whitespace-nowrap">
+        class="b64-dir-btn app-btn-secondary flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs whitespace-nowrap">
         ← Decode
       </button>
       <button id="b64-auto-detect-btn"
-        class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border-subtle bg-bg-elevated text-[10px] font-mono text-text-muted hover:border-accent/30 hover:text-accent transition-all whitespace-nowrap">
+        class="app-btn-secondary flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] whitespace-nowrap">
         ⚡ Auto
       </button>
     </div>

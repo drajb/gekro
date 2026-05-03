@@ -6,8 +6,8 @@
 
   <!-- Mode tabs -->
   <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl">
-    <button class="cron-mode-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all active" data-tab="builder">Expression Builder</button>
-    <button class="cron-mode-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-tab="nlp">Plain English → Cron</button>
+    <button class="cron-mode-tab app-btn-tab flex-1 py-2 text-xs rounded-lg active" data-tab="builder">Expression Builder</button>
+    <button class="cron-mode-tab app-btn-tab flex-1 py-2 text-xs rounded-lg" data-tab="nlp">Plain English → Cron</button>
   </div>
 
   <!-- ─── BUILDER TAB ─── -->
@@ -71,8 +71,7 @@
         { label: 'Yearly Jan 1', expr: '0 0 1 1 *' },
       ].map(p => (
         <button data-cron={p.expr}
-          class="cron-preset px-2.5 py-1 text-[10px] font-mono border border-border rounded-full
-                 text-text-muted hover:border-accent/40 hover:text-accent transition-all"
+          class="cron-preset app-btn-tab px-2.5 py-1 text-[10px] rounded-full"
         >{p.label}</button>
       ))}
     </div>
@@ -113,8 +112,7 @@
         'every sunday at midnight',
         '1st of every month at 6pm',
       ].map(ex => (
-        <button class="cron-nl-ex px-2.5 py-1 text-[10px] font-mono border border-border rounded-full
-                       text-text-muted hover:border-accent/40 hover:text-accent transition-all"
+        <button class="cron-nl-ex app-btn-tab px-2.5 py-1 text-[10px] rounded-full"
                 data-ex={ex}>{ex}</button>
       ))}
     </div>
@@ -124,7 +122,7 @@
       <p id="cron-nl-result" class="text-2xl font-mono text-accent tracking-widest">—</p>
       <p id="cron-nl-desc" class="text-sm text-text-secondary">—</p>
       <p id="cron-nl-error" class="text-sm text-red-400 hidden"></p>
-      <button id="cron-nl-use" class="hidden px-4 py-2 bg-accent/15 border border-accent/30 rounded-lg text-xs font-mono text-accent hover:bg-accent/25 transition-all">
+      <button id="cron-nl-use" class="app-btn-primary hidden px-4 py-2 rounded-lg text-xs">
         Open in Builder →
       </button>
     </div>

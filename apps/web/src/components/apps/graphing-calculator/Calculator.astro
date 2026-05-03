@@ -6,10 +6,10 @@
 
   <!-- Mode tabs -->
   <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl">
-    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="basic">Basic</button>
-    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="sci">Scientific</button>
-    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="graph2d">2D Graph</button>
-    <button class="gc-tab flex-1 py-2 text-xs font-mono rounded-lg transition-all" data-mode="graph3d">3D Surface</button>
+    <button class="gc-tab app-btn-tab flex-1 py-2 text-xs rounded-lg" data-mode="basic">Basic</button>
+    <button class="gc-tab app-btn-tab flex-1 py-2 text-xs rounded-lg" data-mode="sci">Scientific</button>
+    <button class="gc-tab app-btn-tab flex-1 py-2 text-xs rounded-lg" data-mode="graph2d">2D Graph</button>
+    <button class="gc-tab app-btn-tab flex-1 py-2 text-xs rounded-lg" data-mode="graph3d">3D Surface</button>
   </div>
 
   <!-- ─── CALCULATOR (Basic + Scientific) ─── -->
@@ -28,7 +28,7 @@
         { l: 'x²',   v: '^2'   }, { l: 'xⁿ',   v: '^'   },  { l: 'n!',   v: '!'   }, { l: '1/x',  v: '1/('  },
         { l: '(',    v: '('    }, { l: ')',     v: ')'    },  { l: 'asin', v: 'asin('}, { l: 'acos', v: 'acos('},
       ].map(b => (
-        <button class="gc-sci py-2.5 text-xs font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-secondary hover:bg-bg-surface hover:text-accent transition-all" data-val={b.v}>
+        <button class="gc-sci app-btn-secondary py-2.5 text-xs rounded-lg" data-val={b.v}>
           {b.l}
         </button>
       ))}
@@ -37,7 +37,7 @@
     <!-- Memory -->
     <div class="grid grid-cols-4 gap-1.5">
       {['MC','MR','M+','M−'].map(k => (
-        <button class="gc-mem py-2 text-[11px] font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-muted hover:text-accent transition-all" data-mem={k}>{k}</button>
+        <button class="gc-mem app-btn-secondary py-2 text-[11px] rounded-lg" data-mem={k}>{k}</button>
       ))}
     </div>
 
@@ -52,10 +52,10 @@
       ].map(b => (
         <button
           class:list={[
-            'gc-key py-4 text-sm font-mono rounded-xl transition-all select-none active:scale-95',
-            b.t === 'op' ? 'bg-bg-elevated border border-border text-text-secondary hover:text-accent hover:border-accent/30' :
-            b.t === 'eq' ? 'bg-accent/20 border border-accent/40 text-accent hover:bg-accent/30 font-bold' :
-            b.t === 'fn' ? 'bg-bg-elevated border border-border-subtle text-text-muted hover:text-text-secondary' :
+            'gc-key py-4 text-sm rounded-xl',
+            b.t === 'op' ? 'app-btn-secondary' :
+            b.t === 'eq' ? 'app-btn-primary' :
+            b.t === 'fn' ? 'app-btn-secondary' :
                           'bg-bg-surface border border-border-subtle text-text-primary hover:bg-bg-elevated',
           ]}
           data-key={b.l}
@@ -67,7 +67,7 @@
   <!-- ─── 2D GRAPH ─── -->
   <div id="gc-2d-panel" class="space-y-3 hidden">
     <div id="gc-eq-list" class="space-y-2"></div>
-    <button id="gc-add-eq" class="w-full py-2 text-xs font-mono border border-dashed border-border-subtle rounded-lg text-text-muted hover:text-accent hover:border-accent/40 transition-all">+ Add equation</button>
+    <button id="gc-add-eq" class="app-btn-secondary w-full py-2 text-xs rounded-lg border-dashed">+ Add equation</button>
 
     <div class="grid grid-cols-4 gap-2">
       {[
@@ -95,7 +95,7 @@
       <span class="text-sm font-mono text-text-muted shrink-0">z =<span title="Enter a math expression in x and y. Use standard JS math: sin(x), cos(y), sqrt(x*x+y*y), x^2+y^2. The result z is plotted as height. Example: sin(sqrt(x*x+y*y)) makes a ripple surface." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></span>
       <input id="gc-3d-expr" type="text" value="sin(sqrt(x*x+y*y))"
         class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
-      <button id="gc-3d-plot" class="px-4 py-2 bg-accent/15 border border-accent/30 rounded-lg text-xs font-mono text-accent hover:bg-accent/25 transition-all shrink-0">Plot</button>
+      <button id="gc-3d-plot" class="app-btn-primary px-4 py-2 text-xs rounded-lg shrink-0">Plot</button>
     </div>
 
     <div class="grid grid-cols-2 gap-3">
@@ -119,7 +119,7 @@
         { l:'Sine mesh',  v:'sin(x)*cos(y)' },
         { l:'Peaks',    v:'3*(1-x)^2*exp(-(x^2)-(y+1)^2)-10*(x/5-x^3-y^5)*exp(-x^2-y^2)-1/3*exp(-(x+1)^2-y^2)' },
       ].map(p => (
-        <button class="gc-3d-preset px-2.5 py-1 text-[10px] font-mono bg-bg-elevated border border-border-subtle rounded text-text-muted hover:text-accent hover:border-accent/40 transition-all" data-expr={p.v}>
+        <button class="gc-3d-preset app-btn-secondary px-2.5 py-1 text-[10px] rounded" data-expr={p.v}>
           {p.l}
         </button>
       ))}

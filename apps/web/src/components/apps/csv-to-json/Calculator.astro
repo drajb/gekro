@@ -17,11 +17,11 @@
   <div class="space-y-3">
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-xl w-fit">
       <button id="ctj-tab-paste"
-        class="ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all bg-accent/15 text-accent">
+        class="ctj-tab app-btn-primary px-4 py-1.5 rounded-lg text-xs">
         Paste CSV
       </button>
       <button id="ctj-tab-file"
-        class="ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all text-text-muted hover:text-text-primary">
+        class="ctj-tab app-btn-tab px-4 py-1.5 rounded-lg text-xs">
         Upload file
       </button>
     </div>
@@ -195,8 +195,10 @@
       activeTab = tab;
       pastePane.classList.toggle('hidden', tab !== 'paste');
       filePane.classList.toggle('hidden', tab !== 'file');
-      tabPaste.className = `ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${tab === 'paste' ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'}`;
-      tabFile.className  = `ctj-tab px-4 py-1.5 rounded-lg text-xs font-mono transition-all ${tab === 'file'  ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'}`;
+      tabPaste.className = 'ctj-tab app-btn-tab px-4 py-1.5 rounded-lg text-xs';
+      tabPaste.classList.toggle('active', tab === 'paste');
+      tabFile.className  = 'ctj-tab app-btn-tab px-4 py-1.5 rounded-lg text-xs';
+      tabFile.classList.toggle('active', tab === 'file');
     };
     tabPaste.addEventListener('click', () => switchTab('paste'));
     tabFile.addEventListener('click',  () => switchTab('file'));

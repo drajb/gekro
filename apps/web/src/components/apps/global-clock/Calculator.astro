@@ -10,7 +10,7 @@
       { id: 'cst', zone: 'America/Chicago',  label: 'Chicago',  sub: 'CST / CDT', color: 'var(--color-accent)' },
       { id: 'ist', zone: 'Asia/Kolkata',     label: 'Mumbai',   sub: 'IST (UTC+5:30)', color: '#f59e0b' },
     ].map(c => (
-      <div class="p-5 bg-bg-surface border border-border-subtle rounded-2xl space-y-3" data-tz={c.zone} data-clock-id={c.id}>
+      <div class="p-5 bg-bg-surface border border-border-subtle rounded-xl space-y-3" data-tz={c.zone} data-clock-id={c.id}>
         <div class="flex items-center justify-between">
           <div>
             <p class="text-base font-semibold text-text-primary">{c.label}</p>

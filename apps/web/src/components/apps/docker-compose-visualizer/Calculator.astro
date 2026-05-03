@@ -55,7 +55,7 @@
     <div class="flex items-center justify-between flex-wrap gap-2">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Dependency graph</p>
       <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
-        <button id="dc-graph-ascii" class="dc-graph-tab px-3 py-1 rounded text-[10px] font-mono bg-accent/15 text-accent">ASCII</button>
+        <button id="dc-graph-ascii" class="dc-graph-tab app-btn-primary px-3 py-1 rounded text-[10px]">ASCII</button>
         <button id="dc-graph-mermaid" class="dc-graph-tab px-3 py-1 rounded text-[10px] font-mono text-text-muted hover:text-text-primary">Mermaid</button>
       </div>
     </div>
@@ -493,9 +493,8 @@
       graphMode = m;
       [tabAscii, tabMermaid].forEach((t, i) => {
         const isActive = (i === 0 ? 'ascii' : 'mermaid') === m;
-        t.className = `dc-graph-tab px-3 py-1 rounded text-[10px] font-mono ${
-          isActive ? 'bg-accent/15 text-accent' : 'text-text-muted hover:text-text-primary'
-        }`;
+        t.className = 'dc-graph-tab app-btn-tab px-3 py-1 rounded text-[10px]';
+        t.classList.toggle('active', isActive);
       });
       if (lastCompose) {
         graphEl.textContent = m === 'ascii' ? generateAsciiGraph(lastCompose) : generateMermaidGraph(lastCompose);

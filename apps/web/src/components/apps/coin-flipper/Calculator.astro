@@ -134,8 +134,7 @@
     </div>
 
     <button id="cf-flip-btn"
-      class="px-10 py-4 bg-accent/20 border border-accent/40 rounded-2xl text-accent font-mono font-bold text-lg
-             hover:bg-accent/30 active:scale-95 transition-all select-none">
+      class="app-btn-primary px-10 py-4 rounded-2xl text-lg">
       Flip
     </button>
 
@@ -178,7 +177,7 @@
     <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Simulate many flips</p>
     <div class="flex gap-2 flex-wrap">
       {[10, 100, 1000, 10000].map(n => (
-        <button class="cf-multi px-4 py-2 text-xs font-mono bg-bg-elevated border border-border-subtle rounded-lg text-text-muted hover:text-accent hover:border-accent/40 transition-all" data-n={n}>
+        <button class="cf-multi app-btn-secondary px-4 py-2 text-xs rounded-lg" data-n={n}>
           Flip {n.toLocaleString()}×
         </button>
       ))}

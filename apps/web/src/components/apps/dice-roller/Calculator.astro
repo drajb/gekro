@@ -9,7 +9,7 @@
     <p class="text-xs font-mono text-text-muted shrink-0">Number of dice</p>
     <div class="flex gap-1.5">
       {[1,2,3,4].map(n => (
-        <button class="dr-count-btn w-10 h-10 rounded-xl border text-sm font-mono font-semibold transition-all" data-count={n}>{n}</button>
+        <button class="dr-count-btn app-btn-tab w-10 h-10 rounded-xl text-sm" data-count={n}>{n}</button>
       ))}
     </div>
   </div>
@@ -29,8 +29,7 @@
   <!-- Roll button -->
   <div class="flex flex-col items-center gap-3">
     <button id="dr-roll-btn"
-      class="px-12 py-4 bg-accent/20 border border-accent/40 rounded-2xl text-accent font-mono font-bold text-lg
-             hover:bg-accent/30 active:scale-95 transition-all select-none">
+      class="app-btn-primary px-12 py-4 rounded-2xl text-lg">
       Roll
     </button>
     <p class="text-[10px] font-mono text-text-muted">Press <kbd class="px-1.5 py-0.5 bg-bg-elevated border border-border-subtle rounded text-[10px]">Space</kbd> to roll</p>

@@ -21,7 +21,7 @@
   <div class="space-y-2">
     <div class="flex items-center justify-between">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Schema columns</p>
-      <button id="ddg-add-col" class="text-xs font-mono px-3 py-1.5 rounded-lg border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-all">+ Add column</button>
+      <button id="ddg-add-col" class="app-btn-secondary text-xs px-3 py-1.5 rounded-lg">+ Add column</button>
     </div>
 
     <div id="ddg-columns" class="space-y-2">
@@ -40,11 +40,11 @@
       <span class="text-[10px] font-mono text-text-muted">max 1000</span>
     </div>
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
-      <button class="ddg-fmt-btn active px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="json">JSON</button>
-      <button class="ddg-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="csv">CSV</button>
-      <button class="ddg-fmt-btn px-3 py-1.5 rounded-md text-xs font-mono transition-all" data-fmt="xml">XML</button>
+      <button class="ddg-fmt-btn app-btn-tab active px-3 py-1.5 rounded-md text-xs" data-fmt="json">JSON</button>
+      <button class="ddg-fmt-btn app-btn-tab px-3 py-1.5 rounded-md text-xs" data-fmt="csv">CSV</button>
+      <button class="ddg-fmt-btn app-btn-tab px-3 py-1.5 rounded-md text-xs" data-fmt="xml">XML</button>
     </div>
-    <button id="ddg-generate" class="px-6 py-2 bg-accent/20 border border-accent/40 rounded-xl text-accent font-mono font-semibold text-sm hover:bg-accent/30 active:scale-95 transition-all">Generate</button>
+    <button id="ddg-generate" class="app-btn-primary px-6 py-2 rounded-xl text-sm">Generate</button>
   </div>
 
   <!-- Preview table -->
@@ -60,8 +60,8 @@
     <div class="flex items-center justify-between">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
       <div class="flex gap-2">
-        <button id="ddg-copy-btn" class="text-xs font-mono px-3 py-1 rounded-lg border border-accent/30 bg-accent/5 text-accent hover:bg-accent/10 transition-all">Copy</button>
-        <button id="ddg-download-btn" class="text-xs font-mono px-3 py-1 rounded-lg border border-border-subtle bg-bg-elevated text-text-muted hover:text-text-secondary transition-all">Download</button>
+        <button id="ddg-copy-btn" class="app-btn-secondary text-xs px-3 py-1 rounded-lg">Copy</button>
+        <button id="ddg-download-btn" class="app-btn-secondary text-xs px-3 py-1 rounded-lg">Download</button>
       </div>
     </div>
     <textarea id="ddg-output" rows="12" readonly spellcheck="false"

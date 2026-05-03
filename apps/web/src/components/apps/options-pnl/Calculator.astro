@@ -18,11 +18,7 @@
       ].map(s => (
         <button
           data-strat={s.id}
-          class={`opnl-tab px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
-            s.id === 'long-call'
-              ? 'bg-accent/10 border-accent/40 text-accent'
-              : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
-          }`}
+          class={`opnl-tab app-btn-tab px-3 py-1.5 rounded-lg text-xs ${s.id === 'long-call' ? 'active' : ''}`}
         >
           {s.label}
         </button>
@@ -406,12 +402,8 @@
       btn.addEventListener('click', () => {
         currentStrat = btn.dataset.strat!;
         tabs.forEach(t => {
-          const active = t.dataset.strat === currentStrat;
-          t.className = `opnl-tab px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
-            active
-              ? 'bg-accent/10 border-accent/40 text-accent'
-              : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
-          }`;
+          t.className = 'opnl-tab app-btn-tab px-3 py-1.5 rounded-lg text-xs';
+          t.classList.toggle('active', t.dataset.strat === currentStrat);
         });
         updateSpreadVisibility();
 
@@ -445,12 +437,8 @@
     document.addEventListener('app:reset', () => {
       currentStrat = 'long-call';
       tabs.forEach(t => {
-        const active = t.dataset.strat === 'long-call';
-        t.className = `opnl-tab px-3 py-1.5 rounded-lg text-xs font-mono border transition-colors ${
-          active
-            ? 'bg-accent/10 border-accent/40 text-accent'
-            : 'bg-bg-elevated border-border-subtle text-text-muted hover:border-accent/30 hover:text-text-secondary'
-        }`;
+        t.className = 'opnl-tab app-btn-tab px-3 py-1.5 rounded-lg text-xs';
+        t.classList.toggle('active', t.dataset.strat === 'long-call');
       });
       spotEl.value = '500';
       strikeEl.value = '505';
