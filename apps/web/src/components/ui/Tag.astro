@@ -4,8 +4,10 @@
  *
  * Used in: blog/index.astro (sidebar filter), index.astro (sidebar chip cloud)
  *
- * Each chip links to /topics/[slug] where slug is the lowercased,
- * hyphenated version of `title` — matching the slug format in topics/[topic].astro.
+ * Each chip links to /topics/[slug]/ — slug derived via the shared
+ * `topicToSlug` util (matches the slug format in topics/[topic].astro and
+ * PostHeader). Trailing slash matches the site canonical convention
+ * (decision-log 2026-04-17) so this href doesn't trigger a CF Pages 308.
  *
  * Props:
  *  title  — topic name (used as display text and for URL generation)
@@ -16,6 +18,8 @@
  * is handled by the SearchWidget, not by this component.
  */
 
+import { topicToSlug } from '../../lib/utils/slugify';
+
 interface Props {
   title: string;
   count?: number;
@@ -25,8 +29,8 @@ interface Props {
 const { title, count, active } = Astro.props;
 ---
 
-<a 
-  href={`/topics/${title.toLowerCase().replace(/\s+/g, '-')}`}
+<a
+  href={`/topics/${topicToSlug(title)}/`}
   class={`px-4 py-2 rounded-full border transition-all duration-300 font-mono text-sm flex items-center gap-2 ${
     active 
       ? 'bg-accent text-bg-base border-accent' 
