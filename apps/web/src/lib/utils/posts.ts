@@ -120,18 +120,16 @@ const TOPIC_MAP: Record<string, string> = {
   'Cloudflare': 'Architecture',
   'Frontend': 'Architecture',
   'TypeScript': 'Architecture',
-  
-  // Add some core tags unconditionally passed
 };
 
 function consolidateTopics(topics: string[]): string[] {
   if (!topics || !Array.isArray(topics)) return [];
+  // Map each tag through TOPIC_MAP, preserving unmapped tags as-is. Set
+  // dedupes when multiple raw tags collapse to the same canonical topic
+  // (e.g. "Ollama" + "AI" both → "AI Agents").
   const merged = new Set<string>();
   topics.forEach(t => {
-    const mapped = TOPIC_MAP[t] || t; // keep original if no mapping exists, though some will be long.
-    // If you want to strictly limit to core topics, we can filter out non-core,
-    // but mapping is safer to not lose data.
-    merged.add(mapped);
+    merged.add(TOPIC_MAP[t] || t);
   });
   return Array.from(merged);
 }

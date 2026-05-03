@@ -32,6 +32,7 @@ import GiscusComments from '../components/blog/GiscusComments.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
 import type { FormattedPost } from '../lib/utils/posts';
+import { WORDS_PER_MINUTE } from '../lib/utils/reading-time';
 
 /**
  * Accepts a `FormattedPost`-shaped object — the flattened union of local
@@ -78,7 +79,9 @@ const primaryTopic = post.topics?.[0];
 // image, wordCount, keywords, mainEntityOfPage, dateModified (falls back to
 // datePublished if the frontmatter doesn't track modifications separately).
 const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `https://gekro.com${ogImage}`;
-const wordCount = post.readingTime ? post.readingTime * 200 : undefined;
+// wordCount uses the same WPM constant the reading-time util applies, so a
+// future tuning of WORDS_PER_MINUTE doesn't silently drift the schema value.
+const wordCount = post.readingTime ? post.readingTime * WORDS_PER_MINUTE : undefined;
 const schema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
@@ -93,6 +96,12 @@ const schema = {
     "name": "Rohit Burani",
     "url": "https://gekro.com/about/"
   },
+  // Publisher block mirrors GlobalSchema.astro's Organization declaration
+  // exactly — same @id, same name/url/logo. Google's Article validator wants
+  // a fully-formed publisher with a logo, so a bare @id reference isn't
+  // enough. Previously the logo here was /og/default.png (1200×630 OG card)
+  // while GlobalSchema used favicon.svg — two declarations of the same @id
+  // disagreeing. Now they match.
   "publisher": {
     "@type": "Organization",
     "@id": "https://gekro.com/#organization",
@@ -100,9 +109,9 @@ const schema = {
     "url": "https://gekro.com",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://gekro.com/og/default.png",
-      "width": 1200,
-      "height": 630
+      "url": "https://gekro.com/favicon.svg",
+      "width": 256,
+      "height": 256
     }
   },
   "mainEntityOfPage": {

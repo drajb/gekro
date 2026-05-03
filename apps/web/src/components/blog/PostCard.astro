@@ -11,10 +11,11 @@
  *          by getAllPosts() in lib/utils/posts.ts.
  *
  * Reading time:
- *  Uses post.readingTime if provided (from frontmatter); falls back to
- *  calculateReadingTime(tldr || description) for Sanity posts that omit it.
- *  The fallback is inaccurate for full-length posts — pass readingTime
- *  from frontmatter for accurate values.
+ *  Uses post.readingTime if provided (from frontmatter). Defaults to 5 when
+ *  absent — the Zod schema also defaults to 5 for local posts, so this only
+ *  fires for Sanity posts that omit the field. Previously fell back to
+ *  calculateReadingTime(tldr) which computed minutes from a 1-2 sentence
+ *  string and returned ~1, misleading the reader.
  *
  * Mouse glow effect:
  *  CSS custom properties --mouse-x/--mouse-y are updated on mousemove and
@@ -26,8 +27,6 @@
  *  Motion One inView() triggers a fade+slide-up once. _animated flag prevents
  *  re-triggering after initCards() re-runs on astro:after-swap.
  */
-
-import { calculateReadingTime } from '../../lib/utils/reading-time';
 
 interface Props {
   post: {
@@ -44,7 +43,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const readingTime = post.readingTime || calculateReadingTime(post.tldr || post.description || ""); 
+const readingTime = post.readingTime ?? 5;
 const formattedDate = new Date(post.publishedAt).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',

@@ -1,45 +1,146 @@
 ---
+/**
+ * PortableText.astro — Sanity Portable Text → Astro renderer
+ *
+ * Renders Sanity's block-content array into HTML for the article body. Used
+ * only on the Sanity branch of `pages/blog/[slug].astro` (local Content
+ * Collection posts go through Astro's markdown pipeline instead).
+ *
+ * Block types handled:
+ *  - `block` — paragraphs, h1/h2/h3, blockquote (style-driven)
+ *  - `code`  — delegated to <CodeBlock> for syntax highlighting
+ *  - `image` — figure with alt/caption fallback
+ *
+ * Inline mark handling:
+ *  Each `child` of a block can carry `marks` (em, strong, code, link refs).
+ *  Sanity emits links as additional `markDefs` on the parent block; we
+ *  resolve mark keys against `markDefs` to recover hrefs. Without this,
+ *  inline italics/bold/links would silently flatten to plain text.
+ *
+ * Defensive: if a Sanity block arrives without a `children` array (custom
+ *  block types, malformed payloads), we render an empty string instead of
+ *  throwing — previously `children.map(...)` would crash the whole post.
+ */
+
 import CodeBlock from './CodeBlock.astro';
 
+interface PortableSpan {
+  _key?: string;
+  _type?: string;
+  text?: string;
+  marks?: string[];
+}
+
+interface PortableMarkDef {
+  _key: string;
+  _type: string;
+  href?: string;
+}
+
+interface PortableBlock {
+  _type?: string;
+  style?: string;
+  children?: PortableSpan[];
+  markDefs?: PortableMarkDef[];
+  // image-block fields
+  asset?: { url?: string };
+  alt?: string;
+  caption?: string;
+  // code-block fields
+  code?: string;
+  language?: string;
+  filename?: string;
+}
+
 interface Props {
-  value: any[];
+  value: PortableBlock[] | undefined;
 }
 
 const { value } = Astro.props;
 
-// Simple custom renderer for PortableText in Astro
-// Maps block types to components or HTML
+/**
+ * Resolve a mark key into a renderable annotation. String marks are
+ * decorators (em/strong/code); object marks (links) are referenced by
+ * `_key` and looked up in the parent block's `markDefs`.
+ */
+interface Annotation {
+  kind: 'em' | 'strong' | 'code' | 'link';
+  href?: string;
+}
+
+const resolveMark = (mark: string, markDefs: PortableMarkDef[] | undefined): Annotation | null => {
+  if (mark === 'em' || mark === 'i') return { kind: 'em' };
+  if (mark === 'strong' || mark === 'b') return { kind: 'strong' };
+  if (mark === 'code') return { kind: 'code' };
+  const def = markDefs?.find(d => d._key === mark);
+  if (def?._type === 'link' && def.href) return { kind: 'link', href: def.href };
+  return null;
+};
+
+/**
+ * Resolve a single span (text + marks) into an array of annotations to wrap
+ * around it. Returned in inner-to-outer order so the JSX template can render
+ * them iteratively without a generic-typed reduce (which Astro's template
+ * compiler parses ambiguously vs JSX tags).
+ */
+const annotationsFor = (span: PortableSpan, markDefs: PortableMarkDef[] | undefined): Annotation[] => {
+  if (!span.marks?.length) return [];
+  return span.marks
+    .map(m => resolveMark(m, markDefs))
+    .filter((a): a is Annotation => a !== null);
+};
 ---
 
 <div class="prose prose-invert max-w-none">
   {value && value.map((block) => {
     if (block._type === 'block') {
-      const { style = 'normal', children } = block;
-      const text = children.map((c: any) => c.text).join('');
-      
+      const { style = 'normal', children, markDefs } = block;
+      // Defensive: render empty if children is missing — previously this would
+      // throw on any malformed block and crash the entire article render.
+      const safeChildren = children ?? [];
+
+      // Render each span with its marks wrapped — preserves inline em/strong/
+      // code/link from Sanity. Plain spans pass through as bare text.
+      // (for-of + mutable `node` instead of reduce<T>: Astro's template parser
+      //  reads the `<T>` generic as an opening JSX tag and chokes.)
+      const spans = safeChildren.map((span) => {
+        let node = span.text ?? '';
+        const annotations = annotationsFor(span, markDefs);
+        for (const ann of annotations) {
+          if (ann.kind === 'em') node = <em>{node}</em> as any;
+          else if (ann.kind === 'strong') node = <strong>{node}</strong> as any;
+          else if (ann.kind === 'code') node = <code class="text-accent/90 bg-bg-elevated px-1 py-0.5 rounded">{node}</code> as any;
+          else if (ann.kind === 'link') node = <a href={ann.href} class="text-accent hover:underline">{node}</a> as any;
+        }
+        return node;
+      });
+
       switch (style) {
-        case 'h1': return <h1 class="font-heading mt-12 mb-6 text-4xl lg:text-5xl">{text}</h1>;
-        case 'h2': return <h2 class="font-heading mt-10 mb-5 text-3xl lg:text-4xl border-b border-border pb-4">{text}</h2>;
-        case 'h3': return <h3 class="font-heading mt-8 mb-4 text-2xl lg:text-3xl">{text}</h3>;
-        case 'blockquote': return <blockquote class="border-l-4 border-accent/40 pl-6 my-8 italic text-text-secondary">{text}</blockquote>;
-        default: return <p class="my-6 leading-relaxed text-text-secondary text-lg">{text}</p>;
+        case 'h1': return <h1 class="font-heading mt-12 mb-6 text-4xl lg:text-5xl">{spans}</h1>;
+        case 'h2': return <h2 class="font-heading mt-10 mb-5 text-3xl lg:text-4xl border-b border-border pb-4">{spans}</h2>;
+        case 'h3': return <h3 class="font-heading mt-8 mb-4 text-2xl lg:text-3xl">{spans}</h3>;
+        case 'blockquote': return <blockquote class="border-l-4 border-accent/40 pl-6 my-8 italic text-text-secondary">{spans}</blockquote>;
+        default: return <p class="my-6 leading-relaxed text-text-secondary text-lg">{spans}</p>;
       }
     }
-    
+
     if (block._type === 'code') {
-      return <CodeBlock code={block.code} lang={block.language} filename={block.filename} />;
+      return <CodeBlock code={block.code ?? ''} lang={block.language} filename={block.filename} />;
     }
-    
+
     if (block._type === 'image') {
-      // In a real project, use @astrojs/image
+      // alt is required for accessibility; fall back to a generic label that's
+      // at least non-empty (empty alt is only valid for decorative images, and
+      // these article images are content-bearing).
+      const alt = block.alt || block.caption || 'Article image';
       return (
         <figure class="my-12">
-          <img src={block.asset?.url} alt={block.alt || ''} class="rounded-xl border border-border" />
+          <img src={block.asset?.url} alt={alt} class="rounded-xl border border-border" />
           {block.caption && <figcaption class="mt-4 text-center text-sm text-text-muted italic">{block.caption}</figcaption>}
         </figure>
       );
     }
-    
+
     return null;
   })}
 </div>

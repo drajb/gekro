@@ -26,6 +26,7 @@ import PostCard from '../../components/blog/PostCard.astro';
 import ExperimentCard from '../../components/experiments/ExperimentCard.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 import { getAllPosts } from '../../lib/utils/posts';
+import { topicToSlug } from '../../lib/utils/slugify';
 
 export async function getStaticPaths() {
   const allPosts = await getAllPosts();
@@ -38,7 +39,7 @@ export async function getStaticPaths() {
 
   // Slugify topic name for the URL param; store raw name as prop for display
   return Array.from(allTopics).map(topic => ({
-    params: { topic: topic.toLowerCase().replace(/\s+/g, '-') },
+    params: { topic: topicToSlug(topic) },
     props: { topicName: topic },
   }));
 }
@@ -75,13 +76,15 @@ const collectionSchema = {
   },
 };
 
+// Breadcrumb: Home → <topic name>. No middle "Topics" rung because there is
+// no /topics/ index page — pointing a breadcrumb at a 404 misleads both
+// Google's structured-data renderer and any user who clicks it.
 const breadcrumbs = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
-    { "@type": "ListItem", "position": 2, "name": "Topics", "item": "https://gekro.com/topics/" },
-    { "@type": "ListItem", "position": 3, "name": topicName, "item": topicURL },
+    { "@type": "ListItem", "position": 2, "name": topicName, "item": topicURL },
   ],
 };
 ---
