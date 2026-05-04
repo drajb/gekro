@@ -39,7 +39,11 @@ const { title, count, active } = Astro.props;
 >
   {title}
   {count !== undefined && (
-    <span class={`text-[10px] opacity-60 ${active ? 'text-bg-base' : 'text-text-muted'}`}>
+    /* opacity-60 removed 2026-05-03 — even with the bumped text-muted token
+       (#8a8a93), 60% alpha drove the count badge below 2.5:1 against bg-base.
+       The text-muted colour already conveys "secondary information"; the alpha
+       reduction was just stacking emphasis loss. Full-opacity now reads ~5.8:1. */
+    <span class={`text-[10px] ${active ? 'text-bg-base' : 'text-text-muted'}`}>
       ({count})
     </span>
   )}

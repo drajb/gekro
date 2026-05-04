@@ -41,7 +41,13 @@
 
   --color-text-primary: #fafafa;
   --color-text-secondary: #a1a1aa;
-  --color-text-muted: #52525b;
+  /* text-muted bumped 2026-05-03 from #52525b → #8a8a93. Old value computed
+     to 2.29–2.57:1 against the three bg layers, failing WCAG AA body (4.5:1)
+     AND large (3:1) on every surface — used widely for dates, reading time,
+     section labels, and TOC headers, so the failure was visible. New value
+     gives 5.18–5.81:1 (AA body pass on all three backgrounds) while still
+     leaving a clear hierarchy gap to text-secondary (6.91–7.76:1). */
+  --color-text-muted: #8a8a93;
 
   --color-accent: #3fb1ff;
   --color-accent-warm: #f59e0b;
