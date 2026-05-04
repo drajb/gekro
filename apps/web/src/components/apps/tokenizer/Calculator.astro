@@ -29,7 +29,7 @@
         <span id="tk-bytes">0 bytes</span>
       </div>
     </div>
-    <p id="tk-large-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-400">
+    <p id="tk-large-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-accent-warm">
       Large input (&gt;50 KB) — visualization rendering capped at first 2,000 tokens. The total counts above remain accurate.
     </p>
     <textarea
@@ -75,7 +75,7 @@
     </label>
     <label class="flex items-center gap-2 text-text-muted cursor-pointer select-none">
       <input type="checkbox" id="tk-show-bytes" class="accent-[var(--color-accent)] w-4 h-4" />
-      Show byte counts on chips<span title="Displays the UTF-8 byte length on each token chip — useful for understanding why emoji and non-ASCII text cost more tokens (a single emoji can be 4 bytes = multiple tokens)" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      Show byte counts on chips<span title="Displays the UTF-8 byte length on each token chip — useful for understanding why emoji and non-ASCII text cost more tokens (a single emoji can be 4 bytes = multiple tokens)" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <span class="ml-auto text-text-muted">
       <span id="tk-token-total">0</span> visualized tokens
@@ -84,7 +84,7 @@
 
   <!-- Token visualization -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Token visualization</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Token visualization</p>
     <div
       id="tk-viz"
       class="min-h-[120px] p-4 bg-bg-elevated border border-border-subtle rounded-xl
@@ -103,7 +103,7 @@
 
   <!-- Stats breakdown -->
   <div id="tk-breakdown" class="hidden p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Token type breakdown</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Token type breakdown</p>
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="tk-breakdown-grid"></div>
   </div>
 </div>
@@ -260,7 +260,7 @@
         const pct = lastTokens.length ? ((c / lastTokens.length) * 100).toFixed(1) : '0.0';
         return `
           <div class="space-y-0.5">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted capitalize">${type}</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary capitalize">${type}</p>
             <p class="text-lg font-heading font-semibold text-text-primary">${c.toLocaleString()}</p>
             <p class="text-[10px] font-mono text-text-muted">${pct}%</p>
           </div>

@@ -82,11 +82,11 @@ const breadcrumbs = {
             type="search"
             placeholder="Jump to app…"
             autocomplete="off"
-            class="w-full bg-bg-elevated border border-border-subtle rounded-lg pl-8 pr-3 py-2
-                   text-xs font-mono text-text-primary placeholder:text-text-muted
-                   focus:outline-none focus:border-accent/40 transition-colors"
+            class="w-full bg-bg-elevated border border-border rounded-lg pl-8 pr-3 py-2
+                   text-xs font-mono text-text-primary
+                   focus:outline-none focus:border-accent transition-colors"
           />
-          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-xs pointer-events-none select-none">⌕</span>
+          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary text-xs pointer-events-none select-none">⌕</span>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ const breadcrumbs = {
       <nav id="sidebar-nav" class="flex-1 overflow-y-auto py-2">
         {grouped.map(({ cat, label, apps: catApps }) => (
           <div class="mb-3 px-2" data-cat-group={cat}>
-            <p class="px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-text-muted/50 select-none">{label}</p>
+            <p class="px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-text-secondary select-none">{label}</p>
             {catApps.map(a => (
               <a
                 href={`/apps/${a.slug}/`}
@@ -118,10 +118,10 @@ const breadcrumbs = {
       </nav>
 
       <!-- Footer link -->
-      <div class="px-4 py-4 border-t border-border-subtle shrink-0">
+      <div class="px-4 py-4 border-t border-border shrink-0">
         <a
           href="/apps/"
-          class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors flex items-center gap-1"
+          class="text-[10px] font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-1"
         >
           <span>←</span> All apps
         </a>
@@ -137,8 +137,8 @@ const breadcrumbs = {
         <div class="h-14"></div>
         <select
           id="mobile-app-select"
-          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2
-                 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors"
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2
+                 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors"
         >
           {allApps.map(a => (
             <option value={`/apps/${a.slug}/`} selected={a.slug === app.slug}>
@@ -152,8 +152,8 @@ const breadcrumbs = {
         <slot />
 
         <!-- Methodology content from markdown body -->
-        <div class="mt-16 pt-12 border-t border-border-subtle">
-          <h2 class="text-xs font-mono uppercase tracking-widest text-text-muted mb-8">Guide</h2>
+        <div class="mt-16 pt-12 border-t border-border">
+          <h2 class="text-xs font-mono uppercase tracking-widest text-text-secondary mb-8">Guide</h2>
           <div class="prose prose-invert max-w-none
                       prose-headings:font-heading prose-headings:font-medium
                       prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6
@@ -168,12 +168,12 @@ const breadcrumbs = {
         </div>
 
         <!-- Disclaimer -->
-        <p class="mt-12 text-[10px] font-mono text-text-muted/40 leading-relaxed">
+        <p class="mt-12 text-[10px] font-mono text-text-muted leading-relaxed">
           For informational purposes only. Not financial, medical, or legal advice. You are solely responsible for how you use these tools.
         </p>
 
         <div class="mt-6 lg:hidden">
-          <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-muted hover:text-accent transition-colors group">
+          <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-secondary hover:text-accent transition-colors group">
             <span class="group-hover:-translate-x-1 transition-transform">←</span>
             All apps
           </a>

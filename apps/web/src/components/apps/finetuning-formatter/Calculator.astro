@@ -42,9 +42,9 @@
 
   <!-- Format selector -->
   <div class="space-y-1.5">
-    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
       Output format
-      <span title="OpenAI: for OpenAI fine-tuning API (gpt-3.5-turbo, gpt-4o-mini). Alpaca: JSON format used by Alpaca/LLaMA trainers — single-turn only. ShareGPT: multi-turn JSONL used by LLaMA-Factory, Axolotl, Open-Hermes datasets. Unsloth/Llama: same as ShareGPT schema but optimized for Unsloth trainer with Llama chat template note." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      <span title="OpenAI: for OpenAI fine-tuning API (gpt-3.5-turbo, gpt-4o-mini). Alpaca: JSON format used by Alpaca/LLaMA trainers — single-turn only. ShareGPT: multi-turn JSONL used by LLaMA-Factory, Axolotl, Open-Hermes datasets. Unsloth/Llama: same as ShareGPT schema but optimized for Unsloth trainer with Llama chat template note." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <div class="flex flex-wrap gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg w-fit">
       <button class="ff-fmt-btn app-btn-tab active px-3 py-1.5 rounded-md text-xs" data-fmt="openai">OpenAI (JSONL)</button>
@@ -55,14 +55,14 @@
   </div>
 
   <!-- Format note -->
-  <p id="ff-fmt-note" class="hidden text-[11px] font-mono text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2"></p>
+  <p id="ff-fmt-note" class="hidden text-[11px] font-mono text-accent-warm bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2"></p>
 
   <!-- Output -->
   <div class="space-y-1.5">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Output</p>
     <pre id="ff-output"
       class="min-h-[140px] max-h-[400px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
-             text-xs font-mono text-text-secondary leading-relaxed whitespace-pre-wrap break-words"><span class="text-text-muted/40 italic">Add turns above to generate output…</span></pre>
+             text-xs font-mono text-text-secondary leading-relaxed whitespace-pre-wrap break-words"><span class="text-text-muted italic">Add turns above to generate output…</span></pre>
   </div>
 
 </div>
@@ -200,12 +200,12 @@
   const ROLE_ACCENT: Record<Role, string> = {
     system: 'border-amber-500/30 bg-amber-500/5',
     user: 'border-accent/30 bg-accent/5',
-    assistant: 'border-emerald-500/30 bg-emerald-500/5',
+    assistant: 'border-accent-success/30 bg-accent-success/5',
   };
   const ROLE_LABEL: Record<Role, string> = {
-    system: 'text-amber-400',
+    system: 'text-accent-warm',
     user: 'text-accent',
-    assistant: 'text-emerald-400',
+    assistant: 'text-accent-success',
   };
 
   /* ── Init ────────────────────────────────────────────────────────*/
@@ -254,7 +254,7 @@
       if (warnMsgs.length > 0) {
         warningsEl.classList.remove('hidden');
         warningsEl.innerHTML = warnMsgs.map(w =>
-          `<p class="text-[11px] font-mono text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">⚠ ${w}</p>`,
+          `<p class="text-[11px] font-mono text-accent-warm bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">⚠ ${w}</p>`,
         ).join('');
       } else {
         warningsEl.classList.add('hidden');
@@ -272,7 +272,7 @@
 
       // Build output
       if (turns.length === 0) {
-        outputEl.innerHTML = '<span class="text-text-muted/40 italic">Add turns above to generate output…</span>';
+        outputEl.innerHTML = '<span class="text-text-muted italic">Add turns above to generate output…</span>';
         lastOutput = '';
         return;
       }
@@ -303,14 +303,14 @@
         <div class="flex items-center gap-2 flex-wrap">
           <label class="text-[10px] font-mono uppercase tracking-widest ${ROLE_LABEL[role]}">
             Role
-            <span title="system: sets overall behavior, injected once at the top. user: the human's message (your training input). assistant: the model's response (what you're teaching the model to produce)." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+            <span title="system: sets overall behavior, injected once at the top. user: the human's message (your training input). assistant: the model's response (what you're teaching the model to produce)." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
           </label>
           <select class="ff-role ff-role-select bg-bg-elevated border border-border-subtle rounded-md px-2 py-1 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors cursor-pointer">
             <option value="system"${role === 'system' ? ' selected' : ''}>system</option>
             <option value="user"${role === 'user' ? ' selected' : ''}>user</option>
             <option value="assistant"${role === 'assistant' ? ' selected' : ''}>assistant</option>
           </select>
-          <button class="ff-remove ml-auto text-text-muted/40 hover:text-red-400 transition-colors text-sm leading-none select-none px-1" title="Remove this turn">×</button>
+          <button class="ff-remove ml-auto text-text-muted hover:text-accent-danger transition-colors text-sm leading-none select-none px-1" title="Remove this turn">×</button>
         </div>
         <textarea class="ff-content w-full bg-transparent text-sm font-mono text-text-primary leading-relaxed resize-none focus:outline-none placeholder-text-muted/30"
           rows="3" placeholder="${role === 'system' ? 'System instructions…' : role === 'user' ? 'User message…' : 'Assistant response…'}"

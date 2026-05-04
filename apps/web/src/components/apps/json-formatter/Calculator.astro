@@ -46,7 +46,7 @@
 
   <!-- Presets -->
   <div class="flex flex-wrap gap-1.5">
-    <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest self-center mr-1">Presets:</span>
+    <span class="text-[10px] font-mono text-text-secondary uppercase tracking-widest self-center mr-1">Presets:</span>
     <button class="jf-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="user">User object</button>
     <button class="jf-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="api">API response</button>
     <button class="jf-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="nested">Nested array</button>
@@ -58,14 +58,14 @@
 
     <!-- Input pane -->
     <div class="space-y-1.5">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Input</p>
       <div class="relative">
         <textarea
           id="jf-input"
           rows="20"
           spellcheck="false"
           autocomplete="off"
-          class="w-full h-[420px] bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+          class="w-full h-[420px] bg-bg-elevated border border-border rounded-xl px-4 py-3
                  text-sm font-mono text-text-primary leading-relaxed resize-none
                  focus:outline-none focus:border-accent/40 transition-colors"
           placeholder='Paste raw JSON here…  {"key": "value"}'
@@ -76,12 +76,12 @@
     <!-- Output pane -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Output</p>
         <span id="jf-status-badge" class="hidden text-[10px] font-mono px-2 py-0.5 rounded-full"></span>
       </div>
       <!-- Error banner -->
-      <div id="jf-error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
-        <p class="text-xs font-mono text-red-400 leading-relaxed" id="jf-error-msg"></p>
+      <div id="jf-error" class="hidden p-3 bg-accent-danger/10 border border-accent-danger/30 rounded-xl">
+        <p class="text-xs font-mono text-accent-danger leading-relaxed" id="jf-error-msg"></p>
       </div>
       <!-- Highlighted output — scrollable code block -->
       <div
@@ -89,7 +89,7 @@
         class="h-[420px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
                text-sm font-mono leading-relaxed whitespace-pre-wrap break-all"
       >
-        <span class="text-text-muted/40 italic text-xs">Formatted output will appear here…</span>
+        <span class="text-text-muted italic text-xs">Formatted output will appear here…</span>
       </div>
     </div>
   </div>
@@ -113,18 +113,18 @@
 
   /* Syntax highlight token colours */
   .jf-key    { color: var(--color-accent); }
-  .jf-str    { color: #4ade80; }   /* green-400 */
-  .jf-num    { color: #22d3ee; }   /* cyan-400 */
-  .jf-bool   { color: #fbbf24; }   /* amber-400 */
-  .jf-null   { color: #fbbf24; }
+  .jf-str    { color: var(--color-accent-success); }
+  .jf-num    { color: #22d3ee; }   /* cyan-400 — kept raw, no semantic token for "numeric" yet */
+  .jf-bool   { color: var(--color-accent-warm); }
+  .jf-null   { color: var(--color-accent-warm); }
   .jf-punct  { color: var(--color-text-muted); opacity: 0.6; }
 
   /* Error highlight in input */
-  #jf-input.has-error { border-color: rgb(239 68 68 / 0.5); }
+  #jf-input.has-error { border-color: color-mix(in srgb, var(--color-accent-danger) 50%, transparent); }
 
   /* Valid badge */
-  .badge-valid   { background: rgb(34 197 94 / 0.15); color: #4ade80; border: 1px solid rgb(34 197 94 / 0.3); }
-  .badge-invalid { background: rgb(239 68 68 / 0.15); color: #f87171; border: 1px solid rgb(239 68 68 / 0.3); }
+  .badge-valid   { background: color-mix(in srgb, var(--color-accent-success) 15%, transparent); color: var(--color-accent-success); border: 1px solid color-mix(in srgb, var(--color-accent-success) 30%, transparent); }
+  .badge-invalid { background: color-mix(in srgb, var(--color-accent-danger) 15%, transparent); color: var(--color-accent-danger); border: 1px solid color-mix(in srgb, var(--color-accent-danger) 30%, transparent); }
 </style>
 
 <script>
@@ -269,7 +269,7 @@
       badge.classList.remove('hidden');
       errorMsgEl.textContent = parseErrorPos(err.message, raw);
 
-      outputEl.innerHTML = '<span class="text-text-muted/40 italic text-xs">Fix the error above to see formatted output.</span>';
+      outputEl.innerHTML = '<span class="text-text-muted italic text-xs">Fix the error above to see formatted output.</span>';
       lastFormatted = '';
       statChars.textContent = `${raw.length.toLocaleString()} chars`;
       statLines.textContent = '—';
@@ -281,7 +281,7 @@
       errorEl.classList.add('hidden');
       inputEl.classList.remove('has-error');
       badge.classList.add('hidden');
-      outputEl.innerHTML = '<span class="text-text-muted/40 italic text-xs">Formatted output will appear here…</span>';
+      outputEl.innerHTML = '<span class="text-text-muted italic text-xs">Formatted output will appear here…</span>';
       lastFormatted = '';
       statChars.textContent = '0 chars';
       statLines.textContent = '0 lines';

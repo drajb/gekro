@@ -144,17 +144,17 @@
   <!-- Stats -->
   <div class="grid grid-cols-3 gap-3">
     <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl text-center space-y-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Heads</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Heads</p>
       <p id="cf-heads" class="text-2xl font-heading font-bold text-text-primary">0</p>
       <p id="cf-heads-pct" class="text-xs font-mono text-text-muted">—</p>
     </div>
     <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl text-center space-y-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Total</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Total</p>
       <p id="cf-total" class="text-2xl font-heading font-bold text-accent">0</p>
       <p class="text-xs font-mono text-text-muted">flips</p>
     </div>
     <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl text-center space-y-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Tails</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Tails</p>
       <p id="cf-tails" class="text-2xl font-heading font-bold text-text-primary">0</p>
       <p id="cf-tails-pct" class="text-xs font-mono text-text-muted">—</p>
     </div>
@@ -163,18 +163,18 @@
   <!-- Streak -->
   <div class="grid grid-cols-2 gap-3">
     <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
-      <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Current streak</p>
+      <p class="text-[10px] font-mono text-text-secondary uppercase tracking-widest">Current streak</p>
       <p id="cf-streak" class="text-lg font-semibold text-text-primary mt-1">—</p>
     </div>
     <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl text-center">
-      <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Longest streak</p>
+      <p class="text-[10px] font-mono text-text-secondary uppercase tracking-widest">Longest streak</p>
       <p id="cf-longest" class="text-lg font-semibold text-text-primary mt-1">—</p>
     </div>
   </div>
 
   <!-- Multi-flip -->
   <div class="p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Simulate many flips</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Simulate many flips</p>
     <div class="flex gap-2 flex-wrap">
       {[10, 100, 1000, 10000].map(n => (
         <button class="cf-multi app-btn-secondary px-4 py-2 text-xs rounded-lg" data-n={n}>

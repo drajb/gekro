@@ -23,7 +23,7 @@
     <textarea
       id="jst-input"
       rows="10"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-xs font-mono text-text-primary leading-relaxed resize-y
              focus:outline-none focus:border-accent/40 transition-colors"
       placeholder='{ "name": "get_weather", "description": "Get current weather", "parameters": { "type": "object", "properties": { ... } } }'
@@ -34,13 +34,13 @@
   <!-- Function name + description (inferred or override) -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Function name (override)</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Function name (override)</label>
       <input type="text" id="jst-name" placeholder="(inferred from schema)"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Description (override)</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Description (override)</label>
       <input type="text" id="jst-desc" placeholder="(inferred from schema)"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
@@ -48,7 +48,7 @@
   </div>
 
   <!-- Errors -->
-  <p id="jst-error" class="hidden text-xs font-mono text-red-400 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/20"></p>
+  <p id="jst-error" class="hidden text-xs font-mono text-accent-danger px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/20"></p>
 
   <!-- Three outputs -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
@@ -60,7 +60,7 @@
         <button data-copy="openai" class="jst-copy text-[10px] font-mono text-text-muted hover:text-accent">Copy</button>
       </div>
       <pre id="jst-out-openai" class="bg-bg-elevated border border-border-subtle rounded-xl p-3 text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre min-h-32 max-h-96"></pre>
-      <div id="jst-warn-openai" class="hidden text-[10px] font-mono text-amber-400"></div>
+      <div id="jst-warn-openai" class="hidden text-[10px] font-mono text-accent-warm"></div>
     </div>
 
     <!-- Anthropic -->
@@ -70,7 +70,7 @@
         <button data-copy="anthropic" class="jst-copy text-[10px] font-mono text-text-muted hover:text-accent">Copy</button>
       </div>
       <pre id="jst-out-anthropic" class="bg-bg-elevated border border-border-subtle rounded-xl p-3 text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre min-h-32 max-h-96"></pre>
-      <div id="jst-warn-anthropic" class="hidden text-[10px] font-mono text-amber-400"></div>
+      <div id="jst-warn-anthropic" class="hidden text-[10px] font-mono text-accent-warm"></div>
     </div>
 
     <!-- Gemini -->
@@ -80,7 +80,7 @@
         <button data-copy="gemini" class="jst-copy text-[10px] font-mono text-text-muted hover:text-accent">Copy</button>
       </div>
       <pre id="jst-out-gemini" class="bg-bg-elevated border border-border-subtle rounded-xl p-3 text-[11px] font-mono text-text-secondary overflow-x-auto whitespace-pre min-h-32 max-h-96"></pre>
-      <div id="jst-warn-gemini" class="hidden text-[10px] font-mono text-amber-400"></div>
+      <div id="jst-warn-gemini" class="hidden text-[10px] font-mono text-accent-warm"></div>
     </div>
   </div>
 </div>

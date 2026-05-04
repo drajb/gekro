@@ -39,11 +39,11 @@
   <!-- Output -->
   <div class="space-y-2">
     <div class="flex items-center justify-between px-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Markdown output</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Markdown output</p>
       <div class="flex items-center gap-3">
         <span id="rtm-stats" class="text-[10px] font-mono text-text-muted"></span>
         <button id="rtm-copy" class="text-xs font-mono text-text-muted hover:text-accent transition-colors">Copy</button>
-        <button id="rtm-clear" class="text-xs font-mono text-text-muted hover:text-red-400 transition-colors">Clear</button>
+        <button id="rtm-clear" class="text-xs font-mono text-text-muted hover:text-accent-danger transition-colors">Clear</button>
       </div>
     </div>
     <textarea
@@ -59,7 +59,7 @@
 
   <!-- Quick reference -->
   <details class="p-4 bg-bg-elevated border border-border-subtle rounded-xl group">
-    <summary class="text-[10px] font-mono uppercase tracking-widest text-text-muted cursor-pointer select-none group-open:mb-3">
+    <summary class="text-[10px] font-mono uppercase tracking-widest text-text-secondary cursor-pointer select-none group-open:mb-3">
       Supported elements ▾
     </summary>
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 text-xs font-mono text-text-muted">
@@ -70,7 +70,7 @@
         ['ol/li','1. list'],['blockquote','> quote'],['table','GFM table'],
         ['hr','---'],['br','line break'],
       ].map(([html, md]) => (
-        <div class="flex gap-2"><span class="text-text-muted/60">{html}</span><span>→</span><span class="text-accent/80">{md}</span></div>
+        <div class="flex gap-2"><span class="text-text-muted">{html}</span><span>→</span><span class="text-accent/80">{md}</span></div>
       ))}
     </div>
   </details>

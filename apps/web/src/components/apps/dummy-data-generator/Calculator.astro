@@ -20,7 +20,7 @@
   <!-- Schema builder -->
   <div class="space-y-2">
     <div class="flex items-center justify-between">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Schema columns</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Schema columns</p>
       <button id="ddg-add-col" class="app-btn-secondary text-xs px-3 py-1.5 rounded-lg">+ Add column</button>
     </div>
 
@@ -32,7 +32,7 @@
   <!-- Row count + format -->
   <div class="flex flex-wrap items-center gap-4">
     <div class="flex items-center gap-3">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted shrink-0">Rows<span title="Each row = one JSON object / CSV row / XML record; counts above 10k may slow the browser" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary shrink-0">Rows<span title="Each row = one JSON object / CSV row / XML record; counts above 10k may slow the browser" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="ddg-rows" min="1" max="1000" value="10"
         class="w-20 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
                text-sm font-mono text-center text-text-primary
@@ -49,7 +49,7 @@
 
   <!-- Preview table -->
   <div id="ddg-preview-wrap" class="hidden space-y-1.5">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Preview (first 5 rows)</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Preview (first 5 rows)</p>
     <div class="overflow-x-auto rounded-xl border border-border-subtle">
       <table id="ddg-preview-table" class="w-full text-xs font-mono"></table>
     </div>
@@ -58,7 +58,7 @@
   <!-- Output -->
   <div id="ddg-output-wrap" class="hidden space-y-1.5">
     <div class="flex items-center justify-between">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Output</p>
       <div class="flex gap-2">
         <button id="ddg-copy-btn" class="app-btn-secondary text-xs px-3 py-1 rounded-lg">Copy</button>
         <button id="ddg-download-btn" class="app-btn-secondary text-xs px-3 py-1 rounded-lg">Download</button>
@@ -291,7 +291,7 @@
       div.className = 'ddg-col-row';
       div.dataset.colId = String(id);
       div.innerHTML = `
-        <span class="text-text-muted/40 text-sm select-none font-mono">${id}.</span>
+        <span class="text-text-muted text-sm select-none font-mono">${id}.</span>
         <input type="text" class="ddg-col-name" value="${name}" placeholder="field_name" />
         ${buildTypeSelect(type)}
         <button class="ddg-col-remove" title="Remove column">✕</button>`;

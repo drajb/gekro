@@ -24,7 +24,7 @@
   <!-- Token input -->
   <div class="space-y-1.5">
     <div class="flex items-center justify-between flex-wrap gap-2">
-      <label for="jwt-input" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">JWT Token</label>
+      <label for="jwt-input" class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">JWT Token</label>
       <div class="flex gap-2">
         <button id="jwt-sample-btn" class="app-btn-secondary text-[10px] px-2.5 py-1 rounded-md">Load sample</button>
         <button id="jwt-clear-btn" class="app-btn-secondary text-[10px] px-2.5 py-1 rounded-md">Clear</button>
@@ -35,37 +35,37 @@
       rows="4"
       spellcheck="false"
       autocomplete="off"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-xs font-mono text-text-primary leading-relaxed resize-none
              focus:outline-none focus:border-accent/40 transition-colors"
       placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
     ></textarea>
 
     <!-- Error banner -->
-    <div id="jwt-error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
-      <p class="text-xs font-mono text-red-400" id="jwt-error-msg"></p>
+    <div id="jwt-error" class="hidden p-3 bg-accent-danger/10 border border-accent-danger/30 rounded-xl">
+      <p class="text-xs font-mono text-accent-danger" id="jwt-error-msg"></p>
     </div>
   </div>
 
   <!-- Token structure visualizer — colored segments -->
   <div id="jwt-structure" class="hidden p-3 bg-bg-elevated border border-border-subtle rounded-xl">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">Token structure</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-2">Token structure</p>
     <div class="text-xs font-mono break-all leading-relaxed" id="jwt-colored-token"></div>
     <div class="flex gap-3 mt-2 text-[10px] font-mono">
-      <span class="text-[#f59e0b]">■ Header</span>
+      <span class="text-accent-warm">■ Header</span>
       <span class="text-[#60a5fa]">■ Payload</span>
-      <span class="text-text-muted/50">■ Signature</span>
+      <span class="text-text-muted">■ Signature</span>
     </div>
   </div>
 
   <!-- Algorithm + type badges + expiry (style="display:none" avoids conflict with flex) -->
   <div id="jwt-meta" style="display:none" class="flex flex-wrap items-center gap-3">
     <div class="flex items-center gap-2">
-      <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Algorithm</span>
+      <span class="text-[10px] font-mono text-text-secondary uppercase tracking-widest">Algorithm</span>
       <span id="jwt-alg-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-accent/15 text-accent"></span>
     </div>
     <div class="flex items-center gap-2">
-      <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest">Type</span>
+      <span class="text-[10px] font-mono text-text-secondary uppercase tracking-widest">Type</span>
       <span id="jwt-typ-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-bg-elevated border border-border-subtle text-text-secondary"></span>
     </div>
     <div id="jwt-expiry-wrap" class="flex items-center gap-2 ml-auto">
@@ -79,12 +79,12 @@
     <!-- Header panel -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between">
-        <p class="text-[10px] font-mono uppercase tracking-widest" style="color:#f59e0b">Header</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-accent-warm">Header</p>
         <button class="jwt-copy-section text-[10px] font-mono text-text-muted hover:text-accent transition-colors" data-section="header">Copy</button>
       </div>
       <div id="jwt-header-panel"
         class="p-4 bg-bg-elevated border rounded-xl text-sm font-mono leading-relaxed min-h-[80px] whitespace-pre-wrap break-all"
-        style="border-color: rgb(245 158 11 / 0.25)"></div>
+        style="border-color: color-mix(in srgb, var(--color-accent-warm) 25%, transparent)"></div>
     </div>
 
     <!-- Payload panel -->
@@ -102,7 +102,7 @@
   <!-- Signature panel -->
   <div class="space-y-1.5">
     <div class="flex items-center justify-between">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Signature (raw base64url — not verified)</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Signature (raw base64url — not verified)</p>
       <button class="jwt-copy-section text-[10px] font-mono text-text-muted hover:text-accent transition-colors" data-section="sig">Copy</button>
     </div>
     <div id="jwt-sig-panel"
@@ -111,14 +111,14 @@
 
   <!-- Claims table -->
   <div id="jwt-claims-wrap" class="hidden space-y-1.5">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Standard claims</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Standard claims</p>
     <div class="overflow-x-auto rounded-xl border border-border-subtle">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-border-subtle bg-bg-elevated">
-            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-muted">Claim</th>
-            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-muted">Raw value</th>
-            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-muted">Decoded</th>
+            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-secondary">Claim</th>
+            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-secondary">Raw value</th>
+            <th class="px-4 py-2.5 text-left text-xs font-mono text-text-secondary">Decoded</th>
           </tr>
         </thead>
         <tbody id="jwt-claims-body" class="divide-y divide-border-subtle bg-bg-surface"></tbody>
@@ -127,8 +127,8 @@
   </div>
 
   <!-- Security disclaimer -->
-  <p class="text-[10px] font-mono text-text-muted/50 leading-relaxed">
-    This token is decoded locally — it is never sent to any server. The signature is displayed but <strong class="text-text-muted">not cryptographically verified</strong>. Do not rely on this tool for security decisions.
+  <p class="text-[10px] font-mono text-text-muted leading-relaxed">
+    This token is decoded locally — it is never sent to any server. The signature is displayed but <strong class="text-text-secondary">not cryptographically verified</strong>. Do not rely on this tool for security decisions.
   </p>
 
 </div>
@@ -136,22 +136,22 @@
 <style>
   /* Syntax highlight colours — reuse JSON formatter palette */
   .jf-key   { color: var(--color-accent); }
-  .jf-str   { color: #4ade80; }
-  .jf-num   { color: #22d3ee; }
-  .jf-bool  { color: #fbbf24; }
-  .jf-null  { color: #fbbf24; }
+  .jf-str   { color: var(--color-accent-success); }
+  .jf-num   { color: #22d3ee; }   /* cyan-400 — kept raw, no semantic numeric token */
+  .jf-bool  { color: var(--color-accent-warm); }
+  .jf-null  { color: var(--color-accent-warm); }
   .jf-punct { color: var(--color-text-muted); opacity: 0.6; }
 
   /* Token segment colours */
-  .jwt-seg-header  { color: #f59e0b; }
+  .jwt-seg-header  { color: var(--color-accent-warm); }
   .jwt-seg-payload { color: #60a5fa; }
-  .jwt-seg-sig     { color: var(--color-text-muted); opacity: 0.5; }
-  .jwt-seg-dot     { color: var(--color-text-muted); opacity: 0.3; }
+  .jwt-seg-sig     { color: var(--color-text-muted); }
+  .jwt-seg-dot     { color: var(--color-text-muted); opacity: 0.5; }
 
   /* Expiry badges */
-  .badge-valid   { background: rgb(34 197 94 / 0.15); color: #4ade80; }
-  .badge-expired { background: rgb(239 68 68 / 0.15); color: #f87171; }
-  .badge-warn    { background: rgb(251 191 36 / 0.15); color: #fbbf24; }
+  .badge-valid   { background: color-mix(in srgb, var(--color-accent-success) 15%, transparent); color: var(--color-accent-success); }
+  .badge-expired { background: color-mix(in srgb, var(--color-accent-danger) 15%, transparent); color: var(--color-accent-danger); }
+  .badge-warn    { background: color-mix(in srgb, var(--color-accent-warm) 15%, transparent); color: var(--color-accent-warm); }
   .badge-no-exp  { background: var(--color-bg-elevated); color: var(--color-text-muted); border: 1px solid var(--color-border-subtle); }
 </style>
 

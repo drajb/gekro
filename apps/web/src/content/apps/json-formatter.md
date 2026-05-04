@@ -7,7 +7,7 @@ aiSummary: "Client-side JSON formatter using native JSON.parse() for validation 
 personalUse: "I paste API responses here constantly to read nested structures before writing parsers. The line-number error pinpointing is the feature I reach for most when debugging malformed JSON from third-party webhooks."
 status: "active"
 publishedAt: "2026-04-20"
-icon: "{ }"
+icon: "🧩"
 license: "MIT"
 ---
 

@@ -21,7 +21,7 @@
         <span class="opacity-30">·</span>
         <button id="spl-load-bad" class="text-accent hover:underline">Load bad example</button>
         <span class="opacity-30">·</span>
-        <button id="spl-load-good" class="text-emerald-400 hover:underline">Load good example</button>
+        <button id="spl-load-good" class="text-accent-success hover:underline">Load good example</button>
       </div>
     </div>
     <textarea
@@ -43,11 +43,11 @@
       <p class="text-[10px] font-mono text-text-muted mt-0.5" id="spl-score-label">/ 100</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-red-500/20 rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-red-400 mb-1">High</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-accent-danger mb-1">High</p>
       <p id="spl-high" class="text-2xl font-heading font-bold text-text-primary">0</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-amber-500/20 rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-amber-400 mb-1">Medium</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-accent-warm mb-1">Medium</p>
       <p id="spl-medium" class="text-2xl font-heading font-bold text-text-primary">0</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
@@ -58,7 +58,7 @@
 
   <!-- Findings list -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Findings</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Findings</p>
     <ul id="spl-findings" class="space-y-2"></ul>
   </div>
 </div>
@@ -277,8 +277,8 @@
 
   /* ── Init ──────────────────────────────────────────────────────*/
   const SEVERITY_CLASSES: Record<Severity, { border: string; text: string; label: string }> = {
-    high:   { border: 'border-red-500/30 bg-red-500/5',     text: 'text-red-400',    label: 'HIGH' },
-    medium: { border: 'border-amber-500/30 bg-amber-500/5', text: 'text-amber-400',  label: 'MEDIUM' },
+    high:   { border: 'border-red-500/30 bg-red-500/5',     text: 'text-accent-danger',    label: 'HIGH' },
+    medium: { border: 'border-amber-500/30 bg-amber-500/5', text: 'text-accent-warm',  label: 'MEDIUM' },
     low:    { border: 'border-text-muted/20 bg-bg-elevated', text: 'text-text-muted', label: 'LOW' },
   };
 
@@ -334,12 +334,12 @@
 
       // Color the score + show interpretation label
       const verdict = score >= 80 ? 'Good' : score >= 60 ? 'Needs work' : 'Rewrite';
-      const verdictColor = score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-red-400';
+      const verdictColor = score >= 80 ? 'text-accent-success' : score >= 60 ? 'text-accent-warm' : 'text-accent-danger';
       scoreEl.className = `text-2xl font-heading font-bold ${verdictColor}`;
       scoreLabelEl.innerHTML = `/ 100 · <span class="${verdictColor}">${verdict}</span>`;
 
       if (findings.length === 0) {
-        listEl.innerHTML = '<li class="p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-emerald-400 text-xs font-mono">✓ No anti-patterns detected. Score: 100/100</li>';
+        listEl.innerHTML = '<li class="p-3 rounded-lg border border-accent-success/30 bg-accent-success/5 text-accent-success text-xs font-mono">✓ No anti-patterns detected. Score: 100/100</li>';
       } else {
         listEl.innerHTML = findings
           .sort((a, b) => {

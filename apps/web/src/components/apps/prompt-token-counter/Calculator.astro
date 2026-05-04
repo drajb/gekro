@@ -21,14 +21,14 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
     <textarea
       id="ptc-input"
       rows="8"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-sm font-mono text-text-primary leading-relaxed resize-y
              focus:outline-none focus:border-accent/40 transition-colors"
       placeholder="Paste your system prompt, user message, or full conversation here…"
       spellcheck="false"
     ></textarea>
     <p class="text-xs text-text-muted">Estimate uses 4 chars ≈ 1 token (±10% for English). Actual count varies by tokenizer and content type.</p>
-    <p id="ptc-size-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/5 text-amber-500">
+    <p id="ptc-size-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-accent-warm/30 bg-accent-warm/5 text-accent-warm">
       Large input detected — markdown analysis skipped to keep the UI responsive. Token estimate is still accurate.
     </p>
   </div>
@@ -36,30 +36,30 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
   <!-- Token count hero -->
   <div class="p-5 bg-bg-elevated border border-accent/20 rounded-xl flex flex-wrap items-end gap-6">
     <div>
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Estimated tokens</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Estimated tokens</p>
       <p id="ptc-token-count" class="text-4xl font-heading font-bold text-accent">0</p>
     </div>
     <div>
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Characters</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Characters</p>
       <p id="ptc-char-count" class="text-2xl font-heading font-semibold text-text-primary">0</p>
     </div>
     <div>
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Markdown chars</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Markdown chars</p>
       <p id="ptc-md-count" class="text-2xl font-heading font-semibold text-text-secondary">0</p>
     </div>
     <div>
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Paragraphs</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Paragraphs</p>
       <p id="ptc-para-count" class="text-2xl font-heading font-semibold text-text-secondary">0</p>
     </div>
     <div class="ml-auto text-right">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Method</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Method</p>
       <p class="text-sm font-mono text-text-secondary">chars ÷ 4</p>
     </div>
   </div>
 
   <!-- Markdown breakdown -->
   <div id="ptc-md-breakdown" class="hidden p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Markdown structure</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Markdown structure</p>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="ptc-md-grid">
       <!-- Rendered by JS -->
     </div>
@@ -67,15 +67,15 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
 
   <!-- Per-model cost table -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input cost per model (single request)</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Input cost per model (single request)</p>
     <div class="overflow-x-auto rounded-xl border border-border-subtle">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-border-subtle bg-bg-elevated">
             <th class="px-4 py-2.5 text-left text-xs font-mono uppercase tracking-wider text-text-muted">Model</th>
             <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Input cost</th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Context used<span title="Percentage of the model's maximum context window consumed by this prompt — red means &gt;80% full, which can cause truncation or degraded reasoning" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></th>
-            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Rate / 1M tok<span title="The price you pay per one million input tokens — multiply by your estimated token count and request volume to forecast monthly API spend" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Context used<span title="Percentage of the model's maximum context window consumed by this prompt — red means &gt;80% full, which can cause truncation or degraded reasoning" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></th>
+            <th class="px-4 py-2.5 text-right text-xs font-mono uppercase tracking-wider text-text-muted">Rate / 1M tok<span title="The price you pay per one million input tokens — multiply by your estimated token count and request volume to forecast monthly API spend" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border-subtle" id="ptc-tbody">
@@ -107,7 +107,7 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
 
   <!-- Cost at scale -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Cost at scale (this prompt, per model cheapest)</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Cost at scale (this prompt, per model cheapest)</p>
     <div id="ptc-scale" class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <!-- Rendered by JS -->
     </div>
@@ -161,14 +161,14 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
 
     const scaleCard = (label: string, cost: number, model: string) => `
       <div class="p-3 bg-bg-surface border border-border-subtle rounded-xl space-y-1">
-        <p class="text-[10px] font-mono uppercase tracking-wider text-text-muted">${label}</p>
+        <p class="text-[10px] font-mono uppercase tracking-wider text-text-secondary">${label}</p>
         <p class="text-lg font-heading font-semibold text-text-primary">${fmtCost(cost)}</p>
         <p class="text-[10px] text-text-muted">via ${model}</p>
       </div>`;
 
     const mdStat = (label: string, val: number) =>
       `<div class="text-center">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${label}</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">${label}</p>
         <p class="text-lg font-semibold text-text-primary mt-0.5">${val}</p>
       </div>`;
 

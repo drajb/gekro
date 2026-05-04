@@ -7,7 +7,7 @@
   <!-- Return series input -->
   <div class="space-y-3">
     <div class="flex items-center justify-between">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Return Series</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Return Series</p>
       <button id="dd-load-example" class="app-btn-secondary text-[10px] px-2 py-1 rounded">
         Load example (50 returns)
       </button>
@@ -16,7 +16,7 @@
       id="dd-returns"
       rows="8"
       placeholder="One return per line, or comma-separated.&#10;Decimal: 0.015 (means 1.5%)&#10;Percent: 1.5 (auto-detected)"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors resize-y placeholder:text-text-muted/40"
+      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors resize-y placeholder:text-text-muted"
     ></textarea>
     <p class="text-[10px] text-text-muted">Accepts decimal (0.015 = 1.5%) or percent (1.5 = 1.5%) format — auto-detected if any value exceeds 1. Comma or newline delimited.</p>
   </div>
@@ -25,9 +25,9 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
     <div class="space-y-1.5">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
         Period
-        <span title="The frequency of your return data. Affects annualization: Daily × √252, Weekly × √52, Monthly × √12." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        <span title="The frequency of your return data. Affects annualization: Daily × √252, Weekly × √52, Monthly × √12." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <div class="flex gap-2" id="dd-period-tabs">
         {['Daily', 'Weekly', 'Monthly'].map((p, i) => (
@@ -42,9 +42,9 @@
     </div>
 
     <div class="space-y-1.5">
-      <label for="dd-rfr" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      <label for="dd-rfr" class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
         Risk-Free Rate (annual %)
-        <span title="The return of a 'safe' investment like T-bills. Used as the hurdle rate in Sharpe and Sortino. Current US 3-month T-bill ≈ 5.0%." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        <span title="The return of a 'safe' investment like T-bills. Used as the hurdle rate in Sharpe and Sortino. Current US 3-month T-bill ≈ 5.0%." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <input id="dd-rfr" type="number" min="0" max="20" step="0.1" value="5.0"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
@@ -59,7 +59,7 @@
 
   <!-- Distribution summary -->
   <div id="dd-distribution" class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3 hidden">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Return Distribution</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Return Distribution</p>
     <div id="dd-dist-content" class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
       <!-- Rendered by JS -->
     </div>
@@ -67,7 +67,7 @@
 
   <!-- Equity curve -->
   <div id="dd-equity-wrap" class="space-y-2 hidden">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Equity Curve — $1 invested</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Equity Curve — $1 invested</p>
     <div id="dd-equity-chart" class="overflow-x-auto rounded-xl border border-border-subtle p-4 bg-bg-elevated">
       <!-- Rendered by JS -->
     </div>
@@ -75,7 +75,7 @@
 
   <!-- Drawdown history: top 5 episodes -->
   <div id="dd-drawdown-wrap" class="space-y-2 hidden">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Top 5 Drawdown Episodes</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Top 5 Drawdown Episodes</p>
     <div class="overflow-x-auto rounded-xl border border-border-subtle">
       <table class="w-full text-xs font-mono">
         <thead>
@@ -264,9 +264,9 @@
       sub?: string
     ) => `
       <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted flex items-center gap-1">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary flex items-center gap-1">
           ${label}
-          <span title="${tip}" class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+          <span title="${tip}" class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
         </p>
         <p class="text-xl font-heading font-bold" style="color:${color}">${value}</p>
         ${sub ? `<p class="text-[10px] font-mono text-text-muted">${sub}</p>` : ''}
@@ -274,7 +274,7 @@
 
     const distItem = (label: string, value: string, color?: string) => `
       <div class="space-y-0.5">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${label}</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">${label}</p>
         <p class="text-sm font-semibold ${color ?? 'text-text-primary'}">${value}</p>
       </div>`;
 
@@ -298,13 +298,13 @@
       lastStats = s;
 
       // Sharpe color
-      const sharpeColor = s.sharpe >= 1.5 ? '#22c55e' : s.sharpe >= 0.5 ? 'var(--color-accent-warm)' : '#f87171';
+      const sharpeColor = s.sharpe >= 1.5 ? 'var(--color-accent-success)' : s.sharpe >= 0.5 ? 'var(--color-accent-warm)' : 'var(--color-accent-danger)';
       // Sortino color
-      const sortinoColor = s.sortino >= 2 ? '#22c55e' : s.sortino >= 1 ? 'var(--color-accent-warm)' : '#f87171';
+      const sortinoColor = s.sortino >= 2 ? 'var(--color-accent-success)' : s.sortino >= 1 ? 'var(--color-accent-warm)' : 'var(--color-accent-danger)';
       // MaxDD color
-      const ddColor = s.maxDD <= 0.10 ? '#22c55e' : s.maxDD <= 0.25 ? 'var(--color-accent-warm)' : '#f87171';
+      const ddColor = s.maxDD <= 0.10 ? 'var(--color-accent-success)' : s.maxDD <= 0.25 ? 'var(--color-accent-warm)' : 'var(--color-accent-danger)';
       // Calmar color
-      const calmarColor = s.calmar >= 1 ? '#22c55e' : s.calmar >= 0.5 ? 'var(--color-accent-warm)' : '#f87171';
+      const calmarColor = s.calmar >= 1 ? 'var(--color-accent-success)' : s.calmar >= 0.5 ? 'var(--color-accent-warm)' : 'var(--color-accent-danger)';
 
       heroEl.innerHTML = [
         statCard('Sharpe Ratio', fmt3(s.sharpe), sharpeColor,
@@ -330,10 +330,10 @@
       // Distribution
       distEl.classList.remove('hidden');
       distContent.innerHTML = [
-        distItem('Total Return', fmtPct(s.totalReturn), s.totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'),
-        distItem('Ann. Return', fmtPct(s.annReturn), s.annReturn >= 0 ? 'text-emerald-400' : 'text-red-400'),
-        distItem('Best Period', '+' + fmtPct(s.best), 'text-emerald-400'),
-        distItem('Worst Period', fmtPct(s.worst), 'text-red-400'),
+        distItem('Total Return', fmtPct(s.totalReturn), s.totalReturn >= 0 ? 'text-accent-success' : 'text-accent-danger'),
+        distItem('Ann. Return', fmtPct(s.annReturn), s.annReturn >= 0 ? 'text-accent-success' : 'text-accent-danger'),
+        distItem('Best Period', '+' + fmtPct(s.best), 'text-accent-success'),
+        distItem('Worst Period', fmtPct(s.worst), 'text-accent-danger'),
       ].join('');
 
       // Equity curve — CSS bar chart
@@ -347,7 +347,7 @@
 
       const bars = sampled.map((v, i) => {
         const h = Math.max(4, Math.round(((v - minVal) / range) * 80) + 4);
-        const color = v >= 1 ? 'var(--color-accent)' : '#f87171';
+        const color = v >= 1 ? 'var(--color-accent)' : 'var(--color-accent-danger)';
         const label = `Period ${i * step}: $${fmt2(v)}`;
         return `<div style="width:4px;height:${h}px;background:${color};border-radius:1px;flex-shrink:0;" title="${label}"></div>`;
       }).join('');
@@ -375,14 +375,14 @@
           const dur = ep.troughIdx - ep.peakIdx;
           const recov = ep.recoveryIdx !== null
             ? String(ep.recoveryIdx - ep.troughIdx)
-            : '<span class="text-amber-400">ongoing</span>';
+            : '<span class="text-accent-warm">ongoing</span>';
           return `
             <tr class="border-b border-border-subtle/30">
               <td class="px-4 py-2.5 text-text-muted">${i + 1}</td>
               <td class="px-4 py-2.5 text-text-secondary">${ep.peakIdx}</td>
               <td class="px-4 py-2.5 text-text-secondary">${ep.troughIdx}</td>
-              <td class="px-4 py-2.5 text-text-secondary">${ep.recoveryIdx ?? '<span class="text-amber-400">—</span>'}</td>
-              <td class="px-4 py-2.5 text-right text-red-400 font-semibold">−${fmtPct(ep.depth, 1)}</td>
+              <td class="px-4 py-2.5 text-text-secondary">${ep.recoveryIdx ?? '<span class="text-accent-warm">—</span>'}</td>
+              <td class="px-4 py-2.5 text-right text-accent-danger font-semibold">−${fmtPct(ep.depth, 1)}</td>
               <td class="px-4 py-2.5 text-right text-text-muted">${dur} periods</td>
             </tr>`;
         }).join('');

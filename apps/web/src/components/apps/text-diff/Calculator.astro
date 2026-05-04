@@ -40,8 +40,8 @@
 
     <!-- Stats -->
     <div id="td-stats" class="hidden flex items-center gap-2 text-[11px] font-mono ml-1 flex-wrap">
-      <span id="td-stat-add" class="text-green-400"></span>
-      <span id="td-stat-rem" class="text-red-400"></span>
+      <span id="td-stat-add" class="text-accent-success"></span>
+      <span id="td-stat-rem" class="text-accent-danger"></span>
       <span id="td-stat-eq"  class="text-text-muted"></span>
     </div>
 
@@ -54,7 +54,7 @@
 
   <!-- Preset examples -->
   <div class="flex flex-wrap gap-1.5">
-    <span class="text-[10px] font-mono text-text-muted uppercase tracking-widest self-center mr-1">Presets:</span>
+    <span class="text-[10px] font-mono text-text-secondary uppercase tracking-widest self-center mr-1">Presets:</span>
     <button class="td-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="code">Code edit</button>
     <button class="td-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="json">JSON schema</button>
     <button class="td-preset app-btn-secondary text-[10px] px-2.5 py-1 rounded-md" data-preset="prose">Prose edit</button>
@@ -63,17 +63,17 @@
   <!-- Input row -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
     <div class="space-y-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Original</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Original</p>
       <textarea id="td-left"  rows="10" spellcheck="false"
-        class="w-full h-48 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+        class="w-full h-48 bg-bg-elevated border border-border rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed resize-none
                focus:outline-none focus:border-accent/40 transition-colors"
         placeholder="Original text…"></textarea>
     </div>
     <div class="space-y-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Modified</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Modified</p>
       <textarea id="td-right" rows="10" spellcheck="false"
-        class="w-full h-48 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+        class="w-full h-48 bg-bg-elevated border border-border rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed resize-none
                focus:outline-none focus:border-accent/40 transition-colors"
         placeholder="Modified text…"></textarea>
@@ -82,13 +82,13 @@
 
   <!-- Diff output -->
   <div class="space-y-1.5">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Diff output</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Diff output</p>
 
     <!-- Unified view -->
     <div id="td-unified"
       class="min-h-[120px] max-h-[480px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl text-sm font-mono leading-relaxed">
       <div id="td-unified-content" class="p-4">
-        <span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>
+        <span class="text-text-muted italic text-xs">Paste text in both panes above to see the diff…</span>
       </div>
     </div>
 
@@ -119,8 +119,8 @@
   }
 
   /* Diff line colours — additions, removals, unchanged */
-  .diff-add  { background: rgb(34 197 94 / 0.12); color: #4ade80; display: block; padding: 0 16px; margin: 0 -16px; }
-  .diff-rem  { background: rgb(239 68 68 / 0.12); color: #f87171; display: block; padding: 0 16px; margin: 0 -16px; }
+  .diff-add  { background: color-mix(in srgb, var(--color-accent-success) 12%, transparent); color: var(--color-accent-success); display: block; padding: 0 16px; margin: 0 -16px; }
+  .diff-rem  { background: color-mix(in srgb, var(--color-accent-danger) 12%, transparent); color: var(--color-accent-danger); display: block; padding: 0 16px; margin: 0 -16px; }
   .diff-eq   { color: var(--color-text-secondary); display: block; padding: 0 16px; margin: 0 -16px; }
 
   /* Gutter prefix (+/-/ ) */
@@ -129,8 +129,8 @@
   .diff-eq::before  { content: '  '; }
 
   /* Inline char-level highlights within a line */
-  .diff-ins { background: rgb(34 197 94 / 0.35); border-radius: 2px; }
-  .diff-del { background: rgb(239 68 68 / 0.35); border-radius: 2px; text-decoration: line-through; }
+  .diff-ins { background: color-mix(in srgb, var(--color-accent-success) 35%, transparent); border-radius: 2px; }
+  .diff-del { background: color-mix(in srgb, var(--color-accent-danger) 35%, transparent); border-radius: 2px; text-decoration: line-through; }
 
   /* Split view pane headers */
   .split-header { padding: 6px 16px; font-size: 0.65rem; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-muted); border-bottom: 1px solid var(--color-border-subtle); }
@@ -289,7 +289,7 @@
 
       // Empty state
       if (!a && !b) {
-        unifiedCont.innerHTML = '<span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>';
+        unifiedCont.innerHTML = '<span class="text-text-muted italic text-xs">Paste text in both panes above to see the diff…</span>';
         splitLeftEl.innerHTML = '';
         splitRightEl.innerHTML = '';
         statsEl.classList.add('hidden');
@@ -304,7 +304,7 @@
 
       // Unified view
       const { html, add, rem, eq } = buildUnified(parts, mode);
-      unifiedCont.innerHTML = html || '<span class="text-text-muted/40 italic text-xs">No differences found — texts are identical.</span>';
+      unifiedCont.innerHTML = html || '<span class="text-text-muted italic text-xs">No differences found — texts are identical.</span>';
 
       // Build plain-text for copy — simple prefix per line
       lastUnifiedText = parts.map(p => {
@@ -317,8 +317,8 @@
 
       // Split view
       const { left, right } = buildSplit(parts, mode);
-      splitLeftEl.innerHTML  = left  || '<span class="text-text-muted/40 italic text-xs">empty</span>';
-      splitRightEl.innerHTML = right || '<span class="text-text-muted/40 italic text-xs">empty</span>';
+      splitLeftEl.innerHTML  = left  || '<span class="text-text-muted italic text-xs">empty</span>';
+      splitRightEl.innerHTML = right || '<span class="text-text-muted italic text-xs">empty</span>';
 
       // Stats
       statsEl.classList.remove('hidden');

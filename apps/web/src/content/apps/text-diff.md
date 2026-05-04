@@ -7,7 +7,7 @@ aiSummary: "Client-side text and code diff tool using the MIT-licensed diff npm 
 personalUse: "I use this to compare API response shapes before and after a schema change, and to review prompt revisions when the diff is too subtle to spot by eye."
 status: "active"
 publishedAt: "2026-04-20"
-icon: "⟷"
+icon: "↔️"
 license: "MIT"
 ---
 

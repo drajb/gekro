@@ -24,7 +24,7 @@
   <!-- Code input -->
   <div class="space-y-1.5">
     <div class="flex items-center justify-between flex-wrap gap-2">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Code</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Code</label>
       <div class="flex items-center gap-2">
         <!-- Language selector -->
         <select id="csp-lang"
@@ -71,7 +71,7 @@
 
     <!-- Background gradient -->
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Background</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Background</label>
       <div class="flex gap-1 flex-wrap" id="csp-bg-swatches">
         {[
           { id:'aurora',   g:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)' },
@@ -96,7 +96,7 @@
     <!-- Padding -->
     <div class="space-y-1">
       <div class="flex justify-between">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Padding</label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Padding</label>
         <span id="csp-pad-val" class="text-[10px] font-mono text-text-muted">32px</span>
       </div>
       <input type="range" id="csp-padding" min="8" max="80" value="32"
@@ -105,7 +105,7 @@
 
     <!-- Font size -->
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Font size</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Font size</label>
       <select id="csp-fontsize"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -120,7 +120,7 @@
       <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
         <input type="checkbox" id="csp-chrome" checked class="accent-[var(--color-accent)] w-4 h-4" />
         Window chrome
-        <span title="Adds a fake macOS title bar with the red/yellow/green traffic-light buttons — gives screenshots the 'code in an editor' look that reads well in blog posts and social cards." class="ml-0.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        <span title="Adds a fake macOS title bar with the red/yellow/green traffic-light buttons — gives screenshots the 'code in an editor' look that reads well in blog posts and social cards." class="ml-0.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
         <input type="checkbox" id="csp-rounded" checked class="accent-[var(--color-accent)] w-4 h-4" />
@@ -132,7 +132,7 @@
   <!-- Live preview -->
   <div class="space-y-1.5">
     <div class="flex items-center justify-between">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Preview</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Preview</p>
       <div class="flex items-center gap-2">
         <span id="csp-loading" class="hidden text-[10px] font-mono text-text-muted animate-pulse">Highlighting…</span>
         <button id="csp-export-btn"

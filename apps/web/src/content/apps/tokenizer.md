@@ -10,7 +10,7 @@ publishedAt: "2026-04-20"
 lastVerified: "2026-04-20"
 companionPostSlug: ""
 license: "MIT"
-icon: "🪙"
+icon: "🔤"
 ---
 
 ## What It Does

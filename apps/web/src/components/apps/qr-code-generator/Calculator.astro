@@ -204,7 +204,7 @@
         <!-- Error correction + size -->
         <div class="flex flex-wrap gap-4 items-end">
           <div class="space-y-1">
-            <label class="qrg-label">Error correction<span title="How much of the QR can be damaged/obscured and still scan: L=7%, M=15%, Q=25%, H=30%. Use H (or Q) when placing a logo over the QR." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+            <label class="qrg-label">Error correction<span title="How much of the QR can be damaged/obscured and still scan: L=7%, M=15%, Q=25%, H=30%. Use H (or Q) when placing a logo over the QR." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
             <select id="qrg-ecl" class="qrg-select">
               <option value="L">L — 7%</option>
               <option value="M" selected>M — 15%</option>
@@ -229,13 +229,13 @@
             <input type="file" id="qrg-logo-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
             <div id="qrg-logo-placeholder" class="text-center space-y-1">
               <p class="text-sm font-mono text-text-muted">Drop image or click to browse</p>
-              <p class="text-[10px] font-mono text-text-muted/60">PNG, JPG, SVG, WebP — 1 MB max</p>
+              <p class="text-[10px] font-mono text-text-muted">PNG, JPG, SVG, WebP — 1 MB max</p>
             </div>
             <div id="qrg-logo-preview" class="hidden flex-col items-center gap-2">
               <img id="qrg-logo-img" src="" alt="Logo" class="max-h-16 max-w-24 object-contain rounded" />
-              <button id="qrg-logo-remove" class="text-[10px] font-mono text-red-400 hover:text-red-300 transition-colors">Remove logo</button>
+              <button id="qrg-logo-remove" class="text-[10px] font-mono text-accent-danger hover:text-red-300 transition-colors">Remove logo</button>
             </div>
-            <p id="qrg-logo-error" class="hidden text-xs font-mono text-red-400"></p>
+            <p id="qrg-logo-error" class="hidden text-xs font-mono text-accent-danger"></p>
           </div>
         </div>
       </div>

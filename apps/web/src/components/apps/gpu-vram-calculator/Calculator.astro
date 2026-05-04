@@ -37,7 +37,7 @@
   <!-- Model selection grid -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Model size (B params)</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Model size (B params)</label>
       <select id="vr-model"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -61,14 +61,14 @@
     </div>
 
     <div id="vr-custom-wrap" class="space-y-1 hidden">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Custom params (B)</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Custom params (B)</label>
       <input type="number" id="vr-custom-params" min="0.1" step="0.1" value="7"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Quantization<span title="Numeric precision used to store each model weight: FP16/BF16 = 2 bytes/param (quality baseline), INT8 = 1 byte (~half the VRAM), Q4 = 0.5 bytes (~quarter) — lower precision trades a small accuracy loss for large memory savings" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Quantization<span title="Numeric precision used to store each model weight: FP16/BF16 = 2 bytes/param (quality baseline), INT8 = 1 byte (~half the VRAM), Q4 = 0.5 bytes (~quarter) — lower precision trades a small accuracy loss for large memory savings" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-quant"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -84,7 +84,7 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Context length<span title="Max tokens in a single forward pass — KV cache memory grows proportionally with context length, so 128K context uses ~32× more KV cache VRAM than 4K" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Context length<span title="Max tokens in a single forward pass — KV cache memory grows proportionally with context length, so 128K context uses ~32× more KV cache VRAM than 4K" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-context"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -100,14 +100,14 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Batch size<span title="Number of requests processed simultaneously — each additional request multiplies the KV cache linearly; use 1 for personal/dev use, higher for serving multiple users concurrently" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Batch size<span title="Number of requests processed simultaneously — each additional request multiplies the KV cache linearly; use 1 for personal/dev use, higher for serving multiple users concurrently" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="vr-batch" min="1" max="64" step="1" value="1"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">KV cache dtype<span title="Precision used to store attention key/value pairs during generation — FP16 is the safe default; FP8 halves KV cache memory with minimal quality loss on most modern models" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">KV cache dtype<span title="Precision used to store attention key/value pairs during generation — FP16 is the safe default; FP8 halves KV cache memory with minimal quality loss on most modern models" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-kv-bytes"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -118,7 +118,7 @@
     </div>
 
     <div class="space-y-1">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Attention type<span title="Architecture of the attention mechanism: MHA (multi-head) stores one KV head per attention head; GQA (grouped-query, used in Llama 3+, Qwen 2) shares KV heads across groups, cutting KV cache to ~25%; MQA uses a single KV head for all queries" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Attention type<span title="Architecture of the attention mechanism: MHA (multi-head) stores one KV head per attention head; GQA (grouped-query, used in Llama 3+, Qwen 2) shares KV heads across groups, cutting KV cache to ~25%; MQA uses a single KV head for all queries" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-attn"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -130,7 +130,7 @@
 
     <!-- LoRA-only controls -->
     <div id="vr-lora-controls" class="space-y-1 hidden">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">LoRA rank<span title="Dimensionality of the low-rank adapter matrices — rank 16 is a common default (~0.5% of base parameters); higher rank improves fit on complex tasks but increases adapter VRAM, optimizer states, and gradients" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">LoRA rank<span title="Dimensionality of the low-rank adapter matrices — rank 16 is a common default (~0.5% of base parameters); higher rank improves fit on complex tasks but increases adapter VRAM, optimizer states, and gradients" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-lora-rank"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
@@ -148,11 +148,11 @@
   <div class="p-5 bg-bg-elevated border border-accent/20 rounded-xl space-y-4">
     <div class="flex flex-wrap items-end gap-6">
       <div>
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Total VRAM needed</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Total VRAM needed</p>
         <p id="vr-total" class="text-4xl font-heading font-bold text-accent">14.0 GB</p>
       </div>
       <div class="ml-auto text-right">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">For</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">For</p>
         <p id="vr-summary" class="text-sm font-mono text-text-secondary">7B model · FP16 · 4K context · batch 1</p>
       </div>
     </div>
@@ -168,7 +168,7 @@
 
   <!-- Hardware fit table -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Will it fit?</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Will it fit?</p>
     <div class="overflow-x-auto rounded-xl border border-border-subtle">
       <table class="w-full text-sm">
         <thead>
@@ -405,7 +405,7 @@
         const pct = b.total > 0 ? (s.value / b.total) * 100 : 0;
         return `
           <div class="space-y-0.5">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">${s.label}</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">${s.label}</p>
             <p class="text-base font-heading font-semibold text-text-primary">${fmt(s.value)}</p>
             <p class="text-[10px] font-mono text-text-muted">${pct.toFixed(0)}%</p>
           </div>
@@ -423,7 +423,7 @@
       tierGroups.forEach((hws, tier) => {
         rows.push(`
           <tr class="bg-bg-base/50 border-b border-border-subtle">
-            <td colspan="4" class="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest text-text-muted">${TIER_LABELS[tier]}</td>
+            <td colspan="4" class="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest text-text-secondary">${TIER_LABELS[tier]}</td>
           </tr>
         `);
         hws.forEach(h => {
@@ -436,12 +436,12 @@
             : (headroom >= 0 ? `+${fmt(headroom)}` : fmt(headroom));
           const headroomClass = capExceeded
             ? 'text-text-muted'
-            : (fits ? (headroom > h.vramGB * 0.3 ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400');
+            : (fits ? (headroom > h.vramGB * 0.3 ? 'text-accent-success' : 'text-accent-warm') : 'text-accent-danger');
           const verdict = capExceeded
-            ? '<span class="text-red-400 text-xs font-mono">model too big</span>'
+            ? '<span class="text-accent-danger text-xs font-mono">model too big</span>'
             : (fits
-                ? '<span class="text-emerald-400 text-xs font-mono">✓ fits</span>'
-                : '<span class="text-red-400 text-xs font-mono">✗ no</span>');
+                ? '<span class="text-accent-success text-xs font-mono">✓ fits</span>'
+                : '<span class="text-accent-danger text-xs font-mono">✗ no</span>');
           rows.push(`
             <tr class="border-b border-border-subtle/50 hover:bg-bg-elevated/30 transition-colors">
               <td class="px-4 py-2 text-text-primary">

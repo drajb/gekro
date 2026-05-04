@@ -23,17 +23,17 @@
         { id:'cf-dow',  label:'Weekday', val:'1-5', ex:'1-5  0,6', tip:'0–6 where 0=Sunday (or SUN-SAT); 1-5 = Mon–Fri, 0,6 = weekends' },
       ].map(f => (
         <div class="space-y-1.5">
-          <label for={f.id} class="block text-[10px] font-mono uppercase tracking-widest text-text-muted text-center">{f.label}<span title={f.tip} class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+          <label for={f.id} class="block text-[10px] font-mono uppercase tracking-widest text-text-secondary text-center">{f.label}<span title={f.tip} class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
           <input
             id={f.id}
             type="text"
             value={f.val}
-            class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-3 text-base font-mono
+            class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-3 text-base font-mono
                    font-semibold text-text-primary text-center focus:outline-none focus:border-accent/40 transition-colors"
             spellcheck="false"
             autocomplete="off"
           />
-          <p class="text-[9px] font-mono text-text-muted/50 text-center leading-tight">{f.ex}</p>
+          <p class="text-[9px] font-mono text-text-muted text-center leading-tight">{f.ex}</p>
         </div>
       ))}
     </div>
@@ -41,7 +41,7 @@
     <!-- Composed expression + validity -->
     <div class="flex items-stretch gap-2">
       <div class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Expression</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Expression</p>
         <p id="cron-composed" class="text-lg font-mono text-text-primary tracking-widest">0 9 * * 1-5</p>
       </div>
       <div id="cron-valid-badge"
@@ -52,13 +52,13 @@
 
     <!-- Human-readable -->
     <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-2">Plain English</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-2">Plain English</p>
       <p id="cron-description" class="text-base text-text-primary font-medium leading-relaxed">—</p>
     </div>
 
     <!-- Presets -->
     <div class="flex flex-wrap gap-2">
-      <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted self-center">Presets:</span>
+      <span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary self-center">Presets:</span>
       {[
         { label: 'Every minute',  expr: '* * * * *' },
         { label: 'Every hour',    expr: '0 * * * *' },
@@ -78,7 +78,7 @@
 
     <!-- Next runs -->
     <div class="space-y-2">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Next 10 run times (local time)</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Next 10 run times (local time)</p>
       <div id="cron-next-runs" class="space-y-1"></div>
     </div>
 
@@ -93,7 +93,7 @@
         id="cron-nl-input"
         type="text"
         placeholder='e.g. "every weekday at 9am" · "every 15 minutes" · "1st of every month at noon"'
-        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3 text-sm font-mono text-text-primary
+        class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3 text-sm font-mono text-text-primary
                focus:outline-none focus:border-accent/40 transition-colors"
         spellcheck="false"
         autocomplete="off"
@@ -101,7 +101,7 @@
     </div>
 
     <div class="flex flex-wrap gap-2">
-      <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted self-center">Try:</span>
+      <span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary self-center">Try:</span>
       {[
         'every minute',
         'every 5 minutes',
@@ -118,17 +118,17 @@
     </div>
 
     <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-3">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Generated expression</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Generated expression</p>
       <p id="cron-nl-result" class="text-2xl font-mono text-accent tracking-widest">—</p>
       <p id="cron-nl-desc" class="text-sm text-text-secondary">—</p>
-      <p id="cron-nl-error" class="text-sm text-red-400 hidden"></p>
+      <p id="cron-nl-error" class="text-sm text-accent-danger hidden"></p>
       <button id="cron-nl-use" class="app-btn-primary hidden px-4 py-2 rounded-lg text-xs">
         Open in Builder →
       </button>
     </div>
 
     <div class="space-y-2">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Next 5 run times</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Next 5 run times</p>
       <div id="cron-nl-runs" class="space-y-1"></div>
     </div>
 
@@ -325,7 +325,7 @@
       const parsed = parts.map((p,i)=>parseCronField(p,FIELDS[i]));
       const valid = parsed.every(p=>p!==null);
       badgeEl.textContent = valid?'✓ Valid':'✗ Invalid';
-      badgeEl.style.color = valid?'var(--color-accent)':'var(--color-accent-danger,#ef4444)';
+      badgeEl.style.color = valid?'var(--color-accent-success)':'var(--color-accent-danger)';
       if(!valid){descEl.textContent='Fix the invalid field(s).';runsEl.innerHTML='';return;}
       descEl.textContent = describeCron(parts,parsed as number[][]);
       renderRuns(getNextRuns(parsed,10),runsEl,10);

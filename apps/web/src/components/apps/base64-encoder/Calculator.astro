@@ -28,9 +28,9 @@
   <!-- Base64 options -->
   <div id="b64-opts-base64" class="flex flex-wrap items-center gap-4">
     <div class="flex items-center gap-2">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
         Variant
-        <span title="URL-safe Base64 replaces + with - and / with _ so the output can be used directly in URLs and filenames without percent-encoding. Used in JWTs, OAuth tokens, and URL parameters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        <span title="URL-safe Base64 replaces + with - and / with _ so the output can be used directly in URLs and filenames without percent-encoding. Used in JWTs, OAuth tokens, and URL parameters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
         <button class="b64-variant-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-variant="standard">Standard</button>
@@ -46,9 +46,9 @@
 
   <!-- URL options -->
   <div id="b64-opts-url" class="hidden flex-wrap items-center gap-4">
-    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
       Variant
-      <span title="encodeURIComponent encodes everything except A-Z a-z 0-9 - _ . ! ~ * ' ( ) — ideal for query string values. encodeURI preserves / ? = & # : @ and is meant for full URLs where you want to encode only unsafe characters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      <span title="encodeURIComponent encodes everything except A-Z a-z 0-9 - _ . ! ~ * ' ( ) — ideal for query string values. encodeURI preserves / ? = & # : @ and is meant for full URLs where you want to encode only unsafe characters." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
       <button class="b64-url-variant-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-variant="component">encodeURIComponent</button>
@@ -58,9 +58,9 @@
 
   <!-- Hex options -->
   <div id="b64-opts-hex" class="hidden flex-wrap items-center gap-4">
-    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
       Separator
-      <span title="Space: '48 65 6c 6c 6f' — easiest to read. 0x prefix: '0x48 0x65 0x6c' — common in code snippets. None: '48656c6c6f' — compact, copy-paste into tools that expect a raw hex string." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      <span title="Space: '48 65 6c 6c 6f' — easiest to read. 0x prefix: '0x48 0x65 0x6c' — common in code snippets. None: '48656c6c6f' — compact, copy-paste into tools that expect a raw hex string." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
       <button class="b64-hex-sep-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-sep="space">Space</button>
@@ -75,9 +75,9 @@
     <!-- Input -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between flex-wrap gap-2">
-        <label id="b64-input-label" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input</label>
+        <label id="b64-input-label" class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Input</label>
         <div class="flex items-center gap-2">
-          <span id="b64-input-bytes" class="text-[10px] font-mono text-text-muted/60"></span>
+          <span id="b64-input-bytes" class="text-[10px] font-mono text-text-muted"></span>
           <button id="b64-clear-btn" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">Clear</button>
         </div>
       </div>
@@ -128,9 +128,9 @@
     <!-- Output -->
     <div class="space-y-1.5">
       <div class="flex items-center justify-between flex-wrap gap-2">
-        <label id="b64-output-label" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output</label>
+        <label id="b64-output-label" class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Output</label>
         <div class="flex items-center gap-2">
-          <span id="b64-output-bytes" class="text-[10px] font-mono text-text-muted/60"></span>
+          <span id="b64-output-bytes" class="text-[10px] font-mono text-text-muted"></span>
           <button id="b64-swap-btn" class="text-[10px] font-mono text-text-muted hover:text-accent transition-colors">⇄ Swap</button>
         </div>
       </div>
@@ -147,7 +147,7 @@
       ></textarea>
       <!-- Error message -->
       <div id="b64-error" class="hidden p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg">
-        <p id="b64-error-msg" class="text-xs font-mono text-red-400"></p>
+        <p id="b64-error-msg" class="text-xs font-mono text-accent-danger"></p>
       </div>
     </div>
   </div>

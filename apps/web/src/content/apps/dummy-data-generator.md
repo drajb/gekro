@@ -7,7 +7,7 @@ aiSummary: "Client-side dummy data generator with a column builder UI and 20+ da
 personalUse: "I use this to seed test databases and mock API responses during local development. Generating 200 rows of users with email, UUID, role, and created_at in 5 seconds beats writing a seed script every time."
 status: "active"
 publishedAt: "2026-04-20"
-icon: "🎲"
+icon: "🧪"
 license: "MIT"
 ---
 

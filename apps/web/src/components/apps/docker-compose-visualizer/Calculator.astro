@@ -33,7 +33,7 @@
     <textarea
       id="dc-input"
       rows="10"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-xs font-mono text-text-primary leading-relaxed resize-y
              focus:outline-none focus:border-accent/40 transition-colors"
       placeholder="version: '3.8'&#10;services:&#10;  app:&#10;    image: myapp:latest&#10;    ports: ['8080:80']&#10;    depends_on: [db]&#10;  db:&#10;    image: postgres:16&#10;    ports: ['5432:5432']"
@@ -43,7 +43,7 @@
 
   <!-- Lint summary -->
   <div id="dc-lint" class="hidden p-4 bg-bg-surface border border-border-subtle rounded-xl space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Lint findings</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Lint findings</p>
     <ul id="dc-lint-list" class="space-y-1 text-xs font-mono"></ul>
   </div>
 
@@ -53,7 +53,7 @@
   <!-- Dependency graph -->
   <div id="dc-graph-wrap" class="hidden space-y-2">
     <div class="flex items-center justify-between flex-wrap gap-2">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Dependency graph</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Dependency graph</p>
       <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
         <button id="dc-graph-ascii" class="dc-graph-tab app-btn-tab active px-3 py-1 rounded text-[10px]">ASCII</button>
         <button id="dc-graph-mermaid" class="dc-graph-tab app-btn-tab px-3 py-1 rounded text-[10px]">Mermaid</button>
@@ -63,7 +63,7 @@
   </div>
 
   <!-- Error -->
-  <p id="dc-error" class="hidden text-xs font-mono text-red-400 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/20"></p>
+  <p id="dc-error" class="hidden text-xs font-mono text-accent-danger px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/20"></p>
 </div>
 
 <script>
@@ -378,7 +378,7 @@
 
       const list = (items: string[], emptyText: string) =>
         items.length === 0
-          ? `<span class="text-text-muted/60 italic">${emptyText}</span>`
+          ? `<span class="text-text-muted italic">${emptyText}</span>`
           : items.map(i => `<code class="text-[10px] bg-bg-base px-1.5 py-0.5 rounded border border-border-subtle">${escapeHtml(i)}</code>`).join(' ');
 
       cards.push(`
@@ -392,19 +392,19 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div class="space-y-1">
-              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Ports</p>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Ports</p>
               <div class="flex flex-wrap gap-1">${list(ports, 'none')}</div>
             </div>
             <div class="space-y-1">
-              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Depends on</p>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Depends on</p>
               <div class="flex flex-wrap gap-1">${list(deps, 'nothing')}</div>
             </div>
             <div class="space-y-1">
-              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Volumes</p>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Volumes</p>
               <div class="flex flex-wrap gap-1">${list(volumes, 'none')}</div>
             </div>
             <div class="space-y-1">
-              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Environment</p>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Environment</p>
               <div class="flex flex-wrap gap-1">${list(envItems, 'none')}</div>
             </div>
           </div>
@@ -415,8 +415,8 @@
   };
 
   const SEVERITY_CLASSES = {
-    high:   'text-red-400',
-    medium: 'text-amber-400',
+    high:   'text-accent-danger',
+    medium: 'text-accent-warm',
     low:    'text-text-muted',
   };
 
@@ -455,7 +455,7 @@
         lastCompose = compose;
 
         if (!compose.services || typeof compose.services !== 'object') {
-          servicesEl.innerHTML = '<p class="text-amber-400 italic text-xs p-4 border border-amber-500/30 rounded-xl bg-amber-500/5">No `services:` block found at top level.</p>';
+          servicesEl.innerHTML = '<p class="text-accent-warm italic text-xs p-4 border border-amber-500/30 rounded-xl bg-amber-500/5">No `services:` block found at top level.</p>';
           lintEl.classList.add('hidden');
           graphWrap.classList.add('hidden');
           return;
@@ -472,7 +472,7 @@
           ).join('');
         } else {
           lintEl.classList.remove('hidden');
-          lintListEl.innerHTML = '<li class="text-emerald-400">[ok] No lint findings</li>';
+          lintListEl.innerHTML = '<li class="text-accent-success">[ok] No lint findings</li>';
         }
 
         // Graph

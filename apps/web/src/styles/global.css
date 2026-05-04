@@ -33,28 +33,38 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ── Design tokens ── */
-@theme {
-  --color-bg-base: #09090b;
-  --color-bg-surface: #121214;
-  --color-bg-elevated: #18181b;
+/* ── Design tokens — locked 2026-05-03 (premium overhaul) ─────────────────
+   See memory/design_system.md for the canonical reference. Never invent
+   colors at the component level — always use these tokens via Tailwind
+   utilities (bg-bg-base, text-accent-success, border-border-strong, etc.).
 
+   Backgrounds use a warm-leaning ladder (R > G > B by 1-2 points) for the
+   "considered dark" feel instead of clinical pure-neutral. Text-muted at
+   #8a8a93 passes WCAG AA body on bg-base/surface, AA large on bg-elevated.
+   Accents standardize success/warm/danger so apps stop inventing greens.
+   ──────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Backgrounds — warm-leaning ladder, wider luminance range than v1 */
+  --color-bg-base: #0c0b09;        /* was #09090b — warm shift, deepest layer */
+  --color-bg-surface: #15130e;     /* was #121214 — bigger jump for layering */
+  --color-bg-elevated: #1d1b16;    /* was #18181b — clearly elevated */
+  --color-bg-glass: rgba(255, 255, 255, 0.035);  /* NEW — top-edge highlight */
+
+  /* Text — three-tier hierarchy with WCAG AA on every surface */
   --color-text-primary: #fafafa;
   --color-text-secondary: #a1a1aa;
-  /* text-muted bumped 2026-05-03 from #52525b → #8a8a93. Old value computed
-     to 2.29–2.57:1 against the three bg layers, failing WCAG AA body (4.5:1)
-     AND large (3:1) on every surface — used widely for dates, reading time,
-     section labels, and TOC headers, so the failure was visible. New value
-     gives 5.18–5.81:1 (AA body pass on all three backgrounds) while still
-     leaving a clear hierarchy gap to text-secondary (6.91–7.76:1). */
-  --color-text-muted: #8a8a93;
+  --color-text-muted: #8a8a93;     /* WCAG AA body on bg-base/surface */
 
-  --color-accent: #3fb1ff;
-  --color-accent-warm: #f59e0b;
-  --color-accent-danger: #ef4444;
+  /* Accents — refined primary + actually-used semantic secondaries */
+  --color-accent: #38bdf8;         /* was #3fb1ff — sky-400, less generic */
+  --color-accent-warm: #fbbf24;    /* was #f59e0b — amber-400, more luminous */
+  --color-accent-success: #34d399; /* NEW — emerald-400 for profit/passing */
+  --color-accent-danger: #f87171;  /* was #ef4444 — softer rose-400 */
 
-  --color-border: #27272a;
-  --color-border-subtle: #18181b;
+  /* Borders — three tiers, all visible (old subtle was identical to elevated) */
+  --color-border-subtle: #23211c;  /* was #18181b (invisible) — barely visible */
+  --color-border: #33312a;         /* was #27272a — clear edge */
+  --color-border-strong: #454338;  /* NEW — emphasis, focus, active */
 
   --font-display: "Syne", sans-serif;
   --font-heading: "Cabinet Grotesk", sans-serif;
@@ -68,20 +78,22 @@ body {
   font-family: var(--font-body);
 }
 
-/* ── Light reader mode — activated by ThemeToggle via .theme-light on body ── */
-/* Overrides bg/text/border tokens only; accent colour unchanged intentionally */
+/* ── Light reader mode — warm-leaning to match dark ladder ──────────────── */
+/* Overrides bg/text/border tokens only; accents are intentionally unchanged */
 .theme-light {
-  --color-bg-base: #fdfdfd;
+  --color-bg-base: #fdfcf9;        /* warm off-white */
   --color-bg-surface: #ffffff;
-  --color-bg-elevated: #f4f4f5;
+  --color-bg-elevated: #f6f4ee;    /* warm light grey */
+  --color-bg-glass: rgba(0, 0, 0, 0.025);  /* dark overlay for premium edge */
 
-  --color-text-primary: #18181b;
-  --color-text-secondary: #3f3f46;
-  --color-text-muted: #71717a;
+  --color-text-primary: #1a1715;   /* warm dark, was #18181b */
+  --color-text-secondary: #45413a; /* warm grey, was #3f3f46 */
+  --color-text-muted: #767168;     /* warm muted, was #71717a */
 
-  --color-border: #e4e4e7;
-  --color-border-subtle: #f4f4f5;
-  /* Accent colors remain untouched for consistency */
+  --color-border-subtle: #ebe7df;  /* warm subtle */
+  --color-border: #d8d3c8;         /* warm clear */
+  --color-border-strong: #b9b3a6;  /* warm emphasis */
+  /* Accent colors remain untouched for visual consistency across modes */
 }
 
 /* ── View Transition reveal: radial clip-path from click position ── */
@@ -130,6 +142,72 @@ body {
 #pagefind-search    { --pagefind-ui-scale: 0.85; }
 #search-modal-pagefind { --pagefind-ui-scale: 0.9;  }
 
+/* ── App premium polish — cards, inputs, placeholders ─────────────────────
+   Optional utility classes apps opt into for "considered dark" feel:
+     .app-card     — surface with top-edge glass highlight + drop shadow
+     .app-input /
+     .app-textarea — carved-into-surface inset shadow + accent focus ring
+   Site-wide ::placeholder treatment — no more 40% opacity tricks.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.app-card {
+  background:
+    linear-gradient(180deg, var(--color-bg-glass) 0%, transparent 45%),
+    var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-top-color: rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 24px -12px rgba(0, 0, 0, 0.4);
+}
+.theme-light .app-card {
+  border-top-color: rgba(0, 0, 0, 0.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 4px 16px -8px rgba(0, 0, 0, 0.06);
+}
+
+.app-input,
+.app-textarea {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  width: 100%;
+}
+.app-input:focus,
+.app-textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(56, 189, 248, 0.15);
+  outline: none;
+}
+.theme-light .app-input,
+.theme-light .app-textarea {
+  background-color: var(--color-bg-elevated);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.theme-light .app-input:focus,
+.theme-light .app-textarea:focus {
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.06),
+    0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+/* Site-wide placeholder treatment — full opacity, muted token. Apps no longer
+   need /40 opacity hacks like text-text-muted/40 (which gave ~1.7:1 contrast). */
+::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
 /* ── App tool button system ────────────────────────────────────────────────
    Three tiers used across all 50+ browser tools. Pure CSS vars throughout
    so both dark and .theme-light modes work with no extra overrides.
@@ -144,12 +222,12 @@ body {
 
 /* Tier 1 — Primary CTA -------------------------------------------------- */
 .app-btn-primary {
-  background: linear-gradient(145deg, #68c8ff 0%, var(--color-accent) 52%, #1a9bef 100%);
+  background: linear-gradient(145deg, #7dd3fc 0%, var(--color-accent) 52%, #0ea5e9 100%);
   color: #07070a;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 0 0 1px rgba(63, 177, 255, 0.18),
-    0 0 28px rgba(63, 177, 255, 0.38),
+    0 0 0 1px rgba(56, 189, 248, 0.18),
+    0 0 28px rgba(56, 189, 248, 0.38),
     0 4px 18px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   font-family: var(--font-mono);
@@ -164,8 +242,8 @@ body {
 .app-btn-primary:hover {
   filter: brightness(1.1) saturate(1.08);
   box-shadow:
-    0 0 0 1px rgba(63, 177, 255, 0.28),
-    0 0 48px rgba(63, 177, 255, 0.56),
+    0 0 0 1px rgba(56, 189, 248, 0.28),
+    0 0 48px rgba(56, 189, 248, 0.56),
     0 6px 24px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transform: translateY(-1px) scale(1.018);
@@ -174,23 +252,23 @@ body {
   transform: scale(0.952);
   filter: brightness(0.92);
   box-shadow:
-    0 0 0 1px rgba(63, 177, 255, 0.12),
-    0 0 14px rgba(63, 177, 255, 0.22),
+    0 0 0 1px rgba(56, 189, 248, 0.12),
+    0 0 14px rgba(56, 189, 248, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 .theme-light .app-btn-primary {
-  border-color: rgba(63, 177, 255, 0.35);
+  border-color: rgba(56, 189, 248, 0.35);
   box-shadow:
-    0 0 0 1px rgba(63, 177, 255, 0.22),
-    0 0 22px rgba(63, 177, 255, 0.22),
-    0 4px 14px rgba(63, 177, 255, 0.14),
+    0 0 0 1px rgba(56, 189, 248, 0.22),
+    0 0 22px rgba(56, 189, 248, 0.22),
+    0 4px 14px rgba(56, 189, 248, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 .theme-light .app-btn-primary:hover {
   box-shadow:
-    0 0 0 1px rgba(63, 177, 255, 0.38),
-    0 0 36px rgba(63, 177, 255, 0.32),
-    0 6px 18px rgba(63, 177, 255, 0.2),
+    0 0 0 1px rgba(56, 189, 248, 0.38),
+    0 0 36px rgba(56, 189, 248, 0.32),
+    0 6px 18px rgba(56, 189, 248, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
@@ -211,19 +289,19 @@ body {
 }
 .app-btn-secondary:hover {
   color: var(--color-accent);
-  border-color: rgba(63, 177, 255, 0.45);
-  background-color: rgba(63, 177, 255, 0.06);
-  box-shadow: 0 0 14px rgba(63, 177, 255, 0.12);
+  border-color: rgba(56, 189, 248, 0.45);
+  background-color: rgba(56, 189, 248, 0.06);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.12);
 }
 .app-btn-secondary:active {
   transform: scale(0.97);
-  background-color: rgba(63, 177, 255, 0.1);
+  background-color: rgba(56, 189, 248, 0.1);
 }
 .app-btn-secondary.active {
   color: var(--color-accent);
-  border-color: rgba(63, 177, 255, 0.42);
-  background-color: rgba(63, 177, 255, 0.1);
-  box-shadow: 0 0 10px rgba(63, 177, 255, 0.15);
+  border-color: rgba(56, 189, 248, 0.42);
+  background-color: rgba(56, 189, 248, 0.1);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
 }
 
 /* Tier 3 — Tab / segmented-control pill ---------------------------------- */
@@ -242,14 +320,14 @@ body {
   background-color: rgba(255, 255, 255, 0.05);
 }
 .app-btn-tab.active {
-  background-color: rgba(63, 177, 255, 0.14);
+  background-color: rgba(56, 189, 248, 0.14);
   color: var(--color-accent);
 }
 .theme-light .app-btn-tab:hover:not(.active) {
   background-color: rgba(0, 0, 0, 0.04);
 }
 .theme-light .app-btn-tab.active {
-  background-color: rgba(63, 177, 255, 0.11);
+  background-color: rgba(56, 189, 248, 0.11);
 }
 
 /* ── Prose spacing overrides — supplements @tailwindcss/typography defaults ── */

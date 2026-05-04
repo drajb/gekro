@@ -22,8 +22,8 @@
   <!-- ── Text input panel ─────────────────────────────────────── -->
   <div id="hg-text-panel" class="space-y-2">
     <div class="flex items-center justify-between flex-wrap gap-2">
-      <label for="hg-text-input" class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Input text</label>
-      <span id="hg-char-count" class="text-[10px] font-mono text-text-muted/60">0 chars</span>
+      <label for="hg-text-input" class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Input text</label>
+      <span id="hg-char-count" class="text-[10px] font-mono text-text-muted">0 chars</span>
     </div>
     <textarea
       id="hg-text-input"
@@ -67,17 +67,17 @@
     <label class="flex items-center gap-2.5 cursor-pointer select-none w-fit">
       <input type="checkbox" id="hg-hmac-toggle" class="accent-[var(--color-accent)] w-4 h-4" />
       <span class="text-sm font-mono text-text-muted">Enable HMAC
-        <span title="HMAC (Hash-based Message Authentication Code) combines a secret key with your message before hashing. Unlike a plain hash, the same input produces different output for each key — making it impossible to verify or forge without knowing the secret. Use it for API request signing, webhooks, and anywhere you need to prove a message came from someone who knows the key." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        <span title="HMAC (Hash-based Message Authentication Code) combines a secret key with your message before hashing. Unlike a plain hash, the same input produces different output for each key — making it impossible to verify or forge without knowing the secret. Use it for API request signing, webhooks, and anywhere you need to prove a message came from someone who knows the key." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </span>
     </label>
     <div id="hg-hmac-key-wrap" class="hidden">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted block mb-1.5">Secret key</label>
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary block mb-1.5">Secret key</label>
       <input
         type="text"
         id="hg-hmac-key"
         placeholder="Enter HMAC secret key..."
         class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
-               text-sm font-mono text-text-primary placeholder:text-text-muted/50
+               text-sm font-mono text-text-primary placeholder:text-text-muted
                focus:outline-none focus:border-accent/40 transition-colors"
       />
     </div>
@@ -85,7 +85,7 @@
 
   <!-- ── Algorithm selection ───────────────────────────────────── -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Algorithms</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Algorithms</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
       {[
         { id: 'hg-alg-md5',    label: 'MD5',    note: 'Not cryptographically secure — use for checksums only', warn: true },
@@ -97,7 +97,7 @@
         <label class="flex items-start gap-2.5 p-3 rounded-xl border border-border-subtle bg-bg-elevated cursor-pointer hover:border-accent/30 transition-all select-none">
           <input type="checkbox" id={alg.id} checked class="accent-[var(--color-accent)] w-4 h-4 shrink-0 mt-0.5" />
           <span class="flex flex-col leading-tight gap-0.5">
-            <span class={`text-xs font-mono font-semibold ${alg.warn ? 'text-amber-400' : 'text-text-primary'}`}>{alg.label}</span>
+            <span class={`text-xs font-mono font-semibold ${alg.warn ? 'text-accent-warm' : 'text-text-primary'}`}>{alg.label}</span>
             <span class="text-[10px] font-mono text-text-muted">{alg.note}</span>
           </span>
         </label>
@@ -107,9 +107,9 @@
 
   <!-- ── Encoding selector ─────────────────────────────────────── -->
   <div class="flex items-center gap-4 flex-wrap">
-    <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+    <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
       Output encoding
-      <span title="Hex encodes each byte as two hexadecimal characters (0–9, a–f). Base64 compresses the same data into a shorter string using 64 printable characters — roughly 33% more compact. Use hex for checksums and debugging; use base64 when embedding hashes in JSON, HTTP headers, or URLs." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+      <span title="Hex encodes each byte as two hexadecimal characters (0–9, a–f). Base64 compresses the same data into a shorter string using 64 printable characters — roughly 33% more compact. Use hex for checksums and debugging; use base64 when embedding hashes in JSON, HTTP headers, or URLs." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
     </label>
     <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg">
       <button class="hg-enc-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-enc="hex">Hex</button>
@@ -124,7 +124,7 @@
 
   <!-- Empty state -->
   <div id="hg-empty-state" class="py-8 text-center">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted/50">Enter text or drop a file to see hashes</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary/50">Enter text or drop a file to see hashes</p>
   </div>
 
 </div>
@@ -387,7 +387,7 @@
       if (!algos.length) { showEmpty(); return; }
 
       emptyState.classList.add('hidden');
-      outputArea.innerHTML = '<p class="text-[10px] font-mono text-text-muted/50 animate-pulse">Computing…</p>';
+      outputArea.innerHTML = '<p class="text-[10px] font-mono text-text-muted animate-pulse">Computing…</p>';
 
       const rows: Array<{ label: string; hash: string; bits: number; bytes: number }> = [];
 
@@ -429,7 +429,7 @@
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
               <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-accent/15 text-accent">${r.label}</span>
-              <span class="text-[10px] font-mono text-text-muted/60">${r.bits} bits · ${r.bytes} bytes</span>
+              <span class="text-[10px] font-mono text-text-muted">${r.bits} bits · ${r.bytes} bytes</span>
             </div>
             <button
               class="hg-copy-btn text-[10px] font-mono px-2.5 py-1 rounded-md border border-border-subtle bg-bg-elevated text-text-muted hover:text-accent hover:border-accent/30 transition-all"

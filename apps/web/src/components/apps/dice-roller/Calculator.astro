@@ -15,7 +15,7 @@
   </div>
 
   <!-- Dice tray — filled by JS -->
-  <div id="dr-tray" class="flex flex-wrap justify-center gap-6 py-4"></div>
+  <div id="dr-tray" class="flex flex-wrap justify-center gap-x-8 gap-y-6 py-4"></div>
 
   <!-- Results row — individual + total -->
   <div id="dr-results-row" class="hidden">
@@ -38,26 +38,26 @@
   <!-- History -->
   <div class="space-y-2">
     <div class="flex items-center justify-between px-1">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Roll history</p>
-      <button id="dr-clear-history" class="text-[10px] font-mono text-text-muted hover:text-red-400 transition-colors">Clear</button>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Roll history</p>
+      <button id="dr-clear-history" class="text-[10px] font-mono text-text-muted hover:text-accent-danger transition-colors">Clear</button>
     </div>
     <div id="dr-history" class="max-h-44 overflow-y-auto rounded-xl border border-border-subtle bg-bg-elevated divide-y divide-border-subtle">
-      <p id="dr-history-empty" class="px-4 py-3 text-xs font-mono text-text-muted/50 text-center">No rolls yet</p>
+      <p id="dr-history-empty" class="px-4 py-3 text-xs font-mono text-text-muted text-center">No rolls yet</p>
     </div>
   </div>
 
   <!-- Stats -->
   <div class="grid grid-cols-3 gap-3">
     <div class="p-3 bg-bg-surface border border-border-subtle rounded-xl text-center">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Rolls</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Rolls</p>
       <p id="dr-stat-rolls" class="text-xl font-heading font-bold text-text-primary mt-1">0</p>
     </div>
     <div class="p-3 bg-bg-surface border border-border-subtle rounded-xl text-center">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Avg total</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Avg total</p>
       <p id="dr-stat-avg" class="text-xl font-heading font-bold text-text-primary mt-1">—</p>
     </div>
     <div class="p-3 bg-bg-surface border border-border-subtle rounded-xl text-center">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Best roll</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Best roll</p>
       <p id="dr-stat-best" class="text-xl font-heading font-bold mt-1" style="color:var(--color-accent)">—</p>
     </div>
   </div>
@@ -80,6 +80,9 @@
     border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
     color: var(--color-text-secondary);
   }
+
+  /* Each die slot — fixed 90px footprint so flex gap renders consistently for 1-4 dice */
+  #dr-app .dr-slot { width: 90px; flex: 0 0 90px; }
 
   /* 3-D scene — these elements are created via JS innerHTML so they need is:global */
   #dr-app .die-scene { perspective: 420px; width: 90px; height: 90px; }
@@ -168,7 +171,7 @@
   const FACE_LAYOUT: Record<string,number> = {front:1, back:6, left:2, right:5, top:3, bottom:4};
   // Which face is visible after applying FACE_ROTATIONS[val]
   const VISIBLE_FACE: Record<number,string> = {1:'front', 2:'left', 3:'top', 4:'bottom', 5:'right', 6:'back'};
-  const COLORS = ['var(--color-accent)','#22c55e','#f59e0b','#a855f7'];
+  const COLORS = ['var(--color-accent)','var(--color-accent-success)','var(--color-accent-warm)','#a855f7'];
   const FACES  = ['front','back','right','left','top','bottom'];
 
   const makePips = (val: number, accent=false): string =>
@@ -183,7 +186,7 @@
   };
 
   const makeDieHTML = (i: number, name: string, color: string): string => `
-    <div class="flex flex-col items-center gap-1" id="dr-slot-${i}">
+    <div class="dr-slot flex flex-col items-center gap-1 shrink-0" id="dr-slot-${i}">
       <input type="text" class="dr-name-input" id="dr-name-${i}" value="${name}" placeholder="Player ${i+1}" maxlength="16"/>
       <div class="die-scene" style="--die-color:${color}">
         <div class="die-cube" id="dr-cube-${i}">

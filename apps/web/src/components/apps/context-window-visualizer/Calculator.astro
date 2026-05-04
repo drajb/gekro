@@ -25,7 +25,7 @@
     <textarea
       id="cw-input"
       rows="10"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-xs font-mono text-text-primary leading-relaxed resize-y
              focus:outline-none focus:border-accent/40 transition-colors"
       placeholder="SYSTEM: You are a helpful assistant.&#10;&#10;USER: First question…&#10;&#10;ASSISTANT: First answer…&#10;&#10;USER: Follow-up…"
@@ -35,14 +35,14 @@
 
   <!-- Window targets -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Context window fit</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Context window fit</p>
     <div id="cw-windows" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
   </div>
 
   <!-- Message stack -->
   <div class="space-y-2">
     <div class="flex items-center justify-between">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Message stack (sized by tokens)</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Message stack (sized by tokens)</p>
       <p class="text-[10px] font-mono text-text-muted">
         <span class="inline-block w-2 h-2 rounded-full bg-purple-500/60 mr-1"></span>system
         <span class="inline-block w-2 h-2 rounded-full bg-blue-500/60 ml-2 mr-1"></span>user
@@ -55,9 +55,9 @@
   <!-- Truncation simulation -->
   <div class="space-y-2">
     <div class="flex items-center justify-between flex-wrap gap-2">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Truncation simulation</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Truncation simulation</p>
       <div class="flex items-center gap-2">
-        <label class="text-[10px] font-mono text-text-muted">Target window:<span title="The model's maximum context limit to simulate truncation against — tokens beyond this limit cannot be seen by the model and must be dropped or summarized" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+        <label class="text-[10px] font-mono text-text-muted">Target window:<span title="The model's maximum context limit to simulate truncation against — tokens beyond this limit cannot be seen by the model and must be dropped or summarized" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <select id="cw-target"
           class="bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1
                  text-[11px] font-mono text-text-primary focus:outline-none">
@@ -295,13 +295,13 @@
       windowsEl.innerHTML = WINDOWS.map(w => {
         const fits = total <= w.tokens;
         const pct = w.tokens > 0 ? Math.min(100, (total / w.tokens) * 100) : 0;
-        const cls = fits ? 'border-emerald-500/30' : 'border-red-500/30';
+        const cls = fits ? 'border-accent-success/30' : 'border-red-500/30';
         const fillCls = fits ? (pct > 80 ? 'bg-amber-500/60' : 'bg-emerald-500/60') : 'bg-red-500/60';
         return `
           <div class="p-2.5 bg-bg-elevated border ${cls} rounded-lg space-y-1.5">
             <div class="flex items-baseline justify-between">
               <p class="text-xs font-mono font-bold text-text-primary">${w.label}</p>
-              <p class="text-[9px] font-mono ${fits ? 'text-emerald-400' : 'text-red-400'}">${fits ? '✓' : '✗'} ${pct.toFixed(0)}%</p>
+              <p class="text-[9px] font-mono ${fits ? 'text-accent-success' : 'text-accent-danger'}">${fits ? '✓' : '✗'} ${pct.toFixed(0)}%</p>
             </div>
             <div class="h-1 bg-bg-base rounded-full overflow-hidden">
               <div class="h-full ${fillCls}" style="width:${Math.min(100, pct).toFixed(1)}%"></div>
@@ -325,7 +325,7 @@
         return `
           <div class="flex items-center gap-2 text-xs">
             <span class="w-8 text-[9px] font-mono text-text-muted shrink-0">${i + 1}.</span>
-            <span class="w-12 text-[9px] font-mono ${m.role === 'system' ? 'text-purple-400' : m.role === 'user' ? 'text-blue-400' : 'text-emerald-400'} shrink-0">${ROLE_LABELS[m.role]}</span>
+            <span class="w-12 text-[9px] font-mono ${m.role === 'system' ? 'text-purple-400' : m.role === 'user' ? 'text-blue-400' : 'text-accent-success'} shrink-0">${ROLE_LABELS[m.role]}</span>
             <div class="flex-1 h-5 bg-bg-elevated rounded relative overflow-hidden border border-border-subtle">
               <div class="h-full ${ROLE_COLORS[m.role]}" style="width:${widthPct.toFixed(1)}%" title="${m.tokens} tokens"></div>
               <div class="absolute inset-0 flex items-center px-2 pointer-events-none">
@@ -350,14 +350,14 @@
         const r = s.result;
         const fits = r.tokens <= target;
         const pct = (r.tokens / target * 100);
-        const cls = fits ? 'border-emerald-500/20' : 'border-red-500/20';
+        const cls = fits ? 'border-accent-success/20' : 'border-red-500/20';
         const droppedCount = r.dropped.length;
-        const summaryNote = (s as any).result?.summaryTokens > 0 ? `<span class="text-amber-400">+ summary token cost</span>` : '';
+        const summaryNote = (s as any).result?.summaryTokens > 0 ? `<span class="text-accent-warm">+ summary token cost</span>` : '';
         return `
           <div class="p-3 bg-bg-elevated border ${cls} rounded-xl space-y-2">
             <div class="flex items-baseline justify-between gap-2">
               <h4 class="text-xs font-mono font-bold text-accent">${s.name}</h4>
-              <p class="text-[10px] font-mono ${fits ? 'text-emerald-400' : 'text-red-400'}">${r.tokens.toLocaleString()} / ${target.toLocaleString()}t (${pct.toFixed(0)}%)</p>
+              <p class="text-[10px] font-mono ${fits ? 'text-accent-success' : 'text-accent-danger'}">${r.tokens.toLocaleString()} / ${target.toLocaleString()}t (${pct.toFixed(0)}%)</p>
             </div>
             <p class="text-[10px] font-mono text-text-muted">${s.desc}</p>
             <p class="text-[10px] font-mono text-text-muted">

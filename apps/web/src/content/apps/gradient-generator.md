@@ -7,7 +7,7 @@ aiSummary: "Client-side CSS generator for glassmorphism panels and mesh gradient
 personalUse: "I prototype dark-mode UI panels with glass effects here and copy the CSS directly into components. The mesh tab lets me design hero section backgrounds that match the Gekro color scheme in seconds."
 status: "active"
 publishedAt: "2026-04-20"
-icon: "🌫️"
+icon: "🌈"
 license: "MIT"
 ---
 

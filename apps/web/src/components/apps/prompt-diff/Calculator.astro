@@ -21,7 +21,7 @@
   <!-- Two-column input -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
     <div class="space-y-1.5">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Version A — Before</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Version A — Before</p>
       <textarea id="pd-left" rows="6" spellcheck="false"
         class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed resize-none
@@ -29,7 +29,7 @@
         placeholder="Paste the original prompt here…"></textarea>
     </div>
     <div class="space-y-1.5">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Version B — After</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Version B — After</p>
       <textarea id="pd-right" rows="6" spellcheck="false"
         class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed resize-none
@@ -60,8 +60,8 @@
 
   <!-- Diff mode tabs -->
   <div class="flex items-center gap-2">
-  <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Mode
-    <span title="Line diff: highlights entire added/removed lines — best for structural prompt changes. Word diff: highlights individual word additions/removals within lines — best for wording refinements." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+  <span class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Mode
+    <span title="Line diff: highlights entire added/removed lines — best for structural prompt changes. Word diff: highlights individual word additions/removals within lines — best for wording refinements." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
   </span>
   <div class="flex gap-1 p-1 bg-bg-elevated border border-border-subtle rounded-lg w-fit">
     <button class="pd-mode-btn app-btn-tab active px-3 py-1.5 rounded-md text-xs" data-mode="line">Line diff</button>
@@ -71,18 +71,18 @@
 
   <!-- Diff output -->
   <div class="space-y-1.5">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Diff</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Diff</p>
     <div id="pd-output"
       class="min-h-[120px] max-h-[480px] overflow-auto bg-bg-elevated border border-border-subtle rounded-xl text-sm font-mono leading-relaxed">
       <div id="pd-output-inner" class="p-4">
-        <span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>
+        <span class="text-text-muted italic text-xs">Paste text in both panes above to see the diff…</span>
       </div>
     </div>
   </div>
 
   <!-- Legend -->
   <div class="flex flex-wrap gap-4 text-[10px] font-mono text-text-muted">
-    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-emerald-500/20 border-l-2 border-emerald-500/60"></span>Added</span>
+    <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-accent-success/20 border-l-2 border-emerald-500/60"></span>Added</span>
     <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-red-500/20 border-l-2 border-red-500/60"></span>Removed</span>
     <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm bg-bg-elevated border border-border-subtle"></span>Unchanged</span>
   </div>
@@ -307,7 +307,7 @@
       const b = rightEl.value;
 
       if (!a && !b) {
-        outputEl.innerHTML = '<span class="text-text-muted/40 italic text-xs">Paste text in both panes above to see the diff…</span>';
+        outputEl.innerHTML = '<span class="text-text-muted italic text-xs">Paste text in both panes above to see the diff…</span>';
         statChars.textContent = '—';
         statLines.textContent = '—';
         statToks.textContent = '—';
@@ -346,10 +346,10 @@
         lastPlainDiff = buildPlainDiff(changes, 'word');
       }
 
-      outputEl.innerHTML = html || '<span class="text-text-muted/40 italic text-xs">No differences — prompts are identical.</span>';
+      outputEl.innerHTML = html || '<span class="text-text-muted italic text-xs">No differences — prompts are identical.</span>';
 
       const pct = Math.round(simScore * 100);
-      const simColor = pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-red-400';
+      const simColor = pct >= 80 ? 'text-accent-success' : pct >= 50 ? 'text-accent-warm' : 'text-accent-danger';
       statSim.innerHTML = `<span class="${simColor}">${pct}%</span>`;
     };
 

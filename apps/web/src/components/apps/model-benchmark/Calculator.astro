@@ -12,7 +12,7 @@
  *   Benchmarks: MMLU, HumanEval, MATH, GPQA-Diamond.
  *   Capabilities: vision, tool use, extended thinking, training cutoff.
  *
- * Highlights: best-in-row → text-emerald-400, worst-in-row → text-red-400/70.
+ * Highlights: best-in-row → text-accent-success, worst-in-row → text-accent-danger/70.
  * Supports up to 4 simultaneous model columns.
  *
  * Zero deps. Pure DOM.
@@ -24,9 +24,9 @@
   <!-- Model picker -->
   <div class="space-y-2">
     <div class="flex items-center justify-between gap-3">
-      <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
         Select models to compare
-        <span title="Pick up to 4 models. Defaults: GPT-4o, Claude 3.7 Sonnet, Gemini 2.0 Flash, Llama 3.3 70B." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        <span title="Pick up to 4 models. Defaults: GPT-4o, Claude 3.7 Sonnet, Gemini 2.0 Flash, Llama 3.3 70B." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <span id="mb-sel-count" class="text-[10px] font-mono text-accent">4 selected</span>
     </div>
@@ -415,7 +415,7 @@
       // Header
       thead.innerHTML = `
         <tr class="border-b border-border-subtle bg-bg-elevated">
-          <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-widest text-text-muted w-48 sticky left-0 bg-bg-elevated z-10">Metric</th>
+          <th class="px-4 py-3 text-left text-[10px] font-mono uppercase tracking-widest text-text-secondary w-48 sticky left-0 bg-bg-elevated z-10">Metric</th>
           ${cols.map(m => `
             <th class="px-4 py-3 text-center text-xs font-mono text-text-primary whitespace-nowrap min-w-[140px]">
               <div class="font-semibold">${m.name}</div>
@@ -456,7 +456,7 @@
         }
 
         const labelHtml = row.tooltip
-          ? `${row.label} <span title="${row.tooltip.replace(/"/g, '&quot;')}" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>`
+          ? `${row.label} <span title="${row.tooltip.replace(/"/g, '&quot;')}" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>`
           : row.label;
 
         rows.push(`
@@ -464,8 +464,8 @@
             <td class="px-4 py-2.5 text-xs font-mono text-text-muted sticky left-0 bg-bg-base z-10 hover:bg-bg-elevated/30">${labelHtml}</td>
             ${cols.map((m, i) => {
               let cls = 'text-text-primary';
-              if (!row.isBoolRow && i === bestIdx) cls = 'text-emerald-400 font-semibold';
-              else if (!row.isBoolRow && i === worstIdx) cls = 'text-red-400/70';
+              if (!row.isBoolRow && i === bestIdx) cls = 'text-accent-success font-semibold';
+              else if (!row.isBoolRow && i === worstIdx) cls = 'text-accent-danger/70';
               const val = row.format(m);
               return `<td class="px-4 py-2.5 text-center text-xs font-mono ${cls}">${val}</td>`;
             }).join('')}

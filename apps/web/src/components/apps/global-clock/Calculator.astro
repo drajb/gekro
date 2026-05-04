@@ -67,17 +67,17 @@
       { zone:'Asia/Singapore',       label:'Singapore', sub:'SGT'       },
     ].map(c => (
       <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl" data-tz={c.zone}>
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">{c.label}</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">{c.label}</p>
         <p class="gcl-time text-xl font-heading font-semibold text-text-primary tabular-nums mt-1"></p>
         <p class="gcl-date text-[10px] font-mono text-text-muted mt-0.5"></p>
-        <p class="gcl-offset text-[9px] font-mono text-text-muted/60 mt-0.5">{c.sub}</p>
+        <p class="gcl-offset text-[9px] font-mono text-text-muted mt-0.5">{c.sub}</p>
       </div>
     ))}
   </div>
 
   <!-- UTC strip -->
   <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl flex items-center justify-between">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">UTC / GMT</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">UTC / GMT</p>
     <p id="gcl-utc" class="text-sm font-mono text-text-secondary tabular-nums"></p>
   </div>
 

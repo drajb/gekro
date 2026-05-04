@@ -7,7 +7,7 @@ aiSummary: "Client-side QR code generator supporting 8 data types (URL, WiFi, te
 personalUse: "I use this for WiFi QR codes at my desk and vCard codes on business materials. The logo embed makes them feel branded rather than generic."
 status: "active"
 publishedAt: "2026-04-20"
-icon: "⬛"
+icon: "🔳"
 license: "MIT"
 ---
 

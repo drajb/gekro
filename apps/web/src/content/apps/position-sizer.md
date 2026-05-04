@@ -7,7 +7,7 @@ aiSummary: "A client-side position sizing calculator implementing the Kelly crit
 personalUse: "I run this before sizing any discretionary trade. Kelly tells me the theoretical max; I trade half-Kelly in practice because the variance at full Kelly is brutal even when the math is right."
 status: "active"
 publishedAt: "2026-04-19"
-icon: "📊"
+icon: "⚖️"
 license: "MIT"
 ---
 

@@ -29,7 +29,7 @@
     <div class="space-y-1.5">
       <label for="bmi-age" class="text-sm font-medium text-text-secondary">Age (years)</label>
       <input id="bmi-age" type="number" min="2" max="120" step="1" value="30"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
     </div>
 
     <!-- Sex -->
@@ -51,7 +51,7 @@
       <label class="text-sm font-medium text-text-secondary">Weight</label>
       <div class="flex gap-2">
         <input id="bmi-weight" type="number" min="0" step="0.5" value="165"
-          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+          class="flex-1 bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
         <span id="bmi-weight-unit" class="flex items-center px-3 bg-bg-elevated border border-border-subtle rounded-lg text-xs font-mono text-text-muted">lbs</span>
       </div>
     </div>
@@ -61,15 +61,15 @@
       <label class="text-sm font-medium text-text-secondary">Height</label>
       <div id="bmi-height-imperial" class="flex gap-2">
         <input id="bmi-feet" type="number" min="0" max="9" step="1" value="5"
-          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+          class="flex-1 bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
         <span class="flex items-center px-2 text-xs font-mono text-text-muted">ft</span>
         <input id="bmi-inches" type="number" min="0" max="11" step="0.5" value="9"
-          class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+          class="flex-1 bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
         <span class="flex items-center px-2 text-xs font-mono text-text-muted">in</span>
       </div>
       <div id="bmi-height-metric" class="hidden">
         <input id="bmi-cm" type="number" min="0" step="0.5" value="175"
-          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
         <span class="text-xs text-text-muted">cm</span>
       </div>
     </div>
@@ -99,11 +99,13 @@
 <script>
   const fmt = (n: number, dec = 1) => n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
 
+  // SVG gauge needs raw hex (stop-color/fill attributes don't resolve var()).
+  // Values mirror the design tokens: success #34d399, warm #fbbf24, danger #f87171.
   const bmiCategory = (bmi: number): { label: string; color: string } => {
     if (bmi < 18.5) return { label: 'Underweight', color: '#60a5fa' };
-    if (bmi < 25)   return { label: 'Normal weight', color: '#22c55e' };
-    if (bmi < 30)   return { label: 'Overweight', color: '#f59e0b' };
-    return { label: 'Obese', color: '#ef4444' };
+    if (bmi < 25)   return { label: 'Normal weight', color: '#34d399' };
+    if (bmi < 30)   return { label: 'Overweight', color: '#fbbf24' };
+    return { label: 'Obese', color: '#f87171' };
   };
 
   const bmiGauge = (bmi: number): string => {
@@ -122,9 +124,9 @@
       <defs>
         <linearGradient id="bmiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%"   stop-color="#60a5fa"/>
-          <stop offset="24%"  stop-color="#22c55e"/>
-          <stop offset="57%"  stop-color="#f59e0b"/>
-          <stop offset="100%" stop-color="#ef4444"/>
+          <stop offset="24%"  stop-color="#34d399"/>
+          <stop offset="57%"  stop-color="#fbbf24"/>
+          <stop offset="100%" stop-color="#f87171"/>
         </linearGradient>
       </defs>
       <rect x="0" y="8" width="${w}" height="${h}" rx="${r}" fill="url(#bmiGrad)" opacity="0.3"/>
@@ -215,7 +217,7 @@
         <div class="p-5 bg-bg-surface border border-border-subtle rounded-xl space-y-3">
           <div class="flex items-end gap-4">
             <div>
-              <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">BMI</p>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">BMI</p>
               <p class="text-5xl font-heading font-bold" style="color:${color}">${fmt(bmi)}</p>
             </div>
             <div class="pb-1">
@@ -232,22 +234,22 @@
         <!-- Metrics grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1 text-center">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">BMR</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">BMR</p>
             <p class="text-xl font-semibold text-text-primary">${Math.round(bmr)}</p>
             <p class="text-[10px] text-text-muted">kcal/day at rest</p>
           </div>
           <div class="p-4 bg-bg-elevated border border-accent/20 rounded-xl space-y-1 text-center">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">TDEE</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">TDEE</p>
             <p class="text-xl font-semibold text-accent">${Math.round(tdee)}</p>
             <p class="text-[10px] text-text-muted">kcal/day to maintain</p>
           </div>
           <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1 text-center">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">To lose 0.5 kg/wk</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">To lose 0.5 kg/wk</p>
             <p class="text-xl font-semibold text-text-primary">${Math.round(tdee - 550)}</p>
             <p class="text-[10px] text-text-muted">kcal/day (−550)</p>
           </div>
           <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl space-y-1 text-center">
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">To gain 0.5 kg/wk</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">To gain 0.5 kg/wk</p>
             <p class="text-xl font-semibold text-text-primary">${Math.round(tdee + 550)}</p>
             <p class="text-[10px] text-text-muted">kcal/day (+550)</p>
           </div>
@@ -256,12 +258,12 @@
         <!-- Ideal weight -->
         <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl flex flex-wrap gap-6 items-center">
           <div>
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Healthy weight range</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Healthy weight range</p>
             <p class="text-lg font-semibold text-text-primary">${toDisplay(idealLow)} – ${toDisplay(idealHigh)}</p>
             <p class="text-xs text-text-muted">BMI 18.5–24.9 for your height</p>
           </div>
           <div>
-            <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Current weight</p>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Current weight</p>
             <p class="text-lg font-semibold" style="color:${color}">${toDisplay(kg)}</p>
             <p class="text-xs text-text-muted">${kg < idealLow ? toDisplay(idealLow-kg) + ' below range' : kg > idealHigh ? toDisplay(kg-idealHigh) + ' above range' : '✓ within range'}</p>
           </div>

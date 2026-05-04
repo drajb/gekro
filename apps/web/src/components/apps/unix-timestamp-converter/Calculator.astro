@@ -7,11 +7,11 @@
   <!-- Live clock -->
   <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl flex flex-wrap items-center justify-between gap-4">
     <div>
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Current Unix timestamp</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Current Unix timestamp</p>
       <p id="utc-live" class="text-3xl font-heading font-bold text-accent font-mono tabular-nums">—</p>
     </div>
     <div class="text-right">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted mb-1">Milliseconds</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mb-1">Milliseconds</p>
       <p id="utc-live-ms" class="text-lg font-mono text-text-secondary tabular-nums">—</p>
     </div>
     <button id="utc-copy-live" class="app-btn-secondary px-3 py-1.5 text-xs rounded-lg">
@@ -24,7 +24,7 @@
 
     <!-- Unix → Human -->
     <div class="space-y-3 p-4 bg-bg-surface border border-border-subtle rounded-xl">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Unix → Human</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Unix → Human</p>
       <div class="flex gap-2">
         <input id="utc-unix-in" type="text" inputmode="numeric" placeholder="e.g. 1713535200" value="1713535200"
           class="flex-1 bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
@@ -39,7 +39,7 @@
 
     <!-- Human → Unix -->
     <div class="space-y-3 p-4 bg-bg-surface border border-border-subtle rounded-xl">
-      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Human → Unix</p>
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Human → Unix</p>
       <input id="utc-date-in" type="datetime-local"
         class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
       <div id="utc-date-result" class="space-y-2 text-sm">
@@ -51,7 +51,7 @@
 
   <!-- Format selector -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Output formats (from Unix → Human input)</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Output formats (from Unix → Human input)</p>
     <div id="utc-formats" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
       <!-- filled by JS -->
     </div>
@@ -59,7 +59,7 @@
 
   <!-- Common epochs -->
   <div class="space-y-2">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Common epochs</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Common epochs</p>
     <div class="overflow-x-auto rounded-xl border border-border-subtle">
       <table class="w-full text-xs font-mono">
         <thead>

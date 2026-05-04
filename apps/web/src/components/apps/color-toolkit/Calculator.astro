@@ -37,12 +37,12 @@
       <input type="file" id="ct-file-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
       <span class="text-4xl pointer-events-none select-none">🖼️</span>
       <p class="text-sm font-mono text-text-muted pointer-events-none">Drop an image or click to browse</p>
-      <p class="text-[10px] font-mono text-text-muted/50 pointer-events-none">PNG · JPG · WebP · GIF · max 10 MB</p>
+      <p class="text-[10px] font-mono text-text-muted pointer-events-none">PNG · JPG · WebP · GIF · max 10 MB</p>
     </div>
 
     <!-- Error -->
-    <div id="ct-extract-error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
-      <p class="text-xs font-mono text-red-400" id="ct-extract-error-msg"></p>
+    <div id="ct-extract-error" class="hidden p-3 bg-accent-danger/10 border border-accent-danger/30 rounded-xl">
+      <p class="text-xs font-mono text-accent-danger" id="ct-extract-error-msg"></p>
     </div>
 
     <!-- Preview + swatches -->
@@ -52,7 +52,7 @@
         <img id="ct-thumb" src="" alt="Uploaded" class="h-24 w-24 rounded-xl object-cover border border-border-subtle shrink-0" />
         <!-- Dominant color swatches -->
         <div class="flex-1 space-y-2">
-          <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Dominant colors</p>
+          <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Dominant colors</p>
           <div id="ct-swatches" class="flex flex-wrap gap-2"></div>
         </div>
       </div>
@@ -82,10 +82,10 @@
 
       <!-- HEX -->
       <div class="space-y-1">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">HEX</label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">HEX</label>
         <div class="flex items-center gap-2">
           <input type="text" id="ct-hex" value="#3B82F6" maxlength="7" spellcheck="false"
-            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+            class="flex-1 bg-bg-elevated border border-border rounded-xl px-4 py-2.5
                    text-sm font-mono text-text-primary uppercase
                    focus:outline-none focus:border-accent/40 transition-colors" />
           <button class="ct-copy-field app-btn-secondary text-xs px-2.5 py-2 rounded-lg" data-field="hex">⎘</button>
@@ -94,10 +94,10 @@
 
       <!-- RGB -->
       <div class="space-y-1">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">RGB</label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">RGB</label>
         <div class="flex items-center gap-2">
           <input type="text" id="ct-rgb" value="rgb(59, 130, 246)" spellcheck="false"
-            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+            class="flex-1 bg-bg-elevated border border-border rounded-xl px-4 py-2.5
                    text-sm font-mono text-text-primary
                    focus:outline-none focus:border-accent/40 transition-colors" />
           <button class="ct-copy-field app-btn-secondary text-xs px-2.5 py-2 rounded-lg" data-field="rgb">⎘</button>
@@ -106,10 +106,10 @@
 
       <!-- HSL -->
       <div class="space-y-1">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">HSL<span title="Hue (0–360°), Saturation (0–100%), Lightness (0–100%) — easier to manipulate programmatically than RGB. Format: hsl(217, 91%, 60%)" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">HSL<span title="Hue (0–360°), Saturation (0–100%), Lightness (0–100%) — easier to manipulate programmatically than RGB. Format: hsl(217, 91%, 60%)" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <div class="flex items-center gap-2">
           <input type="text" id="ct-hsl" value="hsl(217, 91%, 60%)" spellcheck="false"
-            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+            class="flex-1 bg-bg-elevated border border-border rounded-xl px-4 py-2.5
                    text-sm font-mono text-text-primary
                    focus:outline-none focus:border-accent/40 transition-colors" />
           <button class="ct-copy-field app-btn-secondary text-xs px-2.5 py-2 rounded-lg" data-field="hsl">⎘</button>
@@ -118,10 +118,10 @@
 
       <!-- CMYK -->
       <div class="space-y-1">
-        <label class="text-[10px] font-mono uppercase tracking-widest text-text-muted">CMYK<span title="Cyan, Magenta, Yellow, Key (black) — the color model used in print. Derived from RGB; useful when preparing colors for physical printing." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted/50 cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
+        <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">CMYK<span title="Cyan, Magenta, Yellow, Key (black) — the color model used in print. Derived from RGB; useful when preparing colors for physical printing." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <div class="flex items-center gap-2">
           <input type="text" id="ct-cmyk" spellcheck="false"
-            class="flex-1 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-2.5
+            class="flex-1 bg-bg-elevated border border-border rounded-xl px-4 py-2.5
                    text-sm font-mono text-text-primary
                    focus:outline-none focus:border-accent/40 transition-colors" />
           <button class="ct-copy-field app-btn-secondary text-xs px-2.5 py-2 rounded-lg" data-field="cmyk">⎘</button>
@@ -132,7 +132,7 @@
     <!-- Tailwind closest match (informational) -->
     <div id="ct-tailwind-match" class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
       <div class="flex items-center justify-between flex-wrap gap-2">
-        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Tailwind closest</p>
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Tailwind closest</p>
         <span id="ct-tw-value" class="text-xs font-mono text-accent"></span>
       </div>
     </div>
@@ -474,7 +474,7 @@
       const raw = hexEl.value.trim();
       const rgb = hexToRgb(raw);
       if (rgb) { updateFromRgb(rgb, 'hex'); hexEl.style.borderColor = ''; }
-      else hexEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+      else hexEl.style.borderColor = 'color-mix(in srgb, var(--color-accent-danger) 50%, transparent)';
     });
     // Normalize hex to #RRGGBB on blur so the field always shows the canonical form
     hexEl.addEventListener('blur', () => {
@@ -485,19 +485,19 @@
     rgbEl.addEventListener('input', () => {
       const rgb = parseRgbStr(rgbEl.value.trim());
       if (rgb) { updateFromRgb(rgb, 'rgb'); rgbEl.style.borderColor = ''; }
-      else rgbEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+      else rgbEl.style.borderColor = 'color-mix(in srgb, var(--color-accent-danger) 50%, transparent)';
     });
 
     hslEl.addEventListener('input', () => {
       const hsl = parseHslStr(hslEl.value.trim());
       if (hsl) { updateFromRgb(hslToRgb(hsl), 'hsl'); hslEl.style.borderColor = ''; }
-      else hslEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+      else hslEl.style.borderColor = 'color-mix(in srgb, var(--color-accent-danger) 50%, transparent)';
     });
 
     cmykEl.addEventListener('input', () => {
       const cmyk = parseCmykStr(cmykEl.value.trim());
       if (cmyk) { updateFromRgb(cmykToRgb(cmyk), 'cmyk'); cmykEl.style.borderColor = ''; }
-      else cmykEl.style.borderColor = 'rgb(239 68 68 / 0.5)';
+      else cmykEl.style.borderColor = 'color-mix(in srgb, var(--color-accent-danger) 50%, transparent)';
     });
 
     picker.addEventListener('input', () => {
