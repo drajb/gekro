@@ -1,24 +1,38 @@
 /**
- * global.css — Tailwind v4 design system and global base styles
+ * global.css — Tailwind v4 design system + premium polish layer
  *
  * Architecture:
  *  @theme block defines all CSS custom properties consumed by Tailwind's
  *  utility classes (bg-bg-base, text-text-primary, font-heading, etc.).
  *  Tailwind v4 reads these as design tokens — no tailwind.config.js needed.
  *
- * Design tokens:
- *  bg-*      — background layers (base → surface → elevated, darkest → lightest)
- *  text-*    — text hierarchy (primary → secondary → muted, brightest → dimmest)
- *  accent    — primary interactive colour (#3fb1ff)
- *  accent-warm — secondary warm accent (#f59e0b, used for completed experiments)
- *  accent-danger — error/destructive colour (#ef4444)
- *  border / border-subtle — two levels of border opacity
- *  font-*    — font stacks (display, heading, body, mono)
+ * Design tokens (locked 2026-05-03 — see memory/design_system.md):
+ *  bg-*           — warm-leaning ladder (base #0c0b09 → surface #15130e → elevated #1d1b16)
+ *  bg-glass       — top-edge highlight overlay (3.5% white) for premium cards
+ *  text-*         — three-tier hierarchy, all WCAG AA on every surface
+ *  accent         — primary interactive (#38bdf8 sky-400 — refined)
+ *  accent-warm    — highlights, "live" badges (#fbbf24 amber-400)
+ *  accent-success — profit/passing/positive (#34d399 emerald-400) — NEW 2026-05-03
+ *  accent-danger  — errors/losses (#f87171 rose-400 — softer than red-500)
+ *  border-subtle  — card edges (#23211c warm dark, was invisible)
+ *  border         — input/button edges (#33312a warm clear)
+ *  border-strong  — emphasis/focus (#454338) — NEW 2026-05-03
+ *  font-*         — Syne / Cabinet Grotesk / Inter / Geist Mono
  *
  * Light reader mode (.theme-light):
- *  Overrides the @theme vars to a light palette when the ThemeToggle is
- *  activated. Only bg/text/border vars are changed — accent colours are
- *  intentionally kept the same for visual consistency.
+ *  Overrides bg/text/border tokens to warm-leaning light equivalents.
+ *  Accent colours intentionally unchanged across modes for brand consistency.
+ *
+ * Premium polish layer:
+ *  .app-card       — top-edge glass highlight + soft drop shadow
+ *  .app-input /
+ *  .app-textarea   — inset "carved-into-surface" shadow + accent halo focus
+ *  ::placeholder   — site-wide rule using muted token at full opacity
+ *
+ * App button system (3 tiers):
+ *  .app-btn-primary   — solid accent gradient + glow (THE one action per app)
+ *  .app-btn-secondary — visible border + primary text + accent hover
+ *  .app-btn-tab       — segmented-control pills inside container
  *
  * View Transition reveal animation:
  *  reveal-light keyframe drives a radial clip-path transition anchored to
