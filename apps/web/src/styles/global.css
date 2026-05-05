@@ -362,3 +362,17 @@ body {
 .prose hr {
   @apply my-16 border-border;
 }
+
+/* ── Light-mode inline-code colour override ───────────────────────────────
+   The brand accent #3fb1ff renders at ~2.3:1 on the warm cream light-mode
+   background — far below WCAG AA body (4.5:1). It works in dark mode
+   (~7:1) but not against #fdfcf9. Switch inline <code> to a darker blue
+   (#1864b3 ≈ 5.83:1 on bg-base, 5.44:1 on bg-elevated) when .theme-light is
+   active. Code inside <pre> blocks is excluded — Shiki controls those
+   colours via inline styles and they're tuned for the tokyo-night theme.
+   Affects both BlogLayout (prose-code:text-accent/90) and ExperimentLayout
+   (prose-code:text-accent prose-code:bg-accent/5) since both wrap content
+   in .prose. */
+.theme-light .prose code:not(pre code) {
+  color: #1864b3;
+}

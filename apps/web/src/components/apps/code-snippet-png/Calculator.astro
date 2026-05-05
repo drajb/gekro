@@ -29,7 +29,7 @@
         <!-- Language selector -->
         <select id="csp-lang"
           class="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
-                 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
+                 text-xs font-mono text-text-primary focus:outline-none focus:border-accent transition-colors">
           {[
             'javascript','typescript','python','rust','go','java','c','cpp','csharp',
             'bash','sql','html','css','json','yaml','toml','markdown','ruby','php',
@@ -40,7 +40,7 @@
         <!-- Theme selector -->
         <select id="csp-theme"
           class="bg-bg-elevated border border-border-subtle rounded-lg px-3 py-1.5
-                 text-xs font-mono text-text-primary focus:outline-none focus:border-accent/40 transition-colors">
+                 text-xs font-mono text-text-primary focus:outline-none focus:border-accent transition-colors">
           {[
             ['github-dark','GitHub Dark'],
             ['tokyo-night','Tokyo Night'],
@@ -61,7 +61,7 @@
       autocomplete="off"
       class="w-full h-48 bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
              text-sm font-mono text-text-primary leading-relaxed resize-none
-             focus:outline-none focus:border-accent/40 transition-colors"
+             focus:outline-none focus:border-accent transition-colors"
       placeholder="Paste your code here…"
     ></textarea>
   </div>
@@ -107,7 +107,7 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Font size</label>
       <select id="csp-fontsize"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         {['12px','13px','14px','15px','16px','18px','20px'].map(s => (
           <option value={s} selected={s === '14px'}>{s}</option>
@@ -117,12 +117,12 @@
 
     <!-- Toggles -->
     <div class="space-y-2">
-      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+      <label class="flex items-center gap-2 text-xs font-mono text-text-secondary cursor-pointer select-none">
         <input type="checkbox" id="csp-chrome" checked class="accent-[var(--color-accent)] w-4 h-4" />
         Window chrome
         <span title="Adds a fake macOS title bar with the red/yellow/green traffic-light buttons — gives screenshots the 'code in an editor' look that reads well in blog posts and social cards." class="ml-0.5 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
-      <label class="flex items-center gap-2 text-xs font-mono text-text-muted cursor-pointer select-none">
+      <label class="flex items-center gap-2 text-xs font-mono text-text-secondary cursor-pointer select-none">
         <input type="checkbox" id="csp-rounded" checked class="accent-[var(--color-accent)] w-4 h-4" />
         Rounded corners
       </label>

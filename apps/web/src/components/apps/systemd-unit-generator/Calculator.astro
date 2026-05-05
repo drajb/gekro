@@ -17,21 +17,21 @@
     <div class="space-y-1 sm:col-span-2">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Description</label>
       <input type="text" id="su-desc" value="My background service"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1 sm:col-span-2">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">ExecStart command</label>
       <input type="text" id="su-exec" value="/usr/local/bin/myapp --port 8080"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Type<span title="Controls how systemd tracks the service process. 'simple' = ExecStart is the main process (most common). 'forking' = process daemonizes itself and writes a PID file. 'oneshot' = exits after running once. 'notify' = process calls sd_notify() when ready." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="su-type"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="simple" selected>simple — process is the service</option>
         <option value="forking">forking — daemonizes (writes pid)</option>
@@ -44,7 +44,7 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Restart policy<span title="When to auto-restart the service. 'on-failure' = restart on non-zero exit code (recommended for servers). 'always' = restart even on clean exit. 'on-abnormal' = restart on signal or timeout only. 'no' = never restart." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="su-restart"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="on-failure" selected>on-failure (recommended)</option>
         <option value="always">always</option>
@@ -57,21 +57,21 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">User</label>
       <input type="text" id="su-user" value="nobody"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Group (blank = same as user)</label>
       <input type="text" id="su-group" placeholder="(optional)"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Working directory</label>
       <input type="text" id="su-wd" placeholder="(optional, e.g. /opt/myapp)"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
@@ -79,28 +79,28 @@
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Restart delay (sec)<span title="How long systemd waits before restarting after a failure (RestartSec). A small delay (3–10s) prevents rapid crash loops from hammering the system." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="su-restart-sec" min="0" max="3600" value="5"
         inputmode="numeric"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1 sm:col-span-2">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Environment variables (KEY=value, one per line)</label>
       <textarea id="su-env" rows="3" placeholder="DATABASE_URL=postgres://localhost/mydb&#10;LOG_LEVEL=info"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary leading-relaxed focus:outline-none transition-colors"></textarea>
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">EnvironmentFile (path)<span title="Path to a file containing KEY=value pairs, loaded as environment variables at service start. Useful for secrets — keep the file root-owned with chmod 600. Prefix the path with '-' (e.g. -/etc/myapp/env) to make it optional." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="text" id="su-env-file" placeholder="(optional, e.g. /etc/myapp/env)"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Memory limit (e.g. 512M, 2G)<span title="Sets MemoryMax — the hard ceiling for RAM usage. The OOM killer terminates the service if it exceeds this. Use 'M' for megabytes or 'G' for gigabytes. Leave blank for no limit." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="text" id="su-mem" placeholder="(optional)"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
@@ -108,14 +108,14 @@
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">CPU quota % (e.g. 50)<span title="Sets CPUQuota — the maximum CPU time the service may use, as a percentage of one core. 50 = half a core. On multi-core systems you can exceed 100 (e.g. 200 = two full cores). Leave blank for no limit." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="su-cpu" min="1" max="800" placeholder="(optional)"
         inputmode="numeric"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1 sm:col-span-2">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">After= (other unit dependencies, comma-separated)<span title="Ordering + hard dependency. 'After' ensures this unit starts after the listed units. 'Requires' (generated alongside it) means this unit won't start at all if a dependency fails to start. Common targets: network.target, postgresql.service, docker.service." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="text" id="su-after" placeholder="(optional, e.g. network.target,postgresql.service)"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
   </div>

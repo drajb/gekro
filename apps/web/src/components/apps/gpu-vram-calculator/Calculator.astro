@@ -39,7 +39,7 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Model size (B params)</label>
       <select id="vr-model"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="1">1B (Llama 3.2-1B)</option>
         <option value="1.5">1.5B (Phi-1.5)</option>
@@ -63,14 +63,14 @@
     <div id="vr-custom-wrap" class="space-y-1 hidden">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Custom params (B)</label>
       <input type="number" id="vr-custom-params" min="0.1" step="0.1" value="7"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Quantization<span title="Numeric precision used to store each model weight: FP16/BF16 = 2 bytes/param (quality baseline), INT8 = 1 byte (~half the VRAM), Q4 = 0.5 bytes (~quarter) — lower precision trades a small accuracy loss for large memory savings" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-quant"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="4.0">FP32 (4 bytes)</option>
         <option value="2.0" selected>FP16 / BF16 (2 bytes)</option>
@@ -86,7 +86,7 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Context length<span title="Max tokens in a single forward pass — KV cache memory grows proportionally with context length, so 128K context uses ~32× more KV cache VRAM than 4K" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-context"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="2048">2K</option>
         <option value="4096" selected>4K</option>
@@ -102,14 +102,14 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Batch size<span title="Number of requests processed simultaneously — each additional request multiplies the KV cache linearly; use 1 for personal/dev use, higher for serving multiple users concurrently" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input type="number" id="vr-batch" min="1" max="64" step="1" value="1"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors" />
     </div>
 
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">KV cache dtype<span title="Precision used to store attention key/value pairs during generation — FP16 is the safe default; FP8 halves KV cache memory with minimal quality loss on most modern models" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-kv-bytes"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="2" selected>FP16 (2 bytes)</option>
         <option value="1">FP8 (1 byte)</option>
@@ -120,7 +120,7 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Attention type<span title="Architecture of the attention mechanism: MHA (multi-head) stores one KV head per attention head; GQA (grouped-query, used in Llama 3+, Qwen 2) shares KV heads across groups, cutting KV cache to ~25%; MQA uses a single KV head for all queries" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-attn"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="1">MHA (standard)</option>
         <option value="0.25" selected>GQA (Llama 3+, Qwen 2)</option>
@@ -132,7 +132,7 @@
     <div id="vr-lora-controls" class="space-y-1 hidden">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">LoRA rank<span title="Dimensionality of the low-rank adapter matrices — rank 16 is a common default (~0.5% of base parameters); higher rank improves fit on complex tasks but increases adapter VRAM, optimizer states, and gradients" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="vr-lora-rank"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="4">4</option>
         <option value="8">8</option>

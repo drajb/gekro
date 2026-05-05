@@ -29,9 +29,9 @@
     <textarea
       id="rag-input"
       rows="8"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-sm font-mono text-text-primary leading-relaxed resize-y
-             focus:outline-none focus:border-accent/40 transition-colors"
+             focus:outline-none focus:border-accent transition-colors"
       placeholder="Paste a representative document (article, code file, transcript, manual)…"
       spellcheck="false"
     ></textarea>
@@ -42,7 +42,7 @@
     <div class="space-y-1">
       <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Strategy<span title="How text is split into chunks: Fixed cuts every N chars naïvely; Recursive tries paragraph → sentence → word boundaries first (LangChain default); Sentence-aware packs whole sentences greedily — affects retrieval quality significantly" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <select id="rag-strategy"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+        class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                text-xs font-mono text-text-primary focus:outline-none transition-colors">
         <option value="recursive">Recursive (¶ → sentence → word)</option>
         <option value="fixed">Fixed-size (character cut)</option>
@@ -72,16 +72,16 @@
       <p id="rag-chunk-count" class="text-2xl font-heading font-bold text-text-primary">0</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Avg chunk size</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-1">Avg chunk size</p>
       <p id="rag-avg-size" class="text-2xl font-heading font-bold text-text-primary">0</p>
       <p class="text-[10px] font-mono text-text-muted mt-0.5">~tokens</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Total ~tokens</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-1">Total ~tokens</p>
       <p id="rag-total-tokens" class="text-2xl font-heading font-bold text-text-primary">0</p>
     </div>
     <div class="p-4 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Overlap waste</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-1">Overlap waste</p>
       <p id="rag-overlap-waste" class="text-2xl font-heading font-bold text-text-primary">0%</p>
       <p class="text-[10px] font-mono text-text-muted mt-0.5">duplicated text</p>
     </div>

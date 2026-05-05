@@ -10,26 +10,26 @@
     <div class="space-y-1.5">
       <label for="am-principal" class="text-sm font-medium text-text-secondary">Loan amount ($)</label>
       <input id="am-principal" type="number" min="0" step="1000" value="300000"
-        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
     </div>
 
     <div class="space-y-1.5">
       <label for="am-rate" class="text-sm font-medium text-text-secondary">Annual interest rate (%)<span title="The APR (Annual Percentage Rate) — the yearly cost of the loan as a percentage. Divide by 12 internally to get the monthly rate used in calculations." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="am-rate" type="number" min="0" max="30" step="0.01" value="6.5"
-        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
     </div>
 
     <div class="space-y-1.5">
       <label for="am-term" class="text-sm font-medium text-text-secondary">Loan term (years)<span title="The number of years to fully repay the loan. Common: 30 yr (lower payment, more interest) or 15 yr (higher payment, far less total interest). A 30-yr loan at the same rate costs roughly 2× the interest of a 15-yr." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="am-term" type="number" min="1" max="50" step="1" value="30"
-        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
     </div>
 
     <div class="space-y-1.5">
       <label for="am-extra" class="text-sm font-medium text-text-secondary">Extra monthly payment ($)<span title="Additional principal paid each month on top of your required payment. Goes directly to reducing the balance, which cuts total interest and shortens the loan term — even small amounts compound significantly over time." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
       <input id="am-extra" type="number" min="0" step="50" value="0"
-        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors" />
-      <p class="text-xs text-text-muted">Additional principal per month. Reduces term and total interest.</p>
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors" />
+      <p class="text-xs text-text-secondary">Additional principal per month. Reduces term and total interest.</p>
     </div>
 
   </div>
@@ -347,15 +347,15 @@
           <p class="text-xs font-mono uppercase tracking-widest text-text-secondary mb-3">Extra payment impact</p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="space-y-0.5">
-              <p class="text-xs text-text-muted">Payoff with extra</p>
+              <p class="text-xs text-text-secondary">Payoff with extra</p>
               <p class="text-lg font-semibold text-accent">${fmtDuration(res.months)}</p>
             </div>
             <div class="space-y-0.5">
-              <p class="text-xs text-text-muted">Standard payoff</p>
+              <p class="text-xs text-text-secondary">Standard payoff</p>
               <p class="text-lg font-semibold text-text-primary">${fmtDuration(base.months)}</p>
             </div>
             <div class="space-y-0.5">
-              <p class="text-xs text-text-muted">Time saved</p>
+              <p class="text-xs text-text-secondary">Time saved</p>
               <p class="text-lg font-semibold text-text-primary">${fmtDuration(savedMonths)} earlier</p>
             </div>
           </div>
@@ -370,10 +370,10 @@
           <p class="text-xs font-mono uppercase tracking-widest text-text-secondary mb-2">Payoff timeline</p>
           <div class="flex flex-wrap items-end gap-6">
             <div class="space-y-0.5">
-              <p class="text-xs text-text-muted">Loan paid off in</p>
+              <p class="text-xs text-text-secondary">Loan paid off in</p>
               <p class="text-2xl font-heading font-bold text-text-primary">${yrs} <span class="text-base font-normal text-text-secondary">yr${yrs !== 1 ? 's' : ''}</span> ${mo > 0 ? `${mo} <span class="text-base font-normal text-text-secondary">mo</span>` : ''}</p>
             </div>
-            <p class="text-sm text-text-muted pb-1">
+            <p class="text-sm text-text-secondary pb-1">
               Add an extra monthly payment above to see how much time and interest you can save.
             </p>
           </div>`;

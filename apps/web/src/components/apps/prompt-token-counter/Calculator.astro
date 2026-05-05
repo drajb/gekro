@@ -23,11 +23,11 @@ import { CLOUD_MODELS } from '../llm-cost-calculator/data';
       rows="8"
       class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-sm font-mono text-text-primary leading-relaxed resize-y
-             focus:outline-none focus:border-accent/40 transition-colors"
+             focus:outline-none focus:border-accent transition-colors"
       placeholder="Paste your system prompt, user message, or full conversation here…"
       spellcheck="false"
     ></textarea>
-    <p class="text-xs text-text-muted">Estimate uses 4 chars ≈ 1 token (±10% for English). Actual count varies by tokenizer and content type.</p>
+    <p class="text-xs text-text-secondary">Estimate uses 4 chars ≈ 1 token (±10% for English). Actual count varies by tokenizer and content type.</p>
     <p id="ptc-size-warning" class="hidden text-xs font-mono px-3 py-2 rounded-lg border border-accent-warm/30 bg-accent-warm/5 text-accent-warm">
       Large input detected — markdown analysis skipped to keep the UI responsive. Token estimate is still accurate.
     </p>

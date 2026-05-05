@@ -23,17 +23,17 @@
     <div class="space-y-1.5">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Version A — Before</p>
       <textarea id="pd-left" rows="6" spellcheck="false"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+        class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed resize-none
-               focus:outline-none focus:border-accent/40 transition-colors"
+               focus:outline-none focus:border-accent transition-colors"
         placeholder="Paste the original prompt here…"></textarea>
     </div>
     <div class="space-y-1.5">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Version B — After</p>
       <textarea id="pd-right" rows="6" spellcheck="false"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+        class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed resize-none
-               focus:outline-none focus:border-accent/40 transition-colors"
+               focus:outline-none focus:border-accent transition-colors"
         placeholder="Paste the revised prompt here…"></textarea>
     </div>
   </div>
@@ -41,15 +41,15 @@
   <!-- Stats bar -->
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
     <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Char delta</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-1">Char delta</p>
       <p id="pd-stat-chars" class="text-lg font-heading font-bold text-text-primary">—</p>
     </div>
     <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Line delta</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-1">Line delta</p>
       <p id="pd-stat-lines" class="text-lg font-heading font-bold text-text-primary">—</p>
     </div>
     <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-1">Token delta</p>
+      <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-1">Token delta</p>
       <p id="pd-stat-tokens" class="text-lg font-heading font-bold text-text-primary">—</p>
     </div>
     <div class="p-3 bg-bg-elevated border border-accent/20 rounded-xl">

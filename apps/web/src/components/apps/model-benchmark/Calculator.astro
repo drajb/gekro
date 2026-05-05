@@ -35,22 +35,22 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       <!-- OpenAI -->
       <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
-        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">OpenAI</p>
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary">OpenAI</p>
         <div id="mb-openai-checks" class="space-y-1.5"></div>
       </div>
       <!-- Anthropic -->
       <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
-        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">Anthropic</p>
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary">Anthropic</p>
         <div id="mb-anthropic-checks" class="space-y-1.5"></div>
       </div>
       <!-- Google -->
       <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
-        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">Google</p>
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary">Google</p>
         <div id="mb-google-checks" class="space-y-1.5"></div>
       </div>
       <!-- Meta + Mistral + DeepSeek -->
       <div class="p-3 bg-bg-elevated border border-border-subtle rounded-xl space-y-2">
-        <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted">Open / Other</p>
+        <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary">Open / Other</p>
         <div id="mb-open-checks" class="space-y-1.5"></div>
       </div>
     </div>
@@ -419,7 +419,7 @@
           ${cols.map(m => `
             <th class="px-4 py-3 text-center text-xs font-mono text-text-primary whitespace-nowrap min-w-[140px]">
               <div class="font-semibold">${m.name}</div>
-              <div class="text-[9px] font-mono uppercase tracking-widest text-text-muted mt-0.5">${m.provider === 'openai' ? 'OpenAI' : m.provider === 'anthropic' ? 'Anthropic' : m.provider === 'google' ? 'Google' : 'Open / Self-hosted'}</div>
+              <div class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mt-0.5">${m.provider === 'openai' ? 'OpenAI' : m.provider === 'anthropic' ? 'Anthropic' : m.provider === 'google' ? 'Google' : 'Open / Self-hosted'}</div>
             </th>
           `).join('')}
         </tr>

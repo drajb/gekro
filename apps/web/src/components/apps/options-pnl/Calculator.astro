@@ -35,7 +35,7 @@
         <span title="Current market price of the stock or ETF" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <input id="opnl-spot" type="number" min="1" step="1" value="500"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
     </div>
 
     <div class="space-y-1.5">
@@ -44,7 +44,7 @@
         <span title="The price at which the option contract gives you the right to buy (call) or sell (put) the underlying" class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <input id="opnl-strike" type="number" min="1" step="1" value="505"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
     </div>
 
     <div class="space-y-1.5">
@@ -53,7 +53,7 @@
         <span title="The price paid (long) or received (short) per share for the option. One contract = 100 shares." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <input id="opnl-premium" type="number" min="0.01" step="0.05" value="2.50"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
     </div>
 
     <div class="space-y-1.5">
@@ -62,7 +62,7 @@
         <span title="1 contract = 100 shares. Multiply your P&L by this number." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <input id="opnl-contracts" type="number" min="1" step="1" value="1"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
     </div>
 
     <div class="space-y-1.5">
@@ -70,7 +70,7 @@
         Days to Expiry (DTE)
       </label>
       <input id="opnl-dte" type="number" min="1" max="730" step="1" value="30"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
     </div>
 
     <div class="space-y-1.5">
@@ -79,7 +79,7 @@
         <span title="The market's forecast of the underlying's annualized price movement. Used for Greeks estimation only — expiry P&L is IV-independent." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
       </label>
       <input id="opnl-iv" type="number" min="1" max="500" step="1" value="30"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+        class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
     </div>
 
     <!-- Spread leg 2 (shown only for spread strategies) -->
@@ -89,14 +89,14 @@
           Strike 2 ($) — Short leg
         </label>
         <input id="opnl-strike2" type="number" min="1" step="1" value="510"
-          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
       </div>
       <div class="space-y-1.5">
         <label for="opnl-premium2" class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">
           Premium 2 ($/share) — Short leg
         </label>
         <input id="opnl-premium2" type="number" min="0.01" step="0.05" value="1.00"
-          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors font-mono" />
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors font-mono" />
       </div>
     </div>
 

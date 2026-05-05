@@ -51,7 +51,7 @@
       <div class="space-y-1">
         <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Max width (px)<span title="Resize before compressing — prevents sending 4K originals to the web. Aspect ratio is preserved automatically." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <select id="ic-maxw"
-          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+          class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                  text-xs font-mono text-text-primary focus:outline-none transition-colors">
           {['Original','3840','2560','1920','1280','960','640'].map(w => (
             <option value={w}>{w === 'Original' ? 'Original width' : w + 'px'}</option>
@@ -63,7 +63,7 @@
       <div class="space-y-1">
         <label class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Output format<span title="WebP = best compression for modern browsers; JPEG = widest compatibility; PNG = lossless, best for screenshots or logos with transparency." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span></label>
         <select id="ic-format"
-          class="w-full bg-bg-elevated border border-border-subtle rounded-lg px-2 py-1.5
+          class="w-full bg-bg-elevated border border-border rounded-lg px-2 py-1.5
                  text-xs font-mono text-text-primary focus:outline-none transition-colors">
           <option value="auto">Auto (match input)</option>
           <option value="image/jpeg">JPEG</option>

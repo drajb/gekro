@@ -43,9 +43,9 @@
     <textarea
       id="lu-input"
       rows="10"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-sm font-mono text-text-primary leading-relaxed resize-y
-             focus:outline-none focus:border-accent/40 transition-colors"
+             focus:outline-none focus:border-accent transition-colors"
       placeholder='Paste JSON here — e.g. {"choices":[{"message":{"role":"assistant","content":"Hello!"}}], ...}'
       spellcheck="false"
     ></textarea>
@@ -71,7 +71,7 @@
     <div class="space-y-1.5">
       <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Content</p>
       <pre id="lu-content"
-        class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+        class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
                text-sm font-mono text-text-primary leading-relaxed whitespace-pre-wrap break-words
                max-h-72 overflow-y-auto"></pre>
     </div>
@@ -126,19 +126,19 @@
       </p>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div>
-          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Input</p>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-0.5">Input</p>
           <p id="lu-tok-in" class="text-2xl font-heading font-bold text-text-primary">—</p>
         </div>
         <div>
-          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Output</p>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-0.5">Output</p>
           <p id="lu-tok-out" class="text-2xl font-heading font-bold text-text-primary">—</p>
         </div>
         <div>
-          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Total</p>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-0.5">Total</p>
           <p id="lu-tok-total" class="text-2xl font-heading font-bold text-accent">—</p>
         </div>
         <div id="lu-tok-cache-wrap" class="hidden">
-          <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Cached</p>
+          <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-0.5">Cached</p>
           <p id="lu-tok-cache" class="text-2xl font-heading font-bold text-accent-success">—</p>
         </div>
       </div>
@@ -152,7 +152,7 @@
       <div id="lu-cost-known" class="hidden space-y-2">
         <div class="flex items-end gap-4">
           <div>
-            <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">This request</p>
+            <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-0.5">This request</p>
             <p id="lu-cost-total" class="text-3xl font-heading font-bold text-text-primary">$0.0000</p>
           </div>
           <div class="pb-1 space-y-0.5">
@@ -176,7 +176,7 @@
         </div>
         <div id="lu-cost-picker-result" class="hidden flex items-end gap-4">
           <div>
-            <p class="text-[9px] font-mono uppercase tracking-widest text-text-muted mb-0.5">Estimated cost</p>
+            <p class="text-[9px] font-mono uppercase tracking-widest text-text-secondary mb-0.5">Estimated cost</p>
             <p id="lu-cost-picker-total" class="text-3xl font-heading font-bold text-text-primary">$0.0000</p>
           </div>
           <div class="pb-1 space-y-0.5">

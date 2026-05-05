@@ -12,25 +12,25 @@
 
   <!-- Paste mode: contenteditable -->
   <div id="rtm-paste-panel" class="space-y-2">
-    <p class="text-xs text-text-muted px-1">Paste rich text from Google Docs, Word, or any web page — formatting is preserved.</p>
+    <p class="text-xs text-text-secondary px-1">Paste rich text from Google Docs, Word, or any web page — formatting is preserved.</p>
     <div
       id="rtm-rich-input"
       contenteditable="true"
       spellcheck="false"
-      class="min-h-[180px] max-h-[360px] overflow-y-auto w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
-             text-sm text-text-primary focus:outline-none focus:border-accent/40 transition-colors prose-sm"
+      class="min-h-[180px] max-h-[360px] overflow-y-auto w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
+             text-sm text-text-primary focus:outline-none focus:border-accent transition-colors prose-sm"
       data-placeholder="Paste rich text here…"
     ></div>
   </div>
 
   <!-- HTML mode: textarea -->
   <div id="rtm-html-panel" class="hidden space-y-2">
-    <p class="text-xs text-text-muted px-1">Paste or type raw HTML. Will be converted to Markdown on input.</p>
+    <p class="text-xs text-text-secondary px-1">Paste or type raw HTML. Will be converted to Markdown on input.</p>
     <textarea
       id="rtm-html-input"
       rows="8"
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
-             text-sm font-mono text-text-primary resize-y focus:outline-none focus:border-accent/40 transition-colors"
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
+             text-sm font-mono text-text-primary resize-y focus:outline-none focus:border-accent transition-colors"
       placeholder="<h1>Hello</h1><p>Paste <strong>raw HTML</strong> here…"
       spellcheck="false"
     ></textarea>
@@ -50,7 +50,7 @@
       id="rtm-output"
       rows="14"
       readonly
-      class="w-full bg-bg-elevated border border-border-subtle rounded-xl px-4 py-3
+      class="w-full bg-bg-elevated border border-border rounded-xl px-4 py-3
              text-sm font-mono text-text-secondary resize-y focus:outline-none"
       placeholder="Markdown will appear here…"
       spellcheck="false"
