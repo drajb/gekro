@@ -41,15 +41,15 @@ jobs:
     steps:
       # ── Step 1: Get the repo onto the VM ────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # ── Step 2: Install Node so we can run the .mjs scripts ─────────────
       # No package install needed — the scripts use native fetch + fs only,
       # zero npm dependencies. Saves ~30s per run.
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'   # Node 22 LTS — Node 20 LTS exited maintenance Apr 2026
 
       # ── Step 3: Run the orchestrator ────────────────────────────────────
       # Captures the script's stdout into a file we'll embed in the PR body
@@ -133,7 +133,7 @@ jobs:
       # page in the GitHub Actions UI for 90 days.
       - name: Upload run log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pricing-run-log
           path: pricing-run.log
