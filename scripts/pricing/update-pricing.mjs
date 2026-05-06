@@ -169,38 +169,61 @@ async function discoverMode() {
     console.error('  AWS discovery failed:', err.message);
   }
 
-  // Azure Foundry — match the pricing API filter
+  // Azure Foundry — paginate fully, no truncation
   console.log('--- Azure AI Foundry ---');
   try {
-    const url = `https://prices.azure.com/api/retail/prices?$filter=${encodeURIComponent("serviceName eq 'Foundry Models' and armRegionName eq 'eastus' and type eq 'Consumption'")}`;
-    const r = await fetch(url);
-    const d = await r.json();
-    const items = d.Items ?? [];
+    /** @type {any[]} */
+    const allItems = [];
+    let url = `https://prices.azure.com/api/retail/prices?$filter=${encodeURIComponent("serviceName eq 'Foundry Models' and armRegionName eq 'eastus' and type eq 'Consumption'")}`;
+    let safety = 0;
+    while (url && safety < 50) {
+      safety += 1;
+      const r = await fetch(url);
+      const d = await r.json();
+      allItems.push(...(d.Items ?? []));
+      url = d.NextPageLink ?? null;
+    }
     /** @type {Set<string>} */
     const productNames = new Set();
-    for (const item of items) productNames.add(`${item.productName} :: ${item.skuName}`);
-    for (const name of [...productNames].sort().slice(0, 50)) {
+    for (const item of allItems) productNames.add(`${item.productName} :: ${item.skuName}`);
+    for (const name of [...productNames].sort()) {
       console.log(`  ${name}`);
     }
-    console.log(`  (${productNames.size} unique product/sku combinations${productNames.size > 50 ? `, showing 50` : ''})\n`);
+    console.log(`  (${productNames.size} unique product/sku combinations across ${allItems.length} rows)\n`);
   } catch (err) {
     console.error('  Azure discovery failed:', err.message);
   }
 
-  // GCP — only with key
+  // GCP — paginate fully, filter to only model-related SKUs (the catalog
+  // returns infrastructure SKUs too — GKE/Autopilot/Compute — which dominate
+  // by count but aren't what we want. Filter heuristic: description contains
+  // "Token" OR a known model family keyword.
   console.log('--- GCP Vertex AI ---');
   if (!process.env.GCP_BILLING_API_KEY) {
     console.log('  (skipped — set GCP_BILLING_API_KEY to discover)');
   } else {
     try {
-      const url = `https://cloudbilling.googleapis.com/v1/services/CCD8-9BF1-090E/skus?key=${process.env.GCP_BILLING_API_KEY}&pageSize=500`;
-      const r = await fetch(url);
-      const d = await r.json();
-      const skus = d.skus ?? [];
-      for (const sku of skus.slice(0, 50)) {
-        console.log(`  ${sku.description}`);
+      /** @type {any[]} */
+      const allSkus = [];
+      let pageToken = '';
+      let safety = 0;
+      while (safety < 50) {
+        safety += 1;
+        const url = `https://cloudbilling.googleapis.com/v1/services/CCD8-9BF1-090E/skus?key=${process.env.GCP_BILLING_API_KEY}&pageSize=500${pageToken ? `&pageToken=${pageToken}` : ''}`;
+        const r = await fetch(url);
+        const d = await r.json();
+        allSkus.push(...(d.skus ?? []));
+        pageToken = d.nextPageToken ?? '';
+        if (!pageToken) break;
       }
-      console.log(`  (${skus.length} SKUs${skus.length > 50 ? `, showing 50` : ''})\n`);
+      // Heuristic filter — model-like SKUs only
+      const modelKeywords = /token|gemini|claude|llama|mistral|deepseek|gemma|qwen|grok|nova/i;
+      const modelSkus = allSkus.filter(s => modelKeywords.test(s.description ?? ''));
+      const sortedDescs = [...new Set(modelSkus.map(s => s.description))].sort();
+      for (const desc of sortedDescs) {
+        console.log(`  ${desc}`);
+      }
+      console.log(`  (${modelSkus.length} model SKUs filtered from ${allSkus.length} total Vertex SKUs)\n`);
     } catch (err) {
       console.error('  GCP discovery failed:', err.message);
     }

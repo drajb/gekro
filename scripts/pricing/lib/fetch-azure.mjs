@@ -147,12 +147,17 @@ export async function fetchAzurePricing() {
   const matches = [];
 
   for (const row of rows) {
-    const isInput = /input/i.test(row.meterName);
-    const isOutput = /output/i.test(row.meterName);
+    // Azure abbreviates: "Inp" for input, "Outp" for output. Also handle full
+    // words for any rows that use them. Word boundaries prevent "Outp" from
+    // matching inside "Output" twice.
+    const meterName = row.meterName ?? '';
+    const isInput  = /\b(inp(ut)?)\b/i.test(meterName);
+    const isOutput = /\b(outp(ut)?)\b/i.test(meterName);
     if (!isInput && !isOutput) continue;
 
-    // Match against our tracked SKUs
-    const haystack = `${row.skuName ?? ''} ${row.productName ?? ''} ${row.meterName ?? ''}`;
+    // Match against our tracked SKUs. Order: productName + skuName + meterName
+    // so multi-word SKU keys like "Azure Deepseek Models V3.2 Inp" match.
+    const haystack = `${row.productName ?? ''} ${row.skuName ?? ''} ${meterName}`;
     const match = trackedSkus.find(({ sku }) => haystack.includes(sku));
     if (!match) continue;
 

@@ -1,54 +1,79 @@
 /**
- * normalize.mjs — cross-platform model SKU mapping
+ * normalize.mjs — cross-platform model SKU mapping (refreshed 2026-05-06)
  *
- * Each hyperscaler names the same underlying foundation model differently:
- *   AWS Bedrock:  "anthropic.claude-3-5-sonnet-20241022-v2:0"
- *   GCP Vertex:   "claude-3-5-sonnet-v2@20241022"
- *   Azure Foundry: (Anthropic not offered)
+ * Each hyperscaler names the same underlying foundation model differently.
+ * THIS IS THE BRIDGE: vendor SKU → canonical model ID.
  *
- * This file is the AUTHORITATIVE mapping. When a fetcher pulls down a SKU
- * from a vendor pricing API, it looks the SKU up here to find the canonical
- * model ID (e.g. "anthropic/claude-3-5-sonnet"), which is what we use in
- * hyperscaler-pricing.json.
+ * SKU naming conventions per platform (verified against live API May 2026):
  *
- * Adding a new model: add a row here AND add a model entry in
- * hyperscaler-pricing.json. The fetchers ignore SKUs they don't recognize —
- * intentional, so vendor pricing APIs returning hundreds of unrelated SKUs
- * (image gen, embeddings, fine-tuning, regional variants) don't pollute
- * the comparison.
+ *   AWS Bedrock — uses HUMAN-READABLE names in attributes.model:
+ *     "Llama 4 Maverick 17B", "Nova 2.0 Pro", "DeepSeek v3.2", "GLM 5"
+ *     Match: exact substring against attributes.model
+ *
+ *   Azure AI Foundry — uses cryptic skuName + productName combo:
+ *     productName="Azure Deepseek Models", skuName="V3.2 Inp DZ"
+ *     productName="Azure Deepseek Models", skuName="R1 Outp glbl"
+ *     Match: substring against `${productName} ${skuName}` haystack
+ *     Pricing variants: "Inp"/"Outp" = input/output, "glbl" = global (cheapest),
+ *                       "regnl" = regional, "DZone"/"DZ" = data zone
+ *     We track "glbl" (global) where available — the standard choice.
+ *
+ *   GCP Vertex AI — uses descriptive strings in sku.description:
+ *     "Gemini 2.5 Pro Input Tokens", "Claude Opus 4 Output Tokens"
+ *     Match: substring against description
+ *
+ * Adding a new model: add ALL platform variants here, then add a model entry
+ * in hyperscaler-pricing.json. The fetchers ignore SKUs not in this map —
+ * intentional, keeps the comparison focused on top models.
  */
 
 /** @type {Record<string, { canonicalId: string, platform: 'aws_bedrock' | 'azure_foundry' | 'gcp_vertex' }>} */
 export const SKU_TO_CANONICAL = {
-  // ── Anthropic ─────────────────────────────────────────────────────────
-  'anthropic.claude-3-5-sonnet-20241022-v2:0':       { canonicalId: 'anthropic/claude-3-5-sonnet', platform: 'aws_bedrock' },
-  'claude-3-5-sonnet-v2@20241022':                   { canonicalId: 'anthropic/claude-3-5-sonnet', platform: 'gcp_vertex' },
+  // ── Meta Llama 4 (latest, on multiple platforms) ─────────────────────────
+  'Llama 4 Maverick 17B':                            { canonicalId: 'meta/llama-4-maverick-17b', platform: 'aws_bedrock' },
+  'Llama 4 Scout 17B':                               { canonicalId: 'meta/llama-4-scout-17b',    platform: 'aws_bedrock' },
 
-  'anthropic.claude-3-5-haiku-20241022-v1:0':        { canonicalId: 'anthropic/claude-3-5-haiku', platform: 'aws_bedrock' },
-  'claude-3-5-haiku@20241022':                       { canonicalId: 'anthropic/claude-3-5-haiku', platform: 'gcp_vertex' },
+  // ── Meta Llama 3.3 (broad cross-platform) ────────────────────────────────
+  'Llama 3.3 70B':                                   { canonicalId: 'meta/llama-3-3-70b', platform: 'aws_bedrock' },
 
-  // ── OpenAI (Azure Foundry only) ───────────────────────────────────────
-  'gpt-4o-2024-11-20':                               { canonicalId: 'openai/gpt-4o', platform: 'azure_foundry' },
-  'gpt-4o-mini-2024-07-18':                          { canonicalId: 'openai/gpt-4o-mini', platform: 'azure_foundry' },
+  // ── DeepSeek (cross-platform AWS + Azure) ────────────────────────────────
+  'DeepSeek v3.2':                                   { canonicalId: 'deepseek/v3-2', platform: 'aws_bedrock' },
+  'DeepSeek V3.1':                                   { canonicalId: 'deepseek/v3-1', platform: 'aws_bedrock' },
+  // AWS calls DeepSeek R1 just "R1" in model attribute — match exact + provider check at fetcher level
+  'R1':                                              { canonicalId: 'deepseek/r1',   platform: 'aws_bedrock' },
 
-  // ── Google (Vertex only) ──────────────────────────────────────────────
-  'gemini-2.5-pro':                                  { canonicalId: 'google/gemini-2-5-pro', platform: 'gcp_vertex' },
-  'gemini-2.5-flash':                                { canonicalId: 'google/gemini-2-5-flash', platform: 'gcp_vertex' },
+  // Azure Foundry DeepSeek SKUs — match against productName + skuName combo
+  'Azure Deepseek Models V3.2 Inp':                  { canonicalId: 'deepseek/v3-2', platform: 'azure_foundry' },
+  'Azure Deepseek Models V3.2 Outp':                 { canonicalId: 'deepseek/v3-2', platform: 'azure_foundry' },
+  'Azure Deepseek Models V3.1 Inp glbl':             { canonicalId: 'deepseek/v3-1', platform: 'azure_foundry' },
+  'Azure Deepseek Models V3.1 Outp glbl':            { canonicalId: 'deepseek/v3-1', platform: 'azure_foundry' },
+  'Azure Deepseek Models R1 Inp glbl':               { canonicalId: 'deepseek/r1',   platform: 'azure_foundry' },
+  'Azure Deepseek Models R1 Outp glbl':              { canonicalId: 'deepseek/r1',   platform: 'azure_foundry' },
 
-  // ── Meta Llama (all three platforms) ──────────────────────────────────
-  'meta.llama3-3-70b-instruct-v1:0':                 { canonicalId: 'meta/llama-3-3-70b', platform: 'aws_bedrock' },
-  'Meta-Llama-3.3-70B-Instruct':                     { canonicalId: 'meta/llama-3-3-70b', platform: 'azure_foundry' },
-  'llama-3.3-70b-instruct':                          { canonicalId: 'meta/llama-3-3-70b', platform: 'gcp_vertex' },
+  // ── Mistral Large 3 (cross-platform AWS confirmed) ───────────────────────
+  'Mistral Large 3':                                 { canonicalId: 'mistral/large-3', platform: 'aws_bedrock' },
 
-  // ── Mistral (all three platforms) ─────────────────────────────────────
-  'mistral.mistral-large-2407-v1:0':                 { canonicalId: 'mistral/mistral-large-2', platform: 'aws_bedrock' },
-  'Mistral-large-2407':                              { canonicalId: 'mistral/mistral-large-2', platform: 'azure_foundry' },
-  'mistral-large-2':                                 { canonicalId: 'mistral/mistral-large-2', platform: 'gcp_vertex' },
+  // ── Amazon Nova (Bedrock-exclusive) ──────────────────────────────────────
+  'Nova 2.0 Pro':                                    { canonicalId: 'amazon/nova-2-0-pro',   platform: 'aws_bedrock' },
+  'Nova Premier':                                    { canonicalId: 'amazon/nova-premier',   platform: 'aws_bedrock' },
+  'Nova Micro':                                      { canonicalId: 'amazon/nova-micro',     platform: 'aws_bedrock' },
+
+  // ── Z AI GLM (Bedrock confirmed; may be elsewhere) ───────────────────────
+  'GLM 5':                                           { canonicalId: 'zai/glm-5', platform: 'aws_bedrock' },
+
+  // ── Open-weights tier (cheap option) ─────────────────────────────────────
+  'gpt-oss-120b':                                    { canonicalId: 'openai/gpt-oss-120b',   platform: 'aws_bedrock' },
+  'Qwen3 32B':                                       { canonicalId: 'qwen/qwen3-32b',        platform: 'aws_bedrock' },
+
+  // ── GCP Vertex (placeholders — fill in once GCP discovery returns model SKUs) ──
+  // The current discovery shows GKE infrastructure SKUs, not generative models.
+  // After re-running discovery with the improved filter, populate Vertex SKUs here
+  // for: Gemini 3.x Pro/Flash, Claude (now on Vertex), Llama 4, etc.
 };
 
 /**
  * Look up a canonical model ID from a vendor SKU.
- * Returns null if the SKU isn't tracked (intentional — we only track top models).
+ * Returns null if the SKU isn't tracked.
  *
  * @param {string} vendorSku
  * @returns {{ canonicalId: string, platform: string } | null}
