@@ -1,0 +1,140 @@
+# ── Hyperscaler pricing weekly update ──────────────────────────────────────
+# Fires every Monday at 09:00 UTC. Runs the pricing fetchers, diffs the
+# canonical hyperscaler-pricing.json, and opens a PR if anything substantive
+# changed. Manual trigger button also exposed via workflow_dispatch.
+#
+# Setup checklist (one-time, in the GitHub repo settings):
+#   1. Settings → Secrets and variables → Actions
+#      → New repository secret: GCP_BILLING_API_KEY (see scripts/pricing/lib/fetch-gcp.mjs)
+#   2. Settings → Actions → General → Workflow permissions
+#      → "Read and write permissions" + "Allow GitHub Actions to create pull requests"
+#
+# Without those two steps: AWS + Azure fetchers will run, GCP will skip, and
+# PR creation will fail (you'll see the diff in the run logs but no PR).
+# ───────────────────────────────────────────────────────────────────────────
+
+name: Update hyperscaler pricing
+
+on:
+  schedule:
+    # Cron syntax: minute hour day-of-month month day-of-week
+    # 0 9 * * 1  =  09:00 UTC every Monday
+    # Why Monday morning? AWS/GCP/Azure pricing updates typically land late
+    # Friday US-time; Monday morning UTC catches them with weekend buffer.
+    - cron: '0 9 * * 1'
+
+  # workflow_dispatch = a "Run workflow" button appears in the Actions tab.
+  # Essential for testing without waiting for the cron, and for ad-hoc runs.
+  workflow_dispatch:
+
+# Permissions the GITHUB_TOKEN injected into this workflow needs.
+# Default token is read-only; we need write to commit + create PRs.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Fetch + diff + PR
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Step 1: Get the repo onto the VM ────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Step 2: Install Node so we can run the .mjs scripts ─────────────
+      # No package install needed — the scripts use native fetch + fs only,
+      # zero npm dependencies. Saves ~30s per run.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Step 3: Run the orchestrator ────────────────────────────────────
+      # Captures the script's stdout into a file we'll embed in the PR body
+      # so the human reviewer sees the change summary inline.
+      - name: Run pricing update
+        env:
+          # GitHub Actions injects this from the repo's Secrets store.
+          # Empty string if the secret isn't set — the GCP fetcher handles
+          # the missing-key case gracefully (logs a warning, returns []).
+          GCP_BILLING_API_KEY: ${{ secrets.GCP_BILLING_API_KEY }}
+        run: |
+          node scripts/pricing/update-pricing.mjs 2>&1 | tee pricing-run.log
+        # `2>&1` merges stderr into stdout, `tee` writes to file AND prints to
+        # the workflow run log so you can see it in real time in the UI.
+
+      # ── Step 4: Decide if the JSON changed in any meaningful way ────────
+      # The script always writes the file (to update last_run timestamp).
+      # We only want to open a PR if something substantive changed —
+      # i.e. an actual price or last_verified bump, not just the timestamp.
+      - name: Check for substantive changes
+        id: check
+        run: |
+          # Get diff for the pricing file, ignore the last_run line itself.
+          DIFF_LINES=$(git diff --no-color -- apps/web/src/content/data/hyperscaler-pricing.json \
+            | grep -E '^[+-] ' \
+            | grep -v '"last_run"' \
+            | wc -l)
+
+          echo "Diff lines (excluding last_run): $DIFF_LINES"
+          echo "diff_lines=$DIFF_LINES" >> "$GITHUB_OUTPUT"
+
+          if [ "$DIFF_LINES" -gt 0 ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            # Revert the timestamp-only change so we don't dirty the working tree
+            git checkout -- apps/web/src/content/data/hyperscaler-pricing.json
+          fi
+
+      # ── Step 5: Open a PR if there are real changes ─────────────────────
+      # peter-evans/create-pull-request stages all modified files, creates a
+      # branch, commits, pushes, and opens a PR. Battle-tested action used
+      # by hundreds of thousands of repos. If a PR with the same branch
+      # already exists, it updates that PR instead of creating duplicates.
+      - name: Open pull request
+        if: steps.check.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'chore(pricing): weekly hyperscaler pricing verification'
+          branch: pricing/auto-update
+          delete-branch: true
+          title: 'chore(pricing): weekly hyperscaler pricing update'
+          body: |
+            ## Automated pricing verification
+
+            Hit the AWS Bedrock + Azure Foundry + GCP Vertex pricing APIs and
+            found ${{ steps.check.outputs.diff_lines }} line(s) of substantive
+            changes in `hyperscaler-pricing.json`.
+
+            ### Run summary
+
+            ```
+            See pricing-run.log artifact below for the full output.
+            ```
+
+            ### Review checklist
+
+            - [ ] Price changes look right vs the [vendor pricing pages](https://aws.amazon.com/bedrock/pricing/)
+            - [ ] No models marked unavailable that should be available
+            - [ ] `last_verified` dates updated as expected
+            - [ ] Run `pnpm --filter web build` to confirm nothing broke
+
+            Auto-generated by `.github/workflows/pricing-update.yml`.
+          labels: |
+            pricing
+            automated
+
+      # ── Step 6: Upload the run log as an artifact (always) ──────────────
+      # Even if no PR is opened, the log is useful for debugging "why didn't
+      # the fetcher find anything for model X?" — accessible from the run
+      # page in the GitHub Actions UI for 90 days.
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pricing-run-log
+          path: pricing-run.log
+          retention-days: 90

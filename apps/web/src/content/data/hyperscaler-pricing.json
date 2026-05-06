@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "last_run": "2026-05-06T00:40:50.693Z",
+  "scope_notes": [
+    "On-demand inference pricing only. Provisioned/committed-use tiers excluded.",
+    "Region: us-east-1 (AWS), eastus (Azure), us-east5 (GCP) where available.",
+    "USD per 1M tokens. Fine-tuning/embedding/storage costs out of scope.",
+    "If a model isn't on a platform, available=false and platform-specific note explains why."
+  ],
+  "platforms": {
+    "aws_bedrock": {
+      "label": "AWS Bedrock",
+      "region_default": "us-east-1"
+    },
+    "azure_foundry": {
+      "label": "Azure AI Foundry",
+      "region_default": "eastus"
+    },
+    "gcp_vertex": {
+      "label": "Google Vertex AI",
+      "region_default": "us-east5"
+    }
+  },
+  "models": [
+    {
+      "id": "anthropic/claude-3-5-sonnet",
+      "vendor": "Anthropic",
+      "label": "Claude 3.5 Sonnet",
+      "platforms": {
+        "aws_bedrock": {
+          "available": true,
+          "sku_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "input_per_1m_usd": 3,
+          "output_per_1m_usd": 15,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Anthropic models not offered on Azure AI Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "claude-3-5-sonnet-v2@20241022",
+          "input_per_1m_usd": 3,
+          "output_per_1m_usd": 15,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "anthropic/claude-3-5-haiku",
+      "vendor": "Anthropic",
+      "label": "Claude 3.5 Haiku",
+      "platforms": {
+        "aws_bedrock": {
+          "available": true,
+          "sku_id": "anthropic.claude-3-5-haiku-20241022-v1:0",
+          "input_per_1m_usd": 0.8,
+          "output_per_1m_usd": 4,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Anthropic not on Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "claude-3-5-haiku@20241022",
+          "input_per_1m_usd": 0.8,
+          "output_per_1m_usd": 4,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "openai/gpt-4o",
+      "vendor": "OpenAI",
+      "label": "GPT-4o",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "OpenAI models not on Bedrock"
+        },
+        "azure_foundry": {
+          "available": true,
+          "sku_id": "gpt-4o-2024-11-20",
+          "input_per_1m_usd": 2.5,
+          "output_per_1m_usd": 10,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "OpenAI models not on Vertex"
+        }
+      }
+    },
+    {
+      "id": "openai/gpt-4o-mini",
+      "vendor": "OpenAI",
+      "label": "GPT-4o mini",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "OpenAI models not on Bedrock"
+        },
+        "azure_foundry": {
+          "available": true,
+          "sku_id": "gpt-4o-mini-2024-07-18",
+          "input_per_1m_usd": 0.15,
+          "output_per_1m_usd": 0.6,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "OpenAI models not on Vertex"
+        }
+      }
+    },
+    {
+      "id": "google/gemini-2-5-pro",
+      "vendor": "Google",
+      "label": "Gemini 2.5 Pro",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Google models not on Bedrock"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Google models not on Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "gemini-2.5-pro",
+          "input_per_1m_usd": 1.25,
+          "output_per_1m_usd": 10,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "google/gemini-2-5-flash",
+      "vendor": "Google",
+      "label": "Gemini 2.5 Flash",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Google models not on Bedrock"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Google models not on Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "gemini-2.5-flash",
+          "input_per_1m_usd": 0.075,
+          "output_per_1m_usd": 0.3,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "meta/llama-3-3-70b",
+      "vendor": "Meta",
+      "label": "Llama 3.3 70B Instruct",
+      "platforms": {
+        "aws_bedrock": {
+          "available": true,
+          "sku_id": "meta.llama3-3-70b-instruct-v1:0",
+          "input_per_1m_usd": 0.72,
+          "output_per_1m_usd": 0.72,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "azure_foundry": {
+          "available": true,
+          "sku_id": "Meta-Llama-3.3-70B-Instruct",
+          "input_per_1m_usd": 0.71,
+          "output_per_1m_usd": 0.71,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "llama-3.3-70b-instruct",
+          "input_per_1m_usd": 0.72,
+          "output_per_1m_usd": 0.72,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "mistral/mistral-large-2",
+      "vendor": "Mistral",
+      "label": "Mistral Large 2",
+      "platforms": {
+        "aws_bedrock": {
+          "available": true,
+          "sku_id": "mistral.mistral-large-2407-v1:0",
+          "input_per_1m_usd": 2,
+          "output_per_1m_usd": 6,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "azure_foundry": {
+          "available": true,
+          "sku_id": "Mistral-large-2407",
+          "input_per_1m_usd": 2,
+          "output_per_1m_usd": 6,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "mistral-large-2",
+          "input_per_1m_usd": 2,
+          "output_per_1m_usd": 6,
+          "last_verified": "2026-05-05",
+          "verified_via": "manual"
+        }
+      }
+    }
+  ]
+}
