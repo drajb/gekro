@@ -43,24 +43,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # ── Step 2: Enable corepack BEFORE setup-node ───────────────────────
-      # setup-node@v5 detects pnpm-lock.yaml at the repo root (from the main
-      # Astro app) and tries to set up pnpm caching during its own step. If
-      # pnpm isn't on PATH at that moment, the step fails with "Unable to
-      # locate executable file: pnpm". corepack ships with the runner's
-      # pre-installed Node and provides pnpm shims when enabled — has to run
-      # BEFORE setup-node, not after.
-      - name: Enable corepack (provides pnpm on PATH)
-        run: corepack enable
-
-      # ── Step 3: Install Node so we can run the .mjs scripts ─────────────
-      # No npm install needed — the pricing scripts use native fetch + fs only,
-      # zero dependencies. setup-node will auto-detect pnpm-lock.yaml and set
-      # up its cache (harmless side effect now that corepack is enabled).
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '22'   # Node 22 LTS — Node 20 LTS exited maintenance Apr 2026
+      # ── Step 2: Verify the runner's pre-installed Node is usable ───────
+      # No setup-node needed: ubuntu-latest ships with Node 20+ already
+      # installed, which has native fetch (since 18) — the only dependency
+      # our pricing scripts have. Skipping setup-node also avoids its
+      # auto-detect cache machinery, which was throwing pnpm-related
+      # warnings on every run because the repo root has a pnpm-lock.yaml
+      # from the main Astro app even though the pricing scripts use no
+      # packages at all. Belt-and-suspenders sanity check below.
+      - name: Verify Node ≥18
+        run: |
+          NODE_VER=$(node --version)
+          echo "Runner Node: $NODE_VER"
+          MAJOR=$(echo "$NODE_VER" | sed 's/v\([0-9]*\).*/\1/')
+          if [ "$MAJOR" -lt 18 ]; then
+            echo "::error::Need Node 18+ (got $NODE_VER) for native fetch support"
+            exit 1
+          fi
 
       # ── Step 3: Run the orchestrator ────────────────────────────────────
       # Captures the script's stdout into a file we'll embed in the PR body
