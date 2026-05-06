@@ -9,9 +9,18 @@
     "Seed values are PLACEHOLDER (0.01 / 0.02). The next workflow run will overwrite with real API-confirmed prices."
   ],
   "platforms": {
-    "aws_bedrock":   { "label": "AWS Bedrock",       "region_default": "us-east-1" },
-    "azure_foundry": { "label": "Azure AI Foundry",  "region_default": "eastus" },
-    "gcp_vertex":    { "label": "Google Vertex AI",  "region_default": "us-east5" }
+    "aws_bedrock": {
+      "label": "AWS Bedrock",
+      "region_default": "us-east-1"
+    },
+    "azure_foundry": {
+      "label": "Azure AI Foundry",
+      "region_default": "eastus"
+    },
+    "gcp_vertex": {
+      "label": "Google Vertex AI",
+      "region_default": "us-east5"
+    }
   },
   "models": [
     {
@@ -20,12 +29,21 @@
       "label": "Llama 4 Maverick 17B",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Llama 4 Maverick 17B",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Llama 4 Maverick 17B",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending — verify on Foundry catalog" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending — verify on Vertex Model Garden" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending — verify on Foundry catalog"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending — verify on Vertex Model Garden"
+        }
       }
     },
     {
@@ -34,12 +52,21 @@
       "label": "Llama 4 Scout 17B",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Llama 4 Scout 17B",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Llama 4 Scout 17B",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending"
+        }
       }
     },
     {
@@ -48,12 +75,21 @@
       "label": "Llama 3.3 70B Instruct",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Llama 3.3 70B",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Llama 3.3 70B",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending — known to be on Foundry historically" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending — known to be on Vertex Model Garden" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending — known to be on Foundry historically"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending — known to be on Vertex Model Garden"
+        }
       }
     },
     {
@@ -62,16 +98,25 @@
       "label": "DeepSeek V3.2",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "DeepSeek v3.2",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "DeepSeek v3.2",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
         "azure_foundry": {
-          "available": true, "sku_id": "Azure Deepseek Models V3.2",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Azure Deepseek Models V3.2",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "gcp_vertex": { "available": false, "note": "Not on Vertex" }
+        "gcp_vertex": {
+          "available": false,
+          "note": "Not on Vertex"
+        }
       }
     },
     {
@@ -80,16 +125,25 @@
       "label": "DeepSeek R1",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "R1",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "R1",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
         "azure_foundry": {
-          "available": true, "sku_id": "Azure Deepseek Models R1",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Azure Deepseek Models R1",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "gcp_vertex": { "available": false, "note": "Not on Vertex" }
+        "gcp_vertex": {
+          "available": false,
+          "note": "Not on Vertex"
+        }
       }
     },
     {
@@ -98,12 +152,21 @@
       "label": "Mistral Large 3",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Mistral Large 3",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Mistral Large 3",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending — historically on Foundry" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending — historically on Vertex" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending — historically on Foundry"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending — historically on Vertex"
+        }
       }
     },
     {
@@ -112,12 +175,21 @@
       "label": "Amazon Nova 2.0 Pro",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Nova 2.0 Pro",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Nova 2.0 Pro",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Amazon Nova is Bedrock-exclusive" },
-        "gcp_vertex":    { "available": false, "note": "Amazon Nova is Bedrock-exclusive" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Amazon Nova is Bedrock-exclusive"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Amazon Nova is Bedrock-exclusive"
+        }
       }
     },
     {
@@ -126,12 +198,21 @@
       "label": "Amazon Nova Premier",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Nova Premier",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Nova Premier",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Bedrock-exclusive" },
-        "gcp_vertex":    { "available": false, "note": "Bedrock-exclusive" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Bedrock-exclusive"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Bedrock-exclusive"
+        }
       }
     },
     {
@@ -140,12 +221,21 @@
       "label": "Amazon Nova Micro",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Nova Micro",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Nova Micro",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Bedrock-exclusive" },
-        "gcp_vertex":    { "available": false, "note": "Bedrock-exclusive" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Bedrock-exclusive"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Bedrock-exclusive"
+        }
       }
     },
     {
@@ -154,12 +244,21 @@
       "label": "GLM 5",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "GLM 5",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "GLM 5",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending"
+        }
       }
     },
     {
@@ -168,12 +267,21 @@
       "label": "GPT-OSS 120B (open-weights)",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "gpt-oss-120b",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "gpt-oss-120b",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending"
+        }
       }
     },
     {
@@ -182,12 +290,21 @@
       "label": "Qwen3 32B",
       "platforms": {
         "aws_bedrock": {
-          "available": true, "sku_id": "Qwen3 32B",
-          "input_per_1m_usd": 0.01, "output_per_1m_usd": 0.02,
-          "last_verified": "2026-05-06", "verified_via": "manual"
+          "available": true,
+          "sku_id": "Qwen3 32B",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-06",
+          "verified_via": "manual"
         },
-        "azure_foundry": { "available": false, "note": "Discovery pending" },
-        "gcp_vertex":    { "available": false, "note": "Discovery pending" }
+        "azure_foundry": {
+          "available": false,
+          "note": "Discovery pending"
+        },
+        "gcp_vertex": {
+          "available": false,
+          "note": "Discovery pending"
+        }
       }
     }
   ]
