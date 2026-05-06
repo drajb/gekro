@@ -46,10 +46,21 @@ jobs:
       # ── Step 2: Install Node so we can run the .mjs scripts ─────────────
       # No package install needed — the scripts use native fetch + fs only,
       # zero npm dependencies. Saves ~30s per run.
+      #
+      # NOTE: setup-node@v5 auto-detects lockfiles at the repo root (we have
+      # pnpm-lock.yaml from the main app) and tries to set up pnpm caching by
+      # default, which fails because pnpm isn't on the runner. Two fixes:
+      #   - explicit cache: '' would suppress, but the option syntax is fragile
+      #   - corepack enable provides pnpm on PATH (Node ships corepack since 16.9)
+      # The corepack approach is more defensive — also future-proofs if any
+      # other action ever wants pnpm.
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: '22'   # Node 22 LTS — Node 20 LTS exited maintenance Apr 2026
+
+      - name: Enable corepack (provides pnpm on PATH)
+        run: corepack enable
 
       # ── Step 3: Run the orchestrator ────────────────────────────────────
       # Captures the script's stdout into a file we'll embed in the PR body
