@@ -1,0 +1,408 @@
+---
+// Hyperscaler AI Pricing Comparison — App #51
+// Reads canonical pricing data from the auto-maintained JSON updated weekly
+// by the GitHub Actions workflow at .github/workflows/pricing-update.yml.
+import pricingData from '../../../content/data/hyperscaler-pricing.json';
+
+const { models, platforms, last_run } = pricingData;
+const lastRunDate = new Date(last_run).toISOString().slice(0, 10);
+
+// Vendors for filter chips — derived from data
+const vendors = [...new Set(models.map(m => m.vendor))].sort();
+const platformIds = Object.keys(platforms);
+
+// Pre-compute "cheapest" platform per model for static render (JS recomputes on input change)
+const DEFAULT_INPUT_PER_DAY = 500_000;
+const DEFAULT_OUTPUT_PER_DAY = 100_000;
+---
+
+<div id="hsc-app" class="space-y-6">
+
+  <!-- Hero stats -->
+  <div class="grid grid-cols-3 gap-3">
+    <div class="app-card p-4 text-center">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Models tracked</p>
+      <p class="text-3xl font-heading font-bold text-text-primary mt-1">{models.length}</p>
+    </div>
+    <div class="app-card p-4 text-center">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Platforms</p>
+      <p class="text-3xl font-heading font-bold text-accent mt-1">3</p>
+    </div>
+    <div class="app-card p-4 text-center">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Last verified</p>
+      <p class="text-base font-mono text-text-primary mt-2">{lastRunDate}</p>
+    </div>
+  </div>
+
+  <!-- Cost calculator inputs -->
+  <div class="app-card p-5 space-y-4">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Your daily token volume</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label for="hsc-input-tokens" class="text-xs font-mono text-text-secondary">
+          Input tokens / day
+          <span title="Prompt + context tokens sent to the model per day. A typical small production app sends 500K/day; medium is 5M/day; large is 50M/day." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+        <input id="hsc-input-tokens" type="number" min="0" step="10000" value={DEFAULT_INPUT_PER_DAY}
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent transition-colors" />
+        <p id="hsc-input-readable" class="text-[10px] font-mono text-text-muted">500K / day → 15M / month</p>
+      </div>
+      <div class="space-y-1.5">
+        <label for="hsc-output-tokens" class="text-xs font-mono text-text-secondary">
+          Output tokens / day
+          <span title="Generated tokens returned by the model per day. Output is typically 5-30% of input volume depending on workload (chat = high output ratio; classification = low output ratio)." class="ml-1 inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-text-muted/30 text-[8px] text-text-muted cursor-help hover:border-accent/50 hover:text-accent transition-colors select-none">?</span>
+        </label>
+        <input id="hsc-output-tokens" type="number" min="0" step="10000" value={DEFAULT_OUTPUT_PER_DAY}
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2 text-sm font-mono text-text-primary focus:outline-none focus:border-accent transition-colors" />
+        <p id="hsc-output-readable" class="text-[10px] font-mono text-text-muted">100K / day → 3M / month</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 pt-2">
+      <p class="text-[10px] font-mono text-text-secondary self-center mr-1">Quick presets:</p>
+      <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="50000" data-output="10000">Hobbyist</button>
+      <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="500000" data-output="100000">Small prod</button>
+      <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="5000000" data-output="1000000">Medium</button>
+      <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="50000000" data-output="10000000">Large</button>
+    </div>
+  </div>
+
+  <!-- Vendor filter -->
+  <div class="space-y-2">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Filter by vendor</p>
+    <div class="flex flex-wrap gap-2">
+      <button class="hsc-vendor-tab app-btn-tab active px-3 py-1.5 rounded-md text-xs" data-vendor="all">All ({models.length})</button>
+      {vendors.map(v => {
+        const count = models.filter(m => m.vendor === v).length;
+        return <button class="hsc-vendor-tab app-btn-tab px-3 py-1.5 rounded-md text-xs" data-vendor={v}>{v} ({count})</button>;
+      })}
+    </div>
+  </div>
+
+  <!-- Sort selector -->
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Sort:</p>
+      <button class="hsc-sort-btn app-btn-tab active px-3 py-1 rounded-md text-xs" data-sort="cheapest">Cheapest first</button>
+      <button class="hsc-sort-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-sort="vendor">By vendor</button>
+      <button class="hsc-sort-btn app-btn-tab px-3 py-1 rounded-md text-xs" data-sort="name">By name</button>
+    </div>
+    <p id="hsc-visible-count" class="text-[10px] font-mono text-text-muted">{models.length} models</p>
+  </div>
+
+  <!-- Model cards — rendered + sorted by JS -->
+  <div id="hsc-models" class="space-y-3">
+    {models.map(m => (
+      <div class="hsc-model-card app-card p-5 space-y-3" data-model-id={m.id} data-vendor={m.vendor}>
+        <!-- Card header -->
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-base font-heading font-semibold text-text-primary">{m.label}</h3>
+            <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary mt-0.5">{m.vendor}</p>
+          </div>
+          <span class="hsc-cheapest-platform text-[10px] font-mono uppercase tracking-widest text-accent-success border border-accent-success/30 bg-accent-success/5 px-2 py-1 rounded-md hidden">
+            ✓ Cheapest: <span class="hsc-cheapest-name"></span>
+          </span>
+        </div>
+
+        <!-- Per-platform pricing rows -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {platformIds.map(pid => {
+            const block = m.platforms[pid];
+            return (
+              <div class="hsc-platform-cell p-3 rounded-lg border border-border bg-bg-elevated" data-platform={pid}>
+                <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">{platforms[pid].label}</p>
+                {block.available ? (
+                  <>
+                    <div class="mt-2 space-y-1 text-xs font-mono">
+                      <p>
+                        <span class="text-text-muted">In:</span>
+                        <span class="text-text-primary ml-1">${block.input_per_1m_usd}/1M</span>
+                      </p>
+                      <p>
+                        <span class="text-text-muted">Out:</span>
+                        <span class="text-text-primary ml-1">${block.output_per_1m_usd}/1M</span>
+                      </p>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-border-subtle">
+                      <p class="text-[10px] text-text-muted">Monthly cost</p>
+                      <p class="hsc-monthly-cost text-base font-heading font-bold text-text-primary"
+                         data-input-per-1m={block.input_per_1m_usd}
+                         data-output-per-1m={block.output_per_1m_usd}>—</p>
+                    </div>
+                  </>
+                ) : (
+                  <div class="mt-2 space-y-1">
+                    <p class="text-xs font-mono text-text-muted">N/A</p>
+                    <p class="text-[10px] text-text-muted leading-relaxed">{block.note}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <!-- Verification footer -->
+        <div class="flex items-center justify-between text-[10px] font-mono text-text-muted pt-2 border-t border-border-subtle">
+          <span>
+            {Object.entries(m.platforms)
+              .filter(([_, b]) => b.available && b.last_verified)
+              .map(([pid, b]) => `${platforms[pid].label}: verified ${b.last_verified}`)
+              .join(' · ')
+            }
+          </span>
+          <span class="text-text-muted/70">{m.id}</span>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Empty state for filters -->
+  <div id="hsc-empty" class="hidden p-6 text-center border border-dashed border-border rounded-xl">
+    <p class="text-text-muted font-mono text-sm">No models match the current filter.</p>
+  </div>
+
+</div>
+
+<style>
+  .hsc-vendor-tab.active,
+  .hsc-sort-btn.active {
+    background-color: rgba(56, 189, 248, 0.12);
+    color: var(--color-accent);
+  }
+  /* Cheapest cell highlight — applied dynamically by JS */
+  .hsc-platform-cell.is-cheapest {
+    border-color: rgba(52, 211, 153, 0.4);
+    background-color: rgba(52, 211, 153, 0.05);
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.1);
+  }
+  .hsc-platform-cell.is-cheapest .hsc-monthly-cost {
+    color: var(--color-accent-success);
+  }
+</style>
+
+<script>
+  /**
+   * Hyperscaler comparison interactivity.
+   * - Recompute monthly cost on input change
+   * - Highlight cheapest platform per model
+   * - Filter by vendor + sort by cheapest/vendor/name
+   * - Idempotency guard for Astro view transitions
+   */
+  const initHsc = () => {
+    const app = document.getElementById('hsc-app');
+    if (!app || (app as any)._hscInit) return;
+    (app as any)._hscInit = true;
+
+    const inputEl = document.getElementById('hsc-input-tokens') as HTMLInputElement;
+    const outputEl = document.getElementById('hsc-output-tokens') as HTMLInputElement;
+    const inputReadable = document.getElementById('hsc-input-readable')!;
+    const outputReadable = document.getElementById('hsc-output-readable')!;
+    const presetBtns = app.querySelectorAll<HTMLButtonElement>('.hsc-preset');
+    const vendorTabs = app.querySelectorAll<HTMLButtonElement>('.hsc-vendor-tab');
+    const sortBtns = app.querySelectorAll<HTMLButtonElement>('.hsc-sort-btn');
+    const cards = app.querySelectorAll<HTMLElement>('.hsc-model-card');
+    const modelsContainer = document.getElementById('hsc-models')!;
+    const emptyEl = document.getElementById('hsc-empty')!;
+    const visibleCountEl = document.getElementById('hsc-visible-count')!;
+
+    let activeVendor = 'all';
+    let activeSort = 'cheapest';
+
+    const fmt = (n: number) =>
+      n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M`
+      : n >= 1_000 ? `${(n / 1_000).toFixed(0)}K`
+      : n.toString();
+
+    const fmtUsd = (n: number) =>
+      n < 0.01 ? `$${n.toFixed(4)}`
+      : n < 1 ? `$${n.toFixed(2)}`
+      : n < 100 ? `$${n.toFixed(2)}`
+      : `$${n.toFixed(0)}`;
+
+    /**
+     * Recompute monthly cost for every model card based on current input/output values.
+     * Also marks the cheapest platform per model with a green highlight + badge.
+     */
+    const recompute = () => {
+      const inputDaily = parseFloat(inputEl.value) || 0;
+      const outputDaily = parseFloat(outputEl.value) || 0;
+      const inputMonthly = inputDaily * 30;
+      const outputMonthly = outputDaily * 30;
+
+      inputReadable.textContent = `${fmt(inputDaily)} / day → ${fmt(inputMonthly)} / month`;
+      outputReadable.textContent = `${fmt(outputDaily)} / day → ${fmt(outputMonthly)} / month`;
+
+      cards.forEach(card => {
+        let cheapestCost = Infinity;
+        let cheapestPlatform: HTMLElement | null = null;
+        let cheapestLabel = '';
+
+        // First pass: compute cost per platform
+        const cells = card.querySelectorAll<HTMLElement>('.hsc-platform-cell');
+        cells.forEach(cell => {
+          cell.classList.remove('is-cheapest');
+          const costEl = cell.querySelector<HTMLElement>('.hsc-monthly-cost');
+          if (!costEl) return;
+
+          const inputPer1m = parseFloat(costEl.dataset.inputPer_1m || '0');
+          const outputPer1m = parseFloat(costEl.dataset.outputPer_1m || '0');
+          const monthly = (inputMonthly / 1_000_000) * inputPer1m + (outputMonthly / 1_000_000) * outputPer1m;
+          costEl.textContent = fmtUsd(monthly);
+
+          if (monthly > 0 && monthly < cheapestCost) {
+            cheapestCost = monthly;
+            cheapestPlatform = cell;
+            const labelEl = cell.querySelector<HTMLElement>('p.text-\\[10px\\].font-mono.uppercase');
+            cheapestLabel = labelEl?.textContent ?? '';
+          }
+        });
+
+        // Second pass: mark cheapest
+        const badge = card.querySelector<HTMLElement>('.hsc-cheapest-platform');
+        const badgeName = card.querySelector<HTMLElement>('.hsc-cheapest-name');
+        if (cheapestPlatform && cheapestCost < Infinity) {
+          (cheapestPlatform as HTMLElement).classList.add('is-cheapest');
+          if (badge && badgeName) {
+            badge.classList.remove('hidden');
+            badgeName.textContent = cheapestLabel;
+          }
+        } else {
+          badge?.classList.add('hidden');
+        }
+
+        // Cache cheapest cost on the card for sorting
+        (card as any)._cheapest = cheapestCost === Infinity ? Number.MAX_VALUE : cheapestCost;
+      });
+
+      applyFilterAndSort();
+    };
+
+    // Note: dataset.inputPer_1m / outputPer_1m have hyphens stripped per HTML5 dataset rules.
+    // The original attrs are data-input-per-1m / data-output-per-1m. Adjusting:
+    // dataset converts kebab to camel: data-input-per-1m → inputPer1m
+    // Let me fix that by re-reading attrs directly.
+    cards.forEach(card => {
+      card.querySelectorAll<HTMLElement>('.hsc-monthly-cost').forEach(el => {
+        const attrIn = el.getAttribute('data-input-per-1m');
+        const attrOut = el.getAttribute('data-output-per-1m');
+        if (attrIn !== null) el.dataset['inputPer_1m'] = attrIn;
+        if (attrOut !== null) el.dataset['outputPer_1m'] = attrOut;
+      });
+    });
+
+    /** Show/hide cards based on vendor filter; reorder based on sort. */
+    const applyFilterAndSort = () => {
+      const visibleCards: HTMLElement[] = [];
+      cards.forEach(card => {
+        const matches = activeVendor === 'all' || card.dataset.vendor === activeVendor;
+        card.style.display = matches ? '' : 'none';
+        if (matches) visibleCards.push(card);
+      });
+
+      // Sort by selected criterion
+      visibleCards.sort((a, b) => {
+        if (activeSort === 'cheapest') {
+          return ((a as any)._cheapest ?? Infinity) - ((b as any)._cheapest ?? Infinity);
+        }
+        if (activeSort === 'vendor') {
+          return (a.dataset.vendor || '').localeCompare(b.dataset.vendor || '')
+              || (a.querySelector('h3')?.textContent || '').localeCompare(b.querySelector('h3')?.textContent || '');
+        }
+        // by name
+        return (a.querySelector('h3')?.textContent || '').localeCompare(b.querySelector('h3')?.textContent || '');
+      });
+      visibleCards.forEach(c => modelsContainer.appendChild(c));
+
+      visibleCountEl.textContent = `${visibleCards.length} model${visibleCards.length === 1 ? '' : 's'}`;
+      emptyEl.classList.toggle('hidden', visibleCards.length > 0);
+    };
+
+    // Wire up inputs
+    inputEl.addEventListener('input', recompute);
+    outputEl.addEventListener('input', recompute);
+    presetBtns.forEach(btn => btn.addEventListener('click', () => {
+      inputEl.value = btn.dataset.input || '0';
+      outputEl.value = btn.dataset.output || '0';
+      recompute();
+    }));
+    vendorTabs.forEach(tab => tab.addEventListener('click', () => {
+      activeVendor = tab.dataset.vendor || 'all';
+      vendorTabs.forEach(t => t.classList.toggle('active', t === tab));
+      applyFilterAndSort();
+    }));
+    sortBtns.forEach(btn => btn.addEventListener('click', () => {
+      activeSort = btn.dataset.sort || 'cheapest';
+      sortBtns.forEach(b => b.classList.toggle('active', b === btn));
+      applyFilterAndSort();
+    }));
+
+    // App-shell event handlers (toolbar buttons in AppShell)
+    document.addEventListener('app:copy', async () => {
+      const lines: string[] = ['Model,Vendor,Bedrock In,Bedrock Out,Foundry In,Foundry Out,Vertex In,Vertex Out,Cheapest Monthly'];
+      cards.forEach(card => {
+        if (card.style.display === 'none') return;
+        const name = card.querySelector('h3')?.textContent ?? '';
+        const vendor = card.dataset.vendor ?? '';
+        const cells = card.querySelectorAll<HTMLElement>('.hsc-platform-cell');
+        const prices: string[] = [];
+        cells.forEach(cell => {
+          const costEl = cell.querySelector<HTMLElement>('.hsc-monthly-cost');
+          const inP = costEl?.getAttribute('data-input-per-1m') ?? 'N/A';
+          const outP = costEl?.getAttribute('data-output-per-1m') ?? 'N/A';
+          prices.push(inP, outP);
+        });
+        const cheapest = (card as any)._cheapest;
+        lines.push([name, vendor, ...prices, cheapest === Number.MAX_VALUE ? 'N/A' : `$${cheapest.toFixed(2)}`].join(','));
+      });
+      try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
+    });
+
+    document.addEventListener('app:reset', () => {
+      inputEl.value = String(500_000);
+      outputEl.value = String(100_000);
+      activeVendor = 'all';
+      activeSort = 'cheapest';
+      vendorTabs.forEach(t => t.classList.toggle('active', t.dataset.vendor === 'all'));
+      sortBtns.forEach(b => b.classList.toggle('active', b.dataset.sort === 'cheapest'));
+      recompute();
+    });
+
+    document.addEventListener('app:export', () => {
+      const lines: string[] = ['Model,Vendor,Bedrock In ($/1M),Bedrock Out ($/1M),Foundry In ($/1M),Foundry Out ($/1M),Vertex In ($/1M),Vertex Out ($/1M),Cheapest Platform,Cheapest Monthly Cost ($)'];
+      cards.forEach(card => {
+        if (card.style.display === 'none') return;
+        const name = card.querySelector('h3')?.textContent ?? '';
+        const vendor = card.dataset.vendor ?? '';
+        const cells = card.querySelectorAll<HTMLElement>('.hsc-platform-cell');
+        const prices: string[] = [];
+        cells.forEach(cell => {
+          const costEl = cell.querySelector<HTMLElement>('.hsc-monthly-cost');
+          const inP = costEl?.getAttribute('data-input-per-1m') ?? 'N/A';
+          const outP = costEl?.getAttribute('data-output-per-1m') ?? 'N/A';
+          prices.push(inP, outP);
+        });
+        const cheapestEl = card.querySelector<HTMLElement>('.is-cheapest p');
+        const cheapestName = cheapestEl?.textContent ?? 'N/A';
+        const cheapest = (card as any)._cheapest;
+        lines.push([
+          `"${name}"`, `"${vendor}"`, ...prices,
+          `"${cheapestName}"`,
+          cheapest === Number.MAX_VALUE ? 'N/A' : cheapest.toFixed(2),
+        ].join(','));
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hyperscaler-pricing-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Initial compute
+    recompute();
+  };
+
+  initHsc();
+  document.addEventListener('astro:after-swap', initHsc);
+</script>
