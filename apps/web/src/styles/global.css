@@ -377,6 +377,29 @@ body {
   @apply my-16 border-border;
 }
 
+/* ── Light-mode interactive-state contrast overrides ─────────────────────
+   The brand accent (sky-400 #38bdf8) hits 8-9:1 on dark backgrounds — a
+   confident focus / hover / active indicator. On the warm cream light
+   palette it falls to 1.95-2.14:1, which trips:
+     • 1.4.3 (text contrast 4.5:1) when accent is foreground text
+     • 1.4.11 (non-text UI 3:1) when accent indicates focus or state
+     • 2.4.7 (focus visible) when the only focus indicator is the accent
+     • 1.4.1 (use of color) when hover transitions accent and the new
+       color is *less* readable than the rest state
+   Override every accent-as-state Tailwind utility to the darker prose-fix
+   #1864b3 in light mode (5.44-5.83:1 ✅ AA body, well past 1.4.11's 3:1).
+   Selectors target compiled Tailwind class names — they win specificity
+   over the base utility (.theme-light + class + pseudo > class + pseudo).
+   Dark mode is untouched. */
+.theme-light .hover\:text-accent:hover {
+  color: #1864b3;
+}
+.theme-light .hover\:border-accent:hover,
+.theme-light .focus\:border-accent:focus,
+.theme-light .focus\:border-accent\/50:focus {
+  border-color: #1864b3;
+}
+
 /* ── Light-mode prose link + inline-code colour override ──────────────────
    The brand accent (sky-400 #38bdf8 post-2026-05-03 overhaul, #3fb1ff
    before) renders at ~2.1:1 on the warm cream light-mode background —
