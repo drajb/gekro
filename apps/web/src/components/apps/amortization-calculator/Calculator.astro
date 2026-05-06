@@ -226,13 +226,13 @@
         <line x1="${PL}" y1="${yS(v).toFixed(1)}" x2="${W - PR}" y2="${yS(v).toFixed(1)}"
               stroke="#27272a" stroke-width="1"/>
         <text x="${PL - 7}" y="${yS(v).toFixed(1)}" text-anchor="end" dominant-baseline="middle"
-              font-family="monospace" font-size="10" fill="#52525b">${fmtK(v)}</text>
+              font-family="monospace" font-size="10" fill="#8a8a93">${fmtK(v)}</text>
       `).join('')}
 
       <!-- X labels -->
       ${xTicks.map(yr => `
         <text x="${xS(yr).toFixed(1)}" y="${(PT + CH + 18).toFixed(1)}" text-anchor="middle"
-              font-family="monospace" font-size="10" fill="#52525b">yr ${yr}</text>
+              font-family="monospace" font-size="10" fill="#8a8a93">yr ${yr}</text>
       `).join('')}
 
       <!-- Clipped content -->
@@ -248,9 +248,9 @@
 
       <!-- Payoff dots (outside clip so they're fully visible at axis) -->
       ${basePts ? `<circle cx="${xS(basePts[basePts.length-1].yr).toFixed(1)}" cy="${yS(0).toFixed(1)}"
-        r="4" fill="#52525b" stroke="#121214" stroke-width="2"/>` : ''}
+        r="4" fill="#8a8a93" stroke="#15130e" stroke-width="2"/>` : ''}
       <circle cx="${xS(mainPts[mainPts.length-1].yr).toFixed(1)}" cy="${yS(0).toFixed(1)}"
-        r="5" fill="#38bdf8" stroke="#121214" stroke-width="2"/>
+        r="5" fill="#38bdf8" stroke="#15130e" stroke-width="2"/>
 
       <!-- Legend (only when two lines) -->
       ${basePts ? `

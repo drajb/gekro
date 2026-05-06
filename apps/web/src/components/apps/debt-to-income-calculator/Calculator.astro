@@ -239,7 +239,7 @@
     if (pct <= 0.28) return 'var(--color-accent)';
     if (pct <= 0.36) return 'var(--color-accent-success)';
     if (pct <= 0.43) return 'var(--color-accent-warm)';
-    return 'var(--color-accent-danger, #ef4444)';
+    return 'var(--color-accent-danger)';
   };
 
   // Monthly payment: standard amortisation formula PMT = P*r*(1+r)^n / ((1+r)^n - 1)
@@ -347,7 +347,7 @@
         const feOk = t.feMax === null ? true : feDTI <= t.feMax;
         const beOk = beDTI <= t.beMax;
         const ok = feOk && beOk;
-        const statusColor = ok ? 'var(--color-accent-success)' : 'var(--color-accent-danger, #ef4444)';
+        const statusColor = ok ? 'var(--color-accent-success)' : 'var(--color-accent-danger)';
         const statusText = ok ? '✓ Eligible' : '✗ Over limit';
         return `<tr class="hover:bg-bg-elevated/50 transition-colors">
           <td class="px-4 py-3">

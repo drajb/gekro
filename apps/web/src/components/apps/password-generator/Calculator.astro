@@ -179,8 +179,8 @@
   }
 
   /* Strength bar colours via JS data attribute */
-  #pg-strength-bar[data-level="weak"]     { background: #ef4444; }
-  #pg-strength-bar[data-level="fair"]     { background: #f59e0b; }
+  #pg-strength-bar[data-level="weak"]     { background: var(--color-accent-danger); }
+  #pg-strength-bar[data-level="fair"]     { background: var(--color-accent-warm); }
   #pg-strength-bar[data-level="good"]     { background: #22d3ee; }
   #pg-strength-bar[data-level="strong"]   { background: #4ade80; }
   #pg-strength-bar[data-level="extreme"]  { background: var(--color-accent); }
@@ -276,9 +276,9 @@
 
   /* ── Strength label + bar width from entropy ─────────────────────*/
   const strengthInfo = (bits: number): { label: string; level: string; pct: number; color: string } => {
-    if (bits < 30)  return { label: 'Very Weak',  level: 'weak',    pct: 8,   color: '#ef4444' };
-    if (bits < 50)  return { label: 'Weak',       level: 'weak',    pct: 20,  color: '#ef4444' };
-    if (bits < 70)  return { label: 'Fair',       level: 'fair',    pct: 40,  color: '#f59e0b' };
+    if (bits < 30)  return { label: 'Very Weak',  level: 'weak',    pct: 8,   color: 'var(--color-accent-danger)' };
+    if (bits < 50)  return { label: 'Weak',       level: 'weak',    pct: 20,  color: 'var(--color-accent-danger)' };
+    if (bits < 70)  return { label: 'Fair',       level: 'fair',    pct: 40,  color: 'var(--color-accent-warm)' };
     if (bits < 90)  return { label: 'Good',       level: 'good',    pct: 60,  color: '#22d3ee' };
     if (bits < 120) return { label: 'Strong',     level: 'strong',  pct: 80,  color: '#4ade80' };
     return             { label: 'Extreme',     level: 'extreme', pct: 100, color: 'var(--color-accent)' };

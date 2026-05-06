@@ -13,9 +13,11 @@
  *  className — forwarded to the outer wrapper div for external positioning
  *
  * Colors:
- *  Hardcoded shadow values reference accent colour hex (#3fb1ff).
- *  The core fill and orbit dots use bg-accent (CSS var) so they respond
- *  to any future accent colour change in global.css.
+ *  Core fill and orbit dots use bg-accent (CSS var) so they respond to any
+ *  accent colour change in global.css. Glow shadows use rgba(56,189,248) —
+ *  the literal RGB of the current --color-accent (#38bdf8 sky-400). Tailwind
+ *  arbitrary values can't read CSS vars, so if the accent ever changes again,
+ *  update the rgba() literals in the shadow utilities below to match.
  */
 
 interface Props {
@@ -34,11 +36,11 @@ const sizes = {
 
 <div class={`relative flex items-center justify-center ${sizes[size]} ${className} select-none`}>
   <!-- The Star (Core) -->
-  <div class="absolute w-2/5 h-2/5 bg-accent rounded-full shadow-[0_0_20px_rgba(63,177,255,0.4)] animate-pulse-slow"></div>
-  
+  <div class="absolute w-2/5 h-2/5 bg-accent rounded-full shadow-[0_0_20px_rgba(56,189,248,0.4)] animate-pulse-slow"></div>
+
   <!-- The Planet (Orbit) -->
   <div class="absolute w-full h-full animate-orbit">
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/4 h-1/4 bg-accent rounded-full shadow-[0_0_10px_rgba(63,177,255,0.2)]"></div>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/4 h-1/4 bg-accent rounded-full shadow-[0_0_10px_rgba(56,189,248,0.2)]"></div>
   </div>
 </div>
 

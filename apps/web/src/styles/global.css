@@ -142,11 +142,11 @@ body {
    If you add a third Pagefind mount point, just extend the selector list. */
 #pagefind-search,
 #search-modal-pagefind {
-  --pagefind-ui-primary: var(--color-accent, #3fb1ff);
+  --pagefind-ui-primary: var(--color-accent, #38bdf8);
   --pagefind-ui-text: var(--color-text-primary, #fafafa);
-  --pagefind-ui-background: var(--color-bg-surface, #121214);
-  --pagefind-ui-border: var(--color-border, #27272a);
-  --pagefind-ui-tag: var(--color-bg-elevated, #18181b);
+  --pagefind-ui-background: var(--color-bg-surface, #15130e);
+  --pagefind-ui-border: var(--color-border, #33312a);
+  --pagefind-ui-tag: var(--color-bg-elevated, #1d1b16);
   --pagefind-ui-border-width: 1px;
   --pagefind-ui-border-radius: 12px;
   --pagefind-ui-font: inherit;
@@ -377,16 +377,24 @@ body {
   @apply my-16 border-border;
 }
 
-/* ── Light-mode inline-code colour override ───────────────────────────────
-   The brand accent #3fb1ff renders at ~2.3:1 on the warm cream light-mode
-   background — far below WCAG AA body (4.5:1). It works in dark mode
-   (~7:1) but not against #fdfcf9. Switch inline <code> to a darker blue
-   (#1864b3 ≈ 5.83:1 on bg-base, 5.44:1 on bg-elevated) when .theme-light is
-   active. Code inside <pre> blocks is excluded — Shiki controls those
-   colours via inline styles and they're tuned for the tokyo-night theme.
-   Affects both BlogLayout (prose-code:text-accent/90) and ExperimentLayout
-   (prose-code:text-accent prose-code:bg-accent/5) since both wrap content
-   in .prose. */
-.theme-light .prose code:not(pre code) {
+/* ── Light-mode prose link + inline-code colour override ──────────────────
+   The brand accent (sky-400 #38bdf8 post-2026-05-03 overhaul, #3fb1ff
+   before) renders at ~2.1:1 on the warm cream light-mode background —
+   far below WCAG AA body (4.5:1). It works in dark mode (~9:1) but not
+   against #fdfcf9. Two surfaces in reader light mode hit this:
+     1. Inline <code>  — prose-code:text-accent/90 in BlogLayout,
+                         prose-code:text-accent prose-code:bg-accent/5 in
+                         ExperimentLayout.
+     2. Prose <a> links — prose-a:text-accent prose-a:no-underline. With
+        no underline, the link affordance is colour-only, so sub-AA
+        contrast also breaks WCAG 1.4.1 "use of color" — users literally
+        can't tell which words are links.
+   Both switched to #1864b3 in .theme-light:
+     bg-base:     5.83:1  ✅ AA body
+     bg-elevated: 5.44:1  ✅ AA body
+   Code inside <pre> blocks is excluded — Shiki tunes those colours for
+   tokyo-night via inline styles. */
+.theme-light .prose code:not(pre code),
+.theme-light .prose a {
   color: #1864b3;
 }
