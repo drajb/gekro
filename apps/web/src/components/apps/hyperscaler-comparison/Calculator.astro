@@ -237,15 +237,19 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
         let cheapestPlatform: HTMLElement | null = null;
         let cheapestLabel = '';
 
-        // First pass: compute cost per platform
+        // First pass: compute cost per platform.
+        // Read prices via getAttribute() — NOT dataset. HTML5 converts
+        // data-input-per-1m → dataset.inputPer1m (no underscore), and our
+        // attribute names contain digits which made the camelCase mapping
+        // confusing. getAttribute reads the literal attribute value.
         const cells = card.querySelectorAll<HTMLElement>('.hsc-platform-cell');
         cells.forEach(cell => {
           cell.classList.remove('is-cheapest');
           const costEl = cell.querySelector<HTMLElement>('.hsc-monthly-cost');
           if (!costEl) return;
 
-          const inputPer1m = parseFloat(costEl.dataset.inputPer_1m || '0');
-          const outputPer1m = parseFloat(costEl.dataset.outputPer_1m || '0');
+          const inputPer1m = parseFloat(costEl.getAttribute('data-input-per-1m') || '0');
+          const outputPer1m = parseFloat(costEl.getAttribute('data-output-per-1m') || '0');
           const monthly = (inputMonthly / 1_000_000) * inputPer1m + (outputMonthly / 1_000_000) * outputPer1m;
           costEl.textContent = fmtUsd(monthly);
 
@@ -276,19 +280,6 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
 
       applyFilterAndSort();
     };
-
-    // Note: dataset.inputPer_1m / outputPer_1m have hyphens stripped per HTML5 dataset rules.
-    // The original attrs are data-input-per-1m / data-output-per-1m. Adjusting:
-    // dataset converts kebab to camel: data-input-per-1m → inputPer1m
-    // Let me fix that by re-reading attrs directly.
-    cards.forEach(card => {
-      card.querySelectorAll<HTMLElement>('.hsc-monthly-cost').forEach(el => {
-        const attrIn = el.getAttribute('data-input-per-1m');
-        const attrOut = el.getAttribute('data-output-per-1m');
-        if (attrIn !== null) el.dataset['inputPer_1m'] = attrIn;
-        if (attrOut !== null) el.dataset['outputPer_1m'] = attrOut;
-      });
-    });
 
     /** Show/hide cards based on vendor filter; reorder based on sort. */
     const applyFilterAndSort = () => {
