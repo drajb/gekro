@@ -38,15 +38,12 @@ export const SKU_TO_CANONICAL = {
 
   // ── DeepSeek (cross-platform AWS + Azure) ────────────────────────────────
   'DeepSeek v3.2':                                   { canonicalId: 'deepseek/v3-2', platform: 'aws_bedrock' },
-  'DeepSeek V3.1':                                   { canonicalId: 'deepseek/v3-1', platform: 'aws_bedrock' },
   // AWS calls DeepSeek R1 just "R1" in model attribute — match exact + provider check at fetcher level
   'R1':                                              { canonicalId: 'deepseek/r1',   platform: 'aws_bedrock' },
 
   // Azure Foundry DeepSeek SKUs — match against productName + skuName combo
   'Azure Deepseek Models V3.2 Inp':                  { canonicalId: 'deepseek/v3-2', platform: 'azure_foundry' },
   'Azure Deepseek Models V3.2 Outp':                 { canonicalId: 'deepseek/v3-2', platform: 'azure_foundry' },
-  'Azure Deepseek Models V3.1 Inp glbl':             { canonicalId: 'deepseek/v3-1', platform: 'azure_foundry' },
-  'Azure Deepseek Models V3.1 Outp glbl':            { canonicalId: 'deepseek/v3-1', platform: 'azure_foundry' },
   'Azure Deepseek Models R1 Inp glbl':               { canonicalId: 'deepseek/r1',   platform: 'azure_foundry' },
   'Azure Deepseek Models R1 Outp glbl':              { canonicalId: 'deepseek/r1',   platform: 'azure_foundry' },
 

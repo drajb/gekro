@@ -42,15 +42,35 @@ async function fetchAllPages() {
   /** @type {any[]} */
   const items = [];
   let url = `${ENDPOINT}?$filter=${encodeURIComponent(FILTER)}`;
-  let safety = 0;
+  let pageNum = 0;
 
-  while (url && safety < 50) {
-    safety += 1;
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    if (!res.ok) {
-      throw new Error(`Azure pricing API returned ${res.status}: ${await res.text()}`);
+  // Cap at 50 pages (~50K rows) — defensive against infinite-pagination bugs.
+  while (url && pageNum < 50) {
+    pageNum += 1;
+    let res;
+    try {
+      res = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(30_000),  // 30s per page
+      });
+    } catch (err) {
+      // Native fetch errors are extremely vague ("fetch failed") without cause.
+      // Surface the URL and any Node error.cause for actionable debugging.
+      throw new Error(
+        `Azure fetch failed at page ${pageNum} for URL: ${url}\n` +
+        `Error: ${err.name}: ${err.message}\n` +
+        `Cause: ${err.cause ? JSON.stringify(err.cause) : 'none'}`
+      );
     }
-    const body = await res.json();
+    if (!res.ok) {
+      throw new Error(`Azure pricing API returned HTTP ${res.status} ${res.statusText}: ${await res.text()}`);
+    }
+    let body;
+    try {
+      body = await res.json();
+    } catch (err) {
+      throw new Error(`Azure response wasn't JSON at page ${pageNum}: ${err.message}`);
+    }
     items.push(...(body.Items ?? []));
     url = body.NextPageLink ?? null;
   }

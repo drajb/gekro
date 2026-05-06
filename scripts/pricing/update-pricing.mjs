@@ -68,11 +68,25 @@ async function main() {
 
   console.log(`\nTotal observations: ${observations.length} (azure=${azure.length}, aws=${aws.length}, gcp=${gcp.length})\n`);
 
-  // 3. Merge observations into the canonical structure
+  // 3. Merge observations into the canonical structure.
+  // Dedupe defensively: any (canonicalId, platform, side) triple should have
+  // exactly one observation per run. If a fetcher ever returns multiples
+  // (e.g. AWS Bedrock returning both standard + latency-optimized for the
+  // same model and our filter missed one), use the FIRST and warn — beats
+  // thrashing the JSON with last-write-wins chaos like the 2026-05-06 run.
   let changeCount = 0;
   const changes = [];
+  /** @type {Set<string>} */
+  const seen = new Set();
 
   for (const obs of observations) {
+    const dedupeKey = `${obs.canonicalId}/${obs.platform}/${obs.side}`;
+    if (seen.has(dedupeKey)) {
+      console.warn(`  ⚠ Duplicate observation ${dedupeKey} (usd=$${obs.usdPer1M}) — keeping first, ignoring this`);
+      continue;
+    }
+    seen.add(dedupeKey);
+
     const model = current.models.find(m => m.id === obs.canonicalId);
     if (!model) {
       console.warn(`  ⚠ Observation for unknown canonical model "${obs.canonicalId}" — ignoring`);

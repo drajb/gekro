@@ -96,15 +96,35 @@ export async function fetchAWSPricing() {
     );
     if (!tracked) continue;
 
+    // CRITICAL FILTER — AWS Bedrock has many inference type SKUs per model:
+    //   "Input tokens"               ← standard, this is what we want
+    //   "Output tokens"              ← standard, this is what we want
+    //   "Input tokens priority"      ← skip (provisioned)
+    //   "Input tokens batch"         ← skip (batch API, different price)
+    //   "Input tokens flex"          ← skip (flex tier)
+    //   "Input tokens cross-region"  ← skip (cross-region inference)
+    //   "Input Video Token Count"    ← skip (multimodal extra)
+    //   "Input Image Token Count"    ← skip (multimodal extra)
+    //   "Output tokens latency optimized" ← skip
+    // Without this filter, the fetcher matches ALL of them and the JSON
+    // value thrashes through 5-8 different prices per model per run.
+    // Filter: exact case-insensitive match on the standard pair only.
+    const inferenceType = (attrs.inferenceType ?? '').toLowerCase().trim();
+    const isStandardInput = inferenceType === 'input tokens';
+    const isStandardOutput = inferenceType === 'output tokens';
+    if (!isStandardInput && !isStandardOutput) continue;
+
     // Look up the OnDemand price entries for this SKU
     const offers = onDemand[productSku] ?? {};
     for (const offer of Object.values(offers)) {
       const dims = /** @type {any} */ (offer).priceDimensions ?? {};
       for (const dim of Object.values(dims)) {
         const dimAny = /** @type {any} */ (dim);
-        const desc = (dimAny.description ?? '').toLowerCase();
-        const isInput = /input|prompt/.test(desc);
-        const isOutput = /output|completion|response/.test(desc);
+        // Re-derive input/output from the inferenceType we just filtered on.
+        // Don't trust priceDimension descriptions — they're sometimes blank
+        // or mismatched against the parent product's inferenceType.
+        const isInput = isStandardInput;
+        const isOutput = isStandardOutput;
         if (!isInput && !isOutput) continue;
 
         const usd = parseFloat(dimAny.pricePerUnit?.USD ?? '0');
