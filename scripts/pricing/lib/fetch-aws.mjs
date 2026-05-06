@@ -96,22 +96,36 @@ export async function fetchAWSPricing() {
     );
     if (!tracked) continue;
 
-    // CRITICAL FILTER — AWS Bedrock has many inference type SKUs per model:
-    //   "Input tokens"               ← standard, this is what we want
-    //   "Output tokens"              ← standard, this is what we want
-    //   "Input tokens priority"      ← skip (provisioned)
-    //   "Input tokens batch"         ← skip (batch API, different price)
-    //   "Input tokens flex"          ← skip (flex tier)
-    //   "Input tokens cross-region"  ← skip (cross-region inference)
-    //   "Input Video Token Count"    ← skip (multimodal extra)
-    //   "Input Image Token Count"    ← skip (multimodal extra)
-    //   "Output tokens latency optimized" ← skip
-    // Without this filter, the fetcher matches ALL of them and the JSON
-    // value thrashes through 5-8 different prices per model per run.
-    // Filter: exact case-insensitive match on the standard pair only.
+    // CRITICAL FILTER — match by attributes.usagetype (more deterministic
+    // than inferenceType which has many free-form variants per model).
+    //
+    // AWS usagetype examples (verified against live API):
+    //   USE1-zai.glm-4.7-output-tokens               ← STANDARD, want
+    //   USE1-Ministral-3-8b-Instruct-input-tokens    ← STANDARD, want
+    //   USE1-Nova2.0Pro-input-text-tokens            ← STANDARD, want (Nova multimodal)
+    //   USE1-Ministral-3-8b-Instruct-input-tokens-priority ← skip (provisioned)
+    //   USE1-mistral...-output-tokens-flex           ← skip (flex tier)
+    //   USE1-google.gemma-3-4b-...-input-tokens-batch ← skip (batch API)
+    //   USE1-Nova2.0Pro-input-video-token-count-... ← skip (video-specific)
+    //   USE1-Nova2.0Pro-input-image-token-count-... ← skip (image-specific)
+    //
+    // Match: usagetype ends in "-input-tokens" or "-output-tokens" exactly.
+    // The "-text-tokens" variant catches Nova multimodal text pricing.
+    // No trailing modifier = standard on-demand rate. This is THE filter.
+    //
+    // Fallback: some older Anthropic SKUs lack usagetype but have
+    // inferenceType="Input tokens" exactly. Catch those too.
+    const usagetype = (attrs.usagetype ?? '').toLowerCase();
     const inferenceType = (attrs.inferenceType ?? '').toLowerCase().trim();
-    const isStandardInput = inferenceType === 'input tokens';
-    const isStandardOutput = inferenceType === 'output tokens';
+
+    const isStandardInput = (
+      /(^|-)(input-tokens|input-text-tokens)$/.test(usagetype) ||
+      inferenceType === 'input tokens'
+    );
+    const isStandardOutput = (
+      /(^|-)(output-tokens|output-text-tokens)$/.test(usagetype) ||
+      inferenceType === 'output tokens'
+    );
     if (!isStandardInput && !isStandardOutput) continue;
 
     // Look up the OnDemand price entries for this SKU
