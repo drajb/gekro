@@ -14,6 +14,42 @@ const platformIds = Object.keys(platforms);
 // Pre-compute "cheapest" platform per model for static render (JS recomputes on input change)
 const DEFAULT_INPUT_PER_DAY = 500_000;
 const DEFAULT_OUTPUT_PER_DAY = 100_000;
+
+// Popularity order for the model search dropdown — most recognised/searched models first.
+// Cross-platform models rank higher (more comparison value than single-platform exclusives).
+const POPULARITY_ORDER = [
+  'openai/gpt-5',
+  'anthropic/claude-opus-4',
+  'google/gemini-3-0-pro',
+  'meta/llama-4-maverick-17b',
+  'deepseek/v3-2',
+  'openai/gpt-5-mini',
+  'anthropic/claude-sonnet-4',
+  'google/gemini-2-5-pro',
+  'deepseek/r1',
+  'meta/llama-3-3-70b',
+  'mistral/large-3',
+  'google/gemini-3-0-flash',
+  'anthropic/claude-haiku-4',
+  'google/gemini-2-5-flash',
+  'xai/grok-4-2',
+  'meta/llama-4-scout-17b',
+  'amazon/nova-premier',
+  'amazon/nova-2-0-pro',
+  'openai/gpt-5-2-chat',
+  'amazon/nova-micro',
+  'zai/glm-5',
+  'qwen/qwen3-32b',
+  'openai/gpt-oss-120b',
+];
+const sortedModels = [...models].sort((a, b) => {
+  const ai = POPULARITY_ORDER.indexOf(a.id);
+  const bi = POPULARITY_ORDER.indexOf(b.id);
+  if (ai === -1 && bi === -1) return a.label.localeCompare(b.label);
+  if (ai === -1) return 1;
+  if (bi === -1) return -1;
+  return ai - bi;
+});
 ---
 
 <div id="hsc-app" class="space-y-6">
@@ -63,6 +99,90 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
       <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="500000" data-output="100000">Small prod</button>
       <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="5000000" data-output="1000000">Medium</button>
       <button class="hsc-preset app-btn-secondary px-3 py-1 rounded-md text-xs" data-input="50000000" data-output="10000000">Large</button>
+    </div>
+  </div>
+
+  <!-- Model search dropdown -->
+  <div class="space-y-2" id="hsc-picker-wrapper">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-secondary">Find a model</p>
+    <div class="relative" id="hsc-picker">
+      <!-- Trigger -->
+      <button
+        id="hsc-picker-trigger"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        class="w-full sm:w-auto sm:min-w-[280px] inline-flex items-center justify-between gap-4 px-4 py-2.5
+               bg-bg-elevated border border-border rounded-xl text-sm font-mono text-text-primary
+               hover:border-border-strong focus:outline-none focus:border-accent transition-colors"
+      >
+        <span id="hsc-picker-label">All models</span>
+        <svg id="hsc-picker-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+             class="w-4 h-4 text-text-muted shrink-0 transition-transform duration-150">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+        </svg>
+      </button>
+
+      <!-- Dropdown panel -->
+      <div
+        id="hsc-picker-panel"
+        role="listbox"
+        class="hidden absolute z-50 left-0 top-[calc(100%+6px)] w-full sm:w-[300px]
+               bg-bg-elevated border border-border rounded-xl overflow-hidden
+               shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+      >
+        <!-- Search input -->
+        <div class="p-2 border-b border-border-subtle">
+          <input
+            id="hsc-picker-search"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Search models…"
+            class="w-full bg-bg border border-border-subtle rounded-lg px-3 py-2 text-xs font-mono
+                   text-text-primary placeholder:text-text-muted/40
+                   focus:outline-none focus:border-accent transition-colors"
+          />
+        </div>
+
+        <!-- Options list -->
+        <ul id="hsc-picker-list" class="overflow-y-auto" style="max-height: 280px;">
+          <!-- "All models" always first -->
+          <li>
+            <button
+              class="hsc-picker-opt w-full text-left px-4 py-2.5 flex items-center justify-between
+                     text-xs font-mono text-text-primary hover:bg-accent/5 transition-colors"
+              data-id="all" data-label="All models"
+            >
+              <span>All models</span>
+              <span class="text-text-muted/50 text-[10px]">{models.length}</span>
+            </button>
+          </li>
+          <li class="hsc-picker-divider h-px bg-border-subtle mx-3 my-0.5"></li>
+
+          <!-- Models sorted by popularity -->
+          {sortedModels.map((m, i) => (
+            <li>
+              <button
+                class="hsc-picker-opt w-full text-left px-4 py-2 flex items-center gap-3
+                       text-xs font-mono hover:bg-accent/5 transition-colors"
+                data-id={m.id}
+                data-label={m.label}
+              >
+                <span class="text-text-muted/30 tabular-nums text-[9px] w-5 text-right shrink-0 select-none">{i + 1}</span>
+                <span class="flex-1 min-w-0">
+                  <span class="text-text-primary block truncate">{m.label}</span>
+                  <span class="text-text-muted/50 text-[9px]">{m.vendor}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <!-- Empty search state -->
+        <p id="hsc-picker-noresults" class="hidden text-center text-xs font-mono text-text-muted py-4 px-3">
+          No matching models
+        </p>
+      </div>
     </div>
   </div>
 
@@ -169,6 +289,25 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
     background-color: rgba(56, 189, 248, 0.12);
     color: var(--color-accent);
   }
+
+  /* Model picker — open state trigger highlight */
+  #hsc-picker-trigger[aria-expanded="true"] {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+  /* Selected model in the dropdown list */
+  .hsc-picker-opt.is-selected {
+    background-color: rgba(56, 189, 248, 0.08);
+    color: var(--color-accent);
+  }
+  .hsc-picker-opt.is-selected span.text-text-primary {
+    color: var(--color-accent);
+  }
+  /* Rotate chevron when open */
+  #hsc-picker-trigger[aria-expanded="true"] #hsc-picker-chevron {
+    transform: rotate(180deg);
+  }
+
   /* Cheapest cell highlight — applied dynamically by JS */
   .hsc-platform-cell.is-cheapest {
     border-color: rgba(52, 211, 153, 0.4);
@@ -207,6 +346,74 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
 
     let activeVendor = 'all';
     let activeSort = 'cheapest';
+    let activeModelId = 'all';
+
+    // ── Model picker ──────────────────────────────────────────────────────
+    const picker          = document.getElementById('hsc-picker')!;
+    const pickerTrigger   = document.getElementById('hsc-picker-trigger') as HTMLButtonElement;
+    const pickerLabel     = document.getElementById('hsc-picker-label')!;
+    const pickerPanel     = document.getElementById('hsc-picker-panel')!;
+    const pickerSearch    = document.getElementById('hsc-picker-search') as HTMLInputElement;
+    const pickerNoResults = document.getElementById('hsc-picker-noresults')!;
+    const pickerOpts      = pickerPanel.querySelectorAll<HTMLElement>('.hsc-picker-opt');
+    const pickerDivider   = pickerPanel.querySelector<HTMLElement>('.hsc-picker-divider');
+
+    const isPanelOpen = () => pickerTrigger.getAttribute('aria-expanded') === 'true';
+
+    const openPicker = () => {
+      pickerPanel.classList.remove('hidden');
+      pickerTrigger.setAttribute('aria-expanded', 'true');
+      pickerSearch.value = '';
+      filterPicker('');
+      pickerSearch.focus();
+    };
+
+    const closePicker = () => {
+      pickerPanel.classList.add('hidden');
+      pickerTrigger.setAttribute('aria-expanded', 'false');
+    };
+
+    const filterPicker = (q: string) => {
+      const query = q.toLowerCase().trim();
+      let hits = 0;
+      pickerOpts.forEach(opt => {
+        const id = opt.dataset.id ?? '';
+        const li = opt.closest('li') as HTMLElement | null;
+        if (!li) return;
+        if (id === 'all') { li.style.display = ''; return; }
+        const text = (opt.textContent ?? '').toLowerCase();
+        const show = !query || text.includes(query);
+        li.style.display = show ? '' : 'none';
+        if (show) hits++;
+      });
+      // Hide rank divider when searching (cleaner blank-state look)
+      if (pickerDivider) pickerDivider.style.display = query ? 'none' : '';
+      pickerNoResults.classList.toggle('hidden', hits > 0 || !query);
+    };
+
+    const selectModel = (id: string, label: string) => {
+      activeModelId = id;
+      pickerLabel.textContent = id === 'all' ? 'All models' : label;
+      pickerOpts.forEach(o => o.classList.toggle('is-selected', o.dataset.id === id && id !== 'all'));
+      // Reset vendor filter when focusing on a specific model — vendor is irrelevant
+      if (id !== 'all') {
+        activeVendor = 'all';
+        vendorTabs.forEach(t => t.classList.toggle('active', t.dataset.vendor === 'all'));
+      }
+      closePicker();
+      applyFilterAndSort();
+    };
+
+    pickerTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isPanelOpen() ? closePicker() : openPicker();
+    });
+    pickerSearch.addEventListener('input', () => filterPicker(pickerSearch.value));
+    pickerOpts.forEach(opt => {
+      opt.addEventListener('click', () =>
+        selectModel(opt.dataset.id ?? 'all', opt.dataset.label ?? 'All models')
+      );
+    });
 
     const fmt = (n: number) =>
       n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M`
@@ -281,11 +488,13 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
       applyFilterAndSort();
     };
 
-    /** Show/hide cards based on vendor filter; reorder based on sort. */
+    /** Show/hide cards based on vendor + model filters; reorder based on sort. */
     const applyFilterAndSort = () => {
       const visibleCards: HTMLElement[] = [];
       cards.forEach(card => {
-        const matches = activeVendor === 'all' || card.dataset.vendor === activeVendor;
+        const vendorOk = activeVendor === 'all' || card.dataset.vendor === activeVendor;
+        const modelOk  = activeModelId === 'all' || card.dataset.modelId === activeModelId;
+        const matches  = vendorOk && modelOk;
         card.style.display = matches ? '' : 'none';
         if (matches) visibleCards.push(card);
       });
@@ -318,6 +527,10 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
     }));
     vendorTabs.forEach(tab => tab.addEventListener('click', () => {
       activeVendor = tab.dataset.vendor || 'all';
+      // Clear model selection — vendor filter and model picker are mutually exclusive modes
+      activeModelId = 'all';
+      pickerLabel.textContent = 'All models';
+      pickerOpts.forEach(o => o.classList.remove('is-selected'));
       vendorTabs.forEach(t => t.classList.toggle('active', t === tab));
       applyFilterAndSort();
     }));
@@ -334,6 +547,15 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
     const ac = new AbortController();
     const { signal } = ac;
     document.addEventListener('astro:before-swap', () => ac.abort(), { once: true });
+
+    // Close picker on outside click
+    document.addEventListener('click', (e) => {
+      if (isPanelOpen() && !picker.contains(e.target as Node)) closePicker();
+    }, { signal });
+    // Close picker on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isPanelOpen()) { closePicker(); pickerTrigger.focus(); }
+    }, { signal });
 
     document.addEventListener('app:copy', async () => {
       const lines: string[] = ['Model,Vendor,Bedrock In,Bedrock Out,Foundry In,Foundry Out,Vertex In,Vertex Out,Cheapest Monthly'];
@@ -360,6 +582,10 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
       outputEl.value = String(100_000);
       activeVendor = 'all';
       activeSort = 'cheapest';
+      activeModelId = 'all';
+      pickerLabel.textContent = 'All models';
+      pickerOpts.forEach(o => o.classList.remove('is-selected'));
+      closePicker();
       vendorTabs.forEach(t => t.classList.toggle('active', t.dataset.vendor === 'all'));
       sortBtns.forEach(b => b.classList.toggle('active', b.dataset.sort === 'cheapest'));
       recompute();
