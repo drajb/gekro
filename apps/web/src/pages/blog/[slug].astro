@@ -33,7 +33,7 @@ import TLDR from '../../components/blog/TLDR.astro';
 import RelatedPosts from '../../components/blog/RelatedPosts.astro';
 import { client } from '../../lib/sanity/client';
 import { ALL_POSTS_QUERY } from '../../lib/sanity/queries';
-import { getAllPosts } from '../../lib/utils/posts';
+import { getAllPosts, consolidateTopics } from '../../lib/utils/posts';
 
 export async function getStaticPaths() {
   // Build paths from local markdown files
@@ -78,7 +78,12 @@ if (isLocal) {
     ...post.data,
     title: post.data.title,
     publishedAt: post.data.publishedAt,
-    topics: post.data.topics,
+    // consolidateTopics() maps raw frontmatter strings (e.g. "AI", "WSL2",
+    // "Astro") to their canonical display names ("AI Agents", "Infrastructure",
+    // "Architecture"). Without this, PostHeader chip hrefs resolve to slugs
+    // like /topics/ai/ that were never built — the static pages are built from
+    // consolidated names by topics/[topic].astro's getStaticPaths().
+    topics: consolidateTopics(post.data.topics),
     difficulty: post.data.difficulty,
     description: post.data.description,
     readingTime: post.data.readingTime,

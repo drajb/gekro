@@ -122,7 +122,7 @@ const TOPIC_MAP: Record<string, string> = {
   'TypeScript': 'Architecture',
 };
 
-function consolidateTopics(topics: string[]): string[] {
+export function consolidateTopics(topics: string[]): string[] {
   if (!topics || !Array.isArray(topics)) return [];
   // Map each tag through TOPIC_MAP, preserving unmapped tags as-is. Set
   // dedupes when multiple raw tags collapse to the same canonical topic
