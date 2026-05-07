@@ -96,6 +96,25 @@ export async function fetchAWSPricing() {
     );
     if (!tracked) continue;
 
+    // TIER GUARD — skip premium inference tiers to avoid picking up the
+    // wrong price point for models that offer multiple tiers.
+    //
+    // AWS attributes.feature values confirmed in the live data (2026-05-06):
+    //   "On-demand Inference"        ← standard PAYG (want)
+    //   "Provisioned Throughput"     ← reserved capacity (skip)
+    //   "Latency Optimized Inference"← premium latency tier (skip)
+    //
+    // Without this filter, Mistral Large 3 returns TWO input-token SKUs:
+    //   $4.00/1M  (Latency Optimized Inference)
+    //   $0.50/1M  (On-demand Inference)
+    // The dedupe in update-pricing.mjs keeps whichever arrives first — which
+    // was the more expensive one in the 2026-05-06 run ($4.00 vs $0.50).
+    //
+    // If feature is absent (some older models don't populate it), allow through
+    // — the usagetype suffix filter below is the primary guard for those.
+    const feature = attrs.feature ?? '';
+    if (feature && feature !== 'On-demand Inference') continue;
+
     // CRITICAL FILTER — match by attributes.usagetype (more deterministic
     // than inferenceType which has many free-form variants per model).
     //

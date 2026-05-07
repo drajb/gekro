@@ -17,8 +17,6 @@
  *     pay-as-you-go vs reserved). We only want PAYG, eastus, base inference.
  */
 
-import { resolveCanonical } from './normalize.mjs';
-
 const ENDPOINT = 'https://prices.azure.com/api/retail/prices';
 
 // OData filter narrowing the response to AI inference SKUs.
@@ -79,63 +77,6 @@ async function fetchAllPages() {
 }
 
 /**
- * Normalize an Azure SKU row into our canonical pricing shape.
- * Returns null if the SKU isn't a tracked model. The SKU naming in Azure is
- * inconsistent — sometimes the model name is in skuName, sometimes meterName.
- *
- * @param {any} row
- */
-function tryNormalize(row) {
-  // Azure meterName patterns: "Input Tokens (per 1k tokens)", "Output Tokens"
-  const isInput = /input/i.test(row.meterName);
-  const isOutput = /output/i.test(row.meterName);
-  if (!isInput && !isOutput) return null;
-
-  // Try to extract a model SKU from skuName / productName / meterName.
-  // We look for any of our tracked SKUs as a substring.
-  const haystack = `${row.skuName} ${row.productName} ${row.meterName}`;
-  const trackedAzureSkus = Object.keys(
-    Object.fromEntries(
-      Object.entries(
-        // SKU map keys filtered to azure_foundry platform — keeps this list tight
-        // and avoids matching e.g. "claude-3-5-sonnet" inside an Azure SKU string
-        // when we know Anthropic models aren't on Azure.
-        // (defer import to avoid circular)
-        Object.entries(import.meta).length
-          ? {}
-          : {}
-      )
-    )
-  );
-  // Easier approach: iterate the normalize map
-  return matchByVendorSku(haystack, isInput);
-}
-
-/**
- * Look at all known Azure SKUs from normalize.mjs and try each as a substring.
- * Returns { canonicalId, side: 'input'|'output', priceUsdPerToken } or null.
- *
- * @param {string} haystack
- * @param {boolean} isInput
- */
-function matchByVendorSku(haystack, isInput) {
-  // Lazy require to keep top imports clean
-  const { SKU_TO_CANONICAL } = require_normalize();
-  for (const [sku, info] of Object.entries(SKU_TO_CANONICAL)) {
-    if (info.platform !== 'azure_foundry') continue;
-    if (haystack.includes(sku)) {
-      return { sku, canonicalId: info.canonicalId, side: isInput ? 'input' : 'output' };
-    }
-  }
-  return null;
-}
-
-// Workaround: import.meta require in pure ESM
-function require_normalize() {
-  return import('./normalize.mjs');
-}
-
-/**
  * Public entrypoint — returns price observations for tracked Azure Foundry models.
  *
  * Output shape (per row):
@@ -184,11 +125,16 @@ export async function fetchAzurePricing() {
     if (!match) continue;
 
     // Azure prices are typically per 1k tokens; convert to per 1M
-    // unitOfMeasure examples: "1K", "1000", "1M"
+    // unitOfMeasure examples: "1K", "1000", "1M", "1000000"
+    // NOTE: use else-if — "1,000,000".includes("1,000") is true, so a plain
+    // second `if` would clobber the correct multiplier=1 set by the first branch.
     const unit = (row.unitOfMeasure ?? '').toUpperCase();
     let multiplier = 1000; // default: per-1k → per-1M
-    if (unit.includes('1M') || unit.includes('1000000') || unit.includes('1,000,000')) multiplier = 1;
-    if (unit.includes('1K') || unit.includes('1000') || unit.includes('1,000')) multiplier = 1000;
+    if (unit.includes('1M') || unit.includes('1000000') || unit.includes('1,000,000')) {
+      multiplier = 1;
+    } else if (unit.includes('1K') || unit.includes('1000') || unit.includes('1,000')) {
+      multiplier = 1000;
+    }
 
     const usdPer1M = row.unitPrice * multiplier;
 

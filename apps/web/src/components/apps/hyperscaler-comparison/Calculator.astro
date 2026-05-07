@@ -327,7 +327,14 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
       applyFilterAndSort();
     }));
 
-    // App-shell event handlers (toolbar buttons in AppShell)
+    // App-shell event handlers (toolbar buttons in AppShell).
+    // Use AbortController so stale listeners are removed on page navigation —
+    // prevents double-firing when a user visits this app, navigates away,
+    // then visits another app that also dispatches app:copy/reset/export.
+    const ac = new AbortController();
+    const { signal } = ac;
+    document.addEventListener('astro:before-swap', () => ac.abort(), { once: true });
+
     document.addEventListener('app:copy', async () => {
       const lines: string[] = ['Model,Vendor,Bedrock In,Bedrock Out,Foundry In,Foundry Out,Vertex In,Vertex Out,Cheapest Monthly'];
       cards.forEach(card => {
@@ -343,10 +350,10 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
           prices.push(inP, outP);
         });
         const cheapest = (card as any)._cheapest;
-        lines.push([name, vendor, ...prices, cheapest === Number.MAX_VALUE ? 'N/A' : `$${cheapest.toFixed(2)}`].join(','));
+        lines.push([`"${name}"`, `"${vendor}"`, ...prices, cheapest === Number.MAX_VALUE ? 'N/A' : `$${cheapest.toFixed(2)}`].join(','));
       });
       try { await navigator.clipboard.writeText(lines.join('\n')); } catch {}
-    });
+    }, { signal });
 
     document.addEventListener('app:reset', () => {
       inputEl.value = String(500_000);
@@ -356,7 +363,7 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
       vendorTabs.forEach(t => t.classList.toggle('active', t.dataset.vendor === 'all'));
       sortBtns.forEach(b => b.classList.toggle('active', b.dataset.sort === 'cheapest'));
       recompute();
-    });
+    }, { signal });
 
     document.addEventListener('app:export', () => {
       const lines: string[] = ['Model,Vendor,Bedrock In ($/1M),Bedrock Out ($/1M),Foundry In ($/1M),Foundry Out ($/1M),Vertex In ($/1M),Vertex Out ($/1M),Cheapest Platform,Cheapest Monthly Cost ($)'];
@@ -388,7 +395,7 @@ const DEFAULT_OUTPUT_PER_DAY = 100_000;
       a.download = `hyperscaler-pricing-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    });
+    }, { signal });
 
     // Initial compute
     recompute();
