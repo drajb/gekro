@@ -167,12 +167,14 @@ export async function fetchAzurePricing() {
   const matches = [];
 
   for (const row of rows) {
-    // Azure abbreviates: "Inp" for input, "Outp" for output. Also handle full
-    // words for any rows that use them. Word boundaries prevent "Outp" from
-    // matching inside "Output" twice.
+    // Azure abbreviates inconsistently across product families:
+    //   Inp / Input   — input tokens (most products)
+    //   Outp / Output — output tokens (DeepSeek, Mistral, Llama, Grok)
+    //   opt / Opt     — output tokens (Azure OpenAI GPT-5 family — different convention)
+    // Word boundaries prevent false matches inside "Optimized" / "Output" etc.
     const meterName = row.meterName ?? '';
     const isInput  = /\b(inp(ut)?)\b/i.test(meterName);
-    const isOutput = /\b(outp(ut)?)\b/i.test(meterName);
+    const isOutput = /\b(outp(ut)?|opt)\b/i.test(meterName);
     if (!isInput && !isOutput) continue;
 
     // Match against our tracked SKUs. Order: productName + skuName + meterName

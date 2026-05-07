@@ -47,6 +47,41 @@ export const SKU_TO_CANONICAL = {
   'Azure Deepseek Models R1 Inp glbl':               { canonicalId: 'deepseek/r1',   platform: 'azure_foundry' },
   'Azure Deepseek Models R1 Outp glbl':              { canonicalId: 'deepseek/r1',   platform: 'azure_foundry' },
 
+  // ── Azure Llama (cross-platform with Bedrock) ────────────────────────────
+  // Verified live SKUs in eastus, global pricing tier ('glbl' = cheapest)
+  'Azure Llama Models Llama 4 Maverick 17B Inp glbl':  { canonicalId: 'meta/llama-4-maverick-17b', platform: 'azure_foundry' },
+  'Azure Llama Models Llama 4 Maverick 17B Outp glbl': { canonicalId: 'meta/llama-4-maverick-17b', platform: 'azure_foundry' },
+  'Azure Llama Models Llama 3.3 70B Inp glbl':         { canonicalId: 'meta/llama-3-3-70b',        platform: 'azure_foundry' },
+  'Azure Llama Models Llama 3.3 70B Outp glbl':        { canonicalId: 'meta/llama-3-3-70b',        platform: 'azure_foundry' },
+
+  // ── Azure Mistral Large 3 (cross-platform with Bedrock) ──────────────────
+  'Azure Mistral Models Large 3 Inp glbl':             { canonicalId: 'mistral/large-3', platform: 'azure_foundry' },
+  'Azure Mistral Models Large 3 Outp glbl':            { canonicalId: 'mistral/large-3', platform: 'azure_foundry' },
+
+  // ── Azure OpenAI GPT-5 family (Azure-exclusive) ──────────────────────────
+  // Convention here is different: lowercase "inp"/"opt" instead of "Inp"/"Outp"
+  // and "Gl" instead of "glbl". The "5 pp" / "5 mini pp" suffix indicates the
+  // standard pay-per-token tier (vs PTU/provisioned).
+  'Azure OpenAI GPT5 5 pp inp Gl':                     { canonicalId: 'openai/gpt-5',         platform: 'azure_foundry' },
+  'Azure OpenAI GPT5 5 pp opt Gl':                     { canonicalId: 'openai/gpt-5',         platform: 'azure_foundry' },
+  'Azure OpenAI GPT5 5 mini pp Inp Gl':                { canonicalId: 'openai/gpt-5-mini',    platform: 'azure_foundry' },
+  'Azure OpenAI GPT5 5 mini pp Opt Gl':                { canonicalId: 'openai/gpt-5-mini',    platform: 'azure_foundry' },
+  'Azure OpenAI GPT5 5.2 chat 0210 inp Gl':            { canonicalId: 'openai/gpt-5-2-chat',  platform: 'azure_foundry' },
+  'Azure OpenAI GPT5 5.2 chat 0210 opt Gl':            { canonicalId: 'openai/gpt-5-2-chat',  platform: 'azure_foundry' },
+
+  // ── Azure Grok 4.2 (xAI on Azure — Azure-exclusive among the three hyperscalers) ──
+  'Azure Grok Models Grok 4.2 Inp glbl':               { canonicalId: 'xai/grok-4-2', platform: 'azure_foundry' },
+  'Azure Grok Models Grok 4.2 Outp glbl':              { canonicalId: 'xai/grok-4-2', platform: 'azure_foundry' },
+
+  // ── Azure Fireworks-hosted variants (cross-platform comparable to Bedrock direct) ──
+  // Note: Fireworks uses "DZ" (data zone) tier — no glbl variant offered.
+  // Comparing Bedrock-direct vs Azure-Fireworks of the same model surfaces the
+  // hosting-vendor markup, which is genuinely interesting App #51 data.
+  'Azure Fireworks Models FW GPT OSS 120B Inp DZ':     { canonicalId: 'openai/gpt-oss-120b', platform: 'azure_foundry' },
+  'Azure Fireworks Models FW GPT OSS 120B Outp DZ':    { canonicalId: 'openai/gpt-oss-120b', platform: 'azure_foundry' },
+  'Azure Fireworks Models FW GLM 5 Inp DZ':            { canonicalId: 'zai/glm-5',           platform: 'azure_foundry' },
+  'Azure Fireworks Models FW GLM 5 Outp DZ':           { canonicalId: 'zai/glm-5',           platform: 'azure_foundry' },
+
   // ── Mistral Large 3 (cross-platform AWS confirmed) ───────────────────────
   'Mistral Large 3':                                 { canonicalId: 'mistral/large-3', platform: 'aws_bedrock' },
 
