@@ -88,15 +88,24 @@ export async function fetchGCPPricing() {
   /** @type {Array<{ canonicalId: string, sku: string, side: 'input'|'output', usdPer1M: number }>} */
   const matches = [];
 
+  // Normalize for fuzzy SKU matching: lowercase + collapse special chars
+  // (dots, dashes, @, slashes) into spaces. We normalize BOTH the GCP
+  // description AND the tracked SKU key so "gemini-3.0-pro" matches the
+  // GCP description "Gemini 3.0 Pro Input Tokens" → both become
+  // "gemini 3 0 pro …" → substring match works.
+  const normalize = (s) => (s ?? '').toLowerCase().replace(/[.@\-/]/g, ' ').replace(/\s+/g, ' ').trim();
+
   for (const sku of skus) {
-    const description = (sku.description ?? '').toLowerCase();
+    const rawDesc = sku.description ?? '';
+    const description = rawDesc.toLowerCase();
     const isInput = /input/.test(description);
     const isOutput = /output/.test(description);
     if (!isInput && !isOutput) continue;
 
     // Match against our tracked SKU strings. GCP descriptions are like:
-    // "Claude 3 5 Sonnet Input Tokens" — fuzzy match by canonical model name.
-    const tracked = trackedSkus.find(t => description.includes(t.sku.toLowerCase().replace(/[.@-]/g, ' ')));
+    // "Gemini 3.0 Pro Input Tokens" — fuzzy match after normalization.
+    const normDesc = normalize(rawDesc);
+    const tracked = trackedSkus.find(t => normDesc.includes(normalize(t.sku)));
     if (!tracked) continue;
 
     // Each SKU has pricingInfo[].pricingExpression.tieredRates[].unitPrice

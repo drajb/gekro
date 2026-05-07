@@ -97,10 +97,47 @@ export const SKU_TO_CANONICAL = {
   'gpt-oss-120b':                                    { canonicalId: 'openai/gpt-oss-120b',   platform: 'aws_bedrock' },
   'Qwen3 32B':                                       { canonicalId: 'qwen/qwen3-32b',        platform: 'aws_bedrock' },
 
-  // ── GCP Vertex (placeholders — fill in once GCP discovery returns model SKUs) ──
-  // The current discovery shows GKE infrastructure SKUs, not generative models.
-  // After re-running discovery with the improved filter, populate Vertex SKUs here
-  // for: Gemini 3.x Pro/Flash, Claude (now on Vertex), Llama 4, etc.
+  // ── GCP Vertex AI (Google + Anthropic on Vertex + Llama via Model Garden) ─
+  // Match against sku.description after normalization (lowercase + special
+  // chars → spaces). SKU keys here are the description prefix, NOT the
+  // model API ID. GCP typically names tokens like:
+  //   "Gemini 3.0 Pro Input Tokens"
+  //   "Claude Opus 4 Output Tokens"
+  //   "Llama 3.3 Input Tokens"
+  // The fetcher normalizes both sides, so dots/dashes don't break matching.
+  //
+  // These are EDUCATED GUESSES based on Google's typical naming conventions.
+  // After the next workflow run we'll see which match — anything that
+  // doesn't can be refined by inspecting `--discover` output for that SKU.
+
+  // Google Gemini family (Vertex-exclusive — Google's own models)
+  'Gemini 3.0 Pro Input':                            { canonicalId: 'google/gemini-3-0-pro',   platform: 'gcp_vertex' },
+  'Gemini 3.0 Pro Output':                           { canonicalId: 'google/gemini-3-0-pro',   platform: 'gcp_vertex' },
+  'Gemini 3.0 Flash Input':                          { canonicalId: 'google/gemini-3-0-flash', platform: 'gcp_vertex' },
+  'Gemini 3.0 Flash Output':                         { canonicalId: 'google/gemini-3-0-flash', platform: 'gcp_vertex' },
+  'Gemini 2.5 Pro Input':                            { canonicalId: 'google/gemini-2-5-pro',   platform: 'gcp_vertex' },
+  'Gemini 2.5 Pro Output':                           { canonicalId: 'google/gemini-2-5-pro',   platform: 'gcp_vertex' },
+  'Gemini 2.5 Flash Input':                          { canonicalId: 'google/gemini-2-5-flash', platform: 'gcp_vertex' },
+  'Gemini 2.5 Flash Output':                         { canonicalId: 'google/gemini-2-5-flash', platform: 'gcp_vertex' },
+
+  // Anthropic Claude on Vertex (newer versions are Vertex-exclusive among
+  // hyperscalers; Bedrock has only legacy Claude 2/3 versions)
+  'Claude Opus 4 Input':                             { canonicalId: 'anthropic/claude-opus-4',     platform: 'gcp_vertex' },
+  'Claude Opus 4 Output':                            { canonicalId: 'anthropic/claude-opus-4',     platform: 'gcp_vertex' },
+  'Claude Sonnet 4 Input':                           { canonicalId: 'anthropic/claude-sonnet-4',   platform: 'gcp_vertex' },
+  'Claude Sonnet 4 Output':                          { canonicalId: 'anthropic/claude-sonnet-4',   platform: 'gcp_vertex' },
+  'Claude Haiku 4 Input':                            { canonicalId: 'anthropic/claude-haiku-4',    platform: 'gcp_vertex' },
+  'Claude Haiku 4 Output':                           { canonicalId: 'anthropic/claude-haiku-4',    platform: 'gcp_vertex' },
+
+  // Meta Llama on Vertex Model Garden (cross-platform with Bedrock + Azure)
+  'Llama 3.3 Input':                                 { canonicalId: 'meta/llama-3-3-70b',        platform: 'gcp_vertex' },
+  'Llama 3.3 Output':                                { canonicalId: 'meta/llama-3-3-70b',        platform: 'gcp_vertex' },
+  'Llama 4 Maverick Input':                          { canonicalId: 'meta/llama-4-maverick-17b', platform: 'gcp_vertex' },
+  'Llama 4 Maverick Output':                         { canonicalId: 'meta/llama-4-maverick-17b', platform: 'gcp_vertex' },
+
+  // Mistral on Vertex Model Garden (cross-platform with Bedrock + Azure)
+  'Mistral Large 3 Input':                           { canonicalId: 'mistral/large-3', platform: 'gcp_vertex' },
+  'Mistral Large 3 Output':                          { canonicalId: 'mistral/large-3', platform: 'gcp_vertex' },
 };
 
 /**

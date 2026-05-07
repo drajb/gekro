@@ -45,8 +45,12 @@
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Discovery pending — verify on Vertex Model Garden"
+          "available": true,
+          "sku_id": "Llama 4 Maverick",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -95,8 +99,12 @@
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Discovery pending — known to be on Vertex Model Garden"
+          "available": true,
+          "sku_id": "Llama 3.3",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -176,8 +184,12 @@
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Discovery pending — historically on Vertex"
+          "available": true,
+          "sku_id": "Mistral Large 3",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -416,6 +428,167 @@
         "gcp_vertex": {
           "available": false,
           "note": "xAI Grok not on Vertex"
+        }
+      }
+    },
+    {
+      "id": "google/gemini-3-0-pro",
+      "vendor": "Google",
+      "label": "Gemini 3.0 Pro",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Gemini 3.0 Pro",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "google/gemini-3-0-flash",
+      "vendor": "Google",
+      "label": "Gemini 3.0 Flash",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Gemini 3.0 Flash",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "google/gemini-2-5-pro",
+      "vendor": "Google",
+      "label": "Gemini 2.5 Pro",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Gemini 2.5 Pro",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "google/gemini-2-5-flash",
+      "vendor": "Google",
+      "label": "Gemini 2.5 Flash",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Google models are Vertex-exclusive"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Gemini 2.5 Flash",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "anthropic/claude-opus-4",
+      "vendor": "Anthropic",
+      "label": "Claude Opus 4",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Bedrock has only legacy Claude 2/3; newer Claude moved to Vertex"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Anthropic models not on Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Claude Opus 4",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "anthropic/claude-sonnet-4",
+      "vendor": "Anthropic",
+      "label": "Claude Sonnet 4",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Bedrock has only legacy Claude 2/3; newer Claude moved to Vertex"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Anthropic models not on Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Claude Sonnet 4",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
+        }
+      }
+    },
+    {
+      "id": "anthropic/claude-haiku-4",
+      "vendor": "Anthropic",
+      "label": "Claude Haiku 4",
+      "platforms": {
+        "aws_bedrock": {
+          "available": false,
+          "note": "Bedrock has only legacy Claude 2/3"
+        },
+        "azure_foundry": {
+          "available": false,
+          "note": "Anthropic models not on Foundry"
+        },
+        "gcp_vertex": {
+          "available": true,
+          "sku_id": "Claude Haiku 4",
+          "input_per_1m_usd": 0.01,
+          "output_per_1m_usd": 0.02,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     }
