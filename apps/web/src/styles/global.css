@@ -64,9 +64,12 @@
   --color-bg-elevated: #1d1b16;    /* was #18181b — clearly elevated */
   --color-bg-glass: rgba(255, 255, 255, 0.035);  /* NEW — top-edge highlight */
 
-  /* Text — three-tier hierarchy with WCAG AA on every surface */
+  /* Text — three-tier hierarchy with WCAG AAA on primary+secondary, AA on muted.
+     text-secondary bumped 2026-05-05 from #a1a1aa (zinc-400) → #a8a8b1 to clear
+     AAA body 7:1 on bg-elevated (was 6.71:1, missed AAA by 0.29). New: 7.29
+     bg-elev / 7.87 bg-surf / 8.34 bg-base — clean AAA on every surface. */
   --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
+  --color-text-secondary: #a8a8b1; /* AAA body on every dark surface */
   --color-text-muted: #8a8a93;     /* WCAG AA body on bg-base/surface */
 
   /* Accents — refined primary + actually-used semantic secondaries */
@@ -75,10 +78,16 @@
   --color-accent-success: #34d399; /* NEW — emerald-400 for profit/passing */
   --color-accent-danger: #f87171;  /* was #ef4444 — softer rose-400 */
 
-  /* Borders — three tiers, all visible (old subtle was identical to elevated) */
-  --color-border-subtle: #23211c;  /* was #18181b (invisible) — barely visible */
-  --color-border: #33312a;         /* was #27272a — clear edge */
-  --color-border-strong: #454338;  /* NEW — emphasis, focus, active */
+  /* Borders — three tiers. border + border-strong bumped 2026-05-05 to pass
+     WCAG 1.4.11 (3:1 non-text contrast) for input/card/button edges:
+       border         #33312a (1.32-1.51) → #706c5c (3.27-3.74) ✅
+       border-strong  #454338 (1.73-1.98) → #807c6c (4.11-4.70) ✅
+     border-subtle stays decorative (called subtle for a reason; 1.4.11 only
+     applies to UI components essential to perception). Visual change is real:
+     card/input edges become clearly defined instead of barely-there. */
+  --color-border-subtle: #23211c;  /* decorative — 1.07-1.22 (intentional) */
+  --color-border: #706c5c;         /* 3.27-3.74:1 — passes 1.4.11 (3:1) */
+  --color-border-strong: #807c6c;  /* 4.11-4.70:1 — emphasis, focus, active */
 
   --font-display: "Syne", sans-serif;
   --font-heading: "Cabinet Grotesk", sans-serif;
@@ -102,11 +111,19 @@ body {
 
   --color-text-primary: #1a1715;   /* warm dark, was #18181b */
   --color-text-secondary: #45413a; /* warm grey, was #3f3f46 */
-  --color-text-muted: #767168;     /* warm muted, was #71717a */
+  --color-text-muted: #706b5e;     /* warm muted — bumped 2026-05-05 from #767168;
+                                      old value was 4.41:1 on bg-elevated (< AA 4.5).
+                                      New: 4.83/5.18/5.31 bg-elev/base/surf — passes
+                                      AA body on every light surface. */
 
-  --color-border-subtle: #ebe7df;  /* warm subtle */
-  --color-border: #d8d3c8;         /* warm clear */
-  --color-border-strong: #b9b3a6;  /* warm emphasis */
+  /* Borders — bumped 2026-05-05 for WCAG 1.4.11 (3:1 non-text) parity with
+     dark mode. Light backgrounds need DARKER borders (inverted contrast):
+       border         #d8d3c8 (1.36-1.49) → #8e8a78 (3.15-3.47) ✅
+       border-strong  #b9b3a6 (1.90-2.09) → #7a7565 (4.19-4.61) ✅
+     border-subtle stays decorative (1.12-1.23 — intentional). */
+  --color-border-subtle: #ebe7df;  /* decorative warm subtle */
+  --color-border: #8e8a78;         /* warm clear — passes 1.4.11 */
+  --color-border-strong: #7a7565;  /* warm emphasis, focus, active */
   /* Accent colors remain untouched for visual consistency across modes */
 }
 
