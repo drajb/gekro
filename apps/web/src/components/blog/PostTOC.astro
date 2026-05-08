@@ -1,6 +1,6 @@
 ---
 /**
- * PostTOC.astro — Sticky table-of-contents sidebar (blog posts)
+ * PostTOC.astro — Sticky table-of-contents sidebar with scroll-spy
  *
  * Used in: BlogLayout.astro (hidden on mobile, shown in the right sidebar on lg+)
  *
@@ -10,17 +10,24 @@
  *             posts only. Sanity posts receive a hardcoded stub array from
  *             blog/[slug].astro (no heading extraction on Sanity posts).
  *
+ * Scroll-spy:
+ *  An IntersectionObserver watches every H2/H3 in the article body. When a
+ *  heading crosses the top 20% of the viewport the matching TOC link is marked
+ *  active (accent colour + solid left border). Only one link is active at a time.
+ *
+ *  Implementation notes:
+ *   - rootMargin "-10% 0px -80% 0px" means a heading activates when it sits in
+ *     the top 20% of the viewport — matching the GitHub blog behaviour where the
+ *     active item updates as you scroll past each section header.
+ *   - The observer is re-initialised on astro:after-swap so it works after
+ *     View Transitions (post → post navigation).
+ *   - prefers-reduced-motion: the observer still runs (it only changes colour,
+ *     no motion), but smooth-scroll on anchor clicks is gated.
+ *   - Cleanup: the old observer is disconnected before creating a new one to
+ *     prevent stacking on repeated astro:after-swap fires.
+ *
  * Filtering:
  *  Only H2 (depth 2) and H3 (depth 3) headings are shown.
- *  H1 is the post title (already in PostHeader); H4+ are too granular for a TOC.
- *
- * Indentation:
- *  H3 items get pl-4 to visually nest under their parent H2.
- *
- * No scroll-spy:
- *  Active heading highlighting is not implemented. Adding it would require a
- *  client-side IntersectionObserver bound to each heading — deferred as a
- *  future enhancement.
  */
 
 interface Props {
@@ -28,20 +35,18 @@ interface Props {
 }
 
 const { headings } = Astro.props;
-// Only H2 and H3 — H1 is the title, H4+ are too granular for a sidebar TOC
-// H2 and H3 only — H1 is the post title (in PostHeader, never in the body),
-// H4+ are too granular. depth <= 3 alone would include H1 if ever present.
 const filteredHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 ---
 
-<nav class="space-y-4">
+<nav class="space-y-4" aria-label="Table of contents">
   <h4 class="text-xs uppercase tracking-[0.2em] text-text-muted font-mono">In this post</h4>
-  <ul class="space-y-3">
+  <ul class="space-y-3" id="toc-list">
     {filteredHeadings.map(h => (
       <li class={`text-sm ${h.depth === 3 ? 'pl-4' : ''}`}>
-        <a 
-          href={`#${h.slug}`} 
-          class="text-text-secondary hover:text-accent transition-colors border-l border-transparent hover:border-accent/40 pl-3 -ml-3"
+        <a
+          href={`#${h.slug}`}
+          data-toc-slug={h.slug}
+          class="toc-link block text-text-secondary hover:text-accent transition-colors duration-150 border-l-2 border-transparent pl-3 -ml-3 py-0.5"
         >
           {h.text}
         </a>
@@ -49,3 +54,114 @@ const filteredHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
     ))}
   </ul>
 </nav>
+
+<script>
+  let observer: IntersectionObserver | null = null;
+
+  const initTOC = () => {
+    // Disconnect any previous observer before re-init (View Transitions guard)
+    observer?.disconnect();
+
+    const links = document.querySelectorAll<HTMLAnchorElement>('a[data-toc-slug]');
+    if (!links.length) return;
+
+    // Build slug → link map for O(1) lookups
+    const linkMap = new Map<string, HTMLAnchorElement>();
+    links.forEach(link => {
+      const slug = link.dataset.tocSlug;
+      if (slug) linkMap.set(slug, link);
+    });
+
+    let activeSlug = '';
+
+    const setActive = (slug: string) => {
+      if (slug === activeSlug) return;
+      // Clear previous
+      if (activeSlug) {
+        const prev = linkMap.get(activeSlug);
+        if (prev) {
+          prev.classList.remove('text-accent', 'border-accent');
+          prev.classList.add('text-text-secondary', 'border-transparent');
+        }
+      }
+      // Set new
+      const next = linkMap.get(slug);
+      if (next) {
+        next.classList.remove('text-text-secondary', 'border-transparent');
+        next.classList.add('text-accent', 'border-accent');
+      }
+      activeSlug = slug;
+    };
+
+    // Observe every heading that has a matching TOC entry
+    const headingEls: HTMLElement[] = [];
+    linkMap.forEach((_, slug) => {
+      const el = document.getElementById(slug);
+      if (el) headingEls.push(el);
+    });
+
+    if (!headingEls.length) return;
+
+    // rootMargin: top 10% offset activates as heading enters the top 20% of
+    // viewport; -80% bottom shrinks the observation window so only the heading
+    // near the top of the readable area fires — matches the GitHub blog feel.
+    observer = new IntersectionObserver(
+      entries => {
+        // Find the topmost intersecting heading and make it active
+        let topEntry: IntersectionObserverEntry | null = null;
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            if (!topEntry || entry.boundingClientRect.top < topEntry.boundingClientRect.top) {
+              topEntry = entry;
+            }
+          }
+        });
+        if (topEntry) {
+          setActive((topEntry as IntersectionObserverEntry).target.id);
+        }
+      },
+      {
+        rootMargin: '-10% 0px -80% 0px',
+        threshold: 0,
+      }
+    );
+
+    headingEls.forEach(el => observer!.observe(el));
+
+    // Activate the first heading immediately if it's already in view
+    const firstVisible = headingEls.find(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.top >= 0 && rect.top < window.innerHeight * 0.5;
+    });
+    if (firstVisible) setActive(firstVisible.id);
+
+    // Smooth-scroll on TOC click (gated on reduced-motion pref)
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    links.forEach(link => {
+      link.addEventListener('click', e => {
+        const slug = link.dataset.tocSlug;
+        if (!slug) return;
+        const target = document.getElementById(slug);
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: prefersReduced ? 'instant' : 'smooth' });
+        // Update URL hash without triggering a scroll jump
+        history.pushState(null, '', `#${slug}`);
+        setActive(slug);
+      });
+    });
+  };
+
+  initTOC();
+  document.addEventListener('astro:after-swap', initTOC);
+</script>
+
+<style>
+  .toc-link {
+    /* Smooth colour transition already on the class; add a subtle weight shift
+       for the active state so it reads as "you are here" not just "hovered" */
+  }
+  .toc-link.text-accent {
+    font-weight: 500;
+  }
+</style>
