@@ -14,6 +14,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          # Initialise the private apps submodule (drajb/gekro-apps).
+          # SUBMODULE_PAT must be a fine-grained PAT stored in this repo's
+          # Secrets with Contents:Read on drajb/gekro-apps.
+          # Without this, apps-private/ is an empty directory and the build
+          # step below fails with "Could not resolve …/apps-private/…".
+          submodules: 'recursive'
+          token: ${{ secrets.SUBMODULE_PAT }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

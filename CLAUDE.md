@@ -181,6 +181,16 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 Cloudflare Pages must have read access to `drajb/gekro-apps` to clone the submodule at build time:
 1. GitHub → Settings → Applications → Cloudflare Pages → Repository access → add `drajb/gekro-apps`
 
+### GitHub Actions CI setup (one-time, required for CI builds)
+`ci.yml` uses `submodules: 'recursive'` with a PAT to initialise `apps-private/` during checkout.
+Without this the CI build fails with "Could not resolve …/apps-private/…".
+
+**Create the secret:**
+1. GitHub → drajb account → Settings → Developer settings → Fine-grained personal access tokens → Generate new token
+2. Token permissions: Repository access = `drajb/gekro-apps` only; Permissions → Contents = `Read-only`
+3. GitHub → drajb/gekro → Settings → Secrets and variables → Actions → New repository secret
+   Name: `SUBMODULE_PAT`, Value: the token from step 2
+
 ### Local development
 After cloning `gekro`, run `git submodule update --init --recursive` to populate `apps-private/`. The submodule must be cloned for `pnpm --filter web build` to succeed.
 
