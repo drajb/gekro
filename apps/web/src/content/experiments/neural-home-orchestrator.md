@@ -25,7 +25,7 @@ Smart homes today aren't smart; they are just remote-controlled. Most solutions 
 
 Knowing that when I'm in a deep work session, the lights should stay cool and notifications should be silenced. When I'm winding down, the environment should shift automatically. The goal was to replace static rules with a dynamic **Neural Controller**.
 
-This controller reasons about my needs using a local LLM or a cloud-based inference provider. Privacy is enforced by default: all reactive home commands (lights, HVAC, plugs) are processed exclusively by a local Ollama instance on my Raspberry Pi. Cloud inference via Together AI is only triggered for complex, non-sensitive planning tasks—like optimizing the weekly energy schedule—and the prompts are stripped of identifiable data before being sent.
+This controller reasons about my needs using a local LLM or a cloud-based inference provider. Privacy is enforced by default: all reactive home commands (lights, HVAC, plugs) are processed exclusively by a local Ollama instance on my Raspberry Pi. Cloud inference via Together AI is only triggered for complex, non-sensitive planning tasks-like optimizing the weekly energy schedule-and the prompts are stripped of identifiable data before being sent.
 
 ---
 
@@ -101,13 +101,13 @@ OUTPUT: JSON only.
 ## What I Learned
 
 
-1. **Context Filtering is Finite** — You can't feed the LLM every single sensor state. Preprocessing data into meaningful "Situational Reports" is essential to avoid token waste.
+1. **Context Filtering is Finite** - You can't feed the LLM every single sensor state. Preprocessing data into meaningful "Situational Reports" is essential to avoid token waste.
 
 
-2. **Latency is the UX Killer** — If it takes 5 seconds for the lab to respond to a toggle request, it's a failure. I use **Small Models (7B)** for reactive tasks and **Large Models (70B+)** only for high-priority architectural decisions.
+2. **Latency is the UX Killer** - If it takes 5 seconds for the lab to respond to a toggle request, it's a failure. I use **Small Models (7B)** for reactive tasks and **Large Models (70B+)** only for high-priority architectural decisions.
 
 
-3. **Local Sovereignty is Freedom** — By hosting logic on a local Raspberry Pi 5, the house remains "intelligent" even without internet. The local MQTT broker handles the internal nervous system, isolated from external cloud outages.
+3. **Local Sovereignty is Freedom** - By hosting logic on a local Raspberry Pi 5, the house remains "intelligent" even without internet. The local MQTT broker handles the internal nervous system, isolated from external cloud outages.
 
 
 ## Where This Goes

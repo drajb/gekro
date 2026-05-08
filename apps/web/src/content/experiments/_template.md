@@ -66,9 +66,9 @@ Include a Mermaid diagram if it helps visualize the flow.
 
 <!-- Your 3-5 key takeaways. Plain language. Write like you're explaining it to a friend. -->
 
-1. **Lesson one** — explain it
-2. **Lesson two** — explain it
-3. **Lesson three** — explain it
+1. **Lesson one** - explain it
+2. **Lesson two** - explain it
+3. **Lesson three** - explain it
 
 ---
 

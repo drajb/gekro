@@ -12,7 +12,7 @@ aiSummary: "AI coding tools act as stateless engines that degrade without archit
   Claims of zero-shot application generation might occasionally work for a weekend Proof of Concept, but refining that POC into an end-state product is a ruthless process that takes real time. An occasional coder will happily accept the output, completely blind to the fact that the zero-context code is quietly corrupting the deployable asset. A strong engineering foundation is the only way to scale AI without introducing terminal inconsistencies.
 </TLDR>
 
-Two weeks after the demo looked incredible, the build was unfixable. Not broken in one place — broken everywhere, in ways that contradicted each other. That's what zero-shot scaling actually looks like. Non-developers and occasional coders are screaming from the rooftops about how AI can build entire applications in seconds. They look at a shiny, functional Proof of Concept stitched together with zero-shot prompting and assume it's basically finished, completely ignoring the genuine, grinding structural time it takes to refine a product to its end state.
+Two weeks after the demo looked incredible, the build was unfixable. Not broken in one place - broken everywhere, in ways that contradicted each other. That's what zero-shot scaling actually looks like. Non-developers and occasional coders are screaming from the rooftops about how AI can build entire applications in seconds. They look at a shiny, functional Proof of Concept stitched together with zero-shot prompting and assume it's basically finished, completely ignoring the genuine, grinding structural time it takes to refine a product to its end state.
 
 ![A brilliantly polished futuristic app hologram on the front, but pulling back the curtain reveals an operational disaster of duct tape, tangled wires, and a tiny goldfish randomly pushing buttons.](/images/blog/ai_goldfish_facade.png)
 
@@ -20,7 +20,7 @@ Two weeks after the demo looked incredible, the build was unfixable. Not broken 
 
 AI models like Claude, GPT5, Gemini 3 act as stateless prediction engines. A complex project is only going to hold up if its underlying knowledge base is rock-solid. If the foundation is weak, the product build will inevitably start introducing bugs and inconsistencies as changes are required over time. 
 
-If you expect to zero-shot an application based on a single prompt, or expect magical results after every raw prompt, you will keep going on in endless loops—trying to fix one issue while secretly creating new ones elsewhere. Planning and synthesizing research to map out a system, followed by a constrained series of targeted prompts, is fundamentally the best strategy for building a robust codebase. This is exactly why a rigid knowledge base is critical.
+If you expect to zero-shot an application based on a single prompt, or expect magical results after every raw prompt, you will keep going on in endless loops-trying to fix one issue while secretly creating new ones elsewhere. Planning and synthesizing research to map out a system, followed by a constrained series of targeted prompts, is fundamentally the best strategy for building a robust codebase. This is exactly why a rigid knowledge base is critical.
 
 This is the exact dividing line: a good software engineer will immediately spot the structural inconsistencies an AI introduces, whereas an occasional coder might be entirely happy-go-lucky in their approach, blissfully unaware they are merging a catastrophic mess of conflicting state logic. 
 
@@ -60,10 +60,10 @@ pnpm install
 pnpm turbo run typecheck lint
 ```
 
-If I need Claude to generate a new feature, it must operate within the strict definitions of my existing template. This isn't just theory—this is the exact configuration block I feed into the agent's system prompt to stop it from going rogue and introducing breaking inconsistencies.
+If I need Claude to generate a new feature, it must operate within the strict definitions of my existing template. This isn't just theory-this is the exact configuration block I feed into the agent's system prompt to stop it from going rogue and introducing breaking inconsistencies.
 
 ```typescript
-// Conceptual representation — actual rules live in your workspace system prompt / .cursorrules
+// Conceptual representation - actual rules live in your workspace system prompt / .cursorrules
 // packages/config/base-agent-rules.ts
 export const AgentConstraints = {
   allowAny: false,
@@ -109,7 +109,7 @@ For example, explicitly mapping out where the agent must route logic guarantees 
 
 Before writing a single line of application code for a complex project, my standard workflow is to kick off a deep research article about the subject. I synthesize that architectural research and then start outlining my prompt strategy, saving those research findings as Markdown files in an isolated artifacts folder. A well-planned, heavily-researched prompt strategy referencing explicit artifacts is infinitely better than reacting to zero-shot failures and going in circles trying to fix them.
 
-Furthermore, building this way unlocks immense cost control. This strategy works best when you're already in a multi-provider setup, which the abstraction layer makes trivial. Your blueprint and structural synthesis should be generated with the most capable frontier model available—like Gemini Pro or Claude Opus. Once the rigid architectural boundaries are outlined, let a faster, cheaper model like Flash execute the documented blueprint. When the localized code generation is done, have the higher-tier model review the pull request to ensure strict consistency against the base template. This saves massive amounts of money in the long run.
+Furthermore, building this way unlocks immense cost control. This strategy works best when you're already in a multi-provider setup, which the abstraction layer makes trivial. Your blueprint and structural synthesis should be generated with the most capable frontier model available-like Gemini Pro or Claude Opus. Once the rigid architectural boundaries are outlined, let a faster, cheaper model like Flash execute the documented blueprint. When the localized code generation is done, have the higher-tier model review the pull request to ensure strict consistency against the base template. This saves massive amounts of money in the long run.
 
 Finally, always require the agent to generate a test suite for each new feature. Ensure the instructions for this live explicitly within the workspace rules or the README, so testing is mandatory for every major prompt cycle rather than an afterthought.
 

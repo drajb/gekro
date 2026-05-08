@@ -17,8 +17,8 @@ icon: "📦"
 
 Paste any raw JSON API response from OpenAI, Anthropic Claude, or Google Gemini and this tool will:
 
-1. **Auto-detect the provider** from the response schema — no manual selection required.
-2. **Extract the content** — the main text output the model generated.
+1. **Auto-detect the provider** from the response schema - no manual selection required.
+2. **Extract the content** - the main text output the model generated.
 3. **Surface metadata**: stop reason, model name, creation timestamp, and system fingerprint.
 4. **Show token usage**: input, output, total, and (where available) cached tokens.
 5. **Show tool calls**: if the model requested a function call, each tool name and its arguments are rendered as formatted JSON.
@@ -29,13 +29,13 @@ Everything runs client-side. Your response data is never sent anywhere.
 
 ## How to Use It
 
-1. Copy a raw JSON response from your terminal, IDE, or API client. The response should be the complete JSON object as returned by the API — not a streamed chunk, not partial output.
+1. Copy a raw JSON response from your terminal, IDE, or API client. The response should be the complete JSON object as returned by the API - not a streamed chunk, not partial output.
 2. Paste it into the input box. The tool parses and extracts on-the-fly as you type.
 3. Use **Load OpenAI / Anthropic / Gemini example** buttons to see the tool in action without needing your own API key.
 4. If the model is recognized (e.g., `gpt-4o-2024-08-06`, `claude-3-7-sonnet-20250219`), the cost estimate appears automatically.
 5. If the model is not recognized, use the **Model family** dropdown in the cost section to select the closest match.
-6. Use **Copy Result** to get the extracted content text — useful for pasting into docs or tickets.
-7. Use **Export** to download the full extraction as a structured JSON file — useful for logging or archiving.
+6. Use **Copy Result** to get the extracted content text - useful for pasting into docs or tickets.
+7. Use **Export** to download the full extraction as a structured JSON file - useful for logging or archiving.
 
 ## The Three API Response Formats
 
@@ -70,7 +70,7 @@ OpenAI's chat completion response wraps output in a `choices` array. Each choice
 }
 ```
 
-Tool calls appear as `choices[0].message.tool_calls` — an array of objects with `function.name` and `function.arguments` (a JSON string).
+Tool calls appear as `choices[0].message.tool_calls` - an array of objects with `function.name` and `function.arguments` (a JSON string).
 
 ### Anthropic
 
@@ -133,7 +133,7 @@ Google's Gemini API uses `candidates` at the top level. Each candidate has a `co
 
 **Understanding token usage.** Token counts drive cost and latency. Developers often build intuitions like "a typical request costs N tokens" without ever measuring. Pasting real responses here builds calibration quickly.
 
-**Catching streaming vs. non-streaming issues.** Streaming responses (`"object": "chat.completion.chunk"` for OpenAI) have different schemas than non-streaming ones. If you accidentally paste a streaming chunk instead of a complete response, the parser will flag the content as empty — which tells you something went wrong in your client code.
+**Catching streaming vs. non-streaming issues.** Streaming responses (`"object": "chat.completion.chunk"` for OpenAI) have different schemas than non-streaming ones. If you accidentally paste a streaming chunk instead of a complete response, the parser will flag the content as empty - which tells you something went wrong in your client code.
 
 **Comparing providers on the same workload.** Run the same prompt through OpenAI and Anthropic, paste both responses here, and see the token counts and costs side by side. The schema differences become obvious and the relative cost/quality tradeoffs surface immediately.
 
@@ -143,15 +143,15 @@ Every provider signals why generation ended via a stop reason field. The field n
 
 | OpenAI `finish_reason` | Anthropic `stop_reason` | Gemini `finishReason` | Meaning |
 |---|---|---|---|
-| `stop` | `end_turn` | `STOP` | Model finished naturally — response is complete |
-| `length` | `max_tokens` | `MAX_TOKENS` | Hit the token limit — response may be truncated |
+| `stop` | `end_turn` | `STOP` | Model finished naturally - response is complete |
+| `length` | `max_tokens` | `MAX_TOKENS` | Hit the token limit - response may be truncated |
 | `tool_calls` | `tool_use` | `(see function_call part)` | Model wants to call a function |
 | `content_filter` | `(varies)` | `SAFETY` | Output blocked by content policy |
-| `null` | `stop_sequence` | — | Matched a user-specified stop sequence |
+| `null` | `stop_sequence` | - | Matched a user-specified stop sequence |
 
 **`length` / `max_tokens` is the most dangerous stop reason in production.** It means the model was mid-sentence when it hit your token ceiling. If your application treats the response as complete in this case, you will silently serve truncated output to users. Always handle this explicitly in your code.
 
-**`tool_calls` / `tool_use`** is not an error — it means the model is requesting a tool call. Your agent loop should detect this, execute the tool, and send the result back as a follow-up message.
+**`tool_calls` / `tool_use`** is not an error - it means the model is requesting a tool call. Your agent loop should detect this, execute the tool, and send the result back as a follow-up message.
 
 ## Cost Calculation Methodology
 
@@ -174,6 +174,6 @@ Pricing data is hardcoded in the tool and updated manually. The table covers Ope
 
 - **Streaming responses are not supported.** Paste a complete, non-streaming response. Streaming chunks have incomplete schemas and do not contain final token counts.
 - **Model ID matching is substring-based.** If the model ID in your response does not contain a recognized substring, it falls back to the manual picker. This can happen with fine-tuned model IDs (`ft:gpt-4o:org:custom:abc123`) or provider-specific aliases.
-- **Pricing data drifts.** Model prices change — sometimes with very short notice. The rates displayed are current as of April 2026. Verify against official provider pricing pages before making financial decisions.
+- **Pricing data drifts.** Model prices change - sometimes with very short notice. The rates displayed are current as of April 2026. Verify against official provider pricing pages before making financial decisions.
 - **Multimodal input costs are not computed.** Image tokens (for vision models) are priced differently from text tokens and require knowing the image resolution. This tool only uses the text token counts as reported by the API.
 - **Anthropic batch API responses** have a slightly different wrapper schema. If you paste a batch result file entry, extract the inner `result.message` object before pasting.

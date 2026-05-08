@@ -16,7 +16,7 @@ If you're building a lab in a DFW suburb, you quickly learn that power draw and 
 
 ## The Architecture
 
-The "Magic" of Apple Silicon isn't the CPU speed—it's the **Unified Memory Architecture (UMA)**. In a traditional PC, your CPU RAM and GPU RAM (VRAM) are separate. If you want to run a 40GB model, you need a $1,600 GPU. On a Mac, the system RAM *is* the VRAM.
+The "Magic" of Apple Silicon isn't the CPU speed-it's the **Unified Memory Architecture (UMA)**. In a traditional PC, your CPU RAM and GPU RAM (VRAM) are separate. If you want to run a 40GB model, you need a $1,600 GPU. On a Mac, the system RAM *is* the VRAM.
 
 | Feature | Desktop PC (RTX 4090) | Mac Mini (M4 Pro 64GB) |
 | :--- | :--- | :--- |

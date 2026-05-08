@@ -15,7 +15,7 @@ icon: "🗃️"
 
 ## What It Does
 
-Paste your conversation turns — system prompt, user messages, assistant responses — and the formatter outputs a properly structured JSONL or JSON record in whichever training format your fine-tuning framework expects. It handles four schemas: OpenAI's chat fine-tuning format, Alpaca's instruction-response JSON, ShareGPT's conversation JSONL, and the Unsloth/Llama variant. Live preview updates as you type. One-click export drops a ready-to-use `.jsonl` or `.json` file.
+Paste your conversation turns - system prompt, user messages, assistant responses - and the formatter outputs a properly structured JSONL or JSON record in whichever training format your fine-tuning framework expects. It handles four schemas: OpenAI's chat fine-tuning format, Alpaca's instruction-response JSON, ShareGPT's conversation JSONL, and the Unsloth/Llama variant. Live preview updates as you type. One-click export drops a ready-to-use `.jsonl` or `.json` file.
 
 It also catches the mistakes that cause silent training failures: missing user turns, missing assistant turns, multiple system messages, and Alpaca's single-turn constraint.
 
@@ -23,8 +23,8 @@ It also catches the mistakes that cause silent training failures: missing user t
 
 1. **Add turns** using the `+ User`, `+ Assistant`, and `+ System` buttons. Each row has a role selector and a content textarea that auto-resizes.
 2. **Select a format** from the four tabs. The output updates immediately.
-3. **Watch the stats bar** — it shows turn count, estimated token count, and character count across all turns.
-4. **Fix any warnings** shown in amber — these flag structural issues that will cause training problems.
+3. **Watch the stats bar** - it shows turn count, estimated token count, and character count across all turns.
+4. **Fix any warnings** shown in amber - these flag structural issues that will cause training problems.
 5. **Copy or export** the output. The Copy button copies the current output to clipboard. Export downloads a `.jsonl` file (or `.json` for Alpaca).
 
 To build a full training dataset, format each example one at a time and append the output lines to your `.jsonl` file. One line per training example.
@@ -34,9 +34,9 @@ To build a full training dataset, format each example one at a time and append t
 | Format | File Type | Role Labels | Multi-turn? | Best For |
 |---|---|---|---|---|
 | **OpenAI (JSONL)** | `.jsonl` | `system`, `user`, `assistant` | Yes | OpenAI fine-tuning API (gpt-3.5-turbo, gpt-4o-mini) |
-| **Alpaca (JSON)** | `.json` | `instruction`, `input`, `output` | No — single turn | LLaMA/Alpaca trainers, many HuggingFace scripts |
+| **Alpaca (JSON)** | `.json` | `instruction`, `input`, `output` | No - single turn | LLaMA/Alpaca trainers, many HuggingFace scripts |
 | **ShareGPT (JSONL)** | `.jsonl` | `system`, `human`, `gpt` | Yes | LLaMA-Factory, Axolotl, Open-Hermes style datasets |
-| **Unsloth/Llama** | `.jsonl` | `system`, `human`, `gpt` | Yes | Unsloth trainer — add chat template separately |
+| **Unsloth/Llama** | `.jsonl` | `system`, `human`, `gpt` | Yes | Unsloth trainer - add chat template separately |
 
 ### OpenAI format
 The canonical format for OpenAI's supervised fine-tuning API. Each JSONL line is a `{"messages": [...]}` object where each message has `role` and `content`. System messages are optional but heavily influence behaviour. You upload your `.jsonl` to the OpenAI fine-tuning endpoint; they handle batching and training.
@@ -48,17 +48,17 @@ Originally from the Stanford Alpaca paper (2023). A flat JSON object with three 
 The format used by datasets like Open-Hermes and LLaMA-Factory's data pipeline. A `{"conversations": [...]}` object where each turn uses `from: "human"` or `from: "gpt"` instead of the OpenAI role names. This is the de-facto standard for community fine-tuning datasets on HuggingFace.
 
 ### Unsloth/Llama format
-Structurally identical to ShareGPT. Unsloth's `FastLanguageModel` reads the same `conversations` schema. The difference is downstream: you apply a chat template (Llama-3 or ChatML) via `get_chat_template()` before training, which inserts the model-specific special tokens. The raw JSONL you export here does not include those tokens — that's intentional.
+Structurally identical to ShareGPT. Unsloth's `FastLanguageModel` reads the same `conversations` schema. The difference is downstream: you apply a chat template (Llama-3 or ChatML) via `get_chat_template()` before training, which inserts the model-specific special tokens. The raw JSONL you export here does not include those tokens - that's intentional.
 
 ## Why AI Engineers Need This
 
-Fine-tuning is one of the most format-sensitive operations in the ML stack. Every framework has a slightly different JSON schema, different role name conventions, different line-ending requirements. The diff between `"role": "user"` (OpenAI) and `"from": "human"` (ShareGPT) is trivial to a human but catastrophic to a training script — it will either crash with a key error or silently produce a dataset where every example has empty assistant turns.
+Fine-tuning is one of the most format-sensitive operations in the ML stack. Every framework has a slightly different JSON schema, different role name conventions, different line-ending requirements. The diff between `"role": "user"` (OpenAI) and `"from": "human"` (ShareGPT) is trivial to a human but catastrophic to a training script - it will either crash with a key error or silently produce a dataset where every example has empty assistant turns.
 
 The pain compounds when you're collecting training examples from multiple sources: some from ChatGPT exports (which use OpenAI format), some from manual annotation, some from synthetic generation scripts that output Alpaca, some from HuggingFace datasets in ShareGPT format. Normalising all of this by hand is tedious and error-prone.
 
 Common mistakes this tool helps avoid:
 
-- **Swapped role names**: `assistant` vs `gpt` vs `output` — these cause silent data corruption, not parser errors, so you don't find out until eval
+- **Swapped role names**: `assistant` vs `gpt` vs `output` - these cause silent data corruption, not parser errors, so you don't find out until eval
 - **Missing system turn**: System messages are optional in the schema but heavily influence fine-tuned behaviour; forgetting them produces a model that ignores system prompts at inference time
 - **Multiple system messages**: Only one system message per conversation is valid in most frameworks; extras are silently dropped or cause training loss spikes
 - **Single-turn Alpaca with multi-turn data**: The Alpaca format only has one instruction/output pair. Using it for multi-turn data loses all but the first exchange
@@ -75,14 +75,14 @@ The format is the easy part. The hard part is the data quality. A few principles
 
 **Keep conversations short per example.** Long multi-turn conversations create long context windows during training, which increases batch memory usage and training time. Prefer 2–5 turn conversations. If your use case involves long conversations, include a representative sample, not every possible length.
 
-**Include failure cases.** If you want the model to refuse certain requests gracefully, include examples of refusals. The model learns what the assistant does in context — it needs to see refusals to produce them.
+**Include failure cases.** If you want the model to refuse certain requests gracefully, include examples of refusals. The model learns what the assistant does in context - it needs to see refusals to produce them.
 
 **Validate with actual training before scaling.** Run 10–20 examples through your training script before generating thousands. Catch format errors early.
 
 ## Limitations
 
-- **One example at a time** — this is a formatter, not a dataset manager. It formats one conversation record per session. To build a 1,000-example dataset, use it to verify your format and then automate generation.
-- **Token estimates are approximate** — the cl100k_base regex used here is a close approximation of OpenAI's tokenizer but not exact. For billing-sensitive calculations, use the official `tiktoken` library.
-- **No deduplication** — does not check if the conversation you're formatting already exists in your dataset.
-- **Alpaca single-turn collapse is lossy** — when you switch to Alpaca format with a multi-turn conversation, turns after the first are discarded. Switch back to OpenAI or ShareGPT for multi-turn data.
-- **No validation of assistant quality** — warns on structural issues (missing turns, empty content) but cannot assess whether the assistant turn is a good training target.
+- **One example at a time** - this is a formatter, not a dataset manager. It formats one conversation record per session. To build a 1,000-example dataset, use it to verify your format and then automate generation.
+- **Token estimates are approximate** - the cl100k_base regex used here is a close approximation of OpenAI's tokenizer but not exact. For billing-sensitive calculations, use the official `tiktoken` library.
+- **No deduplication** - does not check if the conversation you're formatting already exists in your dataset.
+- **Alpaca single-turn collapse is lossy** - when you switch to Alpaca format with a multi-turn conversation, turns after the first are discarded. Switch back to OpenAI or ShareGPT for multi-turn data.
+- **No validation of assistant quality** - warns on structural issues (missing turns, empty content) but cannot assess whether the assistant turn is a good training target.

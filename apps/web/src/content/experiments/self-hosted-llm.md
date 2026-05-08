@@ -20,9 +20,9 @@ difficulty: "Intermediate"
 
 ## What I Was Trying to Solve
 
-Building AI shouldn't require a $10,000 GPU or a $20/month subscription to a closed API. I wanted to see if I could build a "Poor Man's Supercomputer"—a cluster of low-cost ARM devices that could run a competent language model for basic lab assistance.
+Building AI shouldn't require a $10,000 GPU or a $20/month subscription to a closed API. I wanted to see if I could build a "Poor Man's Supercomputer"-a cluster of low-cost ARM devices that could run a competent language model for basic lab assistance.
 
-The goal wasn't just raw performance. It was about **sovereignty**—having a private brain that remains functional even when the global internet is fragmented.
+The goal wasn't just raw performance. It was about **sovereignty**-having a private brain that remains functional even when the global internet is fragmented.
 
 ---
 
@@ -90,11 +90,11 @@ ollama run llama3 "Summarize these lab logs."
 
 ## What I Learned (The "How" of Bottlenecks)
 
-1. **Memory Bandwidth is the Real Ceiling** — While the Pi 5 is fast, its memory bandwidth is the primary bottleneck. For ARM clusters, **Concurrency** is a much better use of hardware than model splitting. Handling 3 different small requests on 3 different nodes beats model parallelism over Gigabit Ethernet.
+1. **Memory Bandwidth is the Real Ceiling** - While the Pi 5 is fast, its memory bandwidth is the primary bottleneck. For ARM clusters, **Concurrency** is a much better use of hardware than model splitting. Handling 3 different small requests on 3 different nodes beats model parallelism over Gigabit Ethernet.
 
-2. **Power Stability** — A 3-node cluster draws significant power under load (~35-40W). I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes. This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
+2. **Power Stability** - A 3-node cluster draws significant power under load (~35-40W). I switched to a dedicated **PoE+ (Power over Ethernet)** switch to power the nodes. This reduced cable clutter and ensured consistent 5V/5A supply, preventing brownouts.
 
-3. **Storage Latency** — Don't run your models off SD cards. The initial model load time on an SD card was over 45 seconds. By switching to an **M.2 NVMe 256GB SSD** via the M.2 HAT, load times dropped to under 8 seconds.
+3. **Storage Latency** - Don't run your models off SD cards. The initial model load time on an SD card was over 45 seconds. By switching to an **M.2 NVMe 256GB SSD** via the M.2 HAT, load times dropped to under 8 seconds.
 
 ## Where This Goes
 

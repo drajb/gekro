@@ -117,7 +117,7 @@ If you're running this on Windows, ensure your `OLLAMA_HOST` is set to `http://1
 
 ## The Tradeoffs
 
-Let's be honest: fallback logic adds latency. A failed cloud call plus 3 retries takes about 7 seconds before the local model even starts thinking. For real-time chat, that’s a "broken" UI. But for the background agents that run Gekro—log parsers, automated research, and code indexers—7 seconds of latency is better than a total system crash.
+Let's be honest: fallback logic adds latency. A failed cloud call plus 3 retries takes about 7 seconds before the local model even starts thinking. For real-time chat, that’s a "broken" UI. But for the background agents that run Gekro-log parsers, automated research, and code indexers-7 seconds of latency is better than a total system crash.
 
 There's also a **Quality Cliff**. A Llama 3-70B on Together AI and a quantized Llama 3-8B on a Pi are fundamentally different brains. The calling code sees the same interface, but the local model's responses are shorter, less nuanced, and more prone to missing edge cases. For structured extraction or summarization, the gap is manageable. For complex reasoning, the local fallback is a bandage, not a cure. Design your agents to tolerate degraded output during fallback, not just degraded speed.
 
@@ -125,4 +125,4 @@ The biggest hidden cost is **Context Management**. If I'm using a 128k context m
 
 ## Where This Goes
 
-This client is the first step toward a **Consensus Architecture**. Instead of one model being right, I want my client to poll three models simultaneously (Together, Groq, and Local) and use an "Adjudicator" model to pick the best answer. The goal isn't just to make the lab stay up—it's to make it smarter by comparing how different brains see the same problem.
+This client is the first step toward a **Consensus Architecture**. Instead of one model being right, I want my client to poll three models simultaneously (Together, Groq, and Local) and use an "Adjudicator" model to pick the best answer. The goal isn't just to make the lab stay up-it's to make it smarter by comparing how different brains see the same problem.
