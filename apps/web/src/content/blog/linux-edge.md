@@ -86,4 +86,4 @@ Also, **VRAM is a finite resource**. If I have Chrome open with 50 tabs in Windo
 
 ## Where This Goes
 
-I'm moving toward a **Single-Pane-of-Glass** management layer—a custom dashboard in Astro that monitors the CPU/GPU temperature and RAM usage of all my Linux nodes (Pis and PCs) in real-time. The goal is to treat my home network like a mini-AWS region, where the OS is just a detail and the agents are the primary citizens.
+I'm moving toward a **Single-Pane-of-Glass** management layer-a custom dashboard in Astro that monitors the CPU/GPU temperature and RAM usage of all my Linux nodes (Pis and PCs) in real-time. The goal is to treat my home network like a mini-AWS region, where the OS is just a detail and the agents are the primary citizens.

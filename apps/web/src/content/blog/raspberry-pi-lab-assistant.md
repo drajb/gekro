@@ -9,10 +9,10 @@ aiSummary: "Rohit documents the Raspberry Pi's role as a low-power, high-availab
 ---
 
 <TLDR>
-  Don't waste a $2,000 workstation on cron jobs and MQTT brokering. I use a Raspberry Pi 5 with an NVMe SSD as the "Lab Assistant"—an always-on node that handles the repetitive, low-compute tasks that keep the lab's heartbeat steady. This post covers the hardware setup and the Dockerized utility stack that bridges my physical world (Tesla/Home) to my AI agents.
+  Don't waste a $2,000 workstation on cron jobs and MQTT brokering. I use a Raspberry Pi 5 with an NVMe SSD as the "Lab Assistant"-an always-on node that handles the repetitive, low-compute tasks that keep the lab's heartbeat steady. This post covers the hardware setup and the Dockerized utility stack that bridges my physical world (Tesla/Home) to my AI agents.
 </TLDR>
 
-In a world of multi-billion dollar data centers, the $80 computer is my most reliable employee. When I first started Gekro in DFW, I realized I needed a "Ground Truth" node—something that stayed alive even when my main Mac Mini was rebooting or my workstation was pinned under a 3D render. The Raspberry Pi is the anchor. It doesn't do the heavy "thinking," but it ensures that the data the Brain needs (like my Tesla's charging state or the office temperature) is always available and indexed.
+In a world of multi-billion dollar data centers, the $80 computer is my most reliable employee. When I first started Gekro in DFW, I realized I needed a "Ground Truth" node-something that stayed alive even when my main Mac Mini was rebooting or my workstation was pinned under a 3D render. The Raspberry Pi is the anchor. It doesn't do the heavy "thinking," but it ensures that the data the Brain needs (like my Tesla's charging state or the office temperature) is always available and indexed.
 
 ## The Architecture
 

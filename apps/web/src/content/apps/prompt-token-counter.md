@@ -14,7 +14,7 @@ license: "MIT"
 
 ## What It Does
 
-The Prompt Token Counter gives you an instant estimate of how many tokens your prompt contains and what it costs to send as input across Claude, GPT, and Gemini model families. It also shows context window utilization — what percentage of each model's maximum context your prompt already occupies.
+The Prompt Token Counter gives you an instant estimate of how many tokens your prompt contains and what it costs to send as input across Claude, GPT, and Gemini model families. It also shows context window utilization - what percentage of each model's maximum context your prompt already occupies.
 
 This is a pre-flight tool for AI engineering. Before scripting a large-context call, running a batch job, or finalizing a system prompt for production, pasting it here tells you two things: whether it fits, and what it costs. Both matter more than most people realize until they hit a context limit at runtime or find an unexpected charge on their API bill.
 
@@ -22,7 +22,7 @@ This is a pre-flight tool for AI engineering. Before scripting a large-context c
 
 1. Paste your prompt, system message, or any text into the input area.
 2. Read the **estimated token count** at the top.
-3. Scan the **model table** — each row shows context window utilization percentage and per-call input cost.
+3. Scan the **model table** - each row shows context window utilization percentage and per-call input cost.
 4. If a model row is highlighted red or orange, your prompt is consuming a significant fraction of that model's context window.
 5. Use the count to trim your prompt, then re-paste to verify.
 
@@ -30,7 +30,7 @@ For system prompts specifically: measure the system prompt alone first, then mea
 
 ## The Math / How It Works
 
-**The 4-characters-per-token approximation** is the industry standard for quick estimation. Most tokenizers used by major LLM providers (BPE variants, cl100k, the Gemini SentencePiece variants) average close to 4 English characters per token for prose text. It's not exact — it's a heuristic that's accurate enough for planning.
+**The 4-characters-per-token approximation** is the industry standard for quick estimation. Most tokenizers used by major LLM providers (BPE variants, cl100k, the Gemini SentencePiece variants) average close to 4 English characters per token for prose text. It's not exact - it's a heuristic that's accurate enough for planning.
 
 Accuracy varies by content type:
 
@@ -42,7 +42,7 @@ Accuracy varies by content type:
 | Non-Latin scripts (Chinese, Japanese) | ~1.5–2 | ±25% |
 | Whitespace-heavy content | ~5–6 | ±20% |
 
-Code tokenizes more cheaply (fewer chars per token) because identifiers, keywords, and operators each map to their own tokens. Non-Latin scripts tokenize more expensively — a single Chinese character often occupies 1.5–2 tokens, which can make multilingual prompts substantially more expensive than the character count suggests.
+Code tokenizes more cheaply (fewer chars per token) because identifiers, keywords, and operators each map to their own tokens. Non-Latin scripts tokenize more expensively - a single Chinese character often occupies 1.5–2 tokens, which can make multilingual prompts substantially more expensive than the character count suggests.
 
 For exact counts: [Anthropic tokenizer](https://github.com/anthropics/anthropic-tokenizer-typescript) and [OpenAI tiktoken](https://github.com/openai/tiktoken) are the authoritative sources.
 
@@ -50,11 +50,11 @@ For exact counts: [Anthropic tokenizer](https://github.com/anthropics/anthropic-
 
 Token count governs both cost and quality, and most people underestimate both risks.
 
-**The cost angle** is obvious but often mistracked. A system prompt that's 6,000 tokens, sent with 1,000 user tokens per call, means 7,000 input tokens per API call. At 10,000 calls/day, that's 70M input tokens daily. The difference between Claude Haiku and Claude Sonnet pricing at that volume can be $500–$2,000/month — and trimming 30% of boilerplate from the system prompt saves proportionally.
+**The cost angle** is obvious but often mistracked. A system prompt that's 6,000 tokens, sent with 1,000 user tokens per call, means 7,000 input tokens per API call. At 10,000 calls/day, that's 70M input tokens daily. The difference between Claude Haiku and Claude Sonnet pricing at that volume can be $500–$2,000/month - and trimming 30% of boilerplate from the system prompt saves proportionally.
 
-**The quality angle** is less obvious. Models degrade as context fills up. The phenomenon — sometimes called "lost in the middle" — is well-documented: information in the middle of a long context window is retrieved less reliably than information at the start or end. A prompt that's using 80% of a model's context window is not getting 80% of peak performance. For RAG pipelines that stuff retrieved chunks into context, this matters a lot. Measuring utilization before production deployment is a basic quality check, not an optimization.
+**The quality angle** is less obvious. Models degrade as context fills up. The phenomenon - sometimes called "lost in the middle" - is well-documented: information in the middle of a long context window is retrieved less reliably than information at the start or end. A prompt that's using 80% of a model's context window is not getting 80% of peak performance. For RAG pipelines that stuff retrieved chunks into context, this matters a lot. Measuring utilization before production deployment is a basic quality check, not an optimization.
 
-**System prompt optimization** is the highest-leverage use. A well-written system prompt might start at 3,000 tokens of instructions. After a few rounds of tightening — removing redundant phrasing, collapsing examples, eliminating defensive hedging — it might reach 1,800 tokens. Paste both versions here and see the cost difference across your projected call volume.
+**System prompt optimization** is the highest-leverage use. A well-written system prompt might start at 3,000 tokens of instructions. After a few rounds of tightening - removing redundant phrasing, collapsing examples, eliminating defensive hedging - it might reach 1,800 tokens. Paste both versions here and see the cost difference across your projected call volume.
 
 Pairs well with the [LLM Cost Calculator](/apps/llm-cost-calculator/) for projecting full monthly spend once you know your token volumes.
 
@@ -82,6 +82,6 @@ For exact counts, use the provider's official tokenizer: [Anthropic tokenizer](h
 
 ## Limitations
 
-- **Estimation only** — actual token counts will differ slightly from the estimate. Use this for ballpark planning, not billing prediction.
-- **Input tokens only** — output token cost depends on the model's response, which is unknown before the call. Use the [LLM Cost Calculator](/apps/llm-cost-calculator/) for full cost projections.
-- **Pricing may lag** — prices are verified periodically. Check the source URLs for the latest rates.
+- **Estimation only** - actual token counts will differ slightly from the estimate. Use this for ballpark planning, not billing prediction.
+- **Input tokens only** - output token cost depends on the model's response, which is unknown before the call. Use the [LLM Cost Calculator](/apps/llm-cost-calculator/) for full cost projections.
+- **Pricing may lag** - prices are verified periodically. Check the source URLs for the latest rates.

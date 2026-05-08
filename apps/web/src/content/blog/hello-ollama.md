@@ -12,7 +12,7 @@ aiSummary: "Rohit demonstrates how to deploy Ollama on a Raspberry Pi cluster to
   Privacy is the marketing angle for local LLMs, but resilience is the engineering reality. I use Together AI for heavy lifting, but my Raspberry Pi cluster runs quantized Llama 3 models through Ollama as a zero-cost fallback. This post covers the specific models and quant levels that actually run on ARM hardware without melting the board.
 </TLDR>
 
-The first time my internet went down during a late-night build session and I still had a local Llama 3 instance answering questions from my Raspberry Pi, I realized we had hit a tipping point. We are no longer dependent on a persistent connection to a multi-billion dollar data center for basic reasoning tasks. In the **Gekro Lab**, Ollama isn't just a toy—it's the architectural insurance policy that ensures my agents never go "braindead" during a provider outage.
+The first time my internet went down during a late-night build session and I still had a local Llama 3 instance answering questions from my Raspberry Pi, I realized we had hit a tipping point. We are no longer dependent on a persistent connection to a multi-billion dollar data center for basic reasoning tasks. In the **Gekro Lab**, Ollama isn't just a toy-it's the architectural insurance policy that ensures my agents never go "braindead" during a provider outage.
 
 ## The Architecture
 
@@ -88,4 +88,4 @@ Also, don't expect cloud-level "creativity." Local quantized models are great fo
 
 ## Where This Goes
 
-I'm currently experimenting with **Concurrency-First Routing**—using all three Pi nodes to handle parallel inference requests rather than splitting a single model across them. The goal is a truly "Sovereign Brain" that doesn't just act as a fallback, but as a local peer to the cloud models that can handle multiple agents reasoning simultaneously.
+I'm currently experimenting with **Concurrency-First Routing**-using all three Pi nodes to handle parallel inference requests rather than splitting a single model across them. The goal is a truly "Sovereign Brain" that doesn't just act as a fallback, but as a local peer to the cloud models that can handle multiple agents reasoning simultaneously.

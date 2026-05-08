@@ -88,11 +88,11 @@ Once TeslaMate is running, it publishes a rich stream of data to Mosquitto. I us
 
 ## What I Learned
 
-1. **Self-Hosting is Resilience** — By hosting TeslaMate locally, I’ve gained historical insights that the official Tesla app simply doesn't provide. I can now see precise degradation curves over **20,000 miles** without worrying about Tesla's API changing the UI tomorrow.
+1. **Self-Hosting is Resilience** - By hosting TeslaMate locally, I’ve gained historical insights that the official Tesla app simply doesn't provide. I can now see precise degradation curves over **20,000 miles** without worrying about Tesla's API changing the UI tomorrow.
 
-2. **The Docker Advantage** — Using the [TeslaMate Repo](https://github.com/teslamate-org/teslamate) structure within Docker allowed me to deploy the entire stack—Postgres, Grafana, and MQTT—in under 10 minutes on the Pi.
+2. **The Docker Advantage** - Using the [TeslaMate Repo](https://github.com/teslamate-org/teslamate) structure within Docker allowed me to deploy the entire stack-Postgres, Grafana, and MQTT-in under 10 minutes on the Pi.
 
-3. **Data Sovereignty** — Real-time telemetry is sensitive. Knowing my car's GPS and battery history is stored on a local SSD behind a Tailscale firewall gives me peace of mind. I can build more invasive agents without compromising my privacy.
+3. **Data Sovereignty** - Real-time telemetry is sensitive. Knowing my car's GPS and battery history is stored on a local SSD behind a Tailscale firewall gives me peace of mind. I can build more invasive agents without compromising my privacy.
 
 ## Where This Goes
 

@@ -9,10 +9,10 @@ aiSummary: "Rohit details the decoupling of 'Brain' (Python/AI logic) from 'Body
 ---
 
 <TLDR>
-  Monoliths are a debt trap for AI developers. I split Gekro into a Python-powered "Brain" for asynchronous reasoning and an Astro-based "Body" for high-performance delivery. This post breaks down the hardware stack—from Mac Minis to Pi clusters—and the FastAPI nervous system that bridges them.
+  Monoliths are a debt trap for AI developers. I split Gekro into a Python-powered "Brain" for asynchronous reasoning and an Astro-based "Body" for high-performance delivery. This post breaks down the hardware stack-from Mac Minis to Pi clusters-and the FastAPI nervous system that bridges them.
 </TLDR>
 
-Most developers treat an LLM like a glorified database query—a synchronous request-response cycle handled within a single Next.js or Node server. This is architectural suicide. When you're running complex agentic workflows that might take 30 seconds to "think" and another 10 to validate, you cannot block your UI thread. In my lab, I’ve pioneered a **Split-Brain Architecture**. The "Brain" (Intelligence) lives in specialized Python environments across a distributed hardware cluster, while the "Body" (Interface) is a lean, mean Astro machine that prioritizes speed and SEO.
+Most developers treat an LLM like a glorified database query-a synchronous request-response cycle handled within a single Next.js or Node server. This is architectural suicide. When you're running complex agentic workflows that might take 30 seconds to "think" and another 10 to validate, you cannot block your UI thread. In my lab, I’ve pioneered a **Split-Brain Architecture**. The "Brain" (Intelligence) lives in specialized Python environments across a distributed hardware cluster, while the "Body" (Interface) is a lean, mean Astro machine that prioritizes speed and SEO.
 
 ## The Architecture
 
