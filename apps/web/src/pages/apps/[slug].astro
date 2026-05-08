@@ -8,68 +8,68 @@
  * the calculator via the AppLayout "methodology" named slot.
  *
  * Adding a new app:
- *  1. Create apps/web/src/content/apps/{slug}.md
- *  2. Create apps/web/src/components/apps/{slug}/Calculator.astro
- *  3. Add one import + one entry to CALCULATOR_MAP below
+ *  1. Create apps/web/src/content/apps/{slug}.md  (public repo — metadata)
+ *  2. Create {slug}/Calculator.astro in drajb/gekro-apps  (private repo — implementation)
+ *  3. Update the submodule ref in gekro, then add one import + one entry to CALCULATOR_MAP below
  */
 
 import { getCollection } from 'astro:content';
 import AppLayout from '../../layouts/AppLayout.astro';
 import AppShell from '../../components/apps/AppShell.astro';
 
-import LLMCostCalculator from '../../components/apps/llm-cost-calculator/Calculator.astro';
-import MarkdownVisualizer from '../../components/apps/markdown-visualizer/Calculator.astro';
-import VoiceTranscriber from '../../components/apps/voice-transcriber/Calculator.astro';
-import AmortizationCalculator from '../../components/apps/amortization-calculator/Calculator.astro';
-import RegexPlayground from '../../components/apps/regex-playground/Calculator.astro';
-import CronBuilder from '../../components/apps/cron-builder/Calculator.astro';
-import PromptTokenCounter from '../../components/apps/prompt-token-counter/Calculator.astro';
-import TeslaTripCalculator from '../../components/apps/tesla-trip-calculator/Calculator.astro';
-import PositionSizer from '../../components/apps/position-sizer/Calculator.astro';
-import UnixTimestampConverter from '../../components/apps/unix-timestamp-converter/Calculator.astro';
-import DebtToIncomeCalculator from '../../components/apps/debt-to-income-calculator/Calculator.astro';
-import GraphingCalculator from '../../components/apps/graphing-calculator/Calculator.astro';
+import LLMCostCalculator from '../../components/apps-private/llm-cost-calculator/Calculator.astro';
+import MarkdownVisualizer from '../../components/apps-private/markdown-visualizer/Calculator.astro';
+import VoiceTranscriber from '../../components/apps-private/voice-transcriber/Calculator.astro';
+import AmortizationCalculator from '../../components/apps-private/amortization-calculator/Calculator.astro';
+import RegexPlayground from '../../components/apps-private/regex-playground/Calculator.astro';
+import CronBuilder from '../../components/apps-private/cron-builder/Calculator.astro';
+import PromptTokenCounter from '../../components/apps-private/prompt-token-counter/Calculator.astro';
+import TeslaTripCalculator from '../../components/apps-private/tesla-trip-calculator/Calculator.astro';
+import PositionSizer from '../../components/apps-private/position-sizer/Calculator.astro';
+import UnixTimestampConverter from '../../components/apps-private/unix-timestamp-converter/Calculator.astro';
+import DebtToIncomeCalculator from '../../components/apps-private/debt-to-income-calculator/Calculator.astro';
+import GraphingCalculator from '../../components/apps-private/graphing-calculator/Calculator.astro';
 
-import BmiCalculator from '../../components/apps/bmi-calculator/Calculator.astro';
-import CoinFlipper from '../../components/apps/coin-flipper/Calculator.astro';
-import CurrencyConverter from '../../components/apps/currency-converter/Calculator.astro';
-import GlobalClock from '../../components/apps/global-clock/Calculator.astro';
-import RichTextToMarkdown from '../../components/apps/rich-text-to-markdown/Calculator.astro';
-import DiceRoller from '../../components/apps/dice-roller/Calculator.astro';
+import BmiCalculator from '../../components/apps-private/bmi-calculator/Calculator.astro';
+import CoinFlipper from '../../components/apps-private/coin-flipper/Calculator.astro';
+import CurrencyConverter from '../../components/apps-private/currency-converter/Calculator.astro';
+import GlobalClock from '../../components/apps-private/global-clock/Calculator.astro';
+import RichTextToMarkdown from '../../components/apps-private/rich-text-to-markdown/Calculator.astro';
+import DiceRoller from '../../components/apps-private/dice-roller/Calculator.astro';
 
-import JsonFormatter from '../../components/apps/json-formatter/Calculator.astro';
-import TextDiff from '../../components/apps/text-diff/Calculator.astro';
-import JwtDecoder from '../../components/apps/jwt-decoder/Calculator.astro';
-import PasswordGenerator from '../../components/apps/password-generator/Calculator.astro';
-import DummyDataGenerator from '../../components/apps/dummy-data-generator/Calculator.astro';
-import CodeSnippetPng from '../../components/apps/code-snippet-png/Calculator.astro';
-import ColorToolkit from '../../components/apps/color-toolkit/Calculator.astro';
-import GradientGenerator from '../../components/apps/gradient-generator/Calculator.astro';
-import ImageCompressor from '../../components/apps/image-compressor/Calculator.astro';
-import CsvToJson from '../../components/apps/csv-to-json/Calculator.astro';
-import DeviceInfo from '../../components/apps/device-info/Calculator.astro';
-import CssButtonGenerator from '../../components/apps/css-button-generator/Calculator.astro';
-import QrCodeGenerator from '../../components/apps/qr-code-generator/Calculator.astro';
-import Tokenizer from '../../components/apps/tokenizer/Calculator.astro';
-import RagChunkInspector from '../../components/apps/rag-chunk-inspector/Calculator.astro';
-import GpuVramCalculator from '../../components/apps/gpu-vram-calculator/Calculator.astro';
-import EvChargingCost from '../../components/apps/ev-charging-cost/Calculator.astro';
-import DockerComposeVisualizer from '../../components/apps/docker-compose-visualizer/Calculator.astro';
-import JsonSchemaToTool from '../../components/apps/json-schema-to-tool/Calculator.astro';
-import SystemPromptLinter from '../../components/apps/system-prompt-linter/Calculator.astro';
-import ContextWindowVisualizer from '../../components/apps/context-window-visualizer/Calculator.astro';
-import SystemdUnitGenerator from '../../components/apps/systemd-unit-generator/Calculator.astro';
-import HashGenerator from '../../components/apps/hash-generator/Calculator.astro';
-import Base64Encoder from '../../components/apps/base64-encoder/Calculator.astro';
-import SshConfigGenerator from '../../components/apps/ssh-config-generator/Calculator.astro';
-import NginxConfigGenerator from '../../components/apps/nginx-config-generator/Calculator.astro';
-import FineTuningFormatter from '../../components/apps/finetuning-formatter/Calculator.astro';
-import PromptDiff from '../../components/apps/prompt-diff/Calculator.astro';
-import ModelBenchmark from '../../components/apps/model-benchmark/Calculator.astro';
-import LlmResponseUnpacker from '../../components/apps/llm-response-unpacker/Calculator.astro';
-import OptionsPnl from '../../components/apps/options-pnl/Calculator.astro';
-import DrawdownCalculator from '../../components/apps/drawdown-calculator/Calculator.astro';
-import HyperscalerComparison from '../../components/apps/hyperscaler-comparison/Calculator.astro';
+import JsonFormatter from '../../components/apps-private/json-formatter/Calculator.astro';
+import TextDiff from '../../components/apps-private/text-diff/Calculator.astro';
+import JwtDecoder from '../../components/apps-private/jwt-decoder/Calculator.astro';
+import PasswordGenerator from '../../components/apps-private/password-generator/Calculator.astro';
+import DummyDataGenerator from '../../components/apps-private/dummy-data-generator/Calculator.astro';
+import CodeSnippetPng from '../../components/apps-private/code-snippet-png/Calculator.astro';
+import ColorToolkit from '../../components/apps-private/color-toolkit/Calculator.astro';
+import GradientGenerator from '../../components/apps-private/gradient-generator/Calculator.astro';
+import ImageCompressor from '../../components/apps-private/image-compressor/Calculator.astro';
+import CsvToJson from '../../components/apps-private/csv-to-json/Calculator.astro';
+import DeviceInfo from '../../components/apps-private/device-info/Calculator.astro';
+import CssButtonGenerator from '../../components/apps-private/css-button-generator/Calculator.astro';
+import QrCodeGenerator from '../../components/apps-private/qr-code-generator/Calculator.astro';
+import Tokenizer from '../../components/apps-private/tokenizer/Calculator.astro';
+import RagChunkInspector from '../../components/apps-private/rag-chunk-inspector/Calculator.astro';
+import GpuVramCalculator from '../../components/apps-private/gpu-vram-calculator/Calculator.astro';
+import EvChargingCost from '../../components/apps-private/ev-charging-cost/Calculator.astro';
+import DockerComposeVisualizer from '../../components/apps-private/docker-compose-visualizer/Calculator.astro';
+import JsonSchemaToTool from '../../components/apps-private/json-schema-to-tool/Calculator.astro';
+import SystemPromptLinter from '../../components/apps-private/system-prompt-linter/Calculator.astro';
+import ContextWindowVisualizer from '../../components/apps-private/context-window-visualizer/Calculator.astro';
+import SystemdUnitGenerator from '../../components/apps-private/systemd-unit-generator/Calculator.astro';
+import HashGenerator from '../../components/apps-private/hash-generator/Calculator.astro';
+import Base64Encoder from '../../components/apps-private/base64-encoder/Calculator.astro';
+import SshConfigGenerator from '../../components/apps-private/ssh-config-generator/Calculator.astro';
+import NginxConfigGenerator from '../../components/apps-private/nginx-config-generator/Calculator.astro';
+import FineTuningFormatter from '../../components/apps-private/finetuning-formatter/Calculator.astro';
+import PromptDiff from '../../components/apps-private/prompt-diff/Calculator.astro';
+import ModelBenchmark from '../../components/apps-private/model-benchmark/Calculator.astro';
+import LlmResponseUnpacker from '../../components/apps-private/llm-response-unpacker/Calculator.astro';
+import OptionsPnl from '../../components/apps-private/options-pnl/Calculator.astro';
+import DrawdownCalculator from '../../components/apps-private/drawdown-calculator/Calculator.astro';
+import HyperscalerComparison from '../../components/apps-private/hyperscaler-comparison/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,

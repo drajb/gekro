@@ -43,6 +43,8 @@ gekro/
 │   │       │   ├── layout/       → Header, Footer
 │   │       │   ├── seo/          → SEOHead, JsonLD
 │   │       │   ├── ui/           → BrandLogo, ContactForm, LabGallery, NewsletterEmbed, SearchWidget, Tag, ThemeToggle
+│   │       │   ├── apps/         → AppShell, AppCard, AppFilters, AttributionFooter, shared/ (PUBLIC — stays here)
+│   │       │   ├── apps-private/ → ⭐ git submodule → drajb/gekro-apps (PRIVATE — 51 Calculator components)
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
 │   │       ├── content/
 │   │       │   ├── config.ts     → Zod schemas for blog + experiments collections
@@ -156,7 +158,33 @@ Depth lives in [.gekro/context/](.gekro/context/) — load one of these when the
 
 Original spec (aspirational — **not** authoritative any more, parts have been superseded): [.artifacts/gekro-blueprint.md](.artifacts/gekro-blueprint.md).
 
-## 8. Environment
+## 8. Dual-repo architecture — apps source is private
+
+The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-07):
+
+| What | Repo | Visibility |
+|---|---|---|
+| App shell, routing, content, shared UI | `drajb/gekro` (this repo) | Public |
+| All 51 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
+
+`apps-private/` is a **git submodule** pointing to `drajb/gekro-apps`. The Calculator components live there; everything else (AppShell, shared/, content markdown, routing) lives here.
+
+### Rules for working with this setup
+
+- **Adding a new app:** implement the Calculator in `gekro-apps` first, commit + push there. Then update the submodule pointer here, add the import + CALCULATOR_MAP entry in `pages/apps/[slug].astro`, and add the content markdown. See `gekro-apps/CLAUDE.md` for the full workflow.
+- **Editing an existing Calculator:** work in `G:/Git/gekro-apps` (or clone it separately), commit + push to `gekro-apps`, then update the submodule ref in this repo.
+- **Shared utilities** (`apps/shared/csv.ts`, `url-state.ts`, etc.) stay in this public repo. Calculators in `apps-private/` that import shared code use `../../apps/shared/` (two levels up from their slug dir).
+- **Relative imports** from `apps-private/[slug]/` to `content/` use `../../../content/` (same depth as the old `apps/[slug]/` path — both sit one level under `components/`).
+- **Never move `AppShell.astro`, `AppCard.astro`, `AppFilters.astro`, `AttributionFooter.astro`, or `shared/`** to the private repo — they are generic infrastructure, not IP.
+
+### Cloudflare Pages setup (one-time, required for deploy)
+Cloudflare Pages must have read access to `drajb/gekro-apps` to clone the submodule at build time:
+1. GitHub → Settings → Applications → Cloudflare Pages → Repository access → add `drajb/gekro-apps`
+
+### Local development
+After cloning `gekro`, run `git submodule update --init --recursive` to populate `apps-private/`. The submodule must be cloned for `pnpm --filter web build` to succeed.
+
+## 9. Environment
 
 - `.env.local` is gitignored; populate from `.env.example`.
 - Required for full functionality: `PUBLIC_SANITY_PROJECT_ID`, `PUBLIC_SANITY_DATASET`, `SANITY_STUDIO_PROJECT_ID`, `PUBLIC_BEEHIIV_PUBLICATION_ID`, `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_GA_MEASUREMENT_ID`.
