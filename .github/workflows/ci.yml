@@ -12,34 +12,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── Step 1: Checkout main repo (public — no token needed) ───────────
+      # ── Step 1: Checkout main repo ───────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      # ── Step 2: Initialise the private apps submodule ───────────────────
-      # drajb/gekro-apps is private. We inject the PAT via git URL rewriting
-      # so git can clone it during submodule init. Using a separate step (vs
-      # submodules:recursive in checkout) gives clearer failure messages if
-      # the PAT is wrong — the error names the failing repo explicitly.
+      # ── Step 2: Clone private apps components ────────────────────────────
+      # apps-private is NOT a git submodule — CF Pages v3 hard-codes
+      # submodule auth before the build command, with no way to inject
+      # credentials. Instead, we clone directly at build time.
       #
-      # SUBMODULE_PAT requirements:
-      #   Type:   GitHub Personal Access Token (NOT a deploy key / SSH key)
-      #   Scope:  Classic PAT → repo:read   OR
-      #           Fine-grained PAT → drajb/gekro-apps → Contents: Read-only
-      #   Where:  drajb/gekro → Settings → Secrets → Actions → SUBMODULE_PAT
-      - name: Initialise private apps submodule
+      # CF Pages build command (set in Settings → Build configuration):
+      #   git clone https://x-access-token:${GITHUB_PAT}@github.com/drajb/gekro-apps.git \
+      #     src/components/apps-private && pnpm build
+      #
+      # For CI we mirror that approach using SUBMODULE_PAT (same repo access):
+      #   Classic PAT → repo:read  OR
+      #   Fine-grained PAT → drajb/gekro-apps → Contents: Read-only
+      #   Stored in: drajb/gekro → Settings → Secrets → Actions → SUBMODULE_PAT
+      - name: Clone private apps components
         env:
           PAT: ${{ secrets.SUBMODULE_PAT }}
         run: |
-          git config --global \
-            url."https://${PAT}@github.com/drajb/gekro-apps".insteadOf \
-            "https://github.com/drajb/gekro-apps"
-          git submodule update --init --recursive
+          git clone \
+            https://x-access-token:${PAT}@github.com/drajb/gekro-apps.git \
+            apps/web/src/components/apps-private
 
       # ── Step 3: Install pnpm (version from root package.json) ───────────
-      # No 'version:' pin — pnpm/action-setup@v4 reads packageManager field
-      # from package.json (currently pnpm@9.0.0). Pinning version:9 here
-      # conflicts with the exact-version field and causes the step to fail.
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
@@ -47,7 +45,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: '22'   # Node 22 LTS — Node 20 LTS exited maintenance Apr 2026
+          node-version: '22'
           cache: 'pnpm'
 
       # ── Step 5: Install deps ─────────────────────────────────────────────
@@ -61,7 +59,7 @@ jobs:
       # ── Step 7: Lint (non-blocking) ──────────────────────────────────────
       - name: Lint
         run: pnpm --filter web lint
-        continue-on-error: true  # Don't block on lint until ESLint is fully configured
+        continue-on-error: true
 
       # ── Step 8: Build ────────────────────────────────────────────────────
       - name: Build

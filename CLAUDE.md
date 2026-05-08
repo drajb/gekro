@@ -167,32 +167,35 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 | App shell, routing, content, shared UI | `drajb/gekro` (this repo) | Public |
 | All 51 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
 
-`apps-private/` is a **git submodule** pointing to `drajb/gekro-apps`. The Calculator components live there; everything else (AppShell, shared/, content markdown, routing) lives here.
+`apps-private/` is **NOT a git submodule** — it is **gitignored** and cloned fresh at build time by each build system. This was necessary because CF Pages v3 hard-codes submodule auth before the build command runs, with no injection point for credentials.
+
+### How apps-private is populated at build time
+
+| Environment | Command | Secret |
+|---|---|---|
+| **Cloudflare Pages** | `git clone https://x-access-token:${GITHUB_PAT}@github.com/drajb/gekro-apps.git src/components/apps-private && pnpm build` | `GITHUB_PAT` in CF Pages Variables & Secrets |
+| **GitHub Actions CI** | `git clone https://x-access-token:${PAT}@github.com/drajb/gekro-apps.git apps/web/src/components/apps-private` | `SUBMODULE_PAT` in gekro repo Secrets |
+| **Local dev** | `git clone https://github.com/drajb/gekro-apps.git apps/web/src/components/apps-private` | Your git credentials (or a PAT) |
+
+`apps-private/` is in `.gitignore` — it is never committed to gekro.
 
 ### Rules for working with this setup
 
-- **Adding a new app:** implement the Calculator in `gekro-apps` first, commit + push there. Then update the submodule pointer here, add the import + CALCULATOR_MAP entry in `pages/apps/[slug].astro`, and add the content markdown. See `gekro-apps/CLAUDE.md` for the full workflow.
-- **Editing an existing Calculator:** work in `G:/Git/gekro-apps` (or clone it separately), commit + push to `gekro-apps`, then update the submodule ref in this repo.
-- **Shared utilities** (`apps/shared/csv.ts`, `url-state.ts`, etc.) stay in this public repo. Calculators in `apps-private/` that import shared code use `../../apps/shared/` (two levels up from their slug dir).
-- **Relative imports** from `apps-private/[slug]/` to `content/` use `../../../content/` (same depth as the old `apps/[slug]/` path — both sit one level under `components/`).
-- **Never move `AppShell.astro`, `AppCard.astro`, `AppFilters.astro`, `AttributionFooter.astro`, or `shared/`** to the private repo — they are generic infrastructure, not IP.
+- **Adding a new app:** implement the Calculator in `gekro-apps`, commit + push there. Then add the import + CALCULATOR_MAP entry in `pages/apps/[slug].astro`, and add the content markdown. No submodule pointer to update — the clone step always pulls `HEAD` of `main`.
+- **Editing an existing Calculator:** work in `G:/Git/gekro-apps`, commit + push there. The next CI/CF Pages build clones the latest automatically.
+- **Shared utilities** (`apps/shared/csv.ts`, `url-state.ts`, etc.) stay in this public repo. Calculators in `apps-private/` that import shared code use `../../apps/shared/`.
+- **Relative imports** from `apps-private/[slug]/` to `content/` use `../../../content/`.
+- **Never move `AppShell.astro`, `AppCard.astro`, `AppFilters.astro`, `AttributionFooter.astro`, or `shared/`** to the private repo.
 
-### Cloudflare Pages setup (one-time, required for deploy)
-Cloudflare Pages must have read access to `drajb/gekro-apps` to clone the submodule at build time:
-1. GitHub → Settings → Applications → Cloudflare Pages → Repository access → add `drajb/gekro-apps`
+### Required secrets (one-time setup)
+- **CF Pages:** `GITHUB_PAT` — PAT with Contents:Read on `drajb/gekro-apps`, set in CF Pages project → Settings → Variables and Secrets
+- **GitHub Actions:** `SUBMODULE_PAT` — same permissions, set in drajb/gekro → Settings → Secrets → Actions
 
-### GitHub Actions CI setup (one-time, required for CI builds)
-`ci.yml` uses `submodules: 'recursive'` with a PAT to initialise `apps-private/` during checkout.
-Without this the CI build fails with "Could not resolve …/apps-private/…".
-
-**Create the secret:**
-1. GitHub → drajb account → Settings → Developer settings → Fine-grained personal access tokens → Generate new token
-2. Token permissions: Repository access = `drajb/gekro-apps` only; Permissions → Contents = `Read-only`
-3. GitHub → drajb/gekro → Settings → Secrets and variables → Actions → New repository secret
-   Name: `SUBMODULE_PAT`, Value: the token from step 2
-
-### Local development
-After cloning `gekro`, run `git submodule update --init --recursive` to populate `apps-private/`. The submodule must be cloned for `pnpm --filter web build` to succeed.
+### Local development after fresh clone
+```bash
+git clone https://github.com/drajb/gekro-apps.git apps/web/src/components/apps-private
+# (uses your git credentials — must have access to the private repo)
+```
 
 ## 9. Environment
 
