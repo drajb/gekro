@@ -31,6 +31,7 @@ import JsonLD from '../components/seo/JsonLD.astro';
 import GiscusComments from '../components/blog/GiscusComments.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
+import AuthorCard from '../components/blog/AuthorCard.astro';
 import type { FormattedPost } from '../lib/utils/posts';
 import { WORDS_PER_MINUTE } from '../lib/utils/reading-time';
 
@@ -213,6 +214,9 @@ const breadcrumbs = {
         </div>
       </aside>
     </div>
+
+    <!-- Author card — "Written by Rohit Burani" with LinkedIn link -->
+    <AuthorCard />
 
     <!-- Newsletter signup (Beehiiv embed or fallback form) -->
     <NewsletterEmbed />

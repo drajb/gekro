@@ -1,0 +1,52 @@
+---
+/**
+ * AuthorCard.astro — "Written by" author block at the bottom of every blog post
+ *
+ * Renders a compact author card: circular headshot, name linked to LinkedIn,
+ * and a short one-liner bio. No job title — intentional.
+ *
+ * Used in: BlogLayout.astro (just above GiscusComments)
+ *
+ * Image: src/assets/about/rohit-burani.jpg (420×420, processed by Astro <Image>)
+ * The photo is served as an optimised WebP via Astro's image pipeline so it
+ * doesn't block LCP on the post page.
+ */
+
+import { Image } from 'astro:assets';
+import avatar from '../../assets/about/rohit-burani.jpg';
+---
+
+<div class="flex items-center gap-5 py-8 border-t border-border-subtle mt-4">
+  <!-- Circular avatar -->
+  <a
+    href="https://www.linkedin.com/in/rohitburani/"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="shrink-0 group"
+    aria-label="Rohit Burani on LinkedIn"
+  >
+    <Image
+      src={avatar}
+      alt="Rohit Burani"
+      width={56}
+      height={56}
+      class="w-14 h-14 rounded-full object-cover ring-2 ring-border group-hover:ring-accent transition-all duration-300"
+    />
+  </a>
+
+  <!-- Name + bio -->
+  <div class="space-y-0.5 min-w-0">
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Written by</p>
+    <a
+      href="https://www.linkedin.com/in/rohitburani/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-base font-heading font-medium text-text-primary hover:text-accent transition-colors"
+    >
+      Rohit Burani
+    </a>
+    <p class="text-sm text-text-secondary leading-snug">
+      AI engineer building local-first systems, self-hosted infrastructure, and autonomous tools from the lab.
+    </p>
+  </div>
+</div>
