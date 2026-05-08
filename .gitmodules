@@ -1,4 +1,0 @@
-[submodule "apps/web/src/components/apps-private"]
-	path = apps/web/src/components/apps-private
-	url = https://github.com/drajb/gekro-apps.git
-	branch = main
