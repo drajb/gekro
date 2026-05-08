@@ -31,24 +31,24 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Llama 4 Maverick 17B",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.2,
+          "output_per_1m_usd": 0.6,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Llama Models Llama 4 Maverick 17B",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.2,
+          "output_per_1m_usd": 0.6,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
           "available": true,
           "sku_id": "Llama 4 Maverick",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.2,
+          "output_per_1m_usd": 0.6,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -62,18 +62,26 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Llama 4 Scout 17B",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.18,
+          "output_per_1m_usd": 0.55,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
-          "available": false,
-          "note": "Discovery pending"
+          "available": true,
+          "sku_id": "Azure Llama Models Llama 4 Scout 17B",
+          "input_per_1m_usd": 0.18,
+          "output_per_1m_usd": 0.55,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Discovery pending"
+          "available": true,
+          "sku_id": "Llama 4 Scout 17B",
+          "input_per_1m_usd": 0.18,
+          "output_per_1m_usd": 0.55,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -85,24 +93,24 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Llama 3.3 70B",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.72,
+          "output_per_1m_usd": 0.72,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Llama Models Llama 3.3 70B",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.72,
+          "output_per_1m_usd": 0.72,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
           "available": true,
           "sku_id": "Llama 3.3",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.72,
+          "output_per_1m_usd": 0.72,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -116,22 +124,26 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "DeepSeek v3.2",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.27,
+          "output_per_1m_usd": 1.1,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Deepseek Models V3.2",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.27,
+          "output_per_1m_usd": 1.1,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Not on Vertex"
+          "available": true,
+          "sku_id": "DeepSeek V3.2",
+          "input_per_1m_usd": 0.27,
+          "output_per_1m_usd": 1.1,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -143,22 +155,26 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "R1",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.55,
+          "output_per_1m_usd": 2.19,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Deepseek Models R1",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.55,
+          "output_per_1m_usd": 2.19,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Not on Vertex"
+          "available": true,
+          "sku_id": "DeepSeek R1",
+          "input_per_1m_usd": 0.55,
+          "output_per_1m_usd": 2.19,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -170,24 +186,24 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Mistral Large 3",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 2.0,
+          "output_per_1m_usd": 6.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Mistral Models Large 3",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 2.0,
+          "output_per_1m_usd": 6.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
           "available": true,
           "sku_id": "Mistral Large 3",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 2.0,
+          "output_per_1m_usd": 6.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -201,8 +217,8 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Nova 2.0 Pro",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.8,
+          "output_per_1m_usd": 3.2,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -224,8 +240,8 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Nova Premier",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 2.5,
+          "output_per_1m_usd": 12.5,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -247,8 +263,8 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Nova Micro",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.035,
+          "output_per_1m_usd": 0.14,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -270,22 +286,26 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "GLM 5",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.5,
+          "output_per_1m_usd": 1.5,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Fireworks Models FW GLM 5 (data-zone tier)",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.5,
+          "output_per_1m_usd": 1.5,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Discovery pending"
+          "available": true,
+          "sku_id": "GLM 5",
+          "input_per_1m_usd": 0.5,
+          "output_per_1m_usd": 1.5,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -297,22 +317,26 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "gpt-oss-120b",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.5,
+          "output_per_1m_usd": 1.5,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Fireworks Models FW GPT OSS 120B (data-zone tier)",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.5,
+          "output_per_1m_usd": 1.5,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Open-weights model — host yourself or use Together/Fireworks direct"
+          "available": true,
+          "sku_id": "GPT-OSS 120B",
+          "input_per_1m_usd": 0.5,
+          "output_per_1m_usd": 1.5,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -324,18 +348,26 @@
         "aws_bedrock": {
           "available": true,
           "sku_id": "Qwen3 32B",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.2,
+          "output_per_1m_usd": 0.6,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
         "azure_foundry": {
-          "available": false,
-          "note": "Discovery pending"
+          "available": true,
+          "sku_id": "Azure Qwen Models Qwen3 32B",
+          "input_per_1m_usd": 0.2,
+          "output_per_1m_usd": 0.6,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         },
         "gcp_vertex": {
-          "available": false,
-          "note": "Discovery pending"
+          "available": true,
+          "sku_id": "Qwen3 32B",
+          "input_per_1m_usd": 0.2,
+          "output_per_1m_usd": 0.6,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         }
       }
     },
@@ -351,8 +383,8 @@
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure OpenAI GPT5 5 pp",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 1.25,
+          "output_per_1m_usd": 10.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -374,8 +406,8 @@
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure OpenAI GPT5 5 mini pp",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.25,
+          "output_per_1m_usd": 2.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -397,8 +429,8 @@
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure OpenAI GPT5 5.2 chat 0210",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 1.25,
+          "output_per_1m_usd": 10.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -420,8 +452,8 @@
         "azure_foundry": {
           "available": true,
           "sku_id": "Azure Grok Models Grok 4.2",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 3.0,
+          "output_per_1m_usd": 15.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         },
@@ -447,8 +479,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Gemini 3.0 Pro",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 1.25,
+          "output_per_1m_usd": 10.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -470,8 +502,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Gemini 3.0 Flash",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.1,
+          "output_per_1m_usd": 0.4,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -493,8 +525,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Gemini 2.5 Pro",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 1.25,
+          "output_per_1m_usd": 10.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -516,8 +548,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Gemini 2.5 Flash",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.1,
+          "output_per_1m_usd": 0.4,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -529,8 +561,12 @@
       "label": "Claude Opus 4",
       "platforms": {
         "aws_bedrock": {
-          "available": false,
-          "note": "Bedrock has only legacy Claude 2/3; newer Claude moved to Vertex"
+          "available": true,
+          "sku_id": "Claude Opus 4",
+          "input_per_1m_usd": 15.0,
+          "output_per_1m_usd": 75.0,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         },
         "azure_foundry": {
           "available": false,
@@ -539,8 +575,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Claude Opus 4",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 15.0,
+          "output_per_1m_usd": 75.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -552,8 +588,12 @@
       "label": "Claude Sonnet 4",
       "platforms": {
         "aws_bedrock": {
-          "available": false,
-          "note": "Bedrock has only legacy Claude 2/3; newer Claude moved to Vertex"
+          "available": true,
+          "sku_id": "Claude Sonnet 4",
+          "input_per_1m_usd": 3.0,
+          "output_per_1m_usd": 15.0,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         },
         "azure_foundry": {
           "available": false,
@@ -562,8 +602,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Claude Sonnet 4",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 3.0,
+          "output_per_1m_usd": 15.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }
@@ -575,8 +615,12 @@
       "label": "Claude Haiku 4",
       "platforms": {
         "aws_bedrock": {
-          "available": false,
-          "note": "Bedrock has only legacy Claude 2/3"
+          "available": true,
+          "sku_id": "Claude Haiku 4",
+          "input_per_1m_usd": 0.8,
+          "output_per_1m_usd": 4.0,
+          "last_verified": "2026-05-07",
+          "verified_via": "manual"
         },
         "azure_foundry": {
           "available": false,
@@ -585,8 +629,8 @@
         "gcp_vertex": {
           "available": true,
           "sku_id": "Claude Haiku 4",
-          "input_per_1m_usd": 0.01,
-          "output_per_1m_usd": 0.02,
+          "input_per_1m_usd": 0.8,
+          "output_per_1m_usd": 4.0,
           "last_verified": "2026-05-07",
           "verified_via": "manual"
         }

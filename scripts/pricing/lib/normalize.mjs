@@ -97,7 +97,23 @@ export const SKU_TO_CANONICAL = {
   'gpt-oss-120b':                                    { canonicalId: 'openai/gpt-oss-120b',   platform: 'aws_bedrock' },
   'Qwen3 32B':                                       { canonicalId: 'qwen/qwen3-32b',        platform: 'aws_bedrock' },
 
-  // ── GCP Vertex AI (Google + Anthropic on Vertex + Llama via Model Garden) ─
+  // ── Anthropic Claude on Bedrock (cross-platform with Vertex) ─────────────
+  // 2026: AWS Bedrock has the latest Claude versions, NOT just legacy 2/3.
+  // Anthropic maintains parity between Bedrock and Vertex offerings.
+  'Claude Opus 4':                                   { canonicalId: 'anthropic/claude-opus-4',   platform: 'aws_bedrock' },
+  'Claude Sonnet 4':                                 { canonicalId: 'anthropic/claude-sonnet-4', platform: 'aws_bedrock' },
+  'Claude Haiku 4':                                  { canonicalId: 'anthropic/claude-haiku-4',  platform: 'aws_bedrock' },
+
+  // ── Azure Llama 4 Scout (Foundry — cross-platform with Bedrock + Vertex) ─
+  'Azure Llama Models Llama 4 Scout 17B Inp glbl':   { canonicalId: 'meta/llama-4-scout-17b', platform: 'azure_foundry' },
+  'Azure Llama Models Llama 4 Scout 17B Outp glbl':  { canonicalId: 'meta/llama-4-scout-17b', platform: 'azure_foundry' },
+
+  // ── Azure Qwen (Foundry — cross-platform with Bedrock + Vertex) ──────────
+  // Educated guess on naming convention; refine after first --discover run.
+  'Azure Qwen Models Qwen3 32B Inp glbl':            { canonicalId: 'qwen/qwen3-32b', platform: 'azure_foundry' },
+  'Azure Qwen Models Qwen3 32B Outp glbl':           { canonicalId: 'qwen/qwen3-32b', platform: 'azure_foundry' },
+
+  // ── GCP Vertex AI (Google + Anthropic + Llama/Qwen/DeepSeek/GLM/GPT-OSS via Model Garden) ─
   // Match against sku.description after normalization (lowercase + special
   // chars → spaces). SKU keys here are the description prefix, NOT the
   // model API ID. GCP typically names tokens like:
@@ -120,8 +136,8 @@ export const SKU_TO_CANONICAL = {
   'Gemini 2.5 Flash Input':                          { canonicalId: 'google/gemini-2-5-flash', platform: 'gcp_vertex' },
   'Gemini 2.5 Flash Output':                         { canonicalId: 'google/gemini-2-5-flash', platform: 'gcp_vertex' },
 
-  // Anthropic Claude on Vertex (newer versions are Vertex-exclusive among
-  // hyperscalers; Bedrock has only legacy Claude 2/3 versions)
+  // Anthropic Claude on Vertex (cross-platform — also on Bedrock)
+  // Anthropic maintains feature parity between Bedrock and Vertex.
   'Claude Opus 4 Input':                             { canonicalId: 'anthropic/claude-opus-4',     platform: 'gcp_vertex' },
   'Claude Opus 4 Output':                            { canonicalId: 'anthropic/claude-opus-4',     platform: 'gcp_vertex' },
   'Claude Sonnet 4 Input':                           { canonicalId: 'anthropic/claude-sonnet-4',   platform: 'gcp_vertex' },
@@ -134,10 +150,24 @@ export const SKU_TO_CANONICAL = {
   'Llama 3.3 Output':                                { canonicalId: 'meta/llama-3-3-70b',        platform: 'gcp_vertex' },
   'Llama 4 Maverick Input':                          { canonicalId: 'meta/llama-4-maverick-17b', platform: 'gcp_vertex' },
   'Llama 4 Maverick Output':                         { canonicalId: 'meta/llama-4-maverick-17b', platform: 'gcp_vertex' },
+  'Llama 4 Scout Input':                             { canonicalId: 'meta/llama-4-scout-17b',    platform: 'gcp_vertex' },
+  'Llama 4 Scout Output':                            { canonicalId: 'meta/llama-4-scout-17b',    platform: 'gcp_vertex' },
 
   // Mistral on Vertex Model Garden (cross-platform with Bedrock + Azure)
   'Mistral Large 3 Input':                           { canonicalId: 'mistral/large-3', platform: 'gcp_vertex' },
   'Mistral Large 3 Output':                          { canonicalId: 'mistral/large-3', platform: 'gcp_vertex' },
+
+  // Open-weights models on Vertex Model Garden (cross-platform on all three)
+  'DeepSeek V3.2 Input':                             { canonicalId: 'deepseek/v3-2', platform: 'gcp_vertex' },
+  'DeepSeek V3.2 Output':                            { canonicalId: 'deepseek/v3-2', platform: 'gcp_vertex' },
+  'DeepSeek R1 Input':                               { canonicalId: 'deepseek/r1',   platform: 'gcp_vertex' },
+  'DeepSeek R1 Output':                              { canonicalId: 'deepseek/r1',   platform: 'gcp_vertex' },
+  'GLM 5 Input':                                     { canonicalId: 'zai/glm-5',     platform: 'gcp_vertex' },
+  'GLM 5 Output':                                    { canonicalId: 'zai/glm-5',     platform: 'gcp_vertex' },
+  'GPT-OSS 120B Input':                              { canonicalId: 'openai/gpt-oss-120b', platform: 'gcp_vertex' },
+  'GPT-OSS 120B Output':                             { canonicalId: 'openai/gpt-oss-120b', platform: 'gcp_vertex' },
+  'Qwen3 32B Input':                                 { canonicalId: 'qwen/qwen3-32b', platform: 'gcp_vertex' },
+  'Qwen3 32B Output':                                { canonicalId: 'qwen/qwen3-32b', platform: 'gcp_vertex' },
 };
 
 /**
