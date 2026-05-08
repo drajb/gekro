@@ -6,6 +6,7 @@ difficulty: "Intermediate"
 topics: ["AI Engineering", "Architecture"]
 readingTime: 9
 aiSummary: "Rohit argues that owning the inference layer pays for itself at every scale, from a solo home lab up to a 50,000-user enterprise. He breaks down why cloud API costs grow linearly with adoption while owned-hardware costs plateau, why pre-training a model from scratch is a multi-million-dollar trap nobody outside frontier labs needs to fall into, and how Parameter-Efficient Fine-Tuning collapses the customization cost to a few hundred dollars on a single consumer GPU."
+mainImage: "/images/blog/token-economics.png"
 ---
 
 <TLDR>
@@ -13,6 +14,8 @@ aiSummary: "Rohit argues that owning the inference layer pays for itself at ever
 </TLDR>
 
 This is the article every major cloud provider would prefer I didn't write. The math isn't hidden — it's published in plain language on their own pricing pages, in their own documentation, in industry studies anyone can pull. They'd just prefer it stayed unread, because every company that runs the numbers and stands up its own inference layer is a company spending less on API rent. The answer at every scale — five-person startup, fifty-thousand-user enterprise, anywhere on the curve in between — is the same: the team that owns its inference layer pays itself back several times over the team that rents.
+
+![The Token Economics of Local AI — an engineer in a Gekro Labs server room holding a token cartridge against a "Cloud Provider — Pay Per Token" sign](/images/blog/token-economics.png)
 
 ## The Architecture
 
