@@ -88,11 +88,21 @@ export async function fetchAWSPricing() {
     const modelName = attrs.model ?? '';
     if (!modelName) continue;
 
-    // Substring match — our tracked name in the API-returned name (handles
-    // version suffixes like "Llama 3.3 70B Instruct (text-only)").
+    // Forward-only substring match — tracked SKU key must appear inside
+    // the API-returned model name. This handles version suffixes like
+    // "Llama 3.3 70B Instruct (text-only)" where the SKU key is shorter.
+    //
+    // CRITICAL: do NOT use bi-directional match (`sku.includes(modelName)`).
+    // That creates false positives when an older model has a shorter name
+    // that's a prefix of a newer tracked SKU. Confirmed bug 2026-05-12:
+    // AWS has an older "Mistral Large" model at $4/$12 per 1M tokens. With
+    // bi-directional match, "mistral large 3".includes("mistral large") was
+    // TRUE, so the older Mistral Large prices were being attributed to
+    // mistral/large-3, overwriting the correct $0.50/$1.50 standard rates.
+    // Forward-only matching eliminates the entire false-positive class
+    // while keeping every legitimate match (verified against full SKU map).
     const tracked = trackedSkus.find(t =>
-      modelName.toLowerCase().includes(t.sku.toLowerCase()) ||
-      t.sku.toLowerCase().includes(modelName.toLowerCase())
+      modelName.toLowerCase().includes(t.sku.toLowerCase())
     );
     if (!tracked) continue;
 
