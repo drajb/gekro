@@ -378,36 +378,62 @@ body {
  * if a particular app needs custom touch-screen sizing.
  */
 @media (pointer: coarse), (max-width: 768px) {
+  /* Tier 1 — boost the canonical .app-* classes (used by the toolbar pills
+     and any future apps that adopt the convention). */
   .app-btn-primary,
   .app-btn-secondary,
   .app-btn-tab {
     min-height: 44px;
-    padding-top: 0.625rem;     /* 10px */
+    padding-top: 0.625rem;     /* 10px — vertical only; horizontal padding
+                                   left to per-app utilities (px-3, px-10, etc).
+                                   Forcing horizontal would shrink intentionally
+                                   wide buttons. min-height handles the touch
+                                   target without tampering with layout width. */
     padding-bottom: 0.625rem;
-  }
-  .app-btn-primary,
-  .app-btn-secondary {
-    /* Slightly more horizontal breathing room too */
-    padding-left: 1rem;
-    padding-right: 1rem;
   }
   .app-input,
   .app-textarea {
-    padding: 0.75rem 0.875rem; /* 12 / 14 */
-    font-size: 1rem;            /* 16px = no iOS zoom-on-focus */
+    padding: 0.75rem 0.875rem;
+    font-size: 16px;            /* 16 prevents iOS auto-zoom; rem could be < 16 if root font shrinks */
     min-height: 44px;
   }
-  .app-textarea {
-    min-height: 88px;           /* multi-line — give thumbs room to land */
+  .app-textarea { min-height: 88px; }
+
+  /* Tier 2 — universal coverage inside the calculator island.
+     Audit (2026-05): of 311 form controls across 51 apps, ZERO use
+     .app-input/.app-textarea. They use raw <input class="text-xs ..."> or
+     custom per-app classes (.qrg-input, .am-input, etc). All of those
+     trigger iOS Safari's auto-zoom-on-focus when font-size < 16px.
+     This rule catches every focusable text-input element in any app body
+     by attribute, not class.
+
+     Excludes: checkbox, radio, color, range, file, hidden — none of
+     these trigger keyboard or zoom on iOS.
+
+     Specificity 0,1,1 — beats most per-app utility-class rules. Per-app
+     stylesheets can still opt out via :where() or a higher-specificity
+     selector if a particular control genuinely needs custom sizing. */
+  #calculator-island input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+  #calculator-island textarea,
+  #calculator-island select {
+    font-size: 16px;
   }
-  /* Numeric inputs that ship with type="number" — keep them tappable */
-  input[type="number"].app-input,
-  input[type="email"].app-input,
-  input[type="url"].app-input,
-  input[type="tel"].app-input,
-  input[type="text"].app-input,
-  input[type="search"].app-input {
-    font-size: 1rem;
+  /* Touch-target floor for all form controls in the app island. 40px is
+     a balance between WCAG AAA (44px) and not blowing up tight stepper
+     layouts. Apps with custom inline buttons can keep them small via
+     scoped CSS that wins on specificity. */
+  #calculator-island input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+  #calculator-island textarea,
+  #calculator-island select,
+  #calculator-island button {
+    min-height: 40px;
+  }
+  /* Don't bloat tiny "+" / "−" steppers and similar icon-only buttons */
+  #calculator-island button[aria-label*="ncrement" i],
+  #calculator-island button[aria-label*="ecrement" i],
+  #calculator-island button.is-tiny,
+  #calculator-island .stepper button {
+    min-height: 28px;
   }
 }
 
