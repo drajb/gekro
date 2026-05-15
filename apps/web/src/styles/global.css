@@ -361,6 +361,56 @@ body {
   background-color: rgba(56, 189, 248, 0.11);
 }
 
+/* ── Mobile / touch-screen ergonomics ─────────────────────────────────────
+ * Site-wide app component boost on touch devices and narrow viewports.
+ * Touches every app at once because they all use the .app-* class set.
+ *
+ * Targets two related but distinct constraints:
+ *   - WCAG 2.5.5 (AAA): minimum 44×44 CSS px touch target. Most apps use
+ *     `py-1.5 text-xs` Tailwind utilities → 26-30 px tall buttons. Below
+ *     spec on phones / tablets / Surface-style touch laptops.
+ *   - iOS Safari auto-zoom: focusing an <input> with font-size < 16px
+ *     forces a page zoom-in. App inputs use text-sm (14px) by default.
+ *     We bump to 16px on touch breakpoints to kill the zoom-in jank.
+ *
+ * Scoped to (pointer: coarse) OR (max-width: 768px) so desktop stays
+ * compact. Per-app stylesheets can override via `:where()`-wrapped rules
+ * if a particular app needs custom touch-screen sizing.
+ */
+@media (pointer: coarse), (max-width: 768px) {
+  .app-btn-primary,
+  .app-btn-secondary,
+  .app-btn-tab {
+    min-height: 44px;
+    padding-top: 0.625rem;     /* 10px */
+    padding-bottom: 0.625rem;
+  }
+  .app-btn-primary,
+  .app-btn-secondary {
+    /* Slightly more horizontal breathing room too */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .app-input,
+  .app-textarea {
+    padding: 0.75rem 0.875rem; /* 12 / 14 */
+    font-size: 1rem;            /* 16px = no iOS zoom-on-focus */
+    min-height: 44px;
+  }
+  .app-textarea {
+    min-height: 88px;           /* multi-line — give thumbs room to land */
+  }
+  /* Numeric inputs that ship with type="number" — keep them tappable */
+  input[type="number"].app-input,
+  input[type="email"].app-input,
+  input[type="url"].app-input,
+  input[type="tel"].app-input,
+  input[type="text"].app-input,
+  input[type="search"].app-input {
+    font-size: 1rem;
+  }
+}
+
 /* ── Prose spacing overrides — supplements @tailwindcss/typography defaults ── */
 .prose {
   @apply text-text-secondary leading-relaxed;

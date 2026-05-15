@@ -43,15 +43,16 @@ const categoryLabels: Record<string, string> = {
     <p class="text-text-secondary text-lg leading-relaxed max-w-2xl">{job}</p>
   </div>
 
-  <!-- Toolbar -->
-  <div class="flex flex-wrap items-center gap-3 py-4 border-y border-border-subtle">
+  <!-- Toolbar — wraps to 2 rows on phones; pill buttons stay tappable -->
+  <div class="flex flex-wrap items-center gap-2 sm:gap-3 py-3 sm:py-4 border-y border-border-subtle">
     <ExportButton filename={exportFilename} />
     <CopyButton label="Copy Result" />
     <button
       id="btn-share"
-      class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bg-elevated border border-border
-             text-[10px] font-mono uppercase tracking-widest text-text-secondary
-             hover:border-accent hover:text-accent transition-all"
+      class="inline-flex items-center gap-2 px-4 py-2.5 sm:py-2 rounded-full bg-bg-elevated border border-border
+             text-xs sm:text-[10px] font-mono uppercase tracking-widest text-text-secondary
+             hover:border-accent hover:text-accent transition-all
+             min-h-[40px] sm:min-h-0"
       aria-label="Share link"
     >
       ⤢ <span id="share-label">Share Link</span>

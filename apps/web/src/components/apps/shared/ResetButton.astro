@@ -7,9 +7,10 @@ const { label = 'Reset' } = Astro.props;
 ---
 
 <button
-  class="reset-btn inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bg-elevated border border-border
-         text-[10px] font-mono uppercase tracking-widest text-text-muted
-         hover:border-border-subtle hover:text-text-secondary transition-all"
+  class="reset-btn inline-flex items-center gap-2 px-4 py-2.5 sm:py-2 rounded-full bg-bg-elevated border border-border
+         text-xs sm:text-[10px] font-mono uppercase tracking-widest text-text-muted
+         hover:border-border-subtle hover:text-text-secondary transition-all
+         min-h-[40px] sm:min-h-0"
   aria-label={label}
 >
   ↺ <span>{label}</span>

@@ -8,9 +8,10 @@ const { filename = 'export.csv', label = 'Export CSV' } = Astro.props;
 ---
 
 <button
-  class="export-btn inline-flex items-center gap-2 px-4 py-2 rounded-full bg-bg-elevated border border-border
-         text-[10px] font-mono uppercase tracking-widest text-text-secondary
-         hover:border-accent hover:text-accent transition-all"
+  class="export-btn inline-flex items-center gap-2 px-4 py-2.5 sm:py-2 rounded-full bg-bg-elevated border border-border
+         text-xs sm:text-[10px] font-mono uppercase tracking-widest text-text-secondary
+         hover:border-accent hover:text-accent transition-all
+         min-h-[40px] sm:min-h-0"
   data-filename={filename}
   aria-label={label}
 >
