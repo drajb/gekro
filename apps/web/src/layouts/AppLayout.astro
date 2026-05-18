@@ -137,8 +137,9 @@ const breadcrumbs = {
         <div class="h-14"></div>
         <select
           id="mobile-app-select"
-          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-2
-                 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors"
+          class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-3
+                 text-text-primary focus:outline-none focus:border-accent transition-colors
+                 [font-size:16px] min-h-[44px]"
         >
           {allApps.map(a => (
             <option value={`/apps/${a.slug}/`} selected={a.slug === app.slug}>

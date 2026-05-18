@@ -418,22 +418,17 @@ body {
   #calculator-island select {
     font-size: 16px;
   }
-  /* Touch-target floor for all form controls in the app island. 40px is
-     a balance between WCAG AAA (44px) and not blowing up tight stepper
-     layouts. Apps with custom inline buttons can keep them small via
-     scoped CSS that wins on specificity. */
+  /* Touch-target floor for FORM FIELDS only. min-height on buttons was
+     removed — Tailwind h-N utilities don't beat min-height (min wins
+     over height when min > height), so a `w-5 h-5` swatch button would
+     stretch to 40×20 on mobile. Inputs/textareas/selects don't have
+     this problem because they aren't typically given explicit h-N
+     utilities (only width). Apps wanting 44px touch buttons should use
+     .app-btn-primary / .app-btn-secondary / .app-btn-tab (Tier 1). */
   #calculator-island input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
   #calculator-island textarea,
-  #calculator-island select,
-  #calculator-island button {
+  #calculator-island select {
     min-height: 40px;
-  }
-  /* Don't bloat tiny "+" / "−" steppers and similar icon-only buttons */
-  #calculator-island button[aria-label*="ncrement" i],
-  #calculator-island button[aria-label*="ecrement" i],
-  #calculator-island button.is-tiny,
-  #calculator-island .stepper button {
-    min-height: 28px;
   }
 }
 
