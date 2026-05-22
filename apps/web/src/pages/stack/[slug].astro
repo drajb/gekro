@@ -1,0 +1,30 @@
+---
+/**
+ * stack/[slug].astro — Individual /stack entry page
+ *
+ * Static generation: one page per entry in the stack content collection.
+ * Renders through StackLayout with the markdown body in the default slot.
+ *
+ * Body markdown can use the visual components by importing them at the top
+ * of the .md file as JSX (Astro handles this seamlessly for .md files that
+ * include component tags — see _template.md for the convention).
+ */
+
+import { getCollection } from 'astro:content';
+import StackLayout from '../../layouts/StackLayout.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('stack');
+  return entries.map(entry => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<StackLayout entry={entry}>
+  <Content />
+</StackLayout>

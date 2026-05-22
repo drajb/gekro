@@ -1,0 +1,128 @@
+---
+/**
+ * stack/index.astro — /stack landing page
+ *
+ * Renders all stack entries grouped by category, sorted within each group by
+ * status (active → watching → dropped). Dropped entries render at 60% opacity
+ * but stay clickable — they're the trust signal.
+ *
+ * Schema.org CollectionPage + ItemList emitted for SEO/GEO parity with /blog
+ * and /experiments index pages.
+ */
+
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StackCard from '../../components/stack/StackCard.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
+
+const entries = await getCollection('stack');
+
+// Status sort priority — active first within a category
+const statusOrder = { active: 0, watching: 1, dropped: 2 };
+
+// Group by category, then sort within category by status then name
+type Entry = (typeof entries)[number];
+const byCategory = new Map<string, Entry[]>();
+for (const e of entries) {
+  const cat = e.data.category;
+  if (!byCategory.has(cat)) byCategory.set(cat, []);
+  byCategory.get(cat)!.push(e);
+}
+for (const [cat, list] of byCategory) {
+  list.sort((a, b) => {
+    const s = statusOrder[a.data.status] - statusOrder[b.data.status];
+    return s !== 0 ? s : a.data.name.localeCompare(b.data.name);
+  });
+}
+
+// Category display order — order in which sections render down the page
+const categoryOrder = ['llm-client', 'editor', 'service', 'infra', 'observability', 'data', 'devtool', 'hardware'];
+const orderedCategories = Array.from(byCategory.keys()).sort(
+  (a, b) => (categoryOrder.indexOf(a) === -1 ? 99 : categoryOrder.indexOf(a)) -
+            (categoryOrder.indexOf(b) === -1 ? 99 : categoryOrder.indexOf(b))
+);
+
+const categoryLabel = (cat: string) => cat.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+// JSON-LD CollectionPage + ItemList — mirrors /blog and /experiments index
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "https://gekro.com/stack/",
+  "name": "gekro Stack — verified by an AI engineer",
+  "description": "Honest, first-person reviews of AI / dev / infra tools an AI engineer actively uses. What's good, what's bad, what's been dropped.",
+  "url": "https://gekro.com/stack/",
+  "isPartOf": { "@id": "https://gekro.com/#website" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": entries.length,
+    "itemListElement": entries.map((e, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://gekro.com/stack/${e.slug}/`,
+      "name": e.data.name,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Stack", "item": "https://gekro.com/stack/" },
+  ],
+};
+---
+
+<BaseLayout
+  title="Stack | gekro"
+  description="Honest tool reviews from a working AI engineer. What I actually use, what I dropped, and why."
+>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-6xl mx-auto px-6 py-32 space-y-20">
+
+    <!-- ── Header ── -->
+    <header class="space-y-6 max-w-2xl">
+      <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">The Stack</span>
+      <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary tracking-tight">
+        What I actually use.
+      </h1>
+      <p class="text-text-secondary text-lg leading-relaxed">
+        Verified, first-person reviews of the AI, dev, and infrastructure tools that
+        sit on my bench day-to-day. Honest about what each one is bad at. Tools I
+        dropped stay listed with the reason why.
+      </p>
+      <p class="text-xs text-text-muted italic">
+        Some entries include referral links. Small disclosure on each entry. Gekro takes no ad revenue.
+      </p>
+    </header>
+
+    <!-- ── Category groups ── -->
+    {entries.length === 0 ? (
+      <div class="py-24 text-center border border-dashed border-border rounded-xl">
+        <p class="text-text-muted">No stack entries yet. First review coming soon.</p>
+      </div>
+    ) : (
+      <div class="space-y-20">
+        {orderedCategories.map(cat => {
+          const list = byCategory.get(cat) ?? [];
+          if (list.length === 0) return null;
+          return (
+            <section class="space-y-8">
+              <div class="flex justify-between items-baseline border-b border-border-subtle pb-4">
+                <h2 class="text-2xl font-heading text-text-primary">{categoryLabel(cat)}</h2>
+                <span class="text-xs font-mono text-text-muted">{list.length} tool{list.length === 1 ? '' : 's'}</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {list.map(entry => <StackCard entry={entry} />)}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    )}
+  </main>
+</BaseLayout>

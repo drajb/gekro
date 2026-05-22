@@ -1,0 +1,89 @@
+---
+/**
+ * StackMeta.astro — Sidebar/footer meta block for a /stack entry
+ *
+ * Renders structured "stats" about the tool — pricing notes, homepage link,
+ * cross-references to related blog post / experiment, and the explicit
+ * alternatives list. Lives below the body content (StackLayout renders it
+ * just above the referral disclaimer footer).
+ *
+ * If an alternative is the slug of another stack entry (alphanumeric + dashes
+ * only), it's rendered as an internal link. Otherwise it's plain text.
+ */
+
+interface Props {
+  homepage: string;
+  pricingNotes?: string;
+  alternatives?: string[];
+  relatedPost?: string;
+  relatedExperiment?: string;
+}
+
+const { homepage, pricingNotes, alternatives, relatedPost, relatedExperiment } = Astro.props;
+
+// Detect "looks like a stack slug" — lowercase letters, digits, hyphens only
+const isSlug = (s: string) => /^[a-z0-9-]+$/.test(s);
+---
+
+<aside class="my-12 p-6 border border-border-subtle rounded-2xl bg-bg-surface space-y-5">
+  <h3 class="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted">At a glance</h3>
+
+  <dl class="space-y-3 text-sm">
+    <div class="flex flex-wrap gap-2 items-baseline">
+      <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Homepage</dt>
+      <dd>
+        <a
+          href={homepage}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent hover:text-text-primary transition-colors break-all"
+        >
+          {homepage.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+        </a>
+      </dd>
+    </div>
+
+    {pricingNotes && (
+      <div class="flex flex-wrap gap-2 items-baseline">
+        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Pricing</dt>
+        <dd class="text-text-secondary">{pricingNotes}</dd>
+      </div>
+    )}
+
+    {alternatives && alternatives.length > 0 && (
+      <div class="flex flex-wrap gap-2 items-baseline">
+        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Alternatives</dt>
+        <dd class="text-text-secondary">
+          {alternatives.map((alt, i) => (
+            <>
+              {isSlug(alt) ? (
+                <a href={`/stack/${alt}/`} class="text-accent hover:underline">{alt}</a>
+              ) : (
+                <span>{alt}</span>
+              )}
+              {i < alternatives.length - 1 && <span class="text-text-muted">, </span>}
+            </>
+          ))}
+        </dd>
+      </div>
+    )}
+
+    {relatedPost && (
+      <div class="flex flex-wrap gap-2 items-baseline">
+        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Related post</dt>
+        <dd>
+          <a href={`/blog/${relatedPost}/`} class="text-accent hover:underline">/blog/{relatedPost}</a>
+        </dd>
+      </div>
+    )}
+
+    {relatedExperiment && (
+      <div class="flex flex-wrap gap-2 items-baseline">
+        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Experiment</dt>
+        <dd>
+          <a href={`/experiments/${relatedExperiment}/`} class="text-accent hover:underline">/experiments/{relatedExperiment}</a>
+        </dd>
+      </div>
+    )}
+  </dl>
+</aside>

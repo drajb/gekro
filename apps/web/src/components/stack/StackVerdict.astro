@@ -1,0 +1,47 @@
+---
+/**
+ * StackVerdict.astro — The "verdict" pull-quote block at top of every entry
+ *
+ * Renders the 2-sentence verdict from frontmatter as a prominent quote-style
+ * block. Placement is critical — the verdict MUST be in the top viewport per
+ * the stack-standard.md invariants. Buried verdicts are the format-DNA of
+ * affiliate marketing; lead verdicts are the format-DNA of honest reviews.
+ *
+ * Optional homepage and referralLink render as inline-flex links beneath the
+ * verdict. If both exist, the referral link is shown — the homepage is still
+ * accessible via the StackMeta sidebar/footer.
+ */
+
+interface Props {
+  verdict: string;
+  homepage: string;
+  referralLink?: string;
+}
+
+const { verdict, homepage, referralLink } = Astro.props;
+const primaryLink = referralLink ?? homepage;
+---
+
+<aside
+  class="relative my-12 overflow-hidden rounded-2xl border-l-4 border-accent bg-bg-surface p-8 lg:p-10"
+  aria-label="Verdict"
+>
+  <!-- Subtle accent glow in corner — matches TLDR.astro pattern -->
+  <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent/5 blur-3xl"></div>
+
+  <div class="relative z-10 space-y-6">
+    <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-accent">Verdict</h2>
+    <p class="text-lg lg:text-xl text-text-primary leading-relaxed italic">
+      {verdict}
+    </p>
+    <a
+      href={primaryLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-2 text-sm font-mono text-accent hover:text-text-primary transition-colors group"
+    >
+      Try it
+      <span class="transition-transform group-hover:translate-x-1">→</span>
+    </a>
+  </div>
+</aside>

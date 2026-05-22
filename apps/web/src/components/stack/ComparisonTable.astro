@@ -1,0 +1,76 @@
+---
+/**
+ * ComparisonTable.astro — Generic comparison table for /stack entries
+ *
+ * Used in the body markdown of stack entries to show feature/spec/price
+ * comparisons against alternative tools. Designed to work in light + dark
+ * reader modes without overrides.
+ *
+ * Usage in markdown:
+ *   ```mdx
+ *   <ComparisonTable
+ *     headers={["Feature", "Cursor", "Windsurf"]}
+ *     rows={[
+ *       ["Inline edit", "✓", "✓"],
+ *       ["Multi-file refactor", "Excellent", "Good"],
+ *       ["Context window", "200K", "1M"],
+ *       ["Price", "$20/mo", "$15/mo"],
+ *     ]}
+ *     highlight="Cursor"
+ *   />
+ *   ```
+ *
+ * Props:
+ *  headers   — first row labels. Index 0 is the row-label column.
+ *  rows      — 2D array of cell content. Each row's length must match headers.
+ *  highlight — optional. If set, the matching column gets accent-tinted background.
+ */
+
+interface Props {
+  headers: string[];
+  rows: string[][];
+  highlight?: string;
+  caption?: string;
+}
+
+const { headers, rows, highlight, caption } = Astro.props;
+const highlightIdx = highlight ? headers.indexOf(highlight) : -1;
+---
+
+<figure class="my-10 overflow-x-auto">
+  <table class="w-full border-collapse text-sm">
+    <thead>
+      <tr class="border-b-2 border-border">
+        {headers.map((h, i) => (
+          <th
+            class={`text-left p-3 font-mono uppercase tracking-widest text-[10px] text-text-muted ${
+              i === highlightIdx ? 'bg-accent/5 text-accent' : ''
+            }`}
+          >
+            {h}
+          </th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row, ri) => (
+        <tr class={ri < rows.length - 1 ? 'border-b border-border-subtle' : ''}>
+          {row.map((cell, ci) => (
+            <td
+              class={`p-3 leading-relaxed ${
+                ci === 0 ? 'font-medium text-text-primary' : 'text-text-secondary'
+              } ${ci === highlightIdx ? 'bg-accent/5' : ''}`}
+            >
+              {cell}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {caption && (
+    <figcaption class="mt-3 text-xs font-mono text-text-muted text-center">
+      {caption}
+    </figcaption>
+  )}
+</figure>

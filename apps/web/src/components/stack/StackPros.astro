@@ -1,0 +1,31 @@
+---
+/**
+ * StackPros.astro — Emerald-accented "what it's good at" bullet list
+ *
+ * Renders the goodAt array from frontmatter as a clean, scannable list with
+ * green checkmark glyphs. Color-coded against StackCons (red) so a reader
+ * can take in the balance at a glance.
+ *
+ * Markdown is allowed inside each bullet but is intentionally NOT rendered
+ * here — bullets are plain text. If a bullet needs inline links, write the
+ * bullet in the post body instead of frontmatter.
+ */
+
+interface Props {
+  items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="my-8 space-y-3" aria-label="Strengths">
+  <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-accent-success">What it's good at</h3>
+  <ul class="space-y-2.5 list-none pl-0">
+    {items.map(item => (
+      <li class="flex items-start gap-3 text-text-secondary leading-relaxed">
+        <span class="shrink-0 mt-1 text-accent-success font-bold" aria-hidden="true">✓</span>
+        <span>{item}</span>
+      </li>
+    ))}
+  </ul>
+</div>

@@ -1,0 +1,27 @@
+---
+/**
+ * StackReferralFooter.astro — The one muted disclosure line at the bottom of
+ * every /stack entry that contains a referralLink.
+ *
+ * Per the stack-standard.md: this is the ONLY disclosure surface. No banners,
+ * no per-link wrapping, no "20% off" CTAs. text-text-muted at text-xs italic
+ * keeps it readable but unmistakably "fine print" — present, not promotional.
+ *
+ * If the entry has no referralLink, this component renders nothing. We don't
+ * imply a referral relationship when there isn't one.
+ */
+
+interface Props {
+  hasReferral: boolean;
+}
+
+const { hasReferral } = Astro.props;
+---
+
+{hasReferral && (
+  <p class="mt-12 pt-6 border-t border-border-subtle text-xs italic text-text-muted leading-relaxed max-w-2xl">
+    This entry includes a referral link. If you sign up through it, gekro may
+    receive free credits or a small benefit at no extra cost to you. Referrals
+    never affect the verdict. Gekro takes no ad revenue.
+  </p>
+)}

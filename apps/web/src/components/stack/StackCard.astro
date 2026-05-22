@@ -1,0 +1,81 @@
+---
+/**
+ * StackCard.astro — Index-page card for a /stack entry
+ *
+ * Mirrors PostCard but for tool reviews. Shows name, status badge, tagline,
+ * one-line verdict snippet, and lastVerified date. Dropped entries render at
+ * 60% opacity so the index visually de-emphasises them without hiding.
+ *
+ * Each card is a clickable link to /stack/<slug>/.
+ */
+
+interface Props {
+  entry: {
+    slug: string;
+    data: {
+      name: string;
+      tagline: string;
+      verdict: string;
+      status: 'active' | 'watching' | 'dropped';
+      lastVerified: string;
+      category: string;
+      priceTier: string;
+    };
+  };
+}
+
+const { entry } = Astro.props;
+const { name, tagline, verdict, status, lastVerified } = entry.data;
+
+const statusConfig = {
+  active:   { label: 'Active',   classes: 'bg-accent-success/10 text-accent-success border-accent-success/30' },
+  watching: { label: 'Watching', classes: 'bg-accent-warm/10 text-accent-warm border-accent-warm/30' },
+  dropped:  { label: 'Dropped',  classes: 'bg-accent-danger/10 text-accent-danger border-accent-danger/30' },
+};
+
+// Truncate verdict to ~120 chars for the card preview
+const verdictPreview = verdict.length > 120 ? verdict.slice(0, 117) + '…' : verdict;
+
+// Pretty-print last verified — short form for cards
+const verifiedShort = new Date(lastVerified + 'T12:00:00').toLocaleDateString('en-US', {
+  year: 'numeric', month: 'short',
+});
+---
+
+<a
+  href={`/stack/${entry.slug}/`}
+  class={`stack-card group relative block p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:shadow-2xl hover:shadow-accent/5 ${
+    status === 'dropped' ? 'opacity-60 hover:opacity-100' : ''
+  }`}
+>
+  <div class="space-y-4">
+    <!-- Top row: status badge + verified date -->
+    <div class="flex justify-between items-start gap-3">
+      <span class={`text-[10px] uppercase font-mono tracking-widest px-2 py-0.5 rounded-full border ${statusConfig[status].classes}`}>
+        {statusConfig[status].label}
+      </span>
+      <span class="text-[10px] font-mono text-text-muted shrink-0">Verified {verifiedShort}</span>
+    </div>
+
+    <!-- Name + tagline -->
+    <div class="space-y-1.5">
+      <h3 class="text-xl font-heading font-medium text-text-primary group-hover:text-accent transition-colors">
+        {name}
+      </h3>
+      <p class="text-sm text-text-secondary line-clamp-2 leading-snug">
+        {tagline}
+      </p>
+    </div>
+
+    <!-- Verdict preview -->
+    <p class="text-sm text-text-secondary line-clamp-3 leading-relaxed border-t border-border-subtle pt-4">
+      {verdictPreview}
+    </p>
+
+    <!-- Read more link -->
+    <div class="flex items-center gap-1 text-xs font-mono text-accent pt-1">
+      Read review
+      <span class="group-hover:translate-x-1 transition-transform">→</span>
+    </div>
+  </div>
+</a>

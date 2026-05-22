@@ -2,12 +2,18 @@
  * content/config.ts — Astro Content Collections schema definitions
  *
  * Single source of truth for all markdown frontmatter shapes.
- * Astro validates every .md file in src/content/{blog,experiments}/ against
- * these Zod schemas at build time — type errors surface during `astro build`.
+ * Astro validates every .md file in src/content/{blog,experiments,apps,stack}/
+ * against these Zod schemas at build time — type errors surface during `astro build`.
  *
  * Collections:
  *  blog        — blog posts (type: 'content' — markdown with frontmatter)
  *  experiments — experiment case studies (type: 'content')
+ *  apps        — gekro-built stateless tools (type: 'content')
+ *  stack       — third-party tool reviews ("Verified by an AI engineer"; type: 'content').
+ *                See .gekro/docs/stack-standard.md for the methodology. Note that
+ *                the `badAt` field has .min(1) — that is intentional and is the
+ *                structural defense against affiliate fatigue (the format
+ *                refuses to build an entry that has no negative section).
  *
  * blog fields:
  *  title       — post headline (required)
@@ -92,4 +98,93 @@ const apps = defineCollection({
   }),
 });
 
-export const collections = { blog, experiments, apps };
+/**
+ * stack — third-party tool reviews. Methodology in .gekro/docs/stack-standard.md.
+ *
+ * Hard rules (enforced by this schema):
+ *  - badAt is .min(1) — every entry must declare at least one real limitation.
+ *    Affiliate-fatigue defense. Build fails if the field is empty.
+ *  - lastVerified is required — proves the entry is alive, not write-once.
+ *  - status drives the index page sort and visual badge.
+ *  - droppedReason is required IFF status === 'dropped' (validated via .refine).
+ *  - referralLink is optional; disclosure happens via the global
+ *    <StackReferralFooter> component, NOT per-link wrapping.
+ *  - alternatives is free-text array — entries can reference other stack slugs
+ *    or just name a competitor without a corresponding entry yet.
+ */
+const stack = defineCollection({
+  type: 'content',
+  schema: z.object({
+    name: z.string(),
+    category: z.enum([
+      'llm-client',     // ChatGPT, Claude, Cursor, etc.
+      'editor',         // VS Code, JetBrains, etc.
+      'infra',          // Cloudflare, AWS, hosting
+      'observability',  // logging, metrics, traces
+      'data',           // databases, vector stores, ETL
+      'devtool',        // CLI tools, build systems, formatters
+      'hardware',       // Pi, Mac Mini, GPUs
+      'service',        // SaaS, APIs (Together AI, Fireworks, etc.)
+    ]),
+    // ≤ 80 chars; rendered under the name
+    tagline: z.string().max(80),
+
+    // active | watching | dropped — drives index sort + badge color
+    status: z.enum(['active', 'watching', 'dropped']),
+    publishedAt: z.string(),
+    // ISO YYYY-MM-DD. Shown on the entry. Update whenever entry is meaningfully touched.
+    lastVerified: z.string(),
+
+    // 2-sentence verdict shown in <StackVerdict> at top viewport
+    verdict: z.string(),
+    priceTier: z.enum(['free', 'paid-tier', 'paid-only', 'enterprise']),
+    pricingNotes: z.string().optional(),
+
+    // The honesty fields — both required, badAt cannot be empty
+    goodAt: z.array(z.string()).min(2),
+    badAt: z.array(z.string()).min(1),
+
+    // Free-text array — can be slugs of other stack entries or plain names
+    alternatives: z.array(z.string()).optional(),
+
+    homepage: z.string().url(),
+    referralLink: z.string().url().optional(),
+
+    // Cross-links (slug refs to other collections)
+    relatedPost: z.string().optional(),
+    relatedExperiment: z.string().optional(),
+
+    aiSummary: z.string().optional(),
+
+    // Only meaningful when status === 'dropped'. Validated below.
+    droppedReason: z.string().optional(),
+
+    // Optional comparison table rendered between StackCons and the markdown body.
+    // Frontmatter-driven instead of inline JSX so .md files stay portable
+    // (no MDX dependency) and Zod can validate shape.
+    comparisonTable: z.object({
+      headers: z.array(z.string()).min(2),
+      rows: z.array(z.array(z.string()).min(2)),
+      highlight: z.string().optional(),
+      caption: z.string().optional(),
+    }).optional(),
+
+    // Optional benchmark / pricing bar chart, same rationale as comparisonTable.
+    barChart: z.object({
+      title: z.string(),
+      unit: z.string().optional(),
+      bars: z.array(z.object({
+        label: z.string(),
+        value: z.number(),
+        highlight: z.boolean().optional(),
+      })).min(2),
+      source: z.string().optional(),
+      max: z.number().optional(),
+    }).optional(),
+  }).refine(
+    data => data.status !== 'dropped' || (data.droppedReason && data.droppedReason.length > 0),
+    { message: 'droppedReason is required when status is "dropped"', path: ['droppedReason'] }
+  ),
+});
+
+export const collections = { blog, experiments, apps, stack };

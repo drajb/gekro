@@ -1,0 +1,115 @@
+---
+/**
+ * SimpleBarChart.astro — Pure-SVG horizontal bar chart for /stack entries
+ *
+ * Lightweight, no JavaScript, no dependencies. Designed for benchmark-style
+ * comparisons (tokens/sec, latency ms, $/month, etc.) where 3-8 bars tell
+ * the story. Renders consistently in light + dark reader modes.
+ *
+ * Usage in markdown:
+ *   ```mdx
+ *   <SimpleBarChart
+ *     title="Tokens per second — M4 Pro local"
+ *     unit="tok/s"
+ *     bars={[
+ *       { label: "Llama 3 8B Q4",  value: 95, highlight: true },
+ *       { label: "Llama 3 70B Q4", value: 22 },
+ *       { label: "Mistral 7B",     value: 110 },
+ *     ]}
+ *     source="Measured on Mac Mini M4 Pro 64GB, 2026-05-15"
+ *   />
+ *   ```
+ *
+ * Props:
+ *  title     — chart title (h4)
+ *  unit      — string appended to each value ("ms", "tok/s", "$/mo")
+ *  bars      — array of { label, value, highlight? }
+ *  source    — optional methodology note rendered under chart
+ *  max       — optional explicit max for scaling (otherwise uses largest value)
+ */
+
+interface Bar {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}
+
+interface Props {
+  title: string;
+  unit?: string;
+  bars: Bar[];
+  source?: string;
+  max?: number;
+}
+
+const { title, unit = '', bars, source, max } = Astro.props;
+const maxValue = max ?? Math.max(...bars.map(b => b.value));
+// Width of the longest label drives the left-hand label column. Tune for typical 10-25 char labels.
+const labelColWidth = 180;
+const barWidth = 320; // px allocated to the bar track
+const totalWidth = labelColWidth + barWidth + 80; // + value text room
+const rowHeight = 36;
+const totalHeight = bars.length * rowHeight + 20;
+---
+
+<figure class="my-10">
+  <h4 class="text-xs font-mono uppercase tracking-[0.2em] text-text-muted mb-4">{title}</h4>
+  <div class="w-full overflow-x-auto">
+    <svg
+      viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+      width="100%"
+      style={`max-width: ${totalWidth}px;`}
+      role="img"
+      aria-label={title}
+    >
+      {bars.map((bar, i) => {
+        const y = i * rowHeight + 10;
+        const widthPx = (bar.value / maxValue) * barWidth;
+        // Inline currentColor; the parent wrapper sets the resolved CSS var.
+        const barClass = bar.highlight ? 'bar-highlight' : 'bar-default';
+        return (
+          <g class={barClass}>
+            <text
+              x={labelColWidth - 12}
+              y={y + 18}
+              text-anchor="end"
+              class="text-[12px] fill-text-secondary font-mono"
+            >
+              {bar.label}
+            </text>
+            <rect
+              x={labelColWidth}
+              y={y + 6}
+              width={widthPx}
+              height="20"
+              rx="2"
+              class={bar.highlight ? 'fill-accent' : 'fill-border-strong'}
+            />
+            <text
+              x={labelColWidth + widthPx + 8}
+              y={y + 18}
+              class="text-[12px] fill-text-primary font-mono"
+            >
+              {bar.value}{unit ? ' ' + unit : ''}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  </div>
+  {source && (
+    <figcaption class="mt-3 text-[10px] font-mono uppercase tracking-widest text-text-muted">
+      {source}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  /* SVG text uses fill, not color, so Tailwind text-* utilities don't apply directly.
+     Map the design tokens to fill-* equivalents via CSS class names instead. */
+  :global(.fill-text-primary)   { fill: var(--color-text-primary); }
+  :global(.fill-text-secondary) { fill: var(--color-text-secondary); }
+  :global(.fill-text-muted)     { fill: var(--color-text-muted); }
+  :global(.fill-accent)         { fill: var(--color-accent); }
+  :global(.fill-border-strong)  { fill: var(--color-border-strong); }
+</style>
