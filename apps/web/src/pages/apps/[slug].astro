@@ -79,6 +79,7 @@ import LoraMemoryCalculator from '../../components/apps-private/lora-memory-calc
 import LlamaCppConfigBuilder from '../../components/apps-private/llama-cpp-config-builder/Calculator.astro';
 import McpServerTester from '../../components/apps-private/mcp-server-tester/Calculator.astro';
 import TeslaChargeOptimizer from '../../components/apps-private/tesla-charge-optimizer/Calculator.astro';
+import HtmlViewer from '../../components/apps-private/html-viewer/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -141,6 +142,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'llama-cpp-config-builder': LlamaCppConfigBuilder,
   'mcp-server-tester': McpServerTester,
   'tesla-charge-optimizer': TeslaChargeOptimizer,
+  'html-viewer': HtmlViewer,
 };
 
 export async function getStaticPaths() {
