@@ -74,6 +74,9 @@ const scanCollection = (collectionDir, urlPrefix, dateFields) => {
 scanCollection(join(__dirname, 'src/content/blog'), '/blog/', ['publishedAt']);
 scanCollection(join(__dirname, 'src/content/experiments'), '/experiments/', ['endDate', 'startDate']);
 scanCollection(join(__dirname, 'src/content/apps'), '/apps/', ['publishedAt', 'updatedAt']);
+// Stack uses lastVerified (the explicit "this review is alive" date) — the
+// strongest signal for crawlers to re-index when a review is refreshed.
+scanCollection(join(__dirname, 'src/content/stack'), '/stack/', ['lastVerified', 'publishedAt']);
 
 // Sanity integration is conditional — site works local-only without it
 const sanityIntegration = [];
@@ -111,11 +114,16 @@ export default defineConfig({
         } else if (
           item.url === 'https://gekro.com/blog/' ||
           item.url === 'https://gekro.com/experiments/' ||
-          item.url === 'https://gekro.com/apps/'
+          item.url === 'https://gekro.com/apps/' ||
+          item.url === 'https://gekro.com/stack/'
         ) {
           item.priority = 0.9;
           item.changefreq = 'weekly';
-        } else if (item.url.includes('/blog/') || item.url.includes('/experiments/')) {
+        } else if (
+          item.url.includes('/blog/') ||
+          item.url.includes('/experiments/') ||
+          item.url.includes('/stack/')
+        ) {
           item.priority = 0.8;
           item.changefreq = 'monthly';
         } else if (item.url.includes('/apps/')) {

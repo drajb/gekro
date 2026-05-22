@@ -34,9 +34,10 @@ import { getCollection } from 'astro:content';
 const SITE = 'https://gekro.com';
 
 export async function GET() {
-  const [posts, experiments] = await Promise.all([
+  const [posts, experiments, stackEntries] = await Promise.all([
     getCollection('blog'),
     getCollection('experiments'),
+    getCollection('stack'),
   ]);
 
   const sortedPosts = posts
@@ -44,6 +45,10 @@ export async function GET() {
 
   const sortedExperiments = experiments
     .sort((a, b) => new Date(b.data.startDate).getTime() - new Date(a.data.startDate).getTime());
+
+  // Stack entries sorted by lastVerified DESC — freshest reviews first
+  const sortedStack = stackEntries
+    .sort((a, b) => new Date(b.data.lastVerified).getTime() - new Date(a.data.lastVerified).getTime());
 
   // Summary priority: aiSummary (GEO-optimised) → tldr → description
   const summaryOf = (data: any) => data.aiSummary || data.tldr || data.description || '';
@@ -96,9 +101,26 @@ Canonical summary: ${SITE}/llms.txt
     ].filter(Boolean).join('\n');
   }).join('\n\n');
 
+  const stackHeader = `\n\n## Stack (${sortedStack.length})\nVerified, first-person tool reviews by an AI engineer. Each entry includes what the tool is bad at — the format requires it.\n`;
+
+  const stackBlocks = sortedStack.map(s => {
+    const d = s.data;
+    return [
+      `Name: ${d.name}`,
+      `URL: ${SITE}/stack/${s.slug}/`,
+      `Category: ${d.category}`,
+      `Status: ${d.status}`,
+      `Last verified: ${d.lastVerified}`,
+      d.pricingNotes ? `Pricing: ${d.pricingNotes}` : null,
+      `Verdict: ${d.verdict}`,
+      d.status === 'dropped' && d.droppedReason ? `Dropped reason: ${d.droppedReason}` : null,
+      d.aiSummary ? `Summary: ${d.aiSummary}` : null,
+    ].filter(Boolean).join('\n');
+  }).join('\n\n');
+
   const footer = `\n\n---\nGenerated ${new Date().toISOString().slice(0, 10)} from ${SITE}\n`;
 
-  const body = header + postBlocks + experimentsHeader + expBlocks + footer;
+  const body = header + postBlocks + experimentsHeader + expBlocks + stackHeader + stackBlocks + footer;
 
   return new Response(body, {
     headers: {
