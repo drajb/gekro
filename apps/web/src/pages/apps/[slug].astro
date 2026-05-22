@@ -70,6 +70,7 @@ import LlmResponseUnpacker from '../../components/apps-private/llm-response-unpa
 import OptionsPnl from '../../components/apps-private/options-pnl/Calculator.astro';
 import DrawdownCalculator from '../../components/apps-private/drawdown-calculator/Calculator.astro';
 import HyperscalerComparison from '../../components/apps-private/hyperscaler-comparison/Calculator.astro';
+import ReasoningCostCalculator from '../../components/apps-private/reasoning-cost-calculator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -123,6 +124,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'options-pnl': OptionsPnl,
   'drawdown-calculator': DrawdownCalculator,
   'hyperscaler-comparison': HyperscalerComparison,
+  'reasoning-cost-calculator': ReasoningCostCalculator,
 };
 
 export async function getStaticPaths() {
