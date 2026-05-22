@@ -86,6 +86,7 @@ const wordCount = post.readingTime ? post.readingTime * WORDS_PER_MINUTE : undef
 const schema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
+  "inLanguage": "en-US",
   "headline": post.title,
   "description": seoDescription,
   "image": [absoluteOgImage],
@@ -134,6 +135,39 @@ const breadcrumbs = {
     { "@type": "ListItem", "position": 3, "name": post.title, "item": pageURL },
   ],
 };
+
+// Optional FAQ block — emitted only when the post declares `faq` in frontmatter.
+// AI assistants cite FAQPage entries disproportionately; Google may surface as
+// "People Also Ask" rich result. Falls back to undefined → not emitted.
+const faqSchema = post.faq?.length ? {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "inLanguage": "en-US",
+  "mainEntity": post.faq.map((q: { question: string; answer: string }) => ({
+    "@type": "Question",
+    "name": q.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": q.answer,
+    },
+  })),
+} : null;
+
+// Optional HowTo block — same pattern. Each step becomes a HowToStep with a
+// name and text. Optional totalTime accepts ISO 8601 duration (e.g. "PT30M").
+const howtoSchema = post.howto ? {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "inLanguage": "en-US",
+  "name": post.howto.name,
+  ...(post.howto.totalTime ? { "totalTime": post.howto.totalTime } : {}),
+  "step": post.howto.steps.map((s: { name: string; text: string }, i: number) => ({
+    "@type": "HowToStep",
+    "position": i + 1,
+    "name": s.name,
+    "text": s.text,
+  })),
+} : null;
 ---
 
 <BaseLayout
@@ -150,6 +184,8 @@ const breadcrumbs = {
   <!-- Structured data injected into <head> via a <script type="application/ld+json"> -->
   <JsonLD data={schema} />
   <JsonLD data={breadcrumbs} />
+  {faqSchema && <JsonLD data={faqSchema} />}
+  {howtoSchema && <JsonLD data={howtoSchema} />}
 
   <!-- Thin accent-coloured bar that grows as you scroll through the article -->
   <ReadingProgress />

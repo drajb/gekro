@@ -55,7 +55,9 @@ const related = allPosts
   }))
   .filter(({ sharedTopics }) => sharedTopics > 0)
   .sort((a, b) => b.sharedTopics - a.sharedTopics)
-  .slice(0, 3)
+  // 5 related posts (was 3 — denser internal authority graph helps Google's
+  // PageRank flow + keeps readers on-site longer, per 2026-05 SEO sweep).
+  .slice(0, 5)
   .map(({ post }) => post);
 ---
 
@@ -65,7 +67,8 @@ const related = allPosts
       <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-text-muted">Continue Reading</h3>
       <p class="text-2xl font-heading text-text-primary">Related from the lab</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- 1/2/3 columns at sm/md/lg — gives 5 cards a clean 3+2 layout on lg+ -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {related.map(post => <PostCard post={post} />)}
     </div>
   </section>

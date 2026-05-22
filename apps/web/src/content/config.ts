@@ -58,6 +58,27 @@ const blog = defineCollection({
     mainImage: z.string().optional(),
     // ISO date of last significant content update (optional; falls back to publishedAt)
     updatedAt: z.string().optional(),
+
+    // Optional FAQ block — emitted as FAQPage JSON-LD by BlogLayout. AI
+    // assistants cite FAQ schemas heavily and Google may surface them as
+    // "People Also Ask" rich results. Each question is plain text; answer
+    // can be 1-3 sentences. Both fields required if entry is present.
+    faq: z.array(z.object({
+      question: z.string(),
+      answer: z.string(),
+    })).optional(),
+
+    // Optional HowTo block — emitted as HowTo JSON-LD by BlogLayout. Drives
+    // step-by-step rich results in SERP for tutorial-style posts. `name` is
+    // the high-level task; each step has its own short name + body text.
+    howto: z.object({
+      name: z.string(),
+      totalTime: z.string().optional(), // ISO 8601 duration, e.g. "PT30M"
+      steps: z.array(z.object({
+        name: z.string(),
+        text: z.string(),
+      })).min(2),
+    }).optional(),
   }),
 });
 const experiments = defineCollection({

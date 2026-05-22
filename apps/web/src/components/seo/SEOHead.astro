@@ -78,6 +78,13 @@ const canonicalURL = canonicalProp ?? Astro.url.href;
 const ogImageURL = ogImage.startsWith('http') ? ogImage : `${SITE_ORIGIN}${ogImage}`;
 
 const siteTitle = title.includes('gekro') ? title : `${title} | gekro`;
+
+// Search-console verification tokens — set these in CF Pages environment as
+// PUBLIC_GSC_VERIFICATION and PUBLIC_BING_VERIFICATION when you verify
+// ownership at search.google.com/search-console and bing.com/webmasters.
+// If unset, the meta tags are simply omitted (no broken output).
+const gscToken = import.meta.env.PUBLIC_GSC_VERIFICATION;
+const bingToken = import.meta.env.PUBLIC_BING_VERIFICATION;
 ---
 
 <!-- Global Metadata -->
@@ -86,6 +93,21 @@ const siteTitle = title.includes('gekro') ? title : `${title} | gekro`;
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
 <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'} />
+
+<!-- Search engine ownership verification — only emitted when env tokens are set.
+     GSC: search.google.com/search-console → Add property → use the meta-tag method.
+     Bing: bing.com/webmasters → Add site → use the meta-tag method.
+     Paste the content value into CF Pages env vars (PUBLIC_GSC_VERIFICATION
+     and PUBLIC_BING_VERIFICATION), redeploy, then click "Verify" in each console. -->
+{gscToken && <meta name="google-site-verification" content={gscToken} />}
+{bingToken && <meta name="msvalidate.01" content={bingToken} />}
+
+<!-- rel="me" identity links — IndieWeb / Mastodon / Bluesky verification.
+     Establishes the bidirectional identity graph that strengthens E-E-A-T
+     signals (Google looks for these to verify the author entity). The
+     destination URLs must also link back to gekro.com to complete the loop. -->
+<link rel="me" href="https://www.linkedin.com/in/rohitburani/" />
+<link rel="me" href="https://github.com/drajb" />
 
 <!-- Font Loading (Inter body font from Google Fonts) -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />

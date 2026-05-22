@@ -1,9 +1,13 @@
 # Cloudflare Pages redirect rules
 #
-# Intentionally empty. Astro builds in directory format
-# (dist/blog/slug/index.html), and Cloudflare Pages serves those with
-# trailing slashes as the canonical URL. Any trailing-slash-stripping rule
-# here conflicts with CF's built-in directory canonicalisation and creates
-# an infinite redirect loop. See decision-log 2026-04-17.
+# Trailing-slash directory canonicalisation is handled by CF Pages
+# automatically — do NOT add trailing-slash-stripping rules (decision-log
+# 2026-04-17). Only add semantic redirects below.
 #
 # Reference: https://developers.cloudflare.com/pages/configuration/redirects/
+
+# Vanity / convention redirects --------------------------------------------
+# /uses → /stack — captures the uses.tech naming convention for "what tools
+# does this engineer use" pages. Many readers type /uses out of habit.
+/uses          /stack/  301
+/uses.tech     /stack/  301
