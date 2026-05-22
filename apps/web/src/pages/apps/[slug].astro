@@ -71,6 +71,9 @@ import OptionsPnl from '../../components/apps-private/options-pnl/Calculator.ast
 import DrawdownCalculator from '../../components/apps-private/drawdown-calculator/Calculator.astro';
 import HyperscalerComparison from '../../components/apps-private/hyperscaler-comparison/Calculator.astro';
 import ReasoningCostCalculator from '../../components/apps-private/reasoning-cost-calculator/Calculator.astro';
+import StreamingResponsePlayer from '../../components/apps-private/streaming-response-player/Calculator.astro';
+import TokenProbabilityVisualizer from '../../components/apps-private/token-probability-visualizer/Calculator.astro';
+import PromptCacheOptimizer from '../../components/apps-private/prompt-cache-optimizer/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -125,6 +128,9 @@ const CALCULATOR_MAP: Record<string, any> = {
   'drawdown-calculator': DrawdownCalculator,
   'hyperscaler-comparison': HyperscalerComparison,
   'reasoning-cost-calculator': ReasoningCostCalculator,
+  'streaming-response-player': StreamingResponsePlayer,
+  'token-probability-visualizer': TokenProbabilityVisualizer,
+  'prompt-cache-optimizer': PromptCacheOptimizer,
 };
 
 export async function getStaticPaths() {
