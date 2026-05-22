@@ -74,6 +74,8 @@ import ReasoningCostCalculator from '../../components/apps-private/reasoning-cos
 import StreamingResponsePlayer from '../../components/apps-private/streaming-response-player/Calculator.astro';
 import TokenProbabilityVisualizer from '../../components/apps-private/token-probability-visualizer/Calculator.astro';
 import PromptCacheOptimizer from '../../components/apps-private/prompt-cache-optimizer/Calculator.astro';
+import MultimodalTokenCounter from '../../components/apps-private/multimodal-token-counter/Calculator.astro';
+import LoraMemoryCalculator from '../../components/apps-private/lora-memory-calculator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -131,6 +133,8 @@ const CALCULATOR_MAP: Record<string, any> = {
   'streaming-response-player': StreamingResponsePlayer,
   'token-probability-visualizer': TokenProbabilityVisualizer,
   'prompt-cache-optimizer': PromptCacheOptimizer,
+  'multimodal-token-counter': MultimodalTokenCounter,
+  'lora-memory-calculator': LoraMemoryCalculator,
 };
 
 export async function getStaticPaths() {
