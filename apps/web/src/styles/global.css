@@ -459,6 +459,12 @@ body {
 
 .prose pre {
   @apply my-12 rounded-xl border border-border bg-bg-surface p-6;
+  /* Long, unbreakable code lines (URLs, full function signatures) would
+     otherwise push the entire <main> past viewport on mobile and force the
+     whole article to scroll horizontally. Constrain the <pre> to its
+     container and put the scroll on the code block itself. */
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .prose hr {
