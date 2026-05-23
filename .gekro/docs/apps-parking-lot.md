@@ -1,67 +1,85 @@
 # Gekro Apps — Parking Lot
 
-Planned apps that are approved in concept but need a dep/architecture decision before build. One app per month cadence. See `.gekro/docs/apps-platform-standard.md` for the recipe.
+Planned apps that Rohit has approved in concept or surfaced as ideas. Mirrored in `C:\Users\rom8\.claude\projects\G--Git-gekro\memory\app_ideas_backlog.md` (Claude's personal memory) so both agent toolchains (Claude Code + Gemini CLI) can see the same backlog.
+
+**Logging discipline (locked 2026-05-23):** when Rohit gives a new app idea — whether for immediate build, "later", or just brainstorming — append it here AND to the memory file BEFORE building or even replying. Both files must agree at all times. When an app ships (a `apps/web/src/content/apps/{slug}.md` exists), remove it from both files in the same commit.
+
+See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 
 ---
 
-## App #2 — Text to Markdown Visualizer
+## Pending decisions
 
-**Category:** `dev`
-**JTBD:** "Write or paste Markdown and see it rendered instantly"
-**Personal use:** Rohit's writing workflow — draft in raw Markdown, confirm rendering before pasting into docs/slides
-**Status:** Concept approved. **Dep decision required before build.**
+These ideas were proposed, Rohit raised a concern, the concern was answered, and no final go/no-go was given. Surface them at the next planning checkpoint.
 
-**What it does:**
-Split-pane interface: left = raw Markdown input (textarea), right = rendered HTML preview. Live updates as user types. Export as `.md` (source) or copy rendered HTML. URL state encodes the markdown content (truncated to URL length limit, ~2000 chars). Mobile collapses to single pane with source/preview toggle.
+### #9 — Local Model Recommender / Model Browser (Tier B — local AI)
 
-**Backend:** None — 100% client-side.
+**Job:** Hardware (Pi 5 16 GB / M4 Pro / RTX X) + task type + latency budget → ranks Llama / Qwen / GLM / Mistral options.
 
-**Dep decision needed:**
-The app needs a Markdown parser to render the preview. Three options:
-- **(A) Zero-dep micro-parser** (~60 lines of regex) — covers headings, bold, italic, inline code, fenced code blocks, ordered/unordered lists, blockquotes, links, images. Incomplete (no tables, no HTML passthrough) but works for 90% of use cases. Zero dep, no Override needed.
-- **(B) CDN-loaded `marked.js`** (~6KB gzip) — full CommonMark compliance. Not an npm dep so technically doesn't trigger the "3+ apps" rule, but introduces a CDN trust dependency.
-- **(C) Bundle `marked` as npm dep** — full compliance, npm managed. Requires Override since it's the first app needing it. Justified if ≥1 other app also needs Markdown rendering (e.g., App #3 exports transcripts as Markdown, Regex Playground shows regex matches in Markdown — possible future justification).
+**Rohit's concern (2026-05-22):** "The data that you are recommending for the local models should be updated. There are new local models every single day, so how do you plan to do that?"
 
-**Recommendation:** Option A for v1 (ship faster, zero risk), upgrade to C after 2+ apps need it. Document the known limitations clearly in the app UI.
+**Proposed answer (2026-05-22T01:26:26):** Two layers combined.
+- **Auto-fetcher** — weekly GitHub Actions job hits the Ollama library API and HuggingFace Open LLM Leaderboard, updates `local-models.json`, opens a PR for review. Same pattern as App #51 hyperscaler pricing.
+- **Performance numbers** come from a "Submit your benchmark" form that writes to a JSON in the same repo (same model on N hardware configs over time).
+- **Reframe as "Model Browser"** rather than "Recommender" — don't say "best model for you is X", just expose facets (license, params, tool-use support) so users filter for themselves. Optionally surface a clearly-labeled estimate of `params × quantization × hardware FLOPS`.
 
----
+**Outstanding decision:** build with auto-fetcher, or skip until later?
 
-## App #3 — Voice Recorder + Transcript Generator
+### #10 — MCP Trace Visualizer (Tier C — reframed from "Agentic Workflow Designer")
 
-**Category:** `ai`
-**JTBD:** "Record audio and get a text transcript — nothing leaves your browser"
-**Personal use:** Rohit's meeting notes, brainstorm captures, quick voice memos → searchable text
-**Status:** Concept approved. **Architecture/dep decision required before build.**
+**Original idea:** visual node-based builder for multi-step agent chains. Rohit pushed back: "I'm not trying to compete with n8n, so what purpose would it really serve?"
 
-**What it does:**
-Record audio via `MediaRecorder API` (browser native, zero dep). Transcribe to text. Export transcript as `.txt`, `.md`, or CSV (timestamps + text segments). Copy to clipboard. URL state not applicable (audio cannot be URL-encoded).
+**Reframe (2026-05-22T01:26:26):** drop the designer angle entirely. Build a **read-only visualizer**: paste a trace from Claude Code / Cursor / any MCP client → render the agent's tool-call tree as a graph (which tools fired, in what order, what they returned, where reasoning happened). Fits the existing visualizer family (`docker-compose-visualizer`, `context-window-visualizer`). Engineer-debugging utility, zero overlap with n8n.
 
-**Backend:** None. Recording is fully local. The transcription method is the decision point.
-
-**Architecture decision needed — transcription engine:**
-
-| Option | How | Deps | Privacy claim | Quality | Feasibility |
-|---|---|---|---|---|---|
-| **A: Web Speech API** | Browser's built-in `SpeechRecognition` (Chrome/Edge only) | Zero deps | ⚠️ Audio goes to Google's servers — "no data leaves your browser" is FALSE | Good for English | Works today, Chrome/Edge only |
-| **B: Whisper.js** (transformers.js) | 100% on-device WASM/WebGPU inference | `@huggingface/transformers` (~150MB model download, cached) | ✅ True — audio never leaves the device | Excellent (OpenAI Whisper small/base) | Needs Override; ~5s init, ~2–5x realtime |
-| **C: Hybrid** | Record locally → download .webm → offer Option A with disclosure | Zero deps | ⚠️ Same as A with disclosure | Good | Ships fastest |
-
-**Recommendation:** Option B (Whisper.js) — this IS the on-brand choice for an "AI engineer's lab." The "no audio leaves your browser, transcribed locally by Whisper" story is the perfect LinkedIn post. The 150MB download is a one-time cost (IndexedDB cache). Needs Override on `@huggingface/transformers`. This also becomes the first justified platform-level dep: any future AI-inference app (e.g., text classifier, embedding generator) would reuse it.
-
-**Before building:** Get Override approval for `@huggingface/transformers`. If denied, fall back to Option C.
+**Outstanding decision:** build as MCP Trace Visualizer or skip?
 
 ---
 
-## Future ideas (not yet scoped)
+## Surfaced but not yet discussed
 
-- **Position sizer / Kelly criterion** (trading) — bet sizing math, no deps
-- **Self-host vs cloud TCO** (infra) — mirrors LLM cost calc pattern, needs hardware pricing data
-- **Tesla trip cost calculator** (ev) — inputs: distance, charger type, electricity rate, kWh/mile
-- **Amortization calculator** (finance) — standard math, zero deps, high SEO traffic
-- **Cron expression builder/explainer** (dev) — visual cron editor, zero deps
-- **Regex playground** (dev) — test regex against sample text, zero deps
-- **Prompt token counter** (ai) — estimate token count + cost for a prompt, could reuse LLM cost data
+These were in the original 2026-05-22 list of 15 but Rohit didn't address them in his reply. Raise at the next planning checkpoint.
+
+### #11 — RAG Eval Toolkit (Tier C — ambitious)
+
+**Job:** paste corpus + N test queries + expected answers → reports recall@K, precision@K, MRR. Self-hosted alternative to RAGAS / TruLens.
+
+**Effort estimate:** large. Embedding model needs to run in-browser (transformer.js WASM, ~30-80 MB) or fall back to document-side BM25. Confirm dep before building.
+
+### #14 — WebSocket / SSE Live Tester (Tier D — adjacent)
+
+**Job:** connect to any WebSocket or SSE endpoint, see frames live, set headers, log latencies. Most existing testers don't handle modern streaming properly.
+
+**Effort:** small. Browser-native `WebSocket` and `EventSource` APIs.
+
+**Risk:** CORS. Many target servers won't accept cross-origin connections from gekro.com. Frame as "test your own endpoints with a browser-based client" and surface CORS errors clearly.
+
+### #15 — Tax-Loss Harvesting Optimizer (Tier D — adjacent)
+
+**Job:** paste positions CSV (or paste from Alpaca / Robinhood export) → algorithm picks lots to sell for max harvest without triggering wash-sale.
+
+**Effort:** medium. Wash-sale logic is the meat: 30 days before and after, substantially identical securities, replacement-share tracking.
+
+**Seasonal:** year-end relevance, worth shipping by November.
 
 ---
 
-*Update this doc as concepts are approved/built. Remove apps from here when they graduate to a content/apps/{slug}.md file.*
+## Already shipped (do not re-add)
+
+For reference — these were in the original 2026-05-22 list and have since shipped. Do not re-suggest them.
+
+1. Reasoning Token Cost Calculator → `reasoning-cost-calculator`
+2. Prompt Cache Optimizer → `prompt-cache-optimizer`
+3. MCP Server Tester → `mcp-server-tester`
+4. Streaming Response Player → `streaming-response-player`
+5. Multi-modal Token Counter → `multimodal-token-counter`
+6. Token Probability Visualizer → `token-probability-visualizer`
+7. Llama.cpp / Ollama Config Builder → `llama-cpp-config-builder`
+8. LoRA / QLoRA Memory Calculator → `lora-memory-calculator`
+12. Tesla Charge Optimizer → `tesla-charge-optimizer`
+13. Refinance comparison → folded into `amortization-calculator` as a refi panel
+- HTML Viewer (added 2026-05-22 separately, outside this list) → `html-viewer`
+- Word Counter (added 2026-05-23 separately) → `word-counter`
+
+---
+
+*This doc and `app_ideas_backlog.md` are the canonical pair. When updating one, update the other in the same turn.*
