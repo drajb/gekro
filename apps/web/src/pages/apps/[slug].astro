@@ -80,6 +80,7 @@ import LlamaCppConfigBuilder from '../../components/apps-private/llama-cpp-confi
 import McpServerTester from '../../components/apps-private/mcp-server-tester/Calculator.astro';
 import TeslaChargeOptimizer from '../../components/apps-private/tesla-charge-optimizer/Calculator.astro';
 import HtmlViewer from '../../components/apps-private/html-viewer/Calculator.astro';
+import WordCounter from '../../components/apps-private/word-counter/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -143,6 +144,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'mcp-server-tester': McpServerTester,
   'tesla-charge-optimizer': TeslaChargeOptimizer,
   'html-viewer': HtmlViewer,
+  'word-counter': WordCounter,
 };
 
 export async function getStaticPaths() {
