@@ -8,6 +8,22 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 
 ---
 
+## Status header — 2026-05-23
+
+**All 5 remaining items approved by Rohit.** Build sequence:
+
+1. Model database expansion — research + assemble `local-models.json` + `chat-models.json` (unblocks #9 AND cross-app dropdown expansion)
+2. #14 WebSocket / SSE Live Tester (smallest)
+3. #9 Local Model Recommender / Browser (uses the new data)
+4. Cross-app sweep: expand thin model dropdowns across existing apps (prompt-token-counter, tokenizer, llm-cost-calculator, multimodal-token-counter, reasoning-cost-calculator, prompt-cache-optimizer, gpu-vram-calculator, llama-cpp-config-builder, lora-memory-calculator, context-window-visualizer, finetuning-formatter)
+5. #10 MCP Trace Visualizer
+6. #11 RAG Eval Toolkit
+7. #15 Tax-Loss Harvesting Optimizer (with full feature set per Rohit's "bells and whistles" instruction)
+
+Detail of each below — keep these sections in sync with the memory mirror as ideas ship.
+
+---
+
 ## Pending decisions
 
 These ideas were proposed, Rohit raised a concern, the concern was answered, and no final go/no-go was given. Surface them at the next planning checkpoint.
