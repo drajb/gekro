@@ -84,6 +84,7 @@ import WordCounter from '../../components/apps-private/word-counter/Calculator.a
 import WebsocketTester from '../../components/apps-private/websocket-tester/Calculator.astro';
 import LocalModelRecommender from '../../components/apps-private/local-model-recommender/Calculator.astro';
 import McpTraceVisualizer from '../../components/apps-private/mcp-trace-visualizer/Calculator.astro';
+import RagEvalToolkit from '../../components/apps-private/rag-eval-toolkit/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -151,6 +152,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'websocket-tester': WebsocketTester,
   'local-model-recommender': LocalModelRecommender,
   'mcp-trace-visualizer': McpTraceVisualizer,
+  'rag-eval-toolkit': RagEvalToolkit,
 };
 
 export async function getStaticPaths() {
