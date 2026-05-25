@@ -82,6 +82,7 @@ import TeslaChargeOptimizer from '../../components/apps-private/tesla-charge-opt
 import HtmlViewer from '../../components/apps-private/html-viewer/Calculator.astro';
 import WordCounter from '../../components/apps-private/word-counter/Calculator.astro';
 import WebsocketTester from '../../components/apps-private/websocket-tester/Calculator.astro';
+import LocalModelRecommender from '../../components/apps-private/local-model-recommender/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -147,6 +148,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'html-viewer': HtmlViewer,
   'word-counter': WordCounter,
   'websocket-tester': WebsocketTester,
+  'local-model-recommender': LocalModelRecommender,
 };
 
 export async function getStaticPaths() {
