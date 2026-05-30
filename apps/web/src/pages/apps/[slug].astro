@@ -86,6 +86,7 @@ import LocalModelRecommender from '../../components/apps-private/local-model-rec
 import McpTraceVisualizer from '../../components/apps-private/mcp-trace-visualizer/Calculator.astro';
 import RagEvalToolkit from '../../components/apps-private/rag-eval-toolkit/Calculator.astro';
 import TaxLossHarvester from '../../components/apps-private/tax-loss-harvester/Calculator.astro';
+import PdfMerger from '../../components/apps-private/pdf-merger/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -155,6 +156,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'mcp-trace-visualizer': McpTraceVisualizer,
   'rag-eval-toolkit': RagEvalToolkit,
   'tax-loss-harvester': TaxLossHarvester,
+  'pdf-merger': PdfMerger,
 };
 
 export async function getStaticPaths() {
