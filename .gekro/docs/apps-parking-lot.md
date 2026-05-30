@@ -26,13 +26,39 @@ Catalog count: **66 apps** total (was 61 at start of this batch).
 
 ## Pending decisions
 
-*(none — empty queue. Add new ideas below as they arrive.)*
+### #16 — Image Compressor v2 (expand existing app)
 
----
+**Important:** there's already a shipped `image-compressor` app — single-file, JPEG/PNG/WebP, quality slider + max-width + format selector + before/after preview. Rohit reports having to "go online and use something else" because the existing one is missing features. Path: **expand the existing slug in place** (preserves SEO + URL + the no-delete rule).
 
-## Surfaced but not yet discussed
+**Proposed bells & whistles** (final list pending Rohit's pick):
+- Batch upload (drop a folder, compress N files at once)
+- ZIP-download of batch output
+- Target-size mode ("make this under 500 KB" — binary search on quality)
+- Strip EXIF / GPS metadata toggle
+- AVIF output (newer, smaller than WebP — supported in modern browsers)
+- Drag-to-reorder + per-file enable/disable
+- Crop + rotate per file
+- Lift the 10 MB hard cap to ~50 MB (only the largest files would struggle)
+- Preserve folder structure when outputting ZIP
 
-*(none)*
+**Status:** decision-pending on which subset to ship.
+
+### #17 — PDF Merger / Splitter (new app)
+
+100% client-side feasible. Library: `pdf-lib` (MIT, ~280 KB lazy-loaded on first interaction).
+
+**Proposed scope** (final list pending Rohit's pick):
+- Drag-drop multiple PDFs into a stack
+- Drag handles to reorder files
+- Per-file page range picker ("from this file, just pages 1-3 and 5")
+- Per-file rotation (90 / 180 / 270)
+- Merge → download single PDF
+- Optional: split mode (one PDF in → N PDFs out by page range)
+- Optional: page thumbnails for visual reorder (would add PDF.js, ~1.5 MB; out of scope for v1)
+- Optional: password-protect output (pdf-lib supports basic encryption)
+- Optional: image-downsample compress
+
+**Status:** decision-pending on scope.
 
 ---
 
