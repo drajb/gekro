@@ -26,39 +26,22 @@ Catalog count: **66 apps** total (was 61 at start of this batch).
 
 ## Pending decisions
 
-### #16 — Image Compressor v2 (expand existing app)
+*(none — empty queue)*
 
-**Important:** there's already a shipped `image-compressor` app — single-file, JPEG/PNG/WebP, quality slider + max-width + format selector + before/after preview. Rohit reports having to "go online and use something else" because the existing one is missing features. Path: **expand the existing slug in place** (preserves SEO + URL + the no-delete rule).
+---
 
-**Proposed bells & whistles** (final list pending Rohit's pick):
-- Batch upload (drop a folder, compress N files at once)
-- ZIP-download of batch output
-- Target-size mode ("make this under 500 KB" — binary search on quality)
-- Strip EXIF / GPS metadata toggle
-- AVIF output (newer, smaller than WebP — supported in modern browsers)
-- Drag-to-reorder + per-file enable/disable
-- Crop + rotate per file
-- Lift the 10 MB hard cap to ~50 MB (only the largest files would struggle)
-- Preserve folder structure when outputting ZIP
+## Recently shipped (2026-05-25 later)
 
-**Status:** decision-pending on which subset to ship.
+| # | Slug | What | Commits |
+|---|---|---|---|
+| #16 | `image-compressor` (v2, expanded in place) | Added batch upload + ZIP-all download (JSZip lazy-loaded). Per-file cap raised 10 MB → 50 MB. Single-file UX preserved. Other bells/whistles (target-size, EXIF strip, AVIF) deferred — Rohit picked the focused win. | gekro-apps@bffff37, content@ad40afe |
+| #17 | `pdf-merger` (new app #67) | Drop multiple PDFs, drag-to-reorder, per-file page-range syntax ("1-3, 5, 7-9"), merge & download. pdf-lib lazy-loaded (~280 KB). No thumbnails / no split / no rotation in v1 — those are v2 candidates. | gekro-apps@bffff37, content@ad40afe |
 
-### #17 — PDF Merger / Splitter (new app)
+V2 candidates if Rohit asks later: image-compressor target-size mode, EXIF strip, AVIF output; pdf-merger thumbnails (PDF.js ~1.5 MB), split mode, per-page rotation.
 
-100% client-side feasible. Library: `pdf-lib` (MIT, ~280 KB lazy-loaded on first interaction).
+---
 
-**Proposed scope** (final list pending Rohit's pick):
-- Drag-drop multiple PDFs into a stack
-- Drag handles to reorder files
-- Per-file page range picker ("from this file, just pages 1-3 and 5")
-- Per-file rotation (90 / 180 / 270)
-- Merge → download single PDF
-- Optional: split mode (one PDF in → N PDFs out by page range)
-- Optional: page thumbnails for visual reorder (would add PDF.js, ~1.5 MB; out of scope for v1)
-- Optional: password-protect output (pdf-lib supports basic encryption)
-- Optional: image-downsample compress
-
-**Status:** decision-pending on scope.
+Catalog count: **67 apps** total (was 66 — pdf-merger added; image-compressor v2 expansion didn't add a new slug).
 
 ---
 
