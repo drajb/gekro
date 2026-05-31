@@ -30,6 +30,32 @@ Catalog count: **66 apps** total (was 61 at start of this batch).
 
 ---
 
+## In flight 2026-05-25 (Rohit: "build everything with all the bells and whistles, fix all the bugs")
+
+**Scope, in build order:**
+
+1. **Site-wide "as-is" disclaimer** — added to every app page via a shared component so the legal note shows everywhere. Tone per Rohit: casual/joking ("don't blame me if your PC catches fire"). Single source of truth so it can be updated once.
+
+2. **Auto-fetcher for `local-models.json`** — weekly GitHub Actions workflow that pulls Ollama library API + HF Open LLM Leaderboard, regenerates the JSON, opens a PR for human review. Same pattern as the hyperscaler-pricing pipeline. Keeps the Local Model Browser fresh without manual maintenance.
+
+3. **Image-compressor v3 — full bells & whistles:**
+   - Target-size mode (binary-search the quality slider until output ≤ a chosen KB)
+   - EXIF / GPS metadata strip toggle
+   - AVIF output format
+
+4. **PDF-merger v2 — full bells & whistles:**
+   - Visual page thumbnails for reorder (PDF.js, ~1.5 MB lazy-loaded)
+   - Split mode (one PDF in → N PDFs out by range)
+   - Per-page rotation
+   - Password-protect the output PDF
+   - Image-downsample compression of embedded images
+
+**Explicitly NOT in scope** (Rohit's instruction): the tax-loss harvester state-tax overlay stays deferred per the federal-only decision.
+
+**Known bugs queue:** empty (the two QR-generator bugs from earlier today are both shipped fixes).
+
+---
+
 ## Recently shipped (2026-05-25 later)
 
 | # | Slug | What | Commits |
