@@ -8,12 +8,23 @@ const { license = 'MIT', slug } = Astro.props;
 const sourceUrl = `https://github.com/drajb/gekro/tree/main/apps/web/src/components/apps/${slug}`;
 ---
 
-<div class="mt-12 pt-8 border-t border-border-subtle flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-text-muted">
-  <span>© 2026 Rohit Burani</span>
-  <span class="text-border">·</span>
-  <span>{license}</span>
-  <span class="text-border">·</span>
-  <a href="https://gekro.com" class="hover:text-accent transition-colors">Built at gekro.com</a>
-  <span class="text-border">·</span>
-  <a href={sourceUrl} target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">View source ↗</a>
+<!-- ── As-is disclaimer (single source of truth across all apps) ──────
+     Locked 2026-05-25: tone is deliberately casual + on-brand. Edit
+     the wording here and it updates on every app page in one go. -->
+<div class="mt-12 pt-8 border-t border-border-subtle">
+  <p class="text-[11px] font-mono text-text-muted leading-relaxed mb-3">
+    <span class="text-accent-warm" aria-hidden="true">⚠</span>
+    <strong class="text-text-secondary">As-is, no warranty.</strong>
+    These apps are free under their listed license and run entirely in your browser. Use at your own risk &mdash; don&apos;t blame me if your PC catches fire, your dog runs away, or the math turns out wrong. Verify anything that actually matters. None of this is professional financial, medical, legal, or engineering advice.
+  </p>
+
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-text-muted">
+    <span>© 2026 Rohit Burani</span>
+    <span class="text-border">·</span>
+    <span>{license}</span>
+    <span class="text-border">·</span>
+    <a href="https://gekro.com" class="hover:text-accent transition-colors">Built at gekro.com</a>
+    <span class="text-border">·</span>
+    <a href={sourceUrl} target="_blank" rel="noopener noreferrer" class="hover:text-accent transition-colors">View source ↗</a>
+  </div>
 </div>
