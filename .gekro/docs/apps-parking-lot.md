@@ -30,6 +30,20 @@ Catalog count: **66 apps** total (was 61 at start of this batch).
 
 ---
 
+## All shipped — 2026-05-25 wave complete
+
+| Feature | Where | Status |
+|---|---|---|
+| Site-wide as-is disclaimer | AttributionFooter.astro | ✅ `2b56315` |
+| local-models.json auto-fetcher (weekly GH Actions) | `.github/workflows/local-models-update.yml` | ✅ `af07088` |
+| image-compressor v3 (target-size mode, EXIF preserve, AVIF) | gekro-apps@ed73f19 | ✅ |
+| pdf-merger v2 (thumbnails, split mode, per-page rotation) | gekro-apps@40b67e1 | ✅ |
+
+Password-protect PDF output: pdf-lib removed encryption in v2; no alternative <200 KB. Not shipped — tell user to use their PDF reader instead.
+Image-downsample in PDF: would need separate WASM lib. Tell user to run images through image-compressor first.
+
+---
+
 ## In flight 2026-05-25 (Rohit: "build everything with all the bells and whistles, fix all the bugs")
 
 **Scope, in build order:**
