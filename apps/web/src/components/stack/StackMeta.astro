@@ -1,11 +1,11 @@
 ---
 /**
- * StackMeta.astro — Sidebar/footer meta block for a /stack entry
+ * StackMeta.astro — "At a glance" spec sheet for a /stack entry
  *
- * Renders structured "stats" about the tool — pricing notes, homepage link,
- * cross-references to related blog post / experiment, and the explicit
- * alternatives list. Lives below the body content (StackLayout renders it
- * just above the referral disclaimer footer).
+ * Renders structured facts about the tool — homepage, pricing, cross-links,
+ * and the explicit alternatives list — as a grid of labelled tiles so the
+ * block reads like a product spec sheet rather than a dense definition list.
+ * Lives below the body content, just above the referral disclosure footer.
  *
  * If an alternative is the slug of another stack entry (alphanumeric + dashes
  * only), it's rendered as an internal link. Otherwise it's plain text.
@@ -23,37 +23,37 @@ const { homepage, pricingNotes, alternatives, relatedPost, relatedExperiment } =
 
 // Detect "looks like a stack slug" — lowercase letters, digits, hyphens only
 const isSlug = (s: string) => /^[a-z0-9-]+$/.test(s);
+const prettyHome = homepage.replace(/^https?:\/\//, '').replace(/\/$/, '');
 ---
 
-<aside class="my-12 p-6 border border-border-subtle rounded-2xl bg-bg-surface space-y-5">
-  <h3 class="text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted">At a glance</h3>
+<aside class="my-12 rounded-2xl border border-border-subtle bg-bg-surface p-6 lg:p-8 space-y-6">
+  <h3 class="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">At a glance</h3>
 
-  <dl class="space-y-3 text-sm">
-    <div class="flex flex-wrap gap-2 items-baseline">
-      <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Homepage</dt>
-      <dd>
-        <a
-          href={homepage}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-accent hover:text-text-primary transition-colors break-all"
-        >
-          {homepage.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-        </a>
-      </dd>
+  <div class="grid sm:grid-cols-2 gap-4">
+    <!-- Homepage tile -->
+    <div class="rounded-xl border border-border-subtle bg-bg-elevated p-4 space-y-1.5">
+      <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Homepage</p>
+      <a
+        href={homepage}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-sm text-accent hover:text-text-primary transition-colors break-all"
+      >
+        {prettyHome} ↗
+      </a>
     </div>
 
     {pricingNotes && (
-      <div class="flex flex-wrap gap-2 items-baseline">
-        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Pricing</dt>
-        <dd class="text-text-secondary">{pricingNotes}</dd>
+      <div class="rounded-xl border border-border-subtle bg-bg-elevated p-4 space-y-1.5">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Pricing</p>
+        <p class="text-sm text-text-secondary leading-relaxed">{pricingNotes}</p>
       </div>
     )}
 
     {alternatives && alternatives.length > 0 && (
-      <div class="flex flex-wrap gap-2 items-baseline">
-        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Alternatives</dt>
-        <dd class="text-text-secondary">
+      <div class="rounded-xl border border-border-subtle bg-bg-elevated p-4 space-y-1.5 sm:col-span-2">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Alternatives I'd consider</p>
+        <p class="text-sm text-text-secondary">
           {alternatives.map((alt, i) => (
             <>
               {isSlug(alt) ? (
@@ -64,26 +64,22 @@ const isSlug = (s: string) => /^[a-z0-9-]+$/.test(s);
               {i < alternatives.length - 1 && <span class="text-text-muted">, </span>}
             </>
           ))}
-        </dd>
+        </p>
       </div>
     )}
 
     {relatedPost && (
-      <div class="flex flex-wrap gap-2 items-baseline">
-        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Related post</dt>
-        <dd>
-          <a href={`/blog/${relatedPost}/`} class="text-accent hover:underline">/blog/{relatedPost}</a>
-        </dd>
+      <div class="rounded-xl border border-border-subtle bg-bg-elevated p-4 space-y-1.5">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Related post</p>
+        <a href={`/blog/${relatedPost}/`} class="text-sm text-accent hover:underline break-all">/blog/{relatedPost}</a>
       </div>
     )}
 
     {relatedExperiment && (
-      <div class="flex flex-wrap gap-2 items-baseline">
-        <dt class="text-text-muted font-mono text-xs uppercase tracking-widest w-28 shrink-0">Experiment</dt>
-        <dd>
-          <a href={`/experiments/${relatedExperiment}/`} class="text-accent hover:underline">/experiments/{relatedExperiment}</a>
-        </dd>
+      <div class="rounded-xl border border-border-subtle bg-bg-elevated p-4 space-y-1.5">
+        <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Experiment</p>
+        <a href={`/experiments/${relatedExperiment}/`} class="text-sm text-accent hover:underline break-all">/experiments/{relatedExperiment}</a>
       </div>
     )}
-  </dl>
+  </div>
 </aside>

@@ -1,14 +1,14 @@
 ---
 /**
- * StackPros.astro — Emerald-accented "what it's good at" bullet list
+ * StackPros.astro — Emerald-accented "what it's good at" card
  *
- * Renders the goodAt array from frontmatter as a clean, scannable list with
- * green checkmark glyphs. Color-coded against StackCons (red) so a reader
- * can take in the balance at a glance.
+ * Renders the goodAt array as a scannable card with a tinted header and check
+ * glyphs. Designed to sit beside StackCons in a two-column grid (see
+ * StackLayout) so a reader takes in the balance at a glance. h-full keeps both
+ * cards the same height when grid-aligned.
  *
- * Markdown is allowed inside each bullet but is intentionally NOT rendered
- * here — bullets are plain text. If a bullet needs inline links, write the
- * bullet in the post body instead of frontmatter.
+ * Bullets are plain text — markdown inside frontmatter is intentionally not
+ * rendered here. If a bullet needs an inline link, write it in the post body.
  */
 
 interface Props {
@@ -18,9 +18,15 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-<div class="my-8 space-y-3" aria-label="Strengths">
-  <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-accent-success">What it's good at</h3>
-  <ul class="space-y-2.5 list-none pl-0">
+<div
+  class="h-full rounded-2xl border border-accent-success/25 bg-accent-success/[0.04] p-6"
+  aria-label="Strengths"
+>
+  <h3 class="flex items-center gap-2.5 text-xs font-mono uppercase tracking-[0.2em] text-accent-success mb-5">
+    <span class="grid place-items-center w-6 h-6 rounded-full bg-accent-success/15 text-accent-success text-sm font-bold" aria-hidden="true">+</span>
+    What it's good at
+  </h3>
+  <ul class="space-y-3.5 list-none pl-0">
     {items.map(item => (
       <li class="flex items-start gap-3 text-text-secondary leading-relaxed">
         <span class="shrink-0 mt-1 text-accent-success font-bold" aria-hidden="true">✓</span>

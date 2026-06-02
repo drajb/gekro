@@ -1,25 +1,29 @@
 ---
 /**
- * StackVerdict.astro — The "verdict" pull-quote block at top of every entry
+ * StackVerdict.astro — The "bottom line up front" block at top of every entry
  *
- * Renders the 2-sentence verdict from frontmatter as a prominent quote-style
- * block. Placement is critical — the verdict MUST be in the top viewport per
- * the stack-standard.md invariants. Buried verdicts are the format-DNA of
- * affiliate marketing; lead verdicts are the format-DNA of honest reviews.
+ * Renders the 2-sentence verdict as a prominent quote-style card, followed by
+ * the action row. Placement is critical — the verdict MUST be in the top
+ * viewport per the stack-standard.md invariants.
  *
- * The "Try it" CTA beneath the verdict points at the tool's plain homepage -
- * NOT a referral link. This is deliberate (decision 2026-05-31): the prominent
- * top-of-page link is editorial, so a referral never overshadows the review's
- * voice. Referral links live only as subtle in-body prose links plus the muted
- * <StackReferralFooter> disclosure. See stack-standard.md section 6.
+ * Action row (decision 2026-06-01, reverses 2026-05-31): the PRIMARY "Try"
+ * button carries the referralLink when present, because that is where readers
+ * actually look for it. It stays unlabelled (no "referral" badge) so it reads
+ * as a clean CTA, not an ad — the muted <StackReferralFooter> remains the one
+ * disclosure surface. The SECONDARY button always points at the plain homepage
+ * so the un-tracked link is still one click away. With no referralLink, the
+ * primary button simply points at the homepage and the secondary is omitted.
  */
 
 interface Props {
   verdict: string;
   homepage: string;
+  name: string;
+  referralLink?: string;
 }
 
-const { verdict, homepage } = Astro.props;
+const { verdict, homepage, name, referralLink } = Astro.props;
+const primaryLink = referralLink ?? homepage;
 ---
 
 <aside
@@ -29,19 +33,36 @@ const { verdict, homepage } = Astro.props;
   <!-- Subtle accent glow in corner — matches TLDR.astro pattern -->
   <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent/5 blur-3xl"></div>
 
-  <div class="relative z-10 space-y-6">
-    <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-accent">Verdict</h2>
-    <p class="text-lg lg:text-xl text-text-primary leading-relaxed italic">
-      {verdict}
-    </p>
-    <a
-      href={homepage}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="inline-flex items-center gap-2 text-sm font-mono text-accent hover:text-text-primary transition-colors group"
-    >
-      Try it
-      <span class="transition-transform group-hover:translate-x-1">→</span>
-    </a>
+  <div class="relative z-10 space-y-7">
+    <div class="space-y-4">
+      <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-accent">The verdict</h2>
+      <p class="text-lg lg:text-xl text-text-primary leading-relaxed italic">
+        {verdict}
+      </p>
+    </div>
+
+    <!-- Action row -->
+    <div class="flex flex-wrap items-center gap-3 pt-1">
+      <a
+        href={primaryLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="app-btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm group"
+      >
+        Try {name}
+        <span class="transition-transform group-hover:translate-x-1">→</span>
+      </a>
+
+      {referralLink && (
+        <a
+          href={homepage}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="app-btn-secondary inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm"
+        >
+          Visit site
+        </a>
+      )}
+    </div>
   </div>
 </aside>

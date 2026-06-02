@@ -130,11 +130,16 @@ const ogImage = `/og/stack/${slug}.png`;
     )}
 
     <!-- Verdict pull-quote — MUST be in top viewport per stack-standard.md -->
-    <StackVerdict verdict={d.verdict} homepage={d.homepage} />
+    <StackVerdict verdict={d.verdict} homepage={d.homepage} name={d.name} referralLink={d.referralLink} />
 
-    <!-- Pros / cons blocks — emerald + rose color-coded -->
-    <StackPros items={d.goodAt} />
-    <StackCons items={d.badAt} />
+    <!-- Pros / cons — side-by-side cards, emerald + rose color-coded -->
+    <section class="my-12">
+      <h2 class="text-xs font-mono uppercase tracking-[0.2em] text-text-muted mb-5">The good and the bad</h2>
+      <div class="grid md:grid-cols-2 gap-5 items-stretch">
+        <StackPros items={d.goodAt} />
+        <StackCons items={d.badAt} />
+      </div>
+    </section>
 
     <!-- Optional "How it compares" section — driven by frontmatter so .md files
          stay portable (no MDX needed). If neither table nor chart is set, the

@@ -1,12 +1,11 @@
 ---
 /**
- * StackCons.astro — Rose-accented "what it's bad at" bullet list
+ * StackCons.astro — Rose-accented "what it's bad at" card
  *
- * Mirror of StackPros, with the danger accent. Mandatory on every entry —
- * Zod enforces .min(1) on the badAt array. This component is the visual
- * counterpart to that schema rule. If a reader sees only StackPros and no
- * StackCons, it's because either the rendering failed or the entry doesn't
- * exist yet (the Zod validation prevents the latter).
+ * Mirror of StackPros with the danger accent. Mandatory on every entry — Zod
+ * enforces .min(1) on the badAt array, and this card is its visual counterpart.
+ * Sits beside StackPros in a two-column grid (see StackLayout); h-full keeps
+ * the two cards height-aligned.
  */
 
 interface Props {
@@ -16,9 +15,15 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-<div class="my-8 space-y-3" aria-label="Limitations">
-  <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-accent-danger">What it's bad at</h3>
-  <ul class="space-y-2.5 list-none pl-0">
+<div
+  class="h-full rounded-2xl border border-accent-danger/25 bg-accent-danger/[0.04] p-6"
+  aria-label="Limitations"
+>
+  <h3 class="flex items-center gap-2.5 text-xs font-mono uppercase tracking-[0.2em] text-accent-danger mb-5">
+    <span class="grid place-items-center w-6 h-6 rounded-full bg-accent-danger/15 text-accent-danger text-sm font-bold" aria-hidden="true">−</span>
+    What it's bad at
+  </h3>
+  <ul class="space-y-3.5 list-none pl-0">
     {items.map(item => (
       <li class="flex items-start gap-3 text-text-secondary leading-relaxed">
         <span class="shrink-0 mt-1 text-accent-danger font-bold" aria-hidden="true">✗</span>

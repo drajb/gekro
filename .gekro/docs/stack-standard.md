@@ -25,7 +25,7 @@ It **is**:
 | **`whatItsBadAt` is a required Zod field with `.min(1)`.** | Structural defense against affiliate fatigue. If the field is empty, the build fails. |
 | **`lastVerified` is shown on every entry.** | Proves the review is alive, not write-once. Updated whenever the entry is touched. |
 | **Verdict appears in the top viewport.** Never buried. | Affiliate sites bury verdicts; honest reviews lead with them. |
-| **No banners, no popups, no "use this code for 20% off" CTAs.** A referral link surfaces only as one subtle in-body prose link plus the muted footer disclosure; the prominent top "Try it" CTA always points at the plain homepage, never the referral. | Visible monetization breaks the "verified by an engineer" persona instantly. See §6. |
+| **No banners, no popups, no "use this code for 20% off" CTAs, no "referral" labels.** The referral rides the unlabelled primary "Try {tool}" CTA (+ optional in-body link); a secondary "Visit site" button and the meta tile stay un-tracked; the muted footer is the only place the relationship is named. | Visible monetization breaks the "verified by an engineer" persona instantly. See §6. |
 | **Dropped tools stay listed** with `status: 'dropped'` and `droppedReason`. | The strongest trust signal we can send. Affiliate sites never do this. |
 | **No "X best Y" listicles.** | Listicles are the format-DNA of the affiliate genre. Head-to-head comparisons only. |
 | **Tone matches an open-minded learner.** | Per Rohit: "I expect my audience to come in with a very open mind, with a learning mindset." No jargon dumping. Plain language. |
@@ -101,7 +101,8 @@ A common shape: 600 words across 6 short sections, plus a comparison table and a
 ## 4. Visual building blocks (components in `apps/web/src/components/stack/`)
 
 - `<StackHeader>` — name, badges (category + status), tagline, verdict — top of every entry
-- `<StackVerdict>` — pull-quote-style verdict block. Its "Try it ->" CTA always links to `homepage` (never the referral link) — see §6.
+- `<StackVerdict>` — verdict pull-quote + action row. Primary "Try {tool}" button (app-btn-primary) carries the `referralLink`; secondary "Visit site" button (app-btn-secondary) points at `homepage`. See §6.
+- `<StackPros>` / `<StackCons>` — tinted cards rendered side-by-side in a two-column grid (StackLayout). emerald / rose.
 - `<StackPros items={[...]} />` — emerald-accented bullet list of `goodAt`
 - `<StackCons items={[...]} />` — rose-accented bullet list of `badAt`
 - `<ComparisonTable>` — generic table for feature/spec comparisons (used in body markdown)
@@ -124,8 +125,10 @@ Stack entries use the same first-person Rohit voice as `/blog` (see `deep-dive-s
 - **One muted line at the bottom of each entry**, via `<StackReferralFooter>`. `text-text-muted text-xs italic`. No banner, no bold, no "as an affiliate..." legalese. This footer line is non-negotiable: any entry that carries a `referralLink` keeps the muted disclosure. (Decision 2026-05-31.)
 - **One sentence on the `/stack` index page** description: "Some entries include referral links - small disclosure on each entry."
 - **No per-link wrapping.** A referral link looks the same as a regular link in the body. The single footer line is the disclosure for the entry.
-- **Referral links live only in body prose.** Weave the `referralLink` into one natural in-body link (e.g. the tool's name on first mention). Do not call it out as a referral and do not add a referral CTA.
-- **The top "Try it ->" CTA points at the plain `homepage`, never the referral link** (decision 2026-05-31). `StackVerdict.astro` is wired to always use `homepage`. The prominent top-of-page link is editorial so the referral never overshadows the review's voice or the rest of the site. The `referralLink` frontmatter field's only jobs are (a) triggering the footer disclosure and (b) being available to hand-place as the subtle in-body link.
+- **The primary "Try {tool}" CTA carries the `referralLink`** (decision 2026-06-01, reverses 2026-05-31). It stays unlabelled - it reads as a normal CTA, never "click my referral" - so it is discreet without being hidden. Readers look for the action button; burying the referral only in body prose meant it was effectively invisible. `StackVerdict.astro` wires the primary button to `referralLink` when present.
+- **A secondary "Visit site" button always points at the plain `homepage`** so the un-tracked link is one click away. The `<StackMeta>` homepage tile is also un-tracked.
+- **The referral may also appear as one natural in-body link** (e.g. the tool's name on first mention) - same URL, no callout. Optional reinforcement, not a second disclosure.
+- **No per-link wrapping or "referral" labels anywhere.** The muted footer is the only place the relationship is named.
 
 ## 7. Cross-linking conventions
 
@@ -197,4 +200,4 @@ The `/stack/` index emits `CollectionPage` + `ItemList` with all entries (same p
 
 ---
 
-*Last updated: 2026-05-31 — referral handling clarified (§2, §4, §6): top CTA = homepage, referral lives only as a subtle in-body link + the mandatory muted footer. First entry: wispr-flow.*
+*Last updated: 2026-06-01 — referral handling reversed (§2, §4, §6): the unlabelled primary "Try {tool}" CTA now carries the referral; secondary "Visit site" button + meta tile stay un-tracked; muted footer is the only named disclosure. Template made more exploratory: side-by-side pros/cons cards, CTA buttons, spec-sheet meta tiles. First entry: wispr-flow.*
