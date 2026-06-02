@@ -51,11 +51,7 @@ The bottleneck in my day was never thinking, it was getting the thought down. Pr
 
 [Wispr Flow](https://wisprflow.ai/r?ROHIT2038) was the first one where the second pass mostly disappeared. You hold a hotkey, talk, let go, and the text that appears in whatever field you were in is already punctuated, de-ummed, and reads like you wrote it on purpose. It sits in the menu bar and works the same in the editor, the browser, and a chat window. After a week it had absorbed most of the writing I do that is not code.
 
-The habit stuck, and the numbers back it up. Wispr's own dashboard has me at **146 words a minute** (it puts that in the top 0.2% of its users), **63,758 words dictated** in about seven weeks, and **2,119 cleanups** it made along the way - a copy editor riding shotgun that I never have to thank. About **1,256** of those dictations were prompts fired straight at AI tools, which is to say a large share of how I talk to models now is literally me talking. The screenshot below is the raw dashboard, not a cherry-picked week.
-
-<!-- Rohit: save the dashboard screenshot to apps/web/public/images/wispr-flow-dashboard.png, then uncomment the next line to display it.
-![Wispr Flow's dictation dashboard: 146 words per minute (top 0.2%), 63,758 total words dictated, 2,119 fixes made by Flow, and 1,256 AI prompts.](/images/wispr-flow-dashboard.png)
--->
+The habit stuck, and the numbers back it up. Wispr's own dashboard has me at **146 words a minute** (it puts that in the top 0.2% of its users), **63,758 words dictated** in about seven weeks, and **2,119 cleanups** it made along the way - a copy editor riding shotgun that I never have to thank. About **1,256** of those dictations were prompts fired straight at AI tools, which is to say a large share of how I talk to models now is literally me talking. Those are the app's own numbers, not a cherry-picked week of mine.
 
 ## So I built my own
 
