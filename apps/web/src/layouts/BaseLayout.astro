@@ -63,23 +63,31 @@ const {
   tags,
   noindex,
 } = Astro.props;
-// GA4 is env-var driven and silently omitted when missing (unlike GTM/CF)
-const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || '';
+// GA4 — hardcoded override (same pattern as GTM, decision 2026-05-25).
+// The env-var path was silently failing in CF Pages because PUBLIC_GA_MEASUREMENT_ID
+// was never set in the dashboard, causing the entire GA4 snippet to be omitted.
+// Hardcoded so it fires on every page the same way GTM-MBGML7FV does.
+// If you ever need to change the property ID, update GA4_MEASUREMENT_ID here.
+const GA4_MEASUREMENT_ID = 'G-CB8NCKPW6Q';
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || GA4_MEASUREMENT_ID;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- ─── Google Analytics 4 (env-var driven, omitted if not configured) ─── -->
-    {gaId && <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>}
-    {gaId && (
-      <script is:inline define:vars={{ gaId }}>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', gaId);
-      </script>
-    )}
+    <!-- ─── Google Analytics 4 ──────────────────────────────────────────────── -->
+    <!-- HARDCODED override (G-CB8NCKPW6Q) — decision 2026-05-25. The env-var    -->
+    <!-- approach silently failed in CF Pages because PUBLIC_GA_MEASUREMENT_ID    -->
+    <!-- was never set in the dashboard, causing the snippet to be omitted.       -->
+    <!-- Do not move back to env-only without setting the secret in CF Pages too. -->
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+    <script is:inline define:vars={{ gaId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', gaId);
+    </script>
+    <!-- ─── End GA4 ─────────────────────────────────────────────────────────── -->
 
     <!-- ─── Google Tag Manager (deferred 3.5s to protect TBT/FCP) ─────────── -->
     <!-- HARDCODED override — decision 2026-03-30. Do not move to env var.     -->
