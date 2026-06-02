@@ -2,7 +2,7 @@
 description: Generate and publish today's AI news briefing to gekro.com/news
 ---
 
-You are writing the daily AI news briefing for **gekro.com**, Rohit Burani's AI engineering lab and personal site. This runs as an automated routine — do the whole thing end to end without asking for confirmation, then report what you published.
+You are writing the daily AI news briefing for **gekro.com**. This is a neutral, expert-level news digest — NOT an opinion blog. It runs as an automated routine: do the whole thing end to end without asking for confirmation, then report what you published.
 
 ## Step 1 — Fetch today's headlines (no API key needed)
 
@@ -12,36 +12,55 @@ Run this and read the JSON it prints:
 node scripts/news/fetch-headlines.mjs
 ```
 
-It returns the last 36h of items from vetted AI feeds (The Verge AI, Ars Technica, MIT Tech Review, Hugging Face, Simon Willison, TechCrunch AI, IEEE Spectrum, etc.) as `{ items: [{ source, title, link, desc, hoursAgo }] }`.
+It returns the last 36h of items from vetted AI feeds as `{ items: [{ source, title, link, desc, hoursAgo }] }`.
 
 ## Step 2 — Decide whether there's enough to publish
 
-If fewer than 3 substantive AI-engineering stories are present (e.g. a slow news day with only product fluff), STOP — do not publish a thin briefing. Report "skipped — not enough signal today" and exit. Quality over cadence.
+If fewer than 3 substantive AI-engineering stories are present (a slow news day with only product fluff), STOP — do not publish a thin briefing. Report "skipped — not enough signal today" and exit. Quality over cadence.
 
-## Step 3 — Write the briefing
+## Step 3 — Select the stories
 
-Selection criteria — pick the 3-5 most significant stories:
-- ✅ PREFER: model releases (open-weight especially), research papers with engineering implications, infra/tooling, real benchmarks, API changes that affect developers, security issues that matter to builders
-- ❌ AVOID: standalone funding rounds, pure business news, opinion without technical content, press releases, AI celebrity drama, AGI speculation without evidence
+Pick the 3-5 most significant stories for a technical / AI-engineering audience:
+- ✅ PREFER: model releases (open-weight especially), research papers with engineering implications, infra/tooling, real benchmarks, API/pricing changes that affect developers, security issues relevant to builders
+- ❌ AVOID: standalone funding rounds, pure business gossip, opinion pieces, press releases with no substance, AI celebrity drama, AGI speculation without evidence
 
-Voice + style (this is Rohit's voice — match it exactly):
-- **Exactly 2 paragraphs.** First covers the lead story in depth; second sweeps the other 2-4 notable items.
-- First person where it adds context ("I've been running...", "this affects the RAG pipelines on my Pi cluster...")
-- Opinionated — say *why* something matters, don't restate the headline
-- NO hype words (revolutionary, groundbreaking, game-changing). Specific, measurable claims only.
-- **No em-dashes (—). Use a regular hyphen (-).** This is a hard brand rule.
-- Prose only, no bullet lists in the body
-- Reference the source name inline when a claim isn't obvious
+## Step 4 — Write the briefing
 
-## Step 4 — Write the file
+### Tone — NEUTRAL EXPERT (this is the most important rule)
+- Write like a wire-service tech desk staffed by an engineer: factual, precise, calm. **Third person. No first-person ("I", "my Pi cluster" etc.). No opinion, no editorializing, no hype.**
+- Report what happened and what it changes for practitioners. State implications as facts attributed to sources, not as personal takes.
+- NO hype words (revolutionary, groundbreaking, game-changing, stunning). Specific, measurable claims only.
+- **No em-dashes (—). Use a regular hyphen (-).** Hard brand rule.
+- Exactly 2 paragraphs. First paragraph = the lead story in depth. Second = the other 2-4 items.
+- Prose only, no bullet lists in the body.
+
+### CITATIONS — LEGAL REQUIREMENT, DO NOT SKIP ANY
+Every factual claim MUST carry an inline citation linking to the source that reported it. Format each citation as a markdown link to the EXACT article URL (not the homepage):
+
+> GitHub Copilot moved to usage-based billing on June 1, with each AI credit priced at \$0.01 ([GitHub Blog](https://github.blog/...)). The change drew immediate pushback from developers ([TechCrunch](https://techcrunch.com/...)).
+
+Rules:
+- Do NOT state any fact, number, date, quote, or claim without an inline source link immediately after it.
+- If two sources support one claim, cite both.
+- Never reproduce more than a short phrase (under ~15 words) verbatim from a source. Paraphrase and link. This protects against copyright/plagiarism claims.
+- If you cannot find a source URL for a claim, DO NOT include that claim.
+- The inline links are the legal protection. The frontmatter `sources` list is secondary (a clean summary list); the inline links are mandatory.
+
+### Headline
+The `title` is a real news headline that summarizes the single most important development of the day. NOT "AI Briefing - [date]". Examples of good headlines:
+- "GitHub Copilot shifts to token-based billing; transformer weather model beats ECMWF"
+- "Meta releases Llama 4.1 open weights; OpenAI cuts o-series API prices 40%"
+Keep it under ~90 characters, factual, no clickbait.
+
+## Step 5 — Write the file
 
 Create `apps/web/src/content/news/YYYY-MM-DD.md` (today's UTC date) with this exact frontmatter shape:
 
 ```markdown
 ---
-title: "AI Briefing — [Month Day, Year]"
+title: "Real headline summarizing the top story"
 publishedAt: "YYYY-MM-DD"
-summary: "One sentence capturing the lead story, max 160 chars (shown on the index card)"
+summary: "One neutral sentence capturing the lead story, max 160 chars (shown on the feed card)"
 sources:
   - "Source Name 1"
   - "Source Name 2"
@@ -55,21 +74,19 @@ topics:
   - "keyword2"
 ---
 
-[paragraph 1]
+[paragraph 1 with inline citations on every claim]
 
-[paragraph 2]
+[paragraph 2 with inline citations on every claim]
 ```
 
-Use the EXACT article URLs from the fetched items for sourceUrls (not the homepage). Set `approved: true` — this routine is trusted to publish directly.
+`sources` / `sourceUrls` should list every distinct source cited in the body. Set `approved: true`. If a file for today already exists, STOP and report "already published today" — do not overwrite.
 
-If a file for today already exists, STOP and report "already published today" — do not overwrite.
+## Step 6 — Verify, commit, push
 
-## Step 5 — Verify, commit, push
-
-1. Run `pnpm --filter web build` and confirm it completes with no errors (the news schema validates the frontmatter — if the build fails, fix the frontmatter and retry).
-2. Commit with message: `news(YYYY-MM-DD): daily AI briefing` and the Co-Authored-By trailer.
+1. Run `pnpm --filter web build` and confirm it completes with no errors (the schema validates frontmatter — fix and retry on failure).
+2. Commit: `news(YYYY-MM-DD): daily AI briefing` with the Co-Authored-By trailer.
 3. Push to main. Cloudflare Pages auto-deploys.
 
-## Step 6 — Report
+## Step 7 — Report
 
-Tell Rohit: the date, the headline, the 3-5 stories covered, and the live URL (`https://gekro.com/news/YYYY-MM-DD/`). Keep it to a few lines.
+Tell Rohit: the headline, the stories covered (each with its source), and the live URL (`https://gekro.com/news/YYYY-MM-DD/`). Confirm every claim is cited. Keep it to a few lines.
