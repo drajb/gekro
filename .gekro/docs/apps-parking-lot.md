@@ -109,4 +109,14 @@ For reference — these were in the original 2026-05-22 list and have since ship
 
 ---
 
+## In progress — logged 2026-06-02
+
+### Translator (EN / Hindi / Spanish, live, client-side)
+- Rohit wants a Google-Translate-style live translator, three languages interchangeable: English, Hindi, Spanish.
+- **Feasible 100% client-side, free, no key** via transformer.js (Xenova ports of Helsinki-NLP opus-mt or m2m100/NLLB), lazy-loaded on first use, cached in browser. On-brand (local AI, no data leaves browser). ES<->HI may pivot through English if a direct model pair isn't available.
+- Honest tradeoffs to surface in-app: quality is below Google Translate; one-time model download (~30-200 MB depending on model choice); first translation is slow (model load), subsequent are fast.
+- Status: building 2026-06-02 (after the Astro 4→6 migration so it lands on the new framework).
+
+---
+
 *This doc and `app_ideas_backlog.md` are the canonical pair. When updating one, update the other in the same turn.*

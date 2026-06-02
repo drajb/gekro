@@ -1,0 +1,93 @@
+# Dependabot configuration
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates
+#
+# Keeps dependencies patched automatically by opening grouped PRs on a weekly
+# cadence. gekro.com is a static site, so most dependencies are build-time or
+# dev tooling - we group them to avoid PR noise and review them in batches.
+#
+# Scope notes:
+#  - The npm tree spans a pnpm workspace (root + apps/web + apps/studio). The
+#    root manifest is the entry point Dependabot scans for the workspace.
+#  - apps/studio (Sanity CMS) is never deployed; its updates are grouped
+#    separately and treated as low priority.
+#  - GitHub Actions versions are pinned in .github/workflows/*.yml and updated
+#    on their own schedule.
+
+version: 2
+
+updates:
+  # ── npm / pnpm workspace ────────────────────────────────────────────────
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 5
+    # Group related bumps into single PRs so review is one pass, not twenty.
+    groups:
+      astro:
+        patterns:
+          - "astro"
+          - "@astrojs/*"
+      build-tooling:
+        patterns:
+          - "vite"
+          - "esbuild"
+          - "@tailwindcss/*"
+          - "tailwindcss"
+          - "turbo"
+          - "vitest"
+          - "pagefind"
+      app-libraries:
+        patterns:
+          - "pdf-lib"
+          - "pdfjs-dist"
+          - "jszip"
+          - "browser-image-compression"
+          - "qr-code-styling"
+          - "three"
+          - "gsap"
+          - "motion"
+          - "diff"
+          - "papaparse"
+          - "shiki"
+          - "html-to-image"
+          - "sharp"
+      sanity-studio:
+        patterns:
+          - "@sanity/*"
+          - "sanity"
+          - "styled-components"
+      types-and-lint:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "@typescript-eslint/*"
+          - "typescript"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 3
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
