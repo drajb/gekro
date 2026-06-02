@@ -23,7 +23,7 @@ priceTier: "paid-tier"    # free | paid-tier | paid-only | enterprise
 pricingNotes: "$20/mo Pro tier; free trial limited to 2000 completions/mo."
 
 # REQUIRED. Min 2 items. Each item pairs a capability with a number,
-# screenshot, or specific workflow — no marketing adjectives.
+# screenshot, or specific workflow - no marketing adjectives.
 goodAt:
   - "Multi-file refactor with full repo context. A 200-line change completes in ~4 seconds on M4 Pro."
   - "Tab-to-accept inline edits without breaking flow. Faster than copy-pasting from Claude or ChatGPT."
@@ -36,7 +36,7 @@ badAt:
   - "Pricing jumped 30% in Q1 2026 with no warning email."
   - "Sync glitches on flaky wifi corrupt the local index until manual rebuild."
 
-# Optional comparison table — rendered automatically in the "How it compares"
+# Optional comparison table - rendered automatically in the "How it compares"
 # section between the cons block and the markdown body.
 comparisonTable:
   headers: ["Feature", "Example Tool", "Alternative A", "Alternative B"]
@@ -49,7 +49,7 @@ comparisonTable:
   highlight: "Example Tool"
   caption: "Feature snapshot as of 2026-05-15."
 
-# Optional benchmark / pricing bar chart — same section.
+# Optional benchmark / pricing bar chart - same section.
 barChart:
   title: "Refactor latency on a 200-line file (lower is better)"
   unit: "sec"

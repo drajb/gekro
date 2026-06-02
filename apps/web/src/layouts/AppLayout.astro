@@ -23,8 +23,8 @@ const grouped = CATEGORY_ORDER
   .filter(({ apps }) => apps.length > 0);
 
 const seoDescription = data.aiSummary || data.description;
-const pageURL = `https://gekro.com/apps/${app.slug}/`;
-const ogImage = `/og/apps/${app.slug}.png`;
+const pageURL = `https://gekro.com/apps/${app.id}/`;
+const ogImage = `/og/apps/${app.id}.png`;
 
 const schema = {
   '@context': 'https://schema.org',
@@ -97,10 +97,10 @@ const breadcrumbs = {
             <p class="px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-text-secondary select-none">{label}</p>
             {catApps.map(a => (
               <a
-                href={`/apps/${a.slug}/`}
+                href={`/apps/${a.id}/`}
                 class:list={[
                   'sidebar-app-link flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors',
-                  a.slug === app.slug
+                  a.id === app.id
                     ? 'bg-accent/10 text-accent'
                     : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated',
                 ]}
@@ -108,7 +108,7 @@ const breadcrumbs = {
               >
                 <span class="text-sm shrink-0 leading-none">{a.data.icon}</span>
                 <span class="truncate leading-tight">{a.data.title}</span>
-                {a.slug === app.slug && (
+                {a.id === app.id && (
                   <span class="ml-auto w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
                 )}
               </a>
@@ -142,7 +142,7 @@ const breadcrumbs = {
                  [font-size:16px] min-h-[44px]"
         >
           {allApps.map(a => (
-            <option value={`/apps/${a.slug}/`} selected={a.slug === app.slug}>
+            <option value={`/apps/${a.id}/`} selected={a.id === app.id}>
               {a.data.icon} {a.data.title}
             </option>
           ))}
