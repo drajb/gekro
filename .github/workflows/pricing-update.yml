@@ -41,7 +41,7 @@ jobs:
     steps:
       # ── Step 1: Get the repo onto the VM ────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # ── Step 2: Verify the runner's pre-installed Node is usable ───────
       # No setup-node needed: ubuntu-latest ships with Node 20+ already
@@ -106,7 +106,7 @@ jobs:
       # already exists, it updates that PR instead of creating duplicates.
       - name: Open pull request
         if: steps.check.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: 'chore(pricing): weekly hyperscaler pricing verification'
           branch: pricing/auto-update
@@ -143,7 +143,7 @@ jobs:
       # page in the GitHub Actions UI for 90 days.
       - name: Upload run log
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: pricing-run-log
           path: pricing-run.log
