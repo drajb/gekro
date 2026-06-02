@@ -212,7 +212,13 @@
      * terminal's own input, which should also toggle-close the terminal).
      */
     handleKeydown(e) {
-      if (e.key === '`') {
+      // Match the physical backtick key regardless of keyboard layout. On
+      // dead-key / international layouts (US-International, many EU layouts) the
+      // ` key reports e.key === 'Dead' (or a composed char), so we key off
+      // e.code === 'Backquote' — the layout-independent physical position —
+      // and keep e.key === '`' as a fallback for older browsers. Without the
+      // e.code check the terminal never opened on those layouts (2026-06-02).
+      if (e.code === 'Backquote' || e.key === '`') {
         const target = e.target;
         if (target && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
             e.preventDefault();
