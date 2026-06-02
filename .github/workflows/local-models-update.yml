@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Verify Node ≥18
         run: |
@@ -80,7 +80,7 @@ jobs:
 
       - name: Open pull request
         if: steps.check.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: 'chore(local-models): weekly HuggingFace refresh'
           branch: local-models/auto-update
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload run log
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: local-models-run-log
           path: local-models-run.log

@@ -14,7 +14,7 @@ jobs:
     steps:
       # ── Step 1: Checkout main repo ───────────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # ── Step 2: Clone private apps components ────────────────────────────
       # apps-private is NOT a git submodule — CF Pages v3 hard-codes
@@ -39,11 +39,11 @@ jobs:
 
       # ── Step 3: Install pnpm (version from root package.json) ───────────
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       # ── Step 4: Node + pnpm cache ────────────────────────────────────────
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'pnpm'
