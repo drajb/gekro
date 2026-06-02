@@ -25,14 +25,16 @@ Fields: title, slug, description, topics, publishedAt, url
 - /              Homepage — latest experiments and recent posts
 - /blog          Archive of technical deep dives and engineering notes
 - /experiments   Detailed case studies — architecture, outcomes, failures
-- /apps          Free single-session browser tools (31 utilities across AI, finance, dev, EV)
+- /apps          Free single-session browser tools (60+ utilities across AI, finance, dev, EV)
 - /stack         Verified third-party tool reviews by an AI engineer (referral disclosures on each entry)
+- /news          Daily AI industry briefings - neutral, every claim linked to its source
 - /about         Philosophy, mission, and author biography
 - /contact       Direct contact form (Turnstile-protected)
 - /now           Live snapshot of current engineering focus areas and hardware status
 - /slides        Technical keynotes and architecture presentations
 - /topics/[slug] Cluster pages for each topic area
 - /rss.xml       RSS 2.0 feed for aggregators
+- /news-rss.xml  RSS 2.0 feed for the daily AI news briefings
 - /sitemap-index.xml  Full site structure (with per-URL lastmod)
 - /llms-full.txt Full content manifest for LLM crawlers
 - /api/posts.json  Structured JSON of all posts
@@ -87,4 +89,4 @@ LinkedIn: https://www.linkedin.com/in/rohitburani/
 Contact: https://gekro.com/contact
 
 ---
-Last updated: 2026-04-20
+Last updated: 2026-06-02

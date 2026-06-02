@@ -12,10 +12,41 @@
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
 
 const feed = (await getCollection('news'))
   .filter(b => b.data.approved)
   .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
+
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "inLanguage": "en-US",
+  "@id": "https://gekro.com/news/",
+  "name": "AI News - Daily Briefings | gekro",
+  "description": "Daily AI industry news, neutral and cited - model releases, research, infra, and pricing, summarized from vetted sources with every claim linked.",
+  "url": "https://gekro.com/news/",
+  "isPartOf": { "@id": "https://gekro.com/#website" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": feed.length,
+    "itemListElement": feed.map((e, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://gekro.com/news/${e.slug}/`,
+      "name": e.data.title,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "News", "item": "https://gekro.com/news/" },
+  ],
+};
 
 const fmtDate = (iso: string) =>
   new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -34,6 +65,9 @@ const relative = (iso: string): string => {
   title="AI News — Daily Briefings | gekro"
   description="Daily AI industry news, neutral and cited. The signal an engineer needs to stay caught up - model releases, research, infra, pricing - summarized from vetted sources with every claim linked to its origin."
 >
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
   <main class="max-w-2xl mx-auto px-5 sm:px-6 pt-28 sm:pt-32 pb-24">
 
     <!-- Masthead -->

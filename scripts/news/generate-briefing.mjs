@@ -35,7 +35,7 @@ const REPO_ROOT = resolve(__dirname, '../..');
 const NEWS_DIR = resolve(REPO_ROOT, 'apps/web/src/content/news');
 const DRY_RUN = process.argv.includes('--dry-run');
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-4-5';
+const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-4-6';
 const TODAY = process.env.NEWS_DATE || new Date().toISOString().slice(0, 10);
 
 if (!ANTHROPIC_API_KEY) {
@@ -46,50 +46,52 @@ if (!ANTHROPIC_API_KEY) {
 // ── RSS sources ───────────────────────────────────────────────────────────────
 // Vetted, signal-dense feeds for an AI engineering audience.
 // Each has a name (used in source attribution) + feed URL.
+// Kept in sync with scripts/news/fetch-headlines.mjs — the working set. The
+// previously-listed OpenAI/DeepMind/Anthropic RSS endpoints 403 or moved;
+// Simon Willison + TechCrunch AI replace them as reliable high-signal feeds.
 const SOURCES = [
-  { name: 'The Verge · AI',     url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
-  { name: 'Ars Technica · AI',  url: 'https://feeds.arstechnica.com/arstechnica/technology-lab' },
+  { name: 'The Verge · AI',        url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
+  { name: 'Ars Technica',          url: 'https://feeds.arstechnica.com/arstechnica/technology-lab' },
   { name: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/' },
-  { name: 'Hugging Face Blog',  url: 'https://huggingface.co/blog/feed.xml' },
-  { name: 'Google DeepMind',    url: 'https://deepmind.google/blog/rss/' },
-  { name: 'OpenAI Blog',        url: 'https://openai.com/blog/rss/' },
-  { name: 'Anthropic News',     url: 'https://www.anthropic.com/news/rss.xml' },
-  { name: 'VentureBeat · AI',   url: 'https://venturebeat.com/category/ai/feed/' },
-  { name: 'IEEE Spectrum · AI', url: 'https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss' },
+  { name: 'Hugging Face Blog',     url: 'https://huggingface.co/blog/feed.xml' },
+  { name: 'Simon Willison',        url: 'https://simonwillison.net/atom/everything/' },
+  { name: 'TechCrunch · AI',       url: 'https://techcrunch.com/category/artificial-intelligence/feed/' },
+  { name: 'Google DeepMind',       url: 'https://deepmind.google/blog/feed/basic/' },
+  { name: 'VentureBeat · AI',      url: 'https://venturebeat.com/category/ai/feed/' },
+  { name: 'IEEE Spectrum · AI',    url: 'https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss' },
 ];
 
 // ── Curation prompt ───────────────────────────────────────────────────────────
-// This prompt encodes Rohit's editorial voice and selection criteria.
-// It evolves as PRs are approved/rejected — see scripts/news/refine-prompt.mjs.
-const CURATION_PROMPT = `You are writing the daily AI news briefing for gekro.com, Rohit Burani's AI engineering lab and personal site.
+// Encodes the gekro /news standard: a NEUTRAL, sourced wire-service digest, not
+// an opinion column. Mirrors .claude/commands/news-briefing.md. Keep the two in
+// sync if either changes.
+const CURATION_PROMPT = `You are writing the daily AI news briefing for gekro.com, an AI engineering lab. The briefing is a NEUTRAL, sourced summary of third-party reporting - a wire-service digest, not an opinion column.
 
-ABOUT ROHIT:
-- AI engineer with an engineering and management background
-- Runs a Pi 5 cluster for local LLM experiments, uses Mac M4 Pro, builds MCP agents
-- Honest, post-mortem voice — "authoritative engineering lab", not a hype blog
-- Audience: AI engineers, ML practitioners, infra folks who build things
+AUDIENCE: AI engineers, ML practitioners, and infra folks who want the day's signal without hype.
 
-SELECTION CRITERIA — pick the 3-5 most significant stories from today's headlines:
-✅ PREFER: technical breakthroughs, model releases (open-weight especially), research papers with engineering implications, infra/tooling announcements, real benchmark results, API changes that affect developers
-❌ AVOID: funding rounds by themselves (unless truly landmark and technically significant), pure business news, opinion pieces without technical content, anything that's primarily a press release, celebrity AI drama, AGI speculation without evidence
+SELECTION CRITERIA - pick the 2-4 most significant stories from the supplied headlines:
+PREFER: model releases (open-weight especially), research with engineering implications, infra/tooling, real benchmark results, API/pricing changes that affect developers.
+AVOID: standalone funding rounds, pure business news, opinion pieces, press releases, AI drama, AGI speculation without evidence.
 
-VOICE + STYLE:
-- 2 paragraphs total. First paragraph covers the lead story in depth. Second paragraph sweeps the remaining 2-4 notable items.
-- First person where it adds context ("I've been watching...", "This directly affects the RAG pipelines I run...")
-- Be opinionated — say why something matters or doesn't. Don't just restate the headline.
-- No hype words: revolutionary, groundbreaking, game-changing. Use specific, measurable claims instead.
-- Em-dashes are fine. Short sentences OK. No bullet lists in the body — prose only.
-- Cite the specific source name at the end of a claim if it's not obvious.
+VOICE + STYLE (strict):
+- Neutral and factual. Third person. NO first person ("I", "we"), NO opinion, NO editorializing. Report what happened and let the reader judge.
+- NO hype words (revolutionary, groundbreaking, game-changing). Use specific, measurable claims.
+- NO em-dashes (the character "—"). Use a regular hyphen "-" with spaces, or rewrite the sentence.
+- 2 paragraphs. First paragraph: the lead story in depth. Second paragraph: the remaining 1-3 items.
+- EVERY factual claim must carry an inline citation as a markdown link in this exact form: ([Source Name](https://url)). Multiple claims may reuse the same source. Do not state anything you cannot link.
+- Prose only - no bullet lists, no headings inside the body.
 
-OUTPUT FORMAT — return only valid JSON, no markdown wrapper:
+OUTPUT FORMAT - return only valid JSON, no markdown wrapper:
 {
-  "title": "AI Briefing — [Month Day, Year]",
-  "summary": "One sentence that captures the most important story (max 160 chars, shown in card previews)",
-  "body": "The two paragraph body text. Separate paragraphs with a blank line.",
+  "title": "A real, specific headline summarizing the lead story (two leads may be joined with a semicolon). NOT 'AI Briefing'. Max ~110 chars.",
+  "summary": "One neutral sentence capturing the most important story (max 160 chars; shown on cards).",
+  "body": "Two markdown paragraphs with inline ([Source](url)) citations. Separate paragraphs with a blank line.",
   "sources": ["Source Name 1", "Source Name 2"],
   "sourceUrls": ["https://...", "https://..."],
   "topics": ["keyword1", "keyword2"]
-}`;
+}
+
+CRITICAL: "sources" and "sourceUrls" MUST be the same length and aligned by index - sources[i] is the display name for sourceUrls[i]. Include every source you cite inline, once per distinct URL.`;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function fetchFeed(source) {
@@ -164,7 +166,7 @@ ${srcYaml}
 sourceUrls:
 ${urlYaml}
 autoGenerated: true
-approved: false
+approved: true
 topics:
 ${topicsYaml || '  []'}
 ---

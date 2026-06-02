@@ -8,6 +8,7 @@
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
 
 export async function getStaticPaths() {
   const briefings = await getCollection('news', b => b.data.approved);
@@ -30,14 +31,58 @@ const older = idx < all.length - 1 ? all[idx + 1] : null;
 const uniqueSources = [...new Map(
   briefing.data.sources.map((name, i) => [briefing.data.sourceUrls[i] ?? name, { name, url: briefing.data.sourceUrls[i] }])
 ).values()];
+
+const pageURL = `https://gekro.com/news/${briefing.slug}/`;
+const ogImage = `/og/news/${briefing.slug}.png`;
+
+// schema.org NewsArticle — news is the most citation/GEO-sensitive content type
+const newsSchema = {
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "@id": `${pageURL}#article`,
+  "headline": briefing.data.title,
+  "description": briefing.data.summary,
+  "datePublished": briefing.data.publishedAt,
+  "dateModified": briefing.data.publishedAt,
+  "author": {
+    "@type": "Person",
+    "@id": "https://gekro.com/about/#person",
+    "name": "Rohit Burani",
+    "url": "https://gekro.com/about/",
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://gekro.com/#organization",
+    "name": "gekro",
+    "url": "https://gekro.com",
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": pageURL },
+  "isAccessibleForFree": true,
+};
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "News", "item": "https://gekro.com/news/" },
+    { "@type": "ListItem", "position": 3, "name": briefing.data.title, "item": pageURL },
+  ],
+};
 ---
 
 <BaseLayout
   title={`${briefing.data.title} | gekro News`}
   description={briefing.data.summary}
-  publishedTime={briefing.data.publishedAt}
+  ogImage={ogImage}
   ogType="article"
+  publishedTime={briefing.data.publishedAt}
+  modifiedTime={briefing.data.publishedAt}
+  author="Rohit Burani"
+  section="AI News"
 >
+  <JsonLD data={newsSchema} />
+  <JsonLD data={breadcrumbs} />
   <main class="max-w-2xl mx-auto px-5 sm:px-6 pt-28 sm:pt-32 pb-24">
 
     <a href="/news/" class="inline-flex items-center gap-1.5 text-[11px] font-mono text-text-muted hover:text-accent transition-colors mb-8">

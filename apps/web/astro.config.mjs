@@ -77,6 +77,9 @@ scanCollection(join(__dirname, 'src/content/apps'), '/apps/', ['publishedAt', 'u
 // Stack uses lastVerified (the explicit "this review is alive" date) — the
 // strongest signal for crawlers to re-index when a review is refreshed.
 scanCollection(join(__dirname, 'src/content/stack'), '/stack/', ['lastVerified', 'publishedAt']);
+// News briefings are dated by publishedAt — the freshness signal that matters
+// most for a daily feed.
+scanCollection(join(__dirname, 'src/content/news'), '/news/', ['publishedAt']);
 
 // Sanity integration is conditional — site works local-only without it
 const sanityIntegration = [];
@@ -111,6 +114,13 @@ export default defineConfig({
         if (item.url === 'https://gekro.com/') {
           item.priority = 1.0;
           item.changefreq = 'weekly';
+        } else if (item.url === 'https://gekro.com/news/') {
+          // Daily-updated feed — the one section that genuinely warrants `daily`.
+          item.priority = 0.9;
+          item.changefreq = 'daily';
+        } else if (item.url.includes('/news/')) {
+          item.priority = 0.7;
+          item.changefreq = 'daily';
         } else if (
           item.url === 'https://gekro.com/blog/' ||
           item.url === 'https://gekro.com/experiments/' ||

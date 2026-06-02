@@ -34,10 +34,11 @@ import { getCollection } from 'astro:content';
 const SITE = 'https://gekro.com';
 
 export async function GET() {
-  const [posts, experiments, stackEntries] = await Promise.all([
+  const [posts, experiments, stackEntries, newsEntries] = await Promise.all([
     getCollection('blog'),
     getCollection('experiments'),
     getCollection('stack'),
+    getCollection('news', b => b.data.approved),
   ]);
 
   const sortedPosts = posts
@@ -49,6 +50,10 @@ export async function GET() {
   // Stack entries sorted by lastVerified DESC — freshest reviews first
   const sortedStack = stackEntries
     .sort((a, b) => new Date(b.data.lastVerified).getTime() - new Date(a.data.lastVerified).getTime());
+
+  // News briefings sorted by publishedAt DESC — newest first
+  const sortedNews = newsEntries
+    .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 
   // Summary priority: aiSummary (GEO-optimised) → tldr → description
   const summaryOf = (data: any) => data.aiSummary || data.tldr || data.description || '';
@@ -118,9 +123,22 @@ Canonical summary: ${SITE}/llms.txt
     ].filter(Boolean).join('\n');
   }).join('\n\n');
 
+  const newsHeader = `\n\n## News (${sortedNews.length})\nDaily AI industry briefings - neutral summaries of third-party reporting, every claim linked to its source.\n`;
+
+  const newsBlocks = sortedNews.map(n => {
+    const d = n.data;
+    return [
+      `Title: ${d.title}`,
+      `URL: ${SITE}/news/${n.slug}/`,
+      `Published: ${d.publishedAt}`,
+      d.sources?.length ? `Sources: ${d.sources.join(', ')}` : null,
+      `Summary: ${d.summary}`,
+    ].filter(Boolean).join('\n');
+  }).join('\n\n');
+
   const footer = `\n\n---\nGenerated ${new Date().toISOString().slice(0, 10)} from ${SITE}\n`;
 
-  const body = header + postBlocks + experimentsHeader + expBlocks + stackHeader + stackBlocks + footer;
+  const body = header + postBlocks + experimentsHeader + expBlocks + stackHeader + stackBlocks + newsHeader + newsBlocks + footer;
 
   return new Response(body, {
     headers: {
