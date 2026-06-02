@@ -12,6 +12,18 @@
 #    separately and treated as low priority.
 #  - GitHub Actions versions are pinned in .github/workflows/*.yml and updated
 #    on their own schedule.
+#
+# Dev-dependency scope (2026-06-02):
+#  - `allow: dependency-type: production` restricts npm *version-update PRs* to
+#    runtime/production dependencies only (the `dependencies` section + their
+#    transitive deps). devDependencies (vitest, eslint, typescript, vite,
+#    @types/*, build tooling, etc.) no longer generate update PRs, because on a
+#    static site they never reach a visitor and the churn is pure noise.
+#  - NOTE: this governs version-update PRs. Dependabot *alerts* in the Security
+#    tab are a separate GitHub feature and are NOT controlled by this file —
+#    to auto-dismiss dev-dependency alerts, use GitHub auto-triage rules
+#    (repo Settings → Code security → Dependabot → auto-triage rules, scope =
+#    "development"). See the handoff note for exact steps.
 
 version: 2
 
@@ -25,6 +37,10 @@ updates:
       time: "09:00"
       timezone: "America/Chicago"
     open-pull-requests-limit: 5
+    # Scope version-update PRs to production deps only — skip devDependencies,
+    # which on a static site never ship to a visitor (see header note).
+    allow:
+      - dependency-type: "production"
     # Group related bumps into single PRs so review is one pass, not twenty.
     groups:
       astro:
