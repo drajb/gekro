@@ -14,7 +14,7 @@ import { renderOgCard } from '../../../lib/og/render';
 export async function getStaticPaths() {
   const briefings = await getCollection('news', b => b.data.approved);
   return briefings.map(b => ({
-    params: { slug: b.slug },
+    params: { slug: b.id },
     props: {
       title: b.data.title,
       date: b.data.publishedAt,

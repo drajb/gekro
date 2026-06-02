@@ -10,19 +10,19 @@
  * include component tags — see _template.md for the convention).
  */
 
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import StackLayout from '../../layouts/StackLayout.astro';
 
 export async function getStaticPaths() {
   const entries = await getCollection('stack');
   return entries.map(entry => ({
-    params: { slug: entry.slug },
+    params: { slug: entry.id },
     props: { entry },
   }));
 }
 
 const { entry } = Astro.props;
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 ---
 
 <StackLayout entry={entry}>

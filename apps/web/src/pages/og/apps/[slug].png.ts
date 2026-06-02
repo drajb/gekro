@@ -25,7 +25,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export async function getStaticPaths() {
   const apps = await getCollection('apps');
   return apps.map(app => ({
-    params: { slug: app.slug },
+    params: { slug: app.id },
     props: {
       title: app.data.title,
       date: app.data.publishedAt,

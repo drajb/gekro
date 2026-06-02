@@ -29,7 +29,7 @@
  *  Pattern: call initX() once, then addEventListener('astro:after-swap', initX).
  */
 
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 import SEOHead from '../components/seo/SEOHead.astro';
 import Header from '../components/layout/Header.astro';
 import Footer from '../components/layout/Footer.astro';
@@ -117,7 +117,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || GA4_MEASUREMENT_ID;
     />
 
     <!-- Enables SPA-style page transitions using the View Transitions API -->
-    <ViewTransitions />
+    <ClientRouter />
   </head>
 
   <body class="bg-bg-base text-text-primary selection:bg-accent selection:text-bg-base antialiased">

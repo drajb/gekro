@@ -60,7 +60,7 @@ const collectionSchema = {
     "itemListElement": entries.map((e, i) => ({
       "@type": "ListItem",
       "position": i + 1,
-      "url": `https://gekro.com/stack/${e.slug}/`,
+      "url": `https://gekro.com/stack/${e.id}/`,
       "name": e.data.name,
     })),
   },

@@ -33,7 +33,7 @@ const collectionSchema = {
     "itemListElement": feed.map((e, i) => ({
       "@type": "ListItem",
       "position": i + 1,
-      "url": `https://gekro.com/news/${e.slug}/`,
+      "url": `https://gekro.com/news/${e.id}/`,
       "name": e.data.title,
     })),
   },
@@ -103,7 +103,7 @@ const relative = (iso: string): string => {
                 aria-hidden="true"
               ></span>
 
-              <a href={`/news/${item.slug}/`} class="group block">
+              <a href={`/news/${item.id}/`} class="group block">
                 <!-- Timestamp + freshness -->
                 <div class="flex items-center gap-2.5 mb-2">
                   <time datetime={item.data.publishedAt} class="text-[11px] font-mono text-text-muted">

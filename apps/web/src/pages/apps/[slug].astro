@@ -13,7 +13,7 @@
  *  3. Update the submodule ref in gekro, then add one import + one entry to CALCULATOR_MAP below
  */
 
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import AppLayout from '../../layouts/AppLayout.astro';
 import AppShell from '../../components/apps/AppShell.astro';
 
@@ -161,16 +161,16 @@ const CALCULATOR_MAP: Record<string, any> = {
 
 export async function getStaticPaths() {
   const apps = await getCollection('apps');
-  return apps.map(app => ({ params: { slug: app.slug }, props: { app } }));
+  return apps.map(app => ({ params: { slug: app.id }, props: { app } }));
 }
 
 const { app } = Astro.props;
-const { Content } = await app.render();
+const { Content } = await render(app);
 
 const today = new Date().toISOString().split('T')[0];
-const exportFilename = `${app.slug}-${today}.csv`;
+const exportFilename = `${app.id}-${today}.csv`;
 
-const Calculator = CALCULATOR_MAP[app.slug];
+const Calculator = CALCULATOR_MAP[app.id];
 ---
 
 <AppLayout app={app}>
@@ -178,7 +178,7 @@ const Calculator = CALCULATOR_MAP[app.slug];
     title={app.data.title}
     job={app.data.job}
     category={app.data.category}
-    slug={app.slug}
+    slug={app.id}
     lastVerified={app.data.lastVerified}
     companionPostSlug={app.data.companionPostSlug}
     license={app.data.license}

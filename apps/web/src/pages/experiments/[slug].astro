@@ -21,7 +21,7 @@
  *  there. No mermaid logic is needed here.
  */
 
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import ExperimentLayout from '../../layouts/ExperimentLayout.astro';
 
 export async function getStaticPaths() {
@@ -29,17 +29,17 @@ export async function getStaticPaths() {
   const experiments = await getCollection('experiments');
 
   return experiments.map((entry) => ({
-    params: { slug: entry.slug },
+    params: { slug: entry.id },
     props: { entry },
   }));
 }
 
 const { entry } = Astro.props;
 // Render markdown content to the Content component
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 // Flatten frontmatter for ExperimentLayout props; preserve the slug so the
 // layout can derive canonical URLs, per-post OG images, and JSON-LD @id.
-const experiment = { ...entry.data, slug: entry.slug };
+const experiment = { ...entry.data, slug: entry.id };
 ---
 
 <ExperimentLayout experiment={experiment}>

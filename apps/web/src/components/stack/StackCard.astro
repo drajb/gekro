@@ -51,7 +51,7 @@ const verifiedShort = new Date(lastVerified + 'T12:00:00').toLocaleDateString('e
 ---
 
 <a
-  href={`/stack/${entry.slug}/`}
+  href={`/stack/${entry.id}/`}
   class={`stack-card group relative block p-6 bg-bg-surface border border-border rounded-xl transition-all duration-300 hover:border-accent hover:shadow-2xl hover:shadow-accent/5 ${
     status === 'dropped' ? 'opacity-60 hover:opacity-100' : ''
   }`}

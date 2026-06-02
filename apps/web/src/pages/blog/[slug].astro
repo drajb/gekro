@@ -26,7 +26,7 @@
  *  View Transitions (issue 2026-04-11).
  */
 
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BlogLayout from '../../layouts/BlogLayout.astro';
 import PortableText from '../../components/blog/PortableText.astro';
 import TLDR from '../../components/blog/TLDR.astro';
@@ -53,7 +53,7 @@ export async function getStaticPaths() {
   }));
 
   const localPaths = localPosts.map((post) => ({
-    params: { slug: post.slug },
+    params: { slug: post.id },
     props: { post, isLocal: true },
   }));
 
@@ -69,7 +69,7 @@ let displayPost = post;
 
 if (isLocal) {
   // Render markdown to component + extract headings for TOC
-  const rendered = await post.render();
+  const rendered = await render(post);
   Content = rendered.Content;
   headings = rendered.headings;
 
@@ -90,7 +90,7 @@ if (isLocal) {
     tldr: post.data.tldr || post.data.description || post.data.summary,
     // Preserve slug in both string and {current} shapes so BlogLayout
     // (which handles Sanity posts too) can derive URLs regardless of path.
-    slug: { current: post.slug },
+    slug: { current: post.id },
   };
 } else {
   // Sanity posts don't have extracted headings; use a stub for the TOC
@@ -146,7 +146,7 @@ const allPostsForRelated = await getAllPosts();
 
     <!-- Related posts by shared topic (max 3) -->
     <RelatedPosts
-      currentSlug={isLocal ? post.slug : post.slug?.current}
+      currentSlug={isLocal ? post.id : post.slug?.current}
       currentTopics={displayPost.topics || []}
       allPosts={allPostsForRelated}
     />

@@ -47,7 +47,7 @@ const collectionSchema = {
     "itemListElement": experiments.map((exp, i) => ({
       "@type": "ListItem",
       "position": i + 1,
-      "url": `https://gekro.com/experiments/${exp.slug}/`,
+      "url": `https://gekro.com/experiments/${exp.id}/`,
       "name": exp.data.title,
     })),
   },
@@ -79,7 +79,7 @@ const breadcrumbs = {
     <!-- ── Experiment card grid — 1/2/3 columns responsive ── -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {experiments.map(exp => (
-        <ExperimentCard experiment={exp.data} slug={exp.slug} />
+        <ExperimentCard experiment={exp.data} slug={exp.id} />
       ))}
     </div>
 

@@ -16,7 +16,7 @@ import { renderOgCard } from '../../../lib/og/render';
 export async function getStaticPaths() {
   const entries = await getCollection('stack');
   return entries.map(entry => ({
-    params: { slug: entry.slug },
+    params: { slug: entry.id },
     props: {
       title: entry.data.name,
       date: entry.data.lastVerified,

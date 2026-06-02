@@ -83,7 +83,7 @@ Canonical summary: ${SITE}/llms.txt
     const d = post.data;
     return [
       `Title: ${d.title}`,
-      `URL: ${SITE}/blog/${post.slug}/`,
+      `URL: ${SITE}/blog/${post.id}/`,
       `Published: ${d.publishedAt}`,
       d.topics?.length ? `Topics: ${d.topics.join(', ')}` : null,
       d.difficulty ? `Difficulty: ${d.difficulty}` : null,
@@ -97,7 +97,7 @@ Canonical summary: ${SITE}/llms.txt
     const d = exp.data;
     return [
       `Title: ${d.title}`,
-      `URL: ${SITE}/experiments/${exp.slug}/`,
+      `URL: ${SITE}/experiments/${exp.id}/`,
       `Started: ${d.startDate}`,
       d.endDate ? `Ended: ${d.endDate}` : null,
       d.status ? `Status: ${d.status}` : null,
@@ -112,7 +112,7 @@ Canonical summary: ${SITE}/llms.txt
     const d = s.data;
     return [
       `Name: ${d.name}`,
-      `URL: ${SITE}/stack/${s.slug}/`,
+      `URL: ${SITE}/stack/${s.id}/`,
       `Category: ${d.category}`,
       `Status: ${d.status}`,
       `Last verified: ${d.lastVerified}`,
@@ -129,7 +129,7 @@ Canonical summary: ${SITE}/llms.txt
     const d = n.data;
     return [
       `Title: ${d.title}`,
-      `URL: ${SITE}/news/${n.slug}/`,
+      `URL: ${SITE}/news/${n.id}/`,
       `Published: ${d.publishedAt}`,
       d.sources?.length ? `Sources: ${d.sources.join(', ')}` : null,
       `Summary: ${d.summary}`,

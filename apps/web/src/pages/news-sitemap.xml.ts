@@ -31,7 +31,7 @@ export async function GET() {
     .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
 
   const urls = recent.map(n => `  <url>
-    <loc>${SITE}/news/${n.slug}/</loc>
+    <loc>${SITE}/news/${n.id}/</loc>
     <news:news>
       <news:publication>
         <news:name>gekro</news:name>

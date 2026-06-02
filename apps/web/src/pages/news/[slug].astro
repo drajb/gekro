@@ -6,17 +6,17 @@
  * a subtle dateline, the inline-cited body, a sources footer, and prev/next.
  * Mobile-first typography.
  */
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 
 export async function getStaticPaths() {
   const briefings = await getCollection('news', b => b.data.approved);
-  return briefings.map(b => ({ params: { slug: b.slug }, props: { briefing: b } }));
+  return briefings.map(b => ({ params: { slug: b.id }, props: { briefing: b } }));
 }
 
 const { briefing } = Astro.props;
-const { Content } = await briefing.render();
+const { Content } = await render(briefing);
 
 const dateline = new Date(briefing.data.publishedAt + 'T12:00:00Z').toLocaleDateString('en-US', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -24,7 +24,7 @@ const dateline = new Date(briefing.data.publishedAt + 'T12:00:00Z').toLocaleDate
 
 const all = (await getCollection('news', b => b.data.approved))
   .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
-const idx = all.findIndex(b => b.slug === briefing.slug);
+const idx = all.findIndex(b => b.id === briefing.id);
 const newer = idx > 0 ? all[idx - 1] : null;
 const older = idx < all.length - 1 ? all[idx + 1] : null;
 
@@ -32,8 +32,8 @@ const uniqueSources = [...new Map(
   briefing.data.sources.map((name, i) => [briefing.data.sourceUrls[i] ?? name, { name, url: briefing.data.sourceUrls[i] }])
 ).values()];
 
-const pageURL = `https://gekro.com/news/${briefing.slug}/`;
-const ogImage = `/og/news/${briefing.slug}.png`;
+const pageURL = `https://gekro.com/news/${briefing.id}/`;
+const ogImage = `/og/news/${briefing.id}.png`;
 
 // schema.org NewsArticle — news is the most citation/GEO-sensitive content type
 const newsSchema = {
@@ -139,13 +139,13 @@ const breadcrumbs = {
     <!-- Prev / Next -->
     <nav class="mt-10 pt-7 border-t border-border-subtle flex justify-between gap-4 text-[12px] font-mono">
       {older ? (
-        <a href={`/news/${older.slug}/`} class="group text-text-muted hover:text-accent transition-colors max-w-[45%]">
+        <a href={`/news/${older.id}/`} class="group text-text-muted hover:text-accent transition-colors max-w-[45%]">
           <span class="block text-[10px] uppercase tracking-widest text-text-muted/60 mb-1">← Older</span>
           <span class="block leading-snug line-clamp-2 group-hover:text-accent">{older.data.title}</span>
         </a>
       ) : <span />}
       {newer ? (
-        <a href={`/news/${newer.slug}/`} class="group text-text-muted hover:text-accent transition-colors max-w-[45%] text-right ml-auto">
+        <a href={`/news/${newer.id}/`} class="group text-text-muted hover:text-accent transition-colors max-w-[45%] text-right ml-auto">
           <span class="block text-[10px] uppercase tracking-widest text-text-muted/60 mb-1">Newer →</span>
           <span class="block leading-snug line-clamp-2 group-hover:text-accent">{newer.data.title}</span>
         </a>

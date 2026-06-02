@@ -69,7 +69,10 @@ export async function getAllPosts(): Promise<FormattedPost[]> {
 
   const formattedLocal: FormattedPost[] = localPosts.map(p => ({
     title: p.data.title,
-    slug: { current: p.slug },
+    // Astro 6 Content Layer: collection entries expose `id` (was `slug` in v4).
+    // We normalise to the Sanity-style { current } shape so the rest of the
+    // blog pipeline (PostCard, RelatedPosts, [slug].astro) is unchanged.
+    slug: { current: p.id },
     description: p.data.description || p.data.summary || '',
     tldr: p.data.tldr || p.data.description || p.data.summary || '',
     publishedAt: p.data.publishedAt,

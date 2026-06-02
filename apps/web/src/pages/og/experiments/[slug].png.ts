@@ -14,7 +14,7 @@ import { renderOgCard } from '../../../lib/og/render';
 export async function getStaticPaths() {
   const experiments = await getCollection('experiments');
   return experiments.map(exp => ({
-    params: { slug: exp.slug },
+    params: { slug: exp.id },
     props: {
       title: exp.data.title,
       date: exp.data.startDate,

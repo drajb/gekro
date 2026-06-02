@@ -69,7 +69,7 @@ const collectionSchema = {
     itemListElement: apps.map((app, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://gekro.com/apps/${app.slug}/`,
+      url: `https://gekro.com/apps/${app.id}/`,
       name: app.data.title,
     })),
   },
@@ -184,7 +184,7 @@ const breadcrumbs = {
                 category={app.data.category}
                 icon={app.data.icon}
                 status={app.data.status}
-                slug={app.slug}
+                slug={app.id}
                 publishedAt={app.data.publishedAt}
               />
             </div>
@@ -213,7 +213,7 @@ const breadcrumbs = {
                 category={app.data.category}
                 icon={app.data.icon}
                 status={app.data.status}
-                slug={app.slug}
+                slug={app.id}
                 publishedAt={app.data.publishedAt}
               />
             </div>

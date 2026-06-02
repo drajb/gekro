@@ -44,7 +44,7 @@ export async function GET(context: APIContext) {
       pubDate: new Date(post.data.publishedAt),
       // Description priority: aiSummary (AI-optimised) → tldr → description
       description: post.data.aiSummary || post.data.tldr || post.data.description,
-      link: `/blog/${post.slug}/`,
+      link: `/blog/${post.id}/`,
       categories: post.data.topics,
       customData: `<author>11652coral@gmail.com (Rohit Burani)</author>`,
     })),

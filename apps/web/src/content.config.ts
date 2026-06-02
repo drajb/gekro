@@ -40,9 +40,11 @@
  */
 
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
-  type: 'content',
+  // Astro 6 Content Layer: glob loader. `!**/_*` excludes _template.md
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/content/blog' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -82,7 +84,8 @@ const blog = defineCollection({
   }),
 });
 const experiments = defineCollection({
-  type: 'content',
+  // Astro 6 Content Layer: glob loader. `!**/_*` excludes _template.md
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/content/experiments' }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -101,7 +104,8 @@ const experiments = defineCollection({
 });
 
 const apps = defineCollection({
-  type: 'content',
+  // Astro 6 Content Layer: glob loader. `!**/_*` excludes _template.md
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/content/apps' }),
   schema: z.object({
     title: z.string(),
     // slug is auto-derived from filename by Astro — do not add it here
@@ -134,7 +138,8 @@ const apps = defineCollection({
  *    or just name a competitor without a corresponding entry yet.
  */
 const stack = defineCollection({
-  type: 'content',
+  // Astro 6 Content Layer: glob loader. `!**/_*` excludes _template.md
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/content/stack' }),
   schema: z.object({
     name: z.string(),
     category: z.enum([
@@ -226,7 +231,8 @@ const stack = defineCollection({
  * approved — human-reviewed and intentionally published (set by the workflow)
  */
 const news = defineCollection({
-  type: 'content',
+  // Astro 6 Content Layer: glob loader. `!**/_*` excludes _template.md
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/content/news' }),
   schema: z.object({
     title: z.string(),
     publishedAt: z.string(),       // ISO date, e.g. "2026-05-26"
