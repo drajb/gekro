@@ -1,5 +1,5 @@
 ---
-import { getHighlighter } from 'shiki';
+import { createHighlighter } from 'shiki';
 
 interface Props {
   code: string;
@@ -9,7 +9,7 @@ interface Props {
 
 const { code, lang = 'typescript', filename } = Astro.props;
 
-const highlighter = await getHighlighter({
+const highlighter = await createHighlighter({
   themes: ['tokyo-night'],
   langs: [lang, 'typescript', 'javascript', 'css', 'html', 'json', 'bash', 'markdown', 'yaml', 'python'],
 });
