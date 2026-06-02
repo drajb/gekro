@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "last_updated": "2026-05-23",
+  "last_updated": "2026-06-01",
   "source_notes": "Hand-assembled from official model cards (Meta, Alibaba, Mistral, Google, Microsoft, DeepSeek, IBM, Cohere, etc.) and the Ollama library. Architecture fields (layers/kv_heads/head_dim/hidden_dim) sourced from each vendor's HuggingFace config.json. Quantization recommendations follow llama.cpp community consensus (Q4_K_M as the sensible default). Where a model is MoE, `params` is total weights, `params_active` is what runs per forward pass. Apps should always handle missing fields gracefully — newer models in the Ollama library may not have a row here until the auto-fetcher PR (per #9 design) lands.",
   "license_glossary": {
     "Llama-3-Community": "Meta's permissive license with 700M MAU revenue cap and acceptable-use policy",
@@ -13,7 +13,15 @@
     "MRL": "Mistral Research License — non-commercial; commercial use requires Mistral Commercial License",
     "Cohere-CC-BY-NC-4.0": "Non-commercial only; commercial use requires separate license"
   },
-  "type_tags": ["chat", "code", "vision", "reasoning", "embedding", "agentic", "instruct"],
+  "type_tags": [
+    "chat",
+    "code",
+    "vision",
+    "reasoning",
+    "embedding",
+    "agentic",
+    "instruct"
+  ],
   "models": [
     {
       "id": "llama-3-1-8b",
@@ -22,17 +30,32 @@
       "family": "llama",
       "params": 8.03,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 32, "hidden_dim": 4096, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 14336 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 4096,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 14336
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-07-23",
       "ollama_tag": "llama3.1:8b",
       "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Workhorse 8B; tool-use trained; 128K context."
+      "notes": "Workhorse 8B; tool-use trained; 128K context.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-1-70b",
@@ -41,16 +64,31 @@
       "family": "llama",
       "params": 70.6,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 80, "hidden_dim": 8192, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 28672 },
+      "architecture": {
+        "layers": 80,
+        "hidden_dim": 8192,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 28672
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-07-23",
       "ollama_tag": "llama3.1:70b",
       "hf_id": "meta-llama/Llama-3.1-70B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-1-405b",
@@ -59,17 +97,32 @@
       "family": "llama",
       "params": 405,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 126, "hidden_dim": 16384, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 53248 },
+      "architecture": {
+        "layers": 126,
+        "hidden_dim": 16384,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 53248
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-07-23",
       "ollama_tag": "llama3.1:405b",
       "hf_id": "meta-llama/Llama-3.1-405B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Frontier-grade open model; needs ~230GB VRAM at Q4."
+      "notes": "Frontier-grade open model; needs ~230GB VRAM at Q4.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-2-1b",
@@ -78,17 +131,32 @@
       "family": "llama",
       "params": 1.24,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 16, "hidden_dim": 2048, "kv_heads": 8, "head_dim": 64, "intermediate_dim": 8192 },
+      "architecture": {
+        "layers": 16,
+        "hidden_dim": 2048,
+        "kv_heads": 8,
+        "head_dim": 64,
+        "intermediate_dim": 8192
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-09-25",
       "ollama_tag": "llama3.2:1b",
       "hf_id": "meta-llama/Llama-3.2-1B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": false },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
       "default_quant": "Q5_K_M",
-      "notes": "Edge / on-device. Runs on Pi 5 16GB at 30+ tok/s."
+      "notes": "Edge / on-device. Runs on Pi 5 16GB at 30+ tok/s.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-2-3b",
@@ -97,16 +165,31 @@
       "family": "llama",
       "params": 3.21,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 28, "hidden_dim": 3072, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 8192 },
+      "architecture": {
+        "layers": 28,
+        "hidden_dim": 3072,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 8192
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-09-25",
       "ollama_tag": "llama3.2:3b",
       "hf_id": "meta-llama/Llama-3.2-3B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-2-11b-vision",
@@ -115,16 +198,31 @@
       "family": "llama",
       "params": 10.7,
       "is_moe": false,
-      "type": ["chat", "vision"],
+      "type": [
+        "chat",
+        "vision"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 32, "hidden_dim": 4096, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 14336 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 4096,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 14336
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-09-25",
       "ollama_tag": "llama3.2-vision:11b",
       "hf_id": "meta-llama/Llama-3.2-11B-Vision-Instruct",
-      "supports": { "tool_use": false, "vision": true, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-2-90b-vision",
@@ -133,16 +231,31 @@
       "family": "llama",
       "params": 90,
       "is_moe": false,
-      "type": ["chat", "vision"],
+      "type": [
+        "chat",
+        "vision"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 80, "hidden_dim": 8192, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 28672 },
+      "architecture": {
+        "layers": 80,
+        "hidden_dim": 8192,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 28672
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-09-25",
       "ollama_tag": "llama3.2-vision:90b",
       "hf_id": "meta-llama/Llama-3.2-90B-Vision-Instruct",
-      "supports": { "tool_use": false, "vision": true, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-3-3-70b",
@@ -151,17 +264,32 @@
       "family": "llama",
       "params": 70.6,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 80, "hidden_dim": 8192, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 28672 },
+      "architecture": {
+        "layers": 80,
+        "hidden_dim": 8192,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 28672
+      },
       "tokenizer": "llama-3",
       "license": "Llama-3-Community",
       "released": "2024-12-06",
       "ollama_tag": "llama3.3:70b",
       "hf_id": "meta-llama/Llama-3.3-70B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Same arch as 3.1-70B but matches 405B on most benchmarks via post-training improvements."
+      "notes": "Same arch as 3.1-70B but matches 405B on most benchmarks via post-training improvements.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-4-scout",
@@ -171,17 +299,35 @@
       "params": 109,
       "params_active": 17,
       "is_moe": true,
-      "type": ["chat", "vision", "instruct"],
+      "type": [
+        "chat",
+        "vision",
+        "instruct"
+      ],
       "context_window": 10000000,
-      "architecture": { "layers": 32, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 16384, "num_experts": 16, "experts_per_token": 1 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 16384,
+        "num_experts": 16,
+        "experts_per_token": 1
+      },
       "tokenizer": "llama-4",
-      "license": "Llama-4-Community",
+      "license": "other",
       "released": "2025-04-05",
       "ollama_tag": "llama4:scout",
       "hf_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
-      "supports": { "tool_use": true, "vision": true, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "10M context; 16 experts, 1 active. Multimodal native."
+      "notes": "10M context; 16 experts, 1 active. Multimodal native.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "llama-4-maverick",
@@ -191,17 +337,35 @@
       "params": 400,
       "params_active": 17,
       "is_moe": true,
-      "type": ["chat", "vision", "instruct"],
+      "type": [
+        "chat",
+        "vision",
+        "instruct"
+      ],
       "context_window": 1000000,
-      "architecture": { "layers": 48, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 16384, "num_experts": 128, "experts_per_token": 1 },
+      "architecture": {
+        "layers": 48,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 16384,
+        "num_experts": 128,
+        "experts_per_token": 1
+      },
       "tokenizer": "llama-4",
-      "license": "Llama-4-Community",
+      "license": "other",
       "released": "2025-04-05",
       "ollama_tag": "llama4:maverick",
       "hf_id": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
-      "supports": { "tool_use": true, "vision": true, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "128 experts. Frontier-grade multimodal."
+      "notes": "128 experts. Frontier-grade multimodal.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-0-6b",
@@ -210,17 +374,32 @@
       "family": "qwen",
       "params": 0.6,
       "is_moe": false,
-      "type": ["chat", "instruct"],
-      "context_window": 32768,
-      "architecture": { "layers": 28, "hidden_dim": 1024, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 3072 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 40960,
+      "architecture": {
+        "layers": 28,
+        "hidden_dim": 1024,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 3072
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:0.6b",
       "hf_id": "Qwen/Qwen3-0.6B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
       "default_quant": "Q8_0",
-      "notes": "Edge model; reasoning mode toggleable via <think> tags."
+      "notes": "Edge model; reasoning mode toggleable via <think> tags.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-1-7b",
@@ -229,16 +408,31 @@
       "family": "qwen",
       "params": 1.72,
       "is_moe": false,
-      "type": ["chat", "instruct"],
-      "context_window": 32768,
-      "architecture": { "layers": 28, "hidden_dim": 2048, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 6144 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 40960,
+      "architecture": {
+        "layers": 28,
+        "hidden_dim": 2048,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 6144
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:1.7b",
       "hf_id": "Qwen/Qwen3-1.7B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-4b",
@@ -247,16 +441,31 @@
       "family": "qwen",
       "params": 4.02,
       "is_moe": false,
-      "type": ["chat", "instruct"],
-      "context_window": 32768,
-      "architecture": { "layers": 36, "hidden_dim": 2560, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 9728 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 40960,
+      "architecture": {
+        "layers": 36,
+        "hidden_dim": 2560,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 9728
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:4b",
       "hf_id": "Qwen/Qwen3-4B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-8b",
@@ -265,16 +474,31 @@
       "family": "qwen",
       "params": 8.2,
       "is_moe": false,
-      "type": ["chat", "instruct"],
-      "context_window": 32768,
-      "architecture": { "layers": 36, "hidden_dim": 4096, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 12288 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 40960,
+      "architecture": {
+        "layers": 36,
+        "hidden_dim": 4096,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 12288
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:8b",
       "hf_id": "Qwen/Qwen3-8B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-14b",
@@ -283,16 +507,31 @@
       "family": "qwen",
       "params": 14.8,
       "is_moe": false,
-      "type": ["chat", "instruct"],
-      "context_window": 32768,
-      "architecture": { "layers": 40, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 17408 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 40960,
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 17408
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:14b",
       "hf_id": "Qwen/Qwen3-14B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-32b",
@@ -301,16 +540,31 @@
       "family": "qwen",
       "params": 32.8,
       "is_moe": false,
-      "type": ["chat", "instruct"],
-      "context_window": 32768,
-      "architecture": { "layers": 64, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 25600 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 40960,
+      "architecture": {
+        "layers": 64,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 25600
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:32b",
       "hf_id": "Qwen/Qwen3-32B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-3-235b-a22b",
@@ -320,17 +574,35 @@
       "params": 235,
       "params_active": 22,
       "is_moe": true,
-      "type": ["chat", "reasoning", "instruct"],
+      "type": [
+        "chat",
+        "reasoning",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 94, "hidden_dim": 4096, "kv_heads": 4, "head_dim": 128, "intermediate_dim": 12288, "num_experts": 128, "experts_per_token": 8 },
+      "architecture": {
+        "layers": 94,
+        "hidden_dim": 4096,
+        "kv_heads": 4,
+        "head_dim": 128,
+        "intermediate_dim": 12288,
+        "num_experts": 128,
+        "experts_per_token": 8
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-04-29",
       "ollama_tag": "qwen3:235b-a22b",
       "hf_id": "Qwen/Qwen3-235B-A22B",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Apache-2.0 frontier-class MoE. Strong reasoning mode."
+      "notes": "Apache-2.0 frontier-class MoE. Strong reasoning mode.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-2-5-coder-7b",
@@ -339,17 +611,32 @@
       "family": "qwen",
       "params": 7.6,
       "is_moe": false,
-      "type": ["code", "instruct"],
+      "type": [
+        "code",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 28, "hidden_dim": 3584, "kv_heads": 4, "head_dim": 128, "intermediate_dim": 18944 },
+      "architecture": {
+        "layers": 28,
+        "hidden_dim": 3584,
+        "kv_heads": 4,
+        "head_dim": 128,
+        "intermediate_dim": 18944
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2024-11-12",
       "ollama_tag": "qwen2.5-coder:7b",
       "hf_id": "Qwen/Qwen2.5-Coder-7B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Best small open coder for local development; matches GPT-4 on HumanEval at 7B."
+      "notes": "Best small open coder for local development; matches GPT-4 on HumanEval at 7B.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-2-5-coder-32b",
@@ -358,16 +645,31 @@
       "family": "qwen",
       "params": 32.5,
       "is_moe": false,
-      "type": ["code", "instruct"],
+      "type": [
+        "code",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 64, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 27648 },
+      "architecture": {
+        "layers": 64,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 27648
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2024-11-12",
       "ollama_tag": "qwen2.5-coder:32b",
       "hf_id": "Qwen/Qwen2.5-Coder-32B-Instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-2-5-vl-7b",
@@ -376,16 +678,31 @@
       "family": "qwen",
       "params": 8.3,
       "is_moe": false,
-      "type": ["chat", "vision"],
-      "context_window": 131072,
-      "architecture": { "layers": 28, "hidden_dim": 3584, "kv_heads": 4, "head_dim": 128, "intermediate_dim": 18944 },
+      "type": [
+        "chat",
+        "vision"
+      ],
+      "context_window": 128000,
+      "architecture": {
+        "layers": 28,
+        "hidden_dim": 3584,
+        "kv_heads": 4,
+        "head_dim": 128,
+        "intermediate_dim": 18944
+      },
       "tokenizer": "qwen-2",
       "license": "Apache-2.0",
       "released": "2025-01-26",
       "ollama_tag": "qwen2.5vl:7b",
       "hf_id": "Qwen/Qwen2.5-VL-7B-Instruct",
-      "supports": { "tool_use": true, "vision": true, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "qwen-2-5-vl-72b",
@@ -394,16 +711,31 @@
       "family": "qwen",
       "params": 73.4,
       "is_moe": false,
-      "type": ["chat", "vision"],
-      "context_window": 131072,
-      "architecture": { "layers": 80, "hidden_dim": 8192, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 29568 },
+      "type": [
+        "chat",
+        "vision"
+      ],
+      "context_window": 128000,
+      "architecture": {
+        "layers": 80,
+        "hidden_dim": 8192,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 29568
+      },
       "tokenizer": "qwen-2",
-      "license": "Apache-2.0",
+      "license": "other",
       "released": "2025-01-26",
       "ollama_tag": "qwen2.5vl:72b",
       "hf_id": "Qwen/Qwen2.5-VL-72B-Instruct",
-      "supports": { "tool_use": true, "vision": true, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "mistral-7b-v0-3",
@@ -412,16 +744,31 @@
       "family": "mistral",
       "params": 7.25,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 32768,
-      "architecture": { "layers": 32, "hidden_dim": 4096, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 14336 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 4096,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 14336
+      },
       "tokenizer": "mistral",
       "license": "Apache-2.0",
       "released": "2024-05-22",
       "ollama_tag": "mistral:7b",
       "hf_id": "mistralai/Mistral-7B-Instruct-v0.3",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "mistral-nemo-12b",
@@ -430,35 +777,65 @@
       "family": "mistral",
       "params": 12.2,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 40, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 14336 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 14336
+      },
       "tokenizer": "tekken",
       "license": "Apache-2.0",
       "released": "2024-07-18",
       "ollama_tag": "mistral-nemo:12b",
       "hf_id": "mistralai/Mistral-Nemo-Instruct-2407",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Co-trained with NVIDIA. New 'tekken' tokenizer is ~30% more efficient than Llama-3 on European languages."
+      "notes": "Co-trained with NVIDIA. New 'tekken' tokenizer is ~30% more efficient than Llama-3 on European languages.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "mistral-small-3",
       "label": "Mistral Small 3 (24B)",
       "vendor": "Mistral AI",
       "family": "mistral",
-      "params": 24.0,
+      "params": 24,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 32768,
-      "architecture": { "layers": 40, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 32768 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 32768
+      },
       "tokenizer": "tekken",
       "license": "Apache-2.0",
       "released": "2025-01-30",
       "ollama_tag": "mistral-small:24b",
       "hf_id": "mistralai/Mistral-Small-24B-Instruct-2501",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "mistral-large-2",
@@ -467,17 +844,32 @@
       "family": "mistral",
       "params": 123,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 88, "hidden_dim": 12288, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 28672 },
+      "architecture": {
+        "layers": 88,
+        "hidden_dim": 12288,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 28672
+      },
       "tokenizer": "tekken",
-      "license": "MRL",
+      "license": "other",
       "released": "2024-07-24",
       "ollama_tag": "mistral-large:123b",
       "hf_id": "mistralai/Mistral-Large-Instruct-2407",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Non-commercial; commercial use requires Mistral Commercial License."
+      "notes": "Non-commercial; commercial use requires Mistral Commercial License.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "mixtral-8x7b",
@@ -487,16 +879,33 @@
       "params": 46.7,
       "params_active": 12.9,
       "is_moe": true,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 32768,
-      "architecture": { "layers": 32, "hidden_dim": 4096, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 14336, "num_experts": 8, "experts_per_token": 2 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 4096,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 14336,
+        "num_experts": 8,
+        "experts_per_token": 2
+      },
       "tokenizer": "mistral",
       "license": "Apache-2.0",
       "released": "2023-12-11",
       "ollama_tag": "mixtral:8x7b",
       "hf_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "mixtral-8x22b",
@@ -506,16 +915,33 @@
       "params": 141,
       "params_active": 39,
       "is_moe": true,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 65536,
-      "architecture": { "layers": 56, "hidden_dim": 6144, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 16384, "num_experts": 8, "experts_per_token": 2 },
+      "architecture": {
+        "layers": 56,
+        "hidden_dim": 6144,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 16384,
+        "num_experts": 8,
+        "experts_per_token": 2
+      },
       "tokenizer": "mistral",
       "license": "Apache-2.0",
       "released": "2024-04-17",
       "ollama_tag": "mixtral:8x22b",
       "hf_id": "mistralai/Mixtral-8x22B-Instruct-v0.1",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "codestral-22b",
@@ -524,36 +950,67 @@
       "family": "mistral",
       "params": 22.2,
       "is_moe": false,
-      "type": ["code", "instruct"],
+      "type": [
+        "code",
+        "instruct"
+      ],
       "context_window": 32768,
-      "architecture": { "layers": 56, "hidden_dim": 6144, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 16384 },
+      "architecture": {
+        "layers": 56,
+        "hidden_dim": 6144,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 16384
+      },
       "tokenizer": "mistral",
-      "license": "MRL",
+      "license": "other",
       "released": "2024-05-29",
       "ollama_tag": "codestral:22b",
       "hf_id": "mistralai/Codestral-22B-v0.1",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
       "default_quant": "Q4_K_M",
-      "notes": "80+ programming languages; FIM-trained for inline completion."
+      "notes": "80+ programming languages; FIM-trained for inline completion.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "devstral-small",
       "label": "Devstral Small (24B)",
       "vendor": "Mistral AI",
       "family": "mistral",
-      "params": 24.0,
+      "params": 24,
       "is_moe": false,
-      "type": ["code", "agentic", "instruct"],
+      "type": [
+        "code",
+        "agentic",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 40, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 32768 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 32768
+      },
       "tokenizer": "tekken",
       "license": "Apache-2.0",
       "released": "2025-05-21",
       "ollama_tag": "devstral:24b",
       "hf_id": "mistralai/Devstral-Small-2505",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Agentic coding model; trained on SWE-Bench style tasks. State-of-art among open agentic coders at 24B."
+      "notes": "Agentic coding model; trained on SWE-Bench style tasks. State-of-art among open agentic coders at 24B.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-2-2b",
@@ -562,16 +1019,31 @@
       "family": "gemma",
       "params": 2.61,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 8192,
-      "architecture": { "layers": 26, "hidden_dim": 2304, "kv_heads": 4, "head_dim": 256, "intermediate_dim": 9216 },
+      "architecture": {
+        "layers": 26,
+        "hidden_dim": 2304,
+        "kv_heads": 4,
+        "head_dim": 256,
+        "intermediate_dim": 9216
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2024-07-31",
       "ollama_tag": "gemma2:2b",
       "hf_id": "google/gemma-2-2b-it",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-2-9b",
@@ -580,16 +1052,31 @@
       "family": "gemma",
       "params": 9.24,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 8192,
-      "architecture": { "layers": 42, "hidden_dim": 3584, "kv_heads": 8, "head_dim": 256, "intermediate_dim": 14336 },
+      "architecture": {
+        "layers": 42,
+        "hidden_dim": 3584,
+        "kv_heads": 8,
+        "head_dim": 256,
+        "intermediate_dim": 14336
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2024-06-27",
       "ollama_tag": "gemma2:9b",
       "hf_id": "google/gemma-2-9b-it",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-2-27b",
@@ -598,34 +1085,64 @@
       "family": "gemma",
       "params": 27.2,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 8192,
-      "architecture": { "layers": 46, "hidden_dim": 4608, "kv_heads": 16, "head_dim": 128, "intermediate_dim": 36864 },
+      "architecture": {
+        "layers": 46,
+        "hidden_dim": 4608,
+        "kv_heads": 16,
+        "head_dim": 128,
+        "intermediate_dim": 36864
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2024-06-27",
       "ollama_tag": "gemma2:27b",
       "hf_id": "google/gemma-2-27b-it",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-3-1b",
       "label": "Gemma 3 1B",
       "vendor": "Google",
       "family": "gemma",
-      "params": 1.0,
+      "params": 1,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 32768,
-      "architecture": { "layers": 26, "hidden_dim": 1152, "kv_heads": 1, "head_dim": 256, "intermediate_dim": 6912 },
+      "architecture": {
+        "layers": 26,
+        "hidden_dim": 1152,
+        "kv_heads": 1,
+        "head_dim": 256,
+        "intermediate_dim": 6912
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2025-03-12",
       "ollama_tag": "gemma3:1b",
       "hf_id": "google/gemma-3-1b-it",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-3-4b",
@@ -634,16 +1151,32 @@
       "family": "gemma",
       "params": 4.3,
       "is_moe": false,
-      "type": ["chat", "vision", "instruct"],
+      "type": [
+        "chat",
+        "vision",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 34, "hidden_dim": 2560, "kv_heads": 4, "head_dim": 256, "intermediate_dim": 10240 },
+      "architecture": {
+        "layers": 34,
+        "hidden_dim": 2560,
+        "kv_heads": 4,
+        "head_dim": 256,
+        "intermediate_dim": 10240
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2025-03-12",
       "ollama_tag": "gemma3:4b",
       "hf_id": "google/gemma-3-4b-it",
-      "supports": { "tool_use": false, "vision": true, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-3-12b",
@@ -652,16 +1185,32 @@
       "family": "gemma",
       "params": 12.2,
       "is_moe": false,
-      "type": ["chat", "vision", "instruct"],
+      "type": [
+        "chat",
+        "vision",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 48, "hidden_dim": 3840, "kv_heads": 8, "head_dim": 256, "intermediate_dim": 15360 },
+      "architecture": {
+        "layers": 48,
+        "hidden_dim": 3840,
+        "kv_heads": 8,
+        "head_dim": 256,
+        "intermediate_dim": 15360
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2025-03-12",
       "ollama_tag": "gemma3:12b",
       "hf_id": "google/gemma-3-12b-it",
-      "supports": { "tool_use": false, "vision": true, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gemma-3-27b",
@@ -670,17 +1219,33 @@
       "family": "gemma",
       "params": 27.4,
       "is_moe": false,
-      "type": ["chat", "vision", "instruct"],
+      "type": [
+        "chat",
+        "vision",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 62, "hidden_dim": 5376, "kv_heads": 16, "head_dim": 128, "intermediate_dim": 21504 },
+      "architecture": {
+        "layers": 62,
+        "hidden_dim": 5376,
+        "kv_heads": 16,
+        "head_dim": 128,
+        "intermediate_dim": 21504
+      },
       "tokenizer": "gemma",
       "license": "Gemma-Terms-of-Use",
       "released": "2025-03-12",
       "ollama_tag": "gemma3:27b",
       "hf_id": "google/gemma-3-27b-it",
-      "supports": { "tool_use": false, "vision": true, "reasoning": false, "json_mode": false },
+      "supports": {
+        "tool_use": false,
+        "vision": true,
+        "reasoning": false,
+        "json_mode": false
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Best single-GPU vision model; runs at acceptable speed on 24GB GPU at Q4."
+      "notes": "Best single-GPU vision model; runs at acceptable speed on 24GB GPU at Q4.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "phi-3-5-mini",
@@ -689,16 +1254,31 @@
       "family": "phi",
       "params": 3.82,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 32, "hidden_dim": 3072, "kv_heads": 32, "head_dim": 96, "intermediate_dim": 8192 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 3072,
+        "kv_heads": 32,
+        "head_dim": 96,
+        "intermediate_dim": 8192
+      },
       "tokenizer": "phi-3",
       "license": "MIT",
       "released": "2024-08-20",
       "ollama_tag": "phi3.5:3.8b",
       "hf_id": "microsoft/Phi-3.5-mini-instruct",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "phi-4",
@@ -707,17 +1287,32 @@
       "family": "phi",
       "params": 14.7,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 16384,
-      "architecture": { "layers": 40, "hidden_dim": 5120, "kv_heads": 10, "head_dim": 128, "intermediate_dim": 17920 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 5120,
+        "kv_heads": 10,
+        "head_dim": 128,
+        "intermediate_dim": 17920
+      },
       "tokenizer": "phi-4",
       "license": "MIT",
       "released": "2024-12-12",
       "ollama_tag": "phi4:14b",
       "hf_id": "microsoft/phi-4",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Strong reasoning per parameter; rivals Llama 3.3 70B on STEM benchmarks."
+      "notes": "Strong reasoning per parameter; rivals Llama 3.3 70B on STEM benchmarks.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "phi-4-mini",
@@ -726,16 +1321,31 @@
       "family": "phi",
       "params": 3.84,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 32, "hidden_dim": 3072, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 8192 },
+      "architecture": {
+        "layers": 32,
+        "hidden_dim": 3072,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 8192
+      },
       "tokenizer": "phi-4",
       "license": "MIT",
       "released": "2025-02-26",
       "ollama_tag": "phi4-mini:3.8b",
       "hf_id": "microsoft/Phi-4-mini-instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q5_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q5_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-v3",
@@ -745,17 +1355,34 @@
       "params": 671,
       "params_active": 37,
       "is_moe": true,
-      "type": ["chat", "instruct"],
-      "context_window": 131072,
-      "architecture": { "layers": 61, "hidden_dim": 7168, "kv_heads": 128, "head_dim": 192, "intermediate_dim": 18432, "num_experts": 256, "experts_per_token": 8 },
+      "type": [
+        "chat",
+        "instruct"
+      ],
+      "context_window": 163840,
+      "architecture": {
+        "layers": 61,
+        "hidden_dim": 7168,
+        "kv_heads": 128,
+        "head_dim": 192,
+        "intermediate_dim": 18432,
+        "num_experts": 256,
+        "experts_per_token": 8
+      },
       "tokenizer": "deepseek-v3",
       "license": "DeepSeek-License",
       "released": "2024-12-26",
       "ollama_tag": "deepseek-v3:671b",
       "hf_id": "deepseek-ai/DeepSeek-V3",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Multi-head latent attention (MLA) cuts KV cache by ~93%. Frontier-class non-reasoning model."
+      "notes": "Multi-head latent attention (MLA) cuts KV cache by ~93%. Frontier-class non-reasoning model.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-r1",
@@ -765,17 +1392,35 @@
       "params": 671,
       "params_active": 37,
       "is_moe": true,
-      "type": ["reasoning", "chat", "instruct"],
-      "context_window": 131072,
-      "architecture": { "layers": 61, "hidden_dim": 7168, "kv_heads": 128, "head_dim": 192, "intermediate_dim": 18432, "num_experts": 256, "experts_per_token": 8 },
+      "type": [
+        "reasoning",
+        "chat",
+        "instruct"
+      ],
+      "context_window": 163840,
+      "architecture": {
+        "layers": 61,
+        "hidden_dim": 7168,
+        "kv_heads": 128,
+        "head_dim": 192,
+        "intermediate_dim": 18432,
+        "num_experts": 256,
+        "experts_per_token": 8
+      },
       "tokenizer": "deepseek-v3",
       "license": "MIT",
       "released": "2025-01-20",
       "ollama_tag": "deepseek-r1:671b",
       "hf_id": "deepseek-ai/DeepSeek-R1",
-      "supports": { "tool_use": false, "vision": false, "reasoning": true, "json_mode": true },
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Open reasoning model matching o1 on many benchmarks. MIT license. Heavy reasoning token usage."
+      "notes": "Open reasoning model matching o1 on many benchmarks. MIT license. Heavy reasoning token usage.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-r1-distill-7b",
@@ -784,16 +1429,31 @@
       "family": "deepseek",
       "params": 7.6,
       "is_moe": false,
-      "type": ["reasoning", "instruct"],
+      "type": [
+        "reasoning",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 28, "hidden_dim": 3584, "kv_heads": 4, "head_dim": 128, "intermediate_dim": 18944 },
+      "architecture": {
+        "layers": 28,
+        "hidden_dim": 3584,
+        "kv_heads": 4,
+        "head_dim": 128,
+        "intermediate_dim": 18944
+      },
       "tokenizer": "qwen-2",
       "license": "MIT",
       "released": "2025-01-20",
       "ollama_tag": "deepseek-r1:7b",
       "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
-      "supports": { "tool_use": false, "vision": false, "reasoning": true, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-r1-distill-14b",
@@ -802,16 +1462,31 @@
       "family": "deepseek",
       "params": 14.8,
       "is_moe": false,
-      "type": ["reasoning", "instruct"],
+      "type": [
+        "reasoning",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 48, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 13824 },
+      "architecture": {
+        "layers": 48,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 13824
+      },
       "tokenizer": "qwen-2",
       "license": "MIT",
       "released": "2025-01-20",
       "ollama_tag": "deepseek-r1:14b",
       "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
-      "supports": { "tool_use": false, "vision": false, "reasoning": true, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-r1-distill-32b",
@@ -820,16 +1495,31 @@
       "family": "deepseek",
       "params": 32.8,
       "is_moe": false,
-      "type": ["reasoning", "instruct"],
+      "type": [
+        "reasoning",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 64, "hidden_dim": 5120, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 27648 },
+      "architecture": {
+        "layers": 64,
+        "hidden_dim": 5120,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 27648
+      },
       "tokenizer": "qwen-2",
       "license": "MIT",
       "released": "2025-01-20",
       "ollama_tag": "deepseek-r1:32b",
       "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-      "supports": { "tool_use": false, "vision": false, "reasoning": true, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-r1-distill-70b",
@@ -838,16 +1528,31 @@
       "family": "deepseek",
       "params": 70.6,
       "is_moe": false,
-      "type": ["reasoning", "instruct"],
+      "type": [
+        "reasoning",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 80, "hidden_dim": 8192, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 28672 },
+      "architecture": {
+        "layers": 80,
+        "hidden_dim": 8192,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 28672
+      },
       "tokenizer": "llama-3",
       "license": "MIT",
       "released": "2025-01-20",
       "ollama_tag": "deepseek-r1:70b",
       "hf_id": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
-      "supports": { "tool_use": false, "vision": false, "reasoning": true, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "deepseek-coder-v2-lite",
@@ -857,16 +1562,33 @@
       "params": 15.7,
       "params_active": 2.4,
       "is_moe": true,
-      "type": ["code", "instruct"],
-      "context_window": 131072,
-      "architecture": { "layers": 27, "hidden_dim": 2048, "kv_heads": 16, "head_dim": 128, "intermediate_dim": 10944, "num_experts": 64, "experts_per_token": 6 },
+      "type": [
+        "code",
+        "instruct"
+      ],
+      "context_window": 163840,
+      "architecture": {
+        "layers": 27,
+        "hidden_dim": 2048,
+        "kv_heads": 16,
+        "head_dim": 128,
+        "intermediate_dim": 10944,
+        "num_experts": 64,
+        "experts_per_token": 6
+      },
       "tokenizer": "deepseek",
-      "license": "DeepSeek-License",
+      "license": "other",
       "released": "2024-06-17",
       "ollama_tag": "deepseek-coder-v2:16b",
       "hf_id": "deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gpt-oss-20b",
@@ -876,17 +1598,35 @@
       "params": 20.9,
       "params_active": 3.6,
       "is_moe": true,
-      "type": ["chat", "instruct", "reasoning"],
+      "type": [
+        "chat",
+        "instruct",
+        "reasoning"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 24, "hidden_dim": 2880, "kv_heads": 8, "head_dim": 64, "intermediate_dim": 2880, "num_experts": 32, "experts_per_token": 4 },
+      "architecture": {
+        "layers": 24,
+        "hidden_dim": 2880,
+        "kv_heads": 8,
+        "head_dim": 64,
+        "intermediate_dim": 2880,
+        "num_experts": 32,
+        "experts_per_token": 4
+      },
       "tokenizer": "o200k_harmony",
       "license": "Apache-2.0",
       "released": "2025-08-05",
       "ollama_tag": "gpt-oss:20b",
       "hf_id": "openai/gpt-oss-20b",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "First OpenAI open-weight release since GPT-2. MXFP4 native quantization. Tool-use trained."
+      "notes": "First OpenAI open-weight release since GPT-2. MXFP4 native quantization. Tool-use trained.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "gpt-oss-120b",
@@ -896,17 +1636,35 @@
       "params": 117,
       "params_active": 5.1,
       "is_moe": true,
-      "type": ["chat", "instruct", "reasoning"],
+      "type": [
+        "chat",
+        "instruct",
+        "reasoning"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 36, "hidden_dim": 2880, "kv_heads": 8, "head_dim": 64, "intermediate_dim": 2880, "num_experts": 128, "experts_per_token": 4 },
+      "architecture": {
+        "layers": 36,
+        "hidden_dim": 2880,
+        "kv_heads": 8,
+        "head_dim": 64,
+        "intermediate_dim": 2880,
+        "num_experts": 128,
+        "experts_per_token": 4
+      },
       "tokenizer": "o200k_harmony",
       "license": "Apache-2.0",
       "released": "2025-08-05",
       "ollama_tag": "gpt-oss:120b",
       "hf_id": "openai/gpt-oss-120b",
-      "supports": { "tool_use": true, "vision": false, "reasoning": true, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": true,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Matches o4-mini on reasoning. Apache-2.0."
+      "notes": "Matches o4-mini on reasoning. Apache-2.0.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "granite-3-8b",
@@ -915,17 +1673,32 @@
       "family": "granite",
       "params": 8.17,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 40, "hidden_dim": 4096, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 12800 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 4096,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 12800
+      },
       "tokenizer": "granite",
       "license": "Apache-2.0",
       "released": "2024-10-21",
       "ollama_tag": "granite3-dense:8b",
       "hf_id": "ibm-granite/granite-3.0-8b-instruct",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Enterprise-focused; Apache-2.0; strong on tool-use and structured output."
+      "notes": "Enterprise-focused; Apache-2.0; strong on tool-use and structured output.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "granite-code-20b",
@@ -934,35 +1707,65 @@
       "family": "granite",
       "params": 20.1,
       "is_moe": false,
-      "type": ["code", "instruct"],
+      "type": [
+        "code",
+        "instruct"
+      ],
       "context_window": 8192,
-      "architecture": { "layers": 52, "hidden_dim": 6144, "kv_heads": 1, "head_dim": 128, "intermediate_dim": 24576 },
+      "architecture": {
+        "layers": 52,
+        "hidden_dim": 6144,
+        "kv_heads": 1,
+        "head_dim": 128,
+        "intermediate_dim": 24576
+      },
       "tokenizer": "granite",
       "license": "Apache-2.0",
       "released": "2024-05-08",
       "ollama_tag": "granite-code:20b",
       "hf_id": "ibm-granite/granite-20b-code-instruct",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "command-r",
       "label": "Command R (35B)",
       "vendor": "Cohere",
       "family": "command",
-      "params": 35.0,
+      "params": 35,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 40, "hidden_dim": 8192, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 22528 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 8192,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 22528
+      },
       "tokenizer": "command-r",
-      "license": "Cohere-CC-BY-NC-4.0",
+      "license": "cc-by-nc-4.0",
       "released": "2024-03-11",
       "ollama_tag": "command-r:35b",
       "hf_id": "CohereForAI/c4ai-command-r-v01",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Optimized for RAG and tool use. Non-commercial weights — commercial needs Cohere license."
+      "notes": "Optimized for RAG and tool use. Non-commercial weights — commercial needs Cohere license.",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "command-r-plus",
@@ -971,16 +1774,31 @@
       "family": "command",
       "params": 104,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 131072,
-      "architecture": { "layers": 64, "hidden_dim": 12288, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 33792 },
+      "architecture": {
+        "layers": 64,
+        "hidden_dim": 12288,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 33792
+      },
       "tokenizer": "command-r",
-      "license": "Cohere-CC-BY-NC-4.0",
+      "license": "cc-by-nc-4.0",
       "released": "2024-04-04",
       "ollama_tag": "command-r-plus:104b",
       "hf_id": "CohereForAI/c4ai-command-r-plus",
-      "supports": { "tool_use": true, "vision": false, "reasoning": false, "json_mode": true },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": true,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": true
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "yi-1-5-34b",
@@ -989,16 +1807,31 @@
       "family": "yi",
       "params": 34.4,
       "is_moe": false,
-      "type": ["chat", "instruct"],
+      "type": [
+        "chat",
+        "instruct"
+      ],
       "context_window": 32768,
-      "architecture": { "layers": 60, "hidden_dim": 7168, "kv_heads": 8, "head_dim": 128, "intermediate_dim": 20480 },
+      "architecture": {
+        "layers": 60,
+        "hidden_dim": 7168,
+        "kv_heads": 8,
+        "head_dim": 128,
+        "intermediate_dim": 20480
+      },
       "tokenizer": "yi",
       "license": "Apache-2.0",
       "released": "2024-05-12",
       "ollama_tag": "yi:34b",
       "hf_id": "01-ai/Yi-1.5-34B-Chat",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
-      "default_quant": "Q4_K_M"
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
+      "default_quant": "Q4_K_M",
+      "last_verified": "2026-06-01"
     },
     {
       "id": "starcoder2-15b",
@@ -1007,17 +1840,31 @@
       "family": "starcoder",
       "params": 15.5,
       "is_moe": false,
-      "type": ["code"],
+      "type": [
+        "code"
+      ],
       "context_window": 16384,
-      "architecture": { "layers": 40, "hidden_dim": 6144, "kv_heads": 4, "head_dim": 128, "intermediate_dim": 24576 },
+      "architecture": {
+        "layers": 40,
+        "hidden_dim": 6144,
+        "kv_heads": 4,
+        "head_dim": 128,
+        "intermediate_dim": 24576
+      },
       "tokenizer": "starcoder",
-      "license": "Apache-2.0",
+      "license": "bigcode-openrail-m",
       "released": "2024-02-28",
       "ollama_tag": "starcoder2:15b",
       "hf_id": "bigcode/starcoder2-15b",
-      "supports": { "tool_use": false, "vision": false, "reasoning": false, "json_mode": false },
+      "supports": {
+        "tool_use": false,
+        "vision": false,
+        "reasoning": false,
+        "json_mode": false
+      },
       "default_quant": "Q4_K_M",
-      "notes": "Base model (no instruct tuning); 600+ programming languages."
+      "notes": "Base model (no instruct tuning); 600+ programming languages.",
+      "last_verified": "2026-06-01"
     }
   ]
 }
