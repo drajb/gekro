@@ -53,7 +53,7 @@ What I do not do is write code in the Claude app. A chat window is the wrong pla
 
 ## How I actually run it
 
-I run Claude inside [Google Antigravity](/stack/google-antigravity/), the IDE I control, with Opus 4.8 for the hard problems and Sonnet for volume. The editor gives me the structure and the permission gate - it proposes a change, I see the diff, nothing lands until I say so - and Claude does the surgical work inside those rails. That pairing is the actual product I use day to day, and it is the reason I rate the Claude model highly without coding in its app.
+I run Claude as an extension inside the [Antigravity IDE](/stack/google-antigravity/), the VS Code fork I use as my main editor, and I route by task: Opus for planning, evaluation, and breaking work into steps; Sonnet for executing those steps and for daily flow; Haiku for ad-hoc fixes and long agentic runs that are mechanical rather than reasoning-heavy. The editor gives me the structure and the permission gate - it proposes a change, I see the diff, nothing lands until I say so - and it will even SSH into my Raspberry Pi and work there. That pairing is the actual product I use day to day, and it is why I rate the Claude model highly without coding in its app.
 
 It is the same idea I argued in [constraining AI inside templates](/blog/ai-codes-like-genius/): the model is only as good as the structure you put around it. Drop Claude into a strong template with explicit rules and it is a genuinely great engineer. Drop it into a blank chat box and you get confident, well-written code that may quietly be wrong.
 
@@ -63,7 +63,7 @@ If your work is light enough that the free tier or a cheaper model covers it, yo
 
 ## My setup
 
-Claude via Antigravity, Opus 4.8 as the default for anything non-trivial, permission prompts on. I am on the Max plan. I keep the Claude app around for Cowork and quick non-coding questions, but I do not write code in it - that always goes through the editor.
+Claude via the extension in the Antigravity IDE, models routed by task - Opus to plan, Sonnet to execute, Haiku for ad-hoc fixes - permission prompts on. I am on the Max plan. I keep the Claude app around for Cowork and chat, but I do not write code in it - that always goes through the editor.
 
 ## Where it goes next
 
