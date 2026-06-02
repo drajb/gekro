@@ -7,19 +7,19 @@
  * the stack-standard.md invariants. Buried verdicts are the format-DNA of
  * affiliate marketing; lead verdicts are the format-DNA of honest reviews.
  *
- * Optional homepage and referralLink render as inline-flex links beneath the
- * verdict. If both exist, the referral link is shown — the homepage is still
- * accessible via the StackMeta sidebar/footer.
+ * The "Try it" CTA beneath the verdict points at the tool's plain homepage -
+ * NOT a referral link. This is deliberate (decision 2026-05-31): the prominent
+ * top-of-page link is editorial, so a referral never overshadows the review's
+ * voice. Referral links live only as subtle in-body prose links plus the muted
+ * <StackReferralFooter> disclosure. See stack-standard.md section 6.
  */
 
 interface Props {
   verdict: string;
   homepage: string;
-  referralLink?: string;
 }
 
-const { verdict, homepage, referralLink } = Astro.props;
-const primaryLink = referralLink ?? homepage;
+const { verdict, homepage } = Astro.props;
 ---
 
 <aside
@@ -35,7 +35,7 @@ const primaryLink = referralLink ?? homepage;
       {verdict}
     </p>
     <a
-      href={primaryLink}
+      href={homepage}
       target="_blank"
       rel="noopener noreferrer"
       class="inline-flex items-center gap-2 text-sm font-mono text-accent hover:text-text-primary transition-colors group"
