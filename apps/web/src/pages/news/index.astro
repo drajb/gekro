@@ -1,0 +1,104 @@
+---
+/**
+ * /news — AI industry briefings index
+ *
+ * Lists all published news briefings newest-first.
+ * Briefings are generated daily by scripts/news/generate-briefing.mjs
+ * and merged after human review (or automatically once the trust
+ * threshold is reached — see .github/workflows/news-briefing.yml).
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const allBriefings = (await getCollection('news'))
+  .filter(b => b.data.approved)
+  .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
+
+const latest = allBriefings[0];
+---
+
+<BaseLayout
+  title="AI News Briefings | gekro"
+  description="Daily AI industry briefings from Rohit Burani — curated from vetted sources, written for engineers. No hype, just signal."
+>
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 pt-32 pb-24">
+
+    <!-- Header -->
+    <header class="mb-14">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-[10px] font-mono uppercase tracking-widest text-accent">Daily Briefing</span>
+        <span class="text-border-subtle text-[10px]">·</span>
+        <span class="text-[10px] font-mono text-text-muted">AI Industry Signal</span>
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-heading font-medium tracking-tight text-text-primary mb-5">
+        News
+      </h1>
+      <p class="text-text-secondary leading-relaxed max-w-2xl">
+        Daily AI industry briefings — 1-2 paragraphs of what actually matters, sourced from vetted publications.
+        No hype, no VC press releases. Just what an engineer needs to know.
+      </p>
+      <div class="mt-4 text-[11px] font-mono text-text-muted">
+        <a href="/news-rss.xml" class="hover:text-accent transition-colors">↗ RSS feed</a>
+        <span class="mx-2 text-border-subtle">·</span>
+        <span>{allBriefings.length} briefing{allBriefings.length === 1 ? '' : 's'} published</span>
+      </div>
+    </header>
+
+    <!-- Briefings list -->
+    {allBriefings.length === 0 ? (
+      <p class="text-text-muted font-mono text-sm">No briefings published yet. First one coming soon.</p>
+    ) : (
+      <ol class="space-y-px">
+        {allBriefings.map((briefing, i) => {
+          const date = new Date(briefing.data.publishedAt + 'T12:00:00Z');
+          const formatted = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          const isLatest = i === 0;
+          return (
+            <li>
+              <a
+                href={`/news/${briefing.slug}/`}
+                class="group flex items-start gap-5 py-5 border-b border-border-subtle hover:bg-bg-surface/40 -mx-4 px-4 rounded-xl transition-colors"
+              >
+                <!-- Date column -->
+                <div class="flex-shrink-0 w-28 pt-0.5">
+                  <time
+                    datetime={briefing.data.publishedAt}
+                    class="text-[11px] font-mono text-text-muted group-hover:text-text-secondary transition-colors"
+                  >
+                    {formatted}
+                  </time>
+                  {isLatest && (
+                    <span class="mt-1 inline-block text-[9px] font-mono uppercase tracking-widest text-accent bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded-full">
+                      Latest
+                    </span>
+                  )}
+                </div>
+
+                <!-- Content column -->
+                <div class="flex-1 min-w-0">
+                  <h2 class="text-sm font-medium text-text-primary group-hover:text-accent transition-colors mb-1.5 leading-snug">
+                    {briefing.data.title}
+                  </h2>
+                  <p class="text-[13px] text-text-muted leading-relaxed line-clamp-2">
+                    {briefing.data.summary}
+                  </p>
+                  {briefing.data.topics && briefing.data.topics.length > 0 && (
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                      {briefing.data.topics.map(t => (
+                        <span class="text-[9px] font-mono uppercase tracking-wider text-text-muted bg-bg-elevated border border-border-subtle px-2 py-0.5 rounded-full">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <span class="flex-shrink-0 text-text-muted group-hover:text-accent transition-colors mt-1 text-sm">→</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    )}
+  </main>
+</BaseLayout>
