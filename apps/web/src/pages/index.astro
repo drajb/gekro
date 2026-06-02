@@ -48,6 +48,22 @@ const recentPosts = allPosts.slice(0, 3);
 
 // Derive topic counts for the sidebar chip cloud (top 8 by post count)
 const topics = getTopicCounts(allPosts).slice(0, 8);
+
+// ── Section counts for the "Explore" grid (computed, never stale) ──
+const appsCount = (await getCollection('apps')).length;
+const stackCount = (await getCollection('stack')).length;
+const newsAll = (await getCollection('news', n => n.data.approved))
+  .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
+const latestNews = newsAll[0] ?? null;
+
+// The "Explore" cards — every content surface on the site, in one place.
+const sections = [
+  { href: '/blog',        label: 'Blog',        meta: `${allPosts.length} posts`,           desc: 'Deep dives on agentic AI, local LLMs, and self-hosted infra.',   icon: '✍' },
+  { href: '/apps',        label: 'Apps',        meta: `${appsCount} free tools`,            desc: 'Browser-based calculators and dev tools. No signup, no ads.',    icon: '🧰' },
+  { href: '/news',        label: 'News',        meta: 'Updated daily',                      desc: 'AI industry briefings, neutral and cited. Catch up in a minute.', icon: '📡' },
+  { href: '/stack',       label: 'Stack',       meta: `${stackCount} reviews`,              desc: 'Honest reviews of the tools actually in the workflow.',          icon: '🔧' },
+  { href: '/experiments', label: 'Experiments', meta: `${latestExperiments.length}+ live`,  desc: 'Engineering case studies and lab notes, post-mortem honest.',     icon: '🧪' },
+];
 ---
 
 <BaseLayout
@@ -66,6 +82,44 @@ const topics = getTopicCounts(allPosts).slice(0, 8);
     <HeroText />
 
     <section class="max-w-6xl mx-auto px-6 py-24 space-y-32">
+
+      <!-- ── Section 0: Explore (all content surfaces) ── -->
+      <div class="space-y-10">
+        <div class="space-y-1">
+          <h2 class="text-3xl font-heading font-medium text-text-primary">Explore the lab</h2>
+          <p class="text-sm text-text-muted font-mono">writing, tools, news, and live experiments — all in one place</p>
+        </div>
+
+        <!-- Latest news strip — fresh signal up top, drives the daily-return habit -->
+        {latestNews && (
+          <a href={`/news/${latestNews.slug}/`} class="group block rounded-2xl border border-border-subtle bg-bg-surface/40 hover:bg-bg-surface/70 hover:border-accent/30 transition-all p-5 sm:p-6">
+            <div class="flex items-center gap-2.5 mb-2">
+              <span class="inline-block w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+              <span class="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Latest in AI News</span>
+              <time datetime={latestNews.data.publishedAt} class="text-[10px] font-mono text-text-muted ml-auto">{latestNews.data.publishedAt}</time>
+            </div>
+            <h3 class="text-base sm:text-lg font-heading font-medium text-text-primary group-hover:text-accent transition-colors leading-snug mb-1.5">
+              {latestNews.data.title}
+            </h3>
+            <p class="text-[13px] text-text-secondary leading-relaxed line-clamp-2">{latestNews.data.summary}</p>
+          </a>
+        )}
+
+        <!-- Section cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sections.map(s => (
+            <a href={s.href} class="group flex flex-col rounded-2xl border border-border-subtle bg-bg-surface/30 hover:bg-bg-surface/60 hover:border-accent/30 transition-all p-5 min-h-[140px]">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-2xl select-none" aria-hidden="true">{s.icon}</span>
+                <span class="text-[10px] font-mono text-text-muted bg-bg-elevated border border-border-subtle px-2 py-0.5 rounded-full">{s.meta}</span>
+              </div>
+              <h3 class="text-lg font-heading font-medium text-text-primary group-hover:text-accent transition-colors mb-1">{s.label}</h3>
+              <p class="text-[13px] text-text-muted leading-relaxed flex-1">{s.desc}</p>
+              <span class="mt-3 text-[11px] font-mono text-text-muted group-hover:text-accent transition-colors">Open →</span>
+            </a>
+          ))}
+        </div>
+      </div>
 
       <!-- ── Section 1: Recent Posts + Sidebar ── -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
