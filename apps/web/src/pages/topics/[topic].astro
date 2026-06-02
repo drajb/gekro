@@ -45,7 +45,9 @@ export async function getStaticPaths() {
 }
 
 const { topicName } = Astro.props;
-const topicSlug = topicName.toLowerCase().replace(/\s+/g, '-');
+// Reuse topicToSlug (the same fn getStaticPaths uses) so the canonical URL +
+// JSON-LD slug can't drift from the built route for topics with special chars.
+const topicSlug = topicToSlug(topicName);
 const topicURL = `https://gekro.com/topics/${topicSlug}/`;
 
 // Filter posts: case-insensitive match against the raw topic name
