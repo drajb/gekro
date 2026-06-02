@@ -9,12 +9,12 @@ lastVerified: "2026-06-01"
 
 verdict: "The Antigravity IDE is the editor I keep open all day, and the irony is that I barely use it for Google's own models - it is the cleanest place I have found to drive Claude with full IDE control. I am talking about the original hands-on IDE, not the 2.0 agent-orchestration rebuild that landed in May and broke half the setups I knew; that direction is not for me, and I stayed on the editor."
 
-priceTier: "free"
-pricingNotes: "Free public preview. The May 2026 '2.0' release reorganised the product into an IDE, a CLI, and an agent-orchestration platform, and added a $100/mo AI Ultra tier (5x usage). The editor I use remains free; running Claude inside it draws on your own Anthropic plan."
+priceTier: "paid-tier"
+pricingNotes: "Not free for sustained use. A rate-limited free tier exists (quota refreshes roughly every 5 hours), but real use runs through a Google AI subscription: AI Pro at $20/mo, or AI Ultra at $100/mo (newer developer tier) or $200/mo, which include Antigravity usage credits; extra AI Credits are $0.01 each. I'm on AI Pro. Google has changed this offering repeatedly through 2026 - verify current terms before relying on any number here."
 
 goodAt:
   - "It is a VS Code fork, so my keybindings, extensions, and muscle memory carried over on day one. Zero relearning tax."
-  - "Model optionality is real: it ships with Gemini 3 but runs Claude Opus 4.6 and Sonnet 4.6 natively, so I pick the model per task instead of being locked to the house brand."
+  - "Model optionality is real: it ships with Gemini 3.1 Pro but also runs Anthropic's Claude (Opus and Sonnet) and OpenAI's GPT-OSS natively, so I pick the model per task instead of being locked to the house brand."
   - "Agent edits are permission-gated. It proposes, I approve - I see the diff before anything touches disk, which is the whole reason I trust it on real repos."
   - "The IDE surface is an editor first, assistant second. That balance - me driving, Claude helping - is exactly what I want, and it is what the 2.0 rebuild walked away from."
 
@@ -32,7 +32,7 @@ comparisonTable:
     - ["Runs Claude natively",    "Yes",          "Yes",      "Yes (CLI)"]
     - ["Permission gate on edits", "Yes",         "Yes",      "Yes"]
     - ["Editor-first, not agent-forced", "Yes",   "Yes",      "Yes"]
-    - ["Price",                   "Free preview", "$20/mo",   "Free + API"]
+    - ["Price",                   "AI Pro $20/mo+", "$20/mo",   "Free + API"]
   highlight: "Antigravity IDE"
   caption: "Snapshot as of 2026-06-01. I use the Antigravity IDE surface, not the 2.0 orchestration platform. Preview pricing is subject to change."
 

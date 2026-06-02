@@ -230,6 +230,26 @@ Write the daily briefing following the instructions exactly. Return only valid J
     process.exit(1);
   }
 
+  // Validation guard — REQUIRED for safe unattended auto-publish. If the draft
+  // is malformed, fail loudly so the workflow aborts and nothing is committed.
+  const problems = [];
+  if (!parsed.title || parsed.title.trim().length < 8) problems.push('missing or too-short title');
+  if (/—/.test(`${parsed.title} ${parsed.body}`)) problems.push('contains an em-dash (—) — banned');
+  if (!parsed.summary) problems.push('missing summary');
+  if (parsed.summary && parsed.summary.length > 200) problems.push(`summary too long (${parsed.summary.length} > 200)`);
+  if (!parsed.body || parsed.body.trim().length < 120) problems.push('missing or too-short body');
+  if (!Array.isArray(parsed.sources) || !Array.isArray(parsed.sourceUrls)) {
+    problems.push('sources/sourceUrls must both be arrays');
+  } else if (parsed.sources.length !== parsed.sourceUrls.length) {
+    problems.push(`sources (${parsed.sources.length}) and sourceUrls (${parsed.sourceUrls.length}) length mismatch`);
+  } else if (parsed.sources.length === 0) {
+    problems.push('at least one source is required');
+  }
+  if (problems.length) {
+    console.error('[news] Draft failed validation — NOT writing:\n - ' + problems.join('\n - '));
+    process.exit(1);
+  }
+
   const markdown = buildMarkdown(parsed);
 
   console.log('\n── Draft briefing ──────────────────────────────────────────');

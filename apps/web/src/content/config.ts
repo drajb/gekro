@@ -171,6 +171,11 @@ const stack = defineCollection({
     homepage: z.string().url(),
     referralLink: z.string().url().optional(),
 
+    // Optional secondary CTA shown beside the primary "Try" button in the
+    // verdict action row — e.g. "View my own version" linking to a self-built
+    // alternative. When present, it replaces the default "Visit site" button.
+    altCta: z.object({ label: z.string(), url: z.string().url() }).optional(),
+
     // Cross-links (slug refs to other collections)
     relatedPost: z.string().optional(),
     relatedExperiment: z.string().optional(),

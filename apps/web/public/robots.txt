@@ -39,8 +39,9 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-# Sitemap
+# Sitemaps
 Sitemap: https://gekro.com/sitemap-index.xml
+Sitemap: https://gekro.com/news-sitemap.xml
 
 # AI manifests (llmstxt.org convention)
 # https://gekro.com/llms.txt       — site-level summary

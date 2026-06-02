@@ -10,9 +10,13 @@
  * button carries the referralLink when present, because that is where readers
  * actually look for it. It stays unlabelled (no "referral" badge) so it reads
  * as a clean CTA, not an ad — the muted <StackReferralFooter> remains the one
- * disclosure surface. The SECONDARY button always points at the plain homepage
- * so the un-tracked link is still one click away. With no referralLink, the
- * primary button simply points at the homepage and the secondary is omitted.
+ * disclosure surface.
+ *
+ * The SECONDARY button: if the entry defines `altCta` (e.g. a self-built
+ * alternative — "View my version"), that is shown, styled in the accent colour
+ * so both buttons read as blue. Otherwise, when a referralLink exists, a plain
+ * "Visit site" button points at the un-tracked homepage. With no referralLink
+ * and no altCta, only the primary (homepage) button shows.
  */
 
 interface Props {
@@ -20,9 +24,10 @@ interface Props {
   homepage: string;
   name: string;
   referralLink?: string;
+  altCta?: { label: string; url: string };
 }
 
-const { verdict, homepage, name, referralLink } = Astro.props;
+const { verdict, homepage, name, referralLink, altCta } = Astro.props;
 const primaryLink = referralLink ?? homepage;
 ---
 
@@ -53,7 +58,17 @@ const primaryLink = referralLink ?? homepage;
         <span class="transition-transform group-hover:translate-x-1">→</span>
       </a>
 
-      {referralLink && (
+      {altCta ? (
+        <a
+          href={altCta.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-mono border border-accent text-accent hover:bg-accent/10 transition-colors group"
+        >
+          {altCta.label}
+          <span class="transition-transform group-hover:translate-x-1">→</span>
+        </a>
+      ) : referralLink && (
         <a
           href={homepage}
           target="_blank"

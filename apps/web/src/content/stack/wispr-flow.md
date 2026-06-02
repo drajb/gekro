@@ -5,7 +5,7 @@ tagline: "AI voice dictation that types clean text into any app on your machine.
 
 status: "active"
 publishedAt: "2026-06-01"
-lastVerified: "2026-06-01"
+lastVerified: "2026-06-02"
 
 verdict: "Wispr Flow is the fastest way I have found to get a spoken thought into any text field - its own dashboard clocks me at 146 words a minute across 63,758 words dictated in seven weeks, and it has earned its place for prose, prompts, and messages. The twist of this review: I liked it enough to fork an open-source dictation tool into a free, 100% local build of my own that runs Whisper on-device, and it now covers the same daily job beside Wispr without sending anything to the cloud."
 
@@ -25,20 +25,23 @@ badAt:
   - "Heavy for a dictation tool. Users have reported ~800MB RAM at idle on older Macs and the Windows build briefly freezing the focused app, including the editor."
 
 comparisonTable:
-  headers: ["", "Wispr Flow", "Whisper Local", "Apple Dictation"]
+  headers: ["", "Wispr Flow", "Whisper Local", "Windows Voice Typing"]
   rows:
-    - ["Runs offline",          "No",                    "Yes",          "Yes"]
-    - ["Auto-cleanup",          "Yes",                   "Yes (optional)", "No"]
-    - ["Works in every app",    "Yes",                   "Yes",          "Yes"]
-    - ["Sends audio to cloud",  "Yes",                   "No",           "No (on-device)"]
-    - ["Price",                 "$15/mo ($12 annual)",   "Free (MIT)",   "Free"]
+    - ["Runs offline",          "No",                    "Yes",            "No (cloud)"]
+    - ["Auto-cleanup",          "Yes",                   "Yes (optional)", "Copilot+ PCs only"]
+    - ["Works in every app",    "Yes",                   "Yes",            "Yes"]
+    - ["Sends audio to cloud",  "Yes",                   "No",             "Yes"]
+    - ["Price",                 "$15/mo ($12 annual)",   "Free (MIT)",     "Free (built-in)"]
   highlight: "Wispr Flow"
-  caption: "Snapshot as of 2026-06-01. Whisper Local is my own open-source build; prices are the consumer tiers."
+  caption: "Snapshot as of 2026-06-02. Whisper Local is my own open-source build. Windows Voice Typing only auto-punctuates and de-fillers on Copilot+ PCs; standard machines get the older pipeline."
 
-alternatives: ["Whisper Local", "Superwhisper", "Apple Dictation", "Willow Voice"]
+alternatives: ["Whisper Local", "Windows Voice Typing", "Superwhisper"]
 
 homepage: "https://wisprflow.ai/"
 referralLink: "https://wisprflow.ai/r?ROHIT2038"
+altCta:
+  label: "View my version"
+  url: "https://github.com/drajb/whisper-local"
 
 relatedPost: "ai-codes-like-genius"
 
@@ -65,7 +68,7 @@ Honest comparison after a few weeks side by side: Wispr is still smoother out of
 
 Skip it for two things. First, code - the accuracy on identifiers, flags, and library names is not good enough, and correcting `getUserById` back from "get user by I.D." is slower than just typing it. I dictate the comment and the commit message, then type the function.
 
-Second, anything sensitive on screen. Wispr uses your on-screen context, and unless Privacy Mode is on, their policy lets your audio and text feed model training. If you are looking at a terminal with a token in it, or a customer's data, that is the wrong tool - which is exactly why I built the fully local [Whisper Local](https://github.com/drajb/whisper-local) for that side of my day. Apple's built-in dictation is also free and on-device if you can live without the cleanup.
+Second, anything sensitive on screen. Wispr uses your on-screen context, and unless Privacy Mode is on, their policy lets your audio and text feed model training. If you are looking at a terminal with a token in it, or a customer's data, that is the wrong tool - which is exactly why I built the fully local [Whisper Local](https://github.com/drajb/whisper-local) for that side of my day. Windows' own Voice Typing (Win+H) is free and built in, but in my use it is unreliable on technical terms and whole phrases, and it only auto-punctuates and strips filler on Copilot+ PCs - so it has never been a real substitute for me.
 
 ## My setup
 
