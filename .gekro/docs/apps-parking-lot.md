@@ -109,13 +109,12 @@ For reference — these were in the original 2026-05-22 list and have since ship
 
 ---
 
-## In progress — logged 2026-06-02
+## Shipped — 2026-06-02
 
-### Translator (EN / Hindi / Spanish, live, client-side)
-- Rohit wants a Google-Translate-style live translator, three languages interchangeable: English, Hindi, Spanish.
-- **Feasible 100% client-side, free, no key** via transformer.js (Xenova ports of Helsinki-NLP opus-mt or m2m100/NLLB), lazy-loaded on first use, cached in browser. On-brand (local AI, no data leaves browser). ES<->HI may pivot through English if a direct model pair isn't available.
-- Honest tradeoffs to surface in-app: quality is below Google Translate; one-time model download (~30-200 MB depending on model choice); first translation is slow (model load), subsequent are fast.
-- Status: building 2026-06-02 (after the Astro 4→6 migration so it lands on the new framework).
+### Translator (EN / ES / HI, live, client-side) → `translator`
+- SHIPPED. Google-Translate-style live translator, three languages fully interchangeable (English, Spanish, Hindi) including direct ES↔HI.
+- Built on **Meta M2M-100 418M** (`Xenova/m2m100_418M`) via transformers.js, CDN-imported at runtime (no npm dep added), cached in-browser. Many-to-many model so ES↔HI is direct, no English pivot. Category `ai`.
+- Features: live debounced translation, source auto-detect (3-language heuristic), language swap, browser TTS, copy/export. Fully offline after the one-time ~250 MB model download. Tradeoffs surfaced honestly in the methodology (download size, 3 languages only, quality below largest cloud models, heuristic auto-detect).
 
 ---
 
