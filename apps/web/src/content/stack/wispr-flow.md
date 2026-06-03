@@ -5,9 +5,9 @@ tagline: "AI voice dictation that types clean text into any app on your machine.
 
 status: "active"
 publishedAt: "2026-06-01"
-lastVerified: "2026-06-02"
+lastVerified: "2026-06-01"
 
-verdict: "Wispr Flow is the fastest way I have found to get a spoken thought into any text field - its own dashboard clocks me at 142 words a minute across 68,343 words dictated in seven weeks, and it has earned its place for prose, prompts, and messages. The twist of this review: I liked it enough to fork an open-source dictation tool into a free, 100% local build of my own that runs Whisper on-device, and it now covers the same daily job beside Wispr without sending anything to the cloud."
+verdict: "Wispr Flow is the fastest way I have found to get a spoken thought into any text field - its own dashboard clocks me at 150 words a minute across 71,137 words dictated in seven weeks, and it has earned its place for prose, prompts, and messages. The twist of this review: I liked it enough to fork an open-source dictation tool into a free, 100% local build of my own that runs Whisper on-device, and it now covers the same daily job beside Wispr without sending anything to the cloud."
 
 priceTier: "paid-tier"
 pricingNotes: "Free tier caps at 2,000 words/week. Pro is $15/mo, or $12/mo billed annually ($144/yr). One Pro subscription covers Mac, Windows, iOS, and Android."
@@ -33,7 +33,7 @@ comparisonTable:
     - ["Sends audio to cloud",  "Yes",                   "No",             "Yes"]
     - ["Price",                 "$15/mo ($12 annual)",   "Free (MIT)",     "Free (built-in)"]
   highlight: "Wispr Flow"
-  caption: "Snapshot as of 2026-06-02. Whisper Local is my own open-source build. Windows Voice Typing only auto-punctuates and de-fillers on Copilot+ PCs; standard machines get the older pipeline."
+  caption: "Snapshot as of 2026-06-01. Whisper Local is my own open-source build. Windows Voice Typing only auto-punctuates and de-fillers on Copilot+ PCs; standard machines get the older pipeline."
 
 alternatives: ["Whisper Local", "Windows Voice Typing", "Superwhisper"]
 
@@ -45,7 +45,7 @@ altCta:
 
 relatedPost: "ai-codes-like-genius"
 
-aiSummary: "Wispr Flow is a cloud-based AI voice dictation tool that types cleaned-up, punctuated text into any application about 3-4x faster than typing, which the author validated across 68,343 words of daily dictation over seven weeks at 142 words per minute. The twist of this review: the author forked an open-source tool into a free, 100% local alternative (Whisper Local, MIT) that runs OpenAI's Whisper on-device and covers the same everyday dictation without the cloud, screenshots, or subscription."
+aiSummary: "Wispr Flow is a cloud-based AI voice dictation tool that types cleaned-up, punctuated text into any application about 3-4x faster than typing, which the author validated across 71,137 words of daily dictation over seven weeks at 150 words per minute. The twist of this review: the author forked an open-source tool into a free, 100% local alternative (Whisper Local, MIT) that runs OpenAI's Whisper on-device and covers the same everyday dictation without the cloud, screenshots, or subscription."
 ---
 
 ## Why I tried it
@@ -54,7 +54,7 @@ The bottleneck in my day was never thinking, it was getting the thought down. Pr
 
 [Wispr Flow](https://wisprflow.ai/r?ROHIT2038) was the first one where the second pass mostly disappeared. You hold a hotkey, talk, let go, and the text that appears in whatever field you were in is already punctuated, de-ummed, and reads like you wrote it on purpose. It sits in the menu bar and works the same in the editor, the browser, and a chat window. After a week it had absorbed most of the writing I do that is not code.
 
-The habit stuck, and the numbers back it up. Wispr's own dashboard has me at **142 words a minute** (it puts that in the top 0.2% of its users), **68,343 words dictated** in about seven weeks, and **2,263 cleanups** it made along the way - a copy editor riding shotgun that I never have to thank. About **1,344** of those dictations were prompts fired straight at AI tools, which is to say a large share of how I talk to models now is literally me talking. Those are the app's own numbers, not a cherry-picked week of mine.
+The habit stuck, and the numbers back it up. Wispr's own dashboard has me at **150 words a minute** (it puts that in the top 0.1% of its users), **71,137 words dictated** in about seven weeks, and **2,339 cleanups** it made along the way - a copy editor riding shotgun that I never have to thank. About **1,406** of those dictations were prompts fired straight at AI tools, which is to say a large share of how I talk to models now is literally me talking. Those are the app's own numbers, not a cherry-picked week of mine.
 
 ## So I built my own
 
