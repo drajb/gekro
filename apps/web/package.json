@@ -17,7 +17,7 @@
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "3.7.3",
     "@sanity/astro": "^3.4.0",
-    "@sanity/client": "^6.29.1",
+    "@sanity/client": "^7.22.1",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.3",
     "browser-image-compression": "^2.0.2",
