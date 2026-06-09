@@ -13,9 +13,9 @@ aiSummary: "Rohit explores the shift toward 3D-printed housing, focusing on the 
   3D construction printing isn't just about speed; it's about precision. By moving from subtractive to additive manufacturing, we can reduce material waste by up to 60% and integrate complex thermal geometries directly into the wall structure. This is the definition of Green Infrastructure: high-performance, low-waste, and local-first.
 </TLDR>
 
-The first time I saw a gantry-style 3D printer extruding a bead of carbon-fiber reinforced concrete, I saw more than just a faster way to build. I saw a technical shift toward **Material Sovereignty**-a concept that has been a recurring theme in my recent research.
+The first time I saw a gantry-style 3D printer extruding a bead of carbon-fiber reinforced concrete, I saw more than just a faster way to build. I saw a technical shift toward **Material Sovereignty** - a concept that has been a recurring theme in my recent research.
 
-In the traditional construction world, we are often bound by the dimensions of the lumber yard and the limitations of the mold. The waste is staggering; global averages suggest a massive percentage of materials shipped to a site end up in a dumpster. In theory, treating infrastructure as a software problem-a set of instructions that translates digital intent into physical reality-could offer a new path toward zero-waste precision.
+In the traditional construction world, we are often bound by the dimensions of the lumber yard and the limitations of the mold. The waste is staggering; global averages suggest a massive percentage of materials shipped to a site end up in a dumpster. In theory, treating infrastructure as a software problem - a set of instructions that translates digital intent into physical reality - could offer a new path toward zero-waste precision.
 
 ## The Foundation: The Ink and the Pen
 

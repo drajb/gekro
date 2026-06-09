@@ -20,7 +20,7 @@ Two weeks after the demo looked incredible, the build was unfixable. Not broken 
 
 AI models like Claude, GPT5, Gemini 3 act as stateless prediction engines. A complex project is only going to hold up if its underlying knowledge base is rock-solid. If the foundation is weak, the product build will inevitably start introducing bugs and inconsistencies as changes are required over time. 
 
-If you expect to zero-shot an application based on a single prompt, or expect magical results after every raw prompt, you will keep going on in endless loops-trying to fix one issue while secretly creating new ones elsewhere. Planning and synthesizing research to map out a system, followed by a constrained series of targeted prompts, is fundamentally the best strategy for building a robust codebase. This is exactly why a rigid knowledge base is critical.
+If you expect to zero-shot an application based on a single prompt, or expect magical results after every raw prompt, you will keep going on in endless loops - trying to fix one issue while secretly creating new ones elsewhere. Planning and synthesizing research to map out a system, followed by a constrained series of targeted prompts, is fundamentally the best strategy for building a robust codebase. This is exactly why a rigid knowledge base is critical.
 
 This is the exact dividing line: a good software engineer will immediately spot the structural inconsistencies an AI introduces, whereas an occasional coder might be entirely happy-go-lucky in their approach, blissfully unaware they are merging a catastrophic mess of conflicting state logic. 
 
@@ -60,7 +60,7 @@ pnpm install
 pnpm turbo run typecheck lint
 ```
 
-If I need Claude to generate a new feature, it must operate within the strict definitions of my existing template. This isn't just theory-this is the exact configuration block I feed into the agent's system prompt to stop it from going rogue and introducing breaking inconsistencies.
+If I need Claude to generate a new feature, it must operate within the strict definitions of my existing template. This isn't just theory - this is the exact configuration block I feed into the agent's system prompt to stop it from going rogue and introducing breaking inconsistencies.
 
 ```typescript
 // Conceptual representation - actual rules live in your workspace system prompt / .cursorrules
