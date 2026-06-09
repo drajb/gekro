@@ -53,7 +53,7 @@ const recentPosts = (await getAllPosts()).slice(0, 3);
         <a href="/" class="px-6 py-3 bg-accent text-bg-base font-mono text-sm rounded-lg hover:opacity-90 transition-opacity">
           ← Back to homepage
         </a>
-        <a href="/blog" class="px-6 py-3 border border-border text-text-primary font-mono text-sm rounded-lg hover:border-accent transition-colors">
+        <a href="/blog/" class="px-6 py-3 border border-border text-text-primary font-mono text-sm rounded-lg hover:border-accent transition-colors">
           Browse archive →
         </a>
       </div>
@@ -64,7 +64,7 @@ const recentPosts = (await getAllPosts()).slice(0, 3);
       <section class="space-y-8">
         <div class="flex justify-between items-end border-b border-border-subtle pb-4">
           <h2 class="text-2xl font-heading text-text-primary">Try a recent post</h2>
-          <a href="/blog" class="text-sm font-mono text-accent hover:underline">View all →</a>
+          <a href="/blog/" class="text-sm font-mono text-accent hover:underline">View all →</a>
         </div>
         <div class="space-y-6">
           {recentPosts.map(post => <PostCard post={post} />)}
