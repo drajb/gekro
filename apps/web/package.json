@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev --host",
     "build": "astro build",
-    "postbuild": "pagefind --site dist",
+    "postbuild": "pagefind --site dist && node ../../scripts/check-internal-links.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint .",
