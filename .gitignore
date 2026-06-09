@@ -24,3 +24,7 @@ apps/web/src/components/apps-private
 
 # Private monetization registry — referral/affiliate links (not for public repo)
 .gekro/referrals.md
+
+# Local Claude Code config (machine-specific — not shared)
+.claude/settings.local.json
+.claude/launch.json
