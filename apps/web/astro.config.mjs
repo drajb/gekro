@@ -73,7 +73,9 @@ const scanCollection = (collectionDir, urlPrefix, dateFields) => {
 
 scanCollection(join(__dirname, 'src/content/blog'), '/blog/', ['publishedAt']);
 scanCollection(join(__dirname, 'src/content/experiments'), '/experiments/', ['endDate', 'startDate']);
-scanCollection(join(__dirname, 'src/content/apps'), '/apps/', ['publishedAt', 'updatedAt']);
+// Apps use lastVerified (re-verification = "re-crawl me") — the schema has no
+// updatedAt field, so the old ['publishedAt','updatedAt'] never signalled updates.
+scanCollection(join(__dirname, 'src/content/apps'), '/apps/', ['lastVerified', 'publishedAt']);
 // Stack uses lastVerified (the explicit "this review is alive" date) — the
 // strongest signal for crawlers to re-index when a review is refreshed.
 scanCollection(join(__dirname, 'src/content/stack'), '/stack/', ['lastVerified', 'publishedAt']);
@@ -119,8 +121,10 @@ export default defineConfig({
           item.priority = 0.9;
           item.changefreq = 'daily';
         } else if (item.url.includes('/news/')) {
+          // Individual briefings are immutable after publish — claiming `daily`
+          // here was dishonest; lastmod (publishedAt) carries the real signal.
           item.priority = 0.7;
-          item.changefreq = 'daily';
+          item.changefreq = 'monthly';
         } else if (
           item.url === 'https://gekro.com/blog/' ||
           item.url === 'https://gekro.com/experiments/' ||

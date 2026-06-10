@@ -154,18 +154,23 @@ const bingToken = import.meta.env.PUBLIC_BING_VERIFICATION;
   <meta property="article:tag" content={tag} />
 ))}
 
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:site" content="@rohitburani" />
-<meta property="twitter:creator" content={twitterCreator} />
-<meta property="twitter:url" content={canonicalURL} />
-<meta property="twitter:title" content={siteTitle} />
-<meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={ogImageURL} />
-<meta property="twitter:image:alt" content={`${siteTitle} — social preview image`} />
+<!-- Twitter — the Cards spec requires name= (not property=); X tolerates
+     property= but Slack/Discord-style fallback parsers and validators do not. -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@rohitburani" />
+<meta name="twitter:creator" content={twitterCreator} />
+<meta name="twitter:url" content={canonicalURL} />
+<meta name="twitter:title" content={siteTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageURL} />
+<meta name="twitter:image:alt" content={`${siteTitle} — social preview image`} />
+
+<!-- Browser chrome color (matches --color-bg-base warm dark) -->
+<meta name="theme-color" content="#0c0b09" />
 
 <!-- AI Discoverability -->
 <link rel="alternate" type="application/json" title="Posts API" href="/api/posts.json" />
 <link rel="alternate" type="text/plain" title="LLM Manifest" href="/llms.txt" />
 <link rel="alternate" type="text/plain" title="LLM Full Content" href="/llms-full.txt" />
 <link rel="alternate" type="application/rss+xml" title="gekro RSS Feed" href="/rss.xml" />
+<link rel="alternate" type="application/rss+xml" title="gekro AI News Feed" href="/news-rss.xml" />

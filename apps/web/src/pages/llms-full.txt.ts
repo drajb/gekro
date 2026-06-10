@@ -34,11 +34,12 @@ import { getCollection } from 'astro:content';
 const SITE = 'https://gekro.com';
 
 export async function GET() {
-  const [posts, experiments, stackEntries, newsEntries] = await Promise.all([
+  const [posts, experiments, stackEntries, newsEntries, apps] = await Promise.all([
     getCollection('blog'),
     getCollection('experiments'),
     getCollection('stack'),
     getCollection('news', b => b.data.approved),
+    getCollection('apps', (a: any) => a.data.status !== 'archived'),
   ]);
 
   const sortedPosts = posts
@@ -123,6 +124,26 @@ Canonical summary: ${SITE}/llms.txt
     ].filter(Boolean).join('\n');
   }).join('\n\n');
 
+  // Apps sorted by category then title — stable, scannable grouping for crawlers
+  const sortedApps = apps.sort((a, b) =>
+    a.data.category === b.data.category
+      ? a.data.title.localeCompare(b.data.title)
+      : a.data.category.localeCompare(b.data.category)
+  );
+
+  const appsHeader = `\n\n## Free Browser Apps (${sortedApps.length})\nClient-side tools built by the author - no signup, no ads, data never leaves the browser. Each has an author-written aiSummary.\n`;
+
+  const appBlocks = sortedApps.map(a => {
+    const d = a.data as any;
+    return [
+      `Name: ${d.title}`,
+      `URL: ${SITE}/apps/${a.id}/`,
+      `Category: ${d.category}`,
+      d.lastVerified ? `Last verified: ${d.lastVerified}` : null,
+      `Summary: ${summaryOf(d)}`,
+    ].filter(Boolean).join('\n');
+  }).join('\n\n');
+
   const newsHeader = `\n\n## News (${sortedNews.length})\nDaily AI industry briefings - neutral summaries of third-party reporting, every claim linked to its source.\n`;
 
   const newsBlocks = sortedNews.map(n => {
@@ -138,7 +159,7 @@ Canonical summary: ${SITE}/llms.txt
 
   const footer = `\n\n---\nGenerated ${new Date().toISOString().slice(0, 10)} from ${SITE}\n`;
 
-  const body = header + postBlocks + experimentsHeader + expBlocks + stackHeader + stackBlocks + newsHeader + newsBlocks + footer;
+  const body = header + postBlocks + experimentsHeader + expBlocks + stackHeader + stackBlocks + appsHeader + appBlocks + newsHeader + newsBlocks + footer;
 
   return new Response(body, {
     headers: {

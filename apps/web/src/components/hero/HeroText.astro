@@ -24,6 +24,12 @@
  *  initAnimations() is bound to astro:after-swap so the animation sequence
  *  replays when navigating back to the homepage via View Transitions.
  */
+import { getCollection } from 'astro:content';
+
+// Live app count — the hand-written "60+" went stale (69 apps and counting).
+// Computed at build time, rounded down to a stable "N+" so it always reads true.
+const appCount = (await getCollection('apps', a => a.data.status !== 'archived')).length;
+const appCountLabel = `${Math.floor(appCount / 5) * 5}+`;
 ---
 <div class="relative z-10 text-center space-y-12 pt-32 md:pt-40 pb-20 px-4 min-h-[70vh] flex flex-col justify-center select-none">
   <div class="space-y-6">
@@ -33,7 +39,7 @@
       <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text text-accent">of possibility.</span></div>
     </h1>
     <p class="hero-subtext text-base md:text-xl text-text-secondary max-w-2xl mx-auto font-body opacity-0">
-      Rohit's AI engineering lab, in public. Deep-dive writing, <span class="text-text-primary">60+ free browser tools</span>, daily <span class="text-text-primary">AI news</span>, honest tool reviews, and live experiments across <span class="text-text-primary">AI agents</span>, <span class="text-text-primary">Tesla telemetry</span>, and <span class="text-text-primary">self-hosted systems</span>.
+      Rohit's AI engineering lab, in public. Deep-dive writing, <span class="text-text-primary">{appCountLabel} free browser tools</span>, daily <span class="text-text-primary">AI news</span>, honest tool reviews, and live experiments across <span class="text-text-primary">AI agents</span>, <span class="text-text-primary">Tesla telemetry</span>, and <span class="text-text-primary">self-hosted systems</span>.
     </p>
   </div>
 

@@ -39,6 +39,7 @@ export async function GET(context: APIContext) {
     description: "Personal engineering lab by Rohit. Deep dives into agentic AI, self-hosting, and building at the edge.",
     // context.site is set in astro.config.mjs; fallback to prod URL for safety
     site: context.site ?? 'https://gekro.com',
+    xmlns: { atom: 'http://www.w3.org/2005/Atom' },
     items: sortedPosts.map(post => ({
       title: post.data.title,
       pubDate: new Date(post.data.publishedAt),
@@ -46,8 +47,10 @@ export async function GET(context: APIContext) {
       description: post.data.aiSummary || post.data.tldr || post.data.description,
       link: `/blog/${post.id}/`,
       categories: post.data.topics,
-      customData: `<author>11652coral@gmail.com (Rohit Burani)</author>`,
     })),
-    customData: `<language>en-us</language><managingEditor>11652coral@gmail.com (Rohit Burani)</managingEditor><webMaster>11652coral@gmail.com (Rohit Burani)</webMaster>`,
+    // atom:link rel=self is the W3C-validator-required canonical feed identity.
+    // Personal email removed 2026-06-10 (was harvestable as managingEditor/
+    // webMaster/author) — author identity lives in the site's Person schema.
+    customData: `<language>en-us</language><atom:link href="https://gekro.com/rss.xml" rel="self" type="application/rss+xml"/>`,
   });
 }

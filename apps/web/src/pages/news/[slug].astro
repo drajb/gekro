@@ -42,6 +42,9 @@ const newsSchema = {
   "@id": `${pageURL}#article`,
   "headline": briefing.data.title,
   "description": briefing.data.summary,
+  // Google requires `image` for Article-family rich results — the per-briefing
+  // OG card already exists, so point at it.
+  "image": [`https://gekro.com${ogImage}`],
   "datePublished": briefing.data.publishedAt,
   "dateModified": briefing.data.publishedAt,
   "author": {
@@ -55,6 +58,12 @@ const newsSchema = {
     "@id": "https://gekro.com/#organization",
     "name": "gekro",
     "url": "https://gekro.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://gekro.com/favicon.svg",
+      "width": 256,
+      "height": 256,
+    },
   },
   "mainEntityOfPage": { "@type": "WebPage", "@id": pageURL },
   "isAccessibleForFree": true,
@@ -72,7 +81,7 @@ const breadcrumbs = {
 ---
 
 <BaseLayout
-  title={`${briefing.data.title} | gekro News`}
+  title={`${briefing.data.title} | gekro`}
   description={briefing.data.summary}
   ogImage={ogImage}
   ogType="article"

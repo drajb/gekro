@@ -55,8 +55,11 @@ interface Props {
 
 const { post, headings } = Astro.props;
 
-// SEO description: prefer richer AI-optimised summary over the short description field
-const seoDescription = post.aiSummary || post.tldr || post.description || '';
+// Meta/OG description: the short human-written description — aiSummary can run
+// 400+ chars and was truncating mid-clause in SERP snippets and OG cards.
+const seoDescription = post.description || post.tldr || post.aiSummary || '';
+// JSON-LD keeps the richer AI-optimised summary (no length penalty there).
+const aiDescription = post.aiSummary || post.tldr || post.description || '';
 
 // Resolve the post slug in a shape-agnostic way — FormattedPost wraps it in
 // {current}, but the local-flatten path in [slug].astro may pass a string.
@@ -88,7 +91,7 @@ const schema = {
   "@type": "BlogPosting",
   "inLanguage": "en-US",
   "headline": post.title,
-  "description": seoDescription,
+  "description": aiDescription,
   "image": [absoluteOgImage],
   "datePublished": post.publishedAt,
   "dateModified": post.updatedAt || post.publishedAt,

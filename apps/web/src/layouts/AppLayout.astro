@@ -22,7 +22,11 @@ const grouped = CATEGORY_ORDER
   .map(cat => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, apps: allApps.filter(a => a.data.category === cat) }))
   .filter(({ apps }) => apps.length > 0);
 
-const seoDescription = data.aiSummary || data.description;
+// Meta/OG description: the human-written `description` (~150 chars), NOT
+// aiSummary — aiSummary runs up to ~1,200 chars and was being truncated
+// mid-clause in every SERP snippet. aiSummary stays the JSON-LD/llms surface.
+const seoDescription = data.description || data.aiSummary;
+const aiDescription = data.aiSummary || data.description;
 const pageURL = `https://gekro.com/apps/${app.id}/`;
 const ogImage = `/og/apps/${app.id}.png`;
 
@@ -30,10 +34,13 @@ const schema = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: data.title,
-  description: seoDescription,
+  description: aiDescription,
   url: pageURL,
+  image: `https://gekro.com${ogImage}`,
   applicationCategory: 'WebApplication',
   operatingSystem: 'Any',
+  datePublished: data.publishedAt,
+  isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   author: {
     '@type': 'Person',

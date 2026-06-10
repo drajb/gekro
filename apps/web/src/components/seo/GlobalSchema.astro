@@ -39,15 +39,11 @@ const webSite = {
   "name": "gekro",
   "description": "Personal AI engineering lab and tech blog. Authoritative engineering notes on local-first AI, self-hosted infrastructure, and autonomous systems.",
   "publisher": { "@id": `${SITE}/#organization` },
-  "inLanguage": "en-US",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": `${SITE}/?q={search_term_string}`
-    },
-    "query-input": "required name=search_term_string"
-  }
+  "inLanguage": "en-US"
+  // SearchAction removed 2026-06-10: it claimed /?q={term} performs a search,
+  // but nothing on the site reads a q param — a false statement in structured
+  // data. (Google also retired the sitelinks search box in Oct 2024.) Re-add
+  // only if on-site search ever becomes URL-addressable.
 };
 
 const organization = {

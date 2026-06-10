@@ -45,6 +45,7 @@ interface ExperimentMeta {
   stack: string[];
   topics?: string[];
   startDate: string;
+  endDate?: string;
   githubUrl?: string;
   slug?: string;
 }
@@ -71,7 +72,9 @@ const schema = {
   "description": seoDescription,
   "image": [absoluteOgImage],
   "datePublished": experiment.startDate,
-  "dateModified": experiment.startDate,
+  // endDate (when set) is the real last-touched date — the sitemap lastmod
+  // already uses endDate||startDate, and the two must not disagree.
+  "dateModified": experiment.endDate || experiment.startDate,
   "proficiencyLevel": experiment.difficulty,
   "author": {
     "@type": "Person",
@@ -79,6 +82,8 @@ const schema = {
     "name": "Rohit Burani",
     "url": "https://gekro.com/about/"
   },
+  // Publisher mirrors GlobalSchema.astro/BlogLayout exactly — two declarations
+  // of the same @id must not disagree (this one previously said og/default.png).
   "publisher": {
     "@type": "Organization",
     "@id": "https://gekro.com/#organization",
@@ -86,9 +91,9 @@ const schema = {
     "url": "https://gekro.com",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://gekro.com/og/default.png",
-      "width": 1200,
-      "height": 630
+      "url": "https://gekro.com/favicon.svg",
+      "width": 256,
+      "height": 256
     }
   },
   "mainEntityOfPage": {
@@ -117,7 +122,7 @@ const breadcrumbs = {
   ogImage={ogImage}
   ogType="article"
   publishedTime={experiment.startDate}
-  modifiedTime={experiment.startDate}
+  modifiedTime={experiment.endDate || experiment.startDate}
   author="Rohit Burani"
   section={primaryTopic}
   tags={experiment.stack}
