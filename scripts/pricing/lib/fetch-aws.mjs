@@ -101,9 +101,20 @@ export async function fetchAWSPricing() {
     // mistral/large-3, overwriting the correct $0.50/$1.50 standard rates.
     // Forward-only matching eliminates the entire false-positive class
     // while keeping every legitimate match (verified against full SKU map).
-    const tracked = trackedSkus.find(t =>
-      modelName.toLowerCase().includes(t.sku.toLowerCase())
-    );
+    const tracked = trackedSkus.find(t => {
+      const key = t.sku.toLowerCase();
+      const name = modelName.toLowerCase();
+      // Short keys ("R1") are too ambiguous for substring matching — a future
+      // "R1 Distill Llama 70B" would collide. normalize.mjs documents the
+      // contract for these: exact model name + provider must match the
+      // canonical vendor. (Contract existed since 2026-05; implemented here.)
+      if (key.length <= 3) {
+        const vendor = t.canonicalId.split('/')[0];
+        const provider = (attrs.provider ?? '').toLowerCase();
+        return name === key && (!provider || provider.includes(vendor));
+      }
+      return name.includes(key);
+    });
     if (!tracked) continue;
 
     // TIER GUARD — skip premium inference tiers to avoid picking up the

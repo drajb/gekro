@@ -36,7 +36,16 @@ const escapeXml = (s: string): string =>
 // Greedy word-wrap — splits on spaces, keeps each line under the char budget.
 // Lines beyond MAX_TITLE_LINES are truncated with an ellipsis on the last.
 const wrapTitle = (title: string): string[] => {
-  const words = title.split(/\s+/);
+  // Hard-break single words longer than a line (URLs, long model names in
+  // news headlines) — otherwise they overflow the 1200px canvas untouched.
+  const words = title.split(/\s+/).flatMap(w => {
+    if (w.length <= MAX_TITLE_CHARS_PER_LINE) return [w];
+    const chunks: string[] = [];
+    for (let i = 0; i < w.length; i += MAX_TITLE_CHARS_PER_LINE) {
+      chunks.push(w.slice(i, i + MAX_TITLE_CHARS_PER_LINE));
+    }
+    return chunks;
+  });
   const lines: string[] = [];
   let current = '';
   for (const word of words) {

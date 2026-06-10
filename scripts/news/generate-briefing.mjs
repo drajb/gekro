@@ -22,7 +22,7 @@
  *
  * Optional env:
  *   NEWS_DATE          — Override the date, e.g. "2026-05-25" (default: today UTC)
- *   NEWS_MODEL         — Claude model to use (default: claude-sonnet-4-5)
+ *   NEWS_MODEL         — Claude model to use (default: claude-sonnet-4-6)
  */
 
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
@@ -38,10 +38,24 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-4-6';
 const TODAY = process.env.NEWS_DATE || new Date().toISOString().slice(0, 10);
 
+// NEWS_DATE is interpolated into the output filename and frontmatter — reject
+// anything that isn't a real ISO date before it can poison feeds/sitemaps.
+if (!/^\d{4}-\d{2}-\d{2}$/.test(TODAY) || isNaN(new Date(`${TODAY}T00:00:00Z`).getTime())) {
+  console.error(`[news] Invalid NEWS_DATE "${TODAY}" — expected YYYY-MM-DD.`);
+  process.exit(1);
+}
+
 if (!ANTHROPIC_API_KEY) {
   console.error('[news] ANTHROPIC_API_KEY is not set. Export it and try again.');
   process.exit(1);
 }
+
+// Minimal HTML entity decoding so Claude sees clean titles/descriptions
+// (mirrors fetch-headlines.mjs — keep the two in sync).
+const decodeEntities = (s) => String(s || '')
+  .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x27;/gi, "'")
+  .replace(/&nbsp;/g, ' ').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
 
 // ── RSS sources ───────────────────────────────────────────────────────────────
 // Vetted, signal-dense feeds for an AI engineering audience.
@@ -107,15 +121,21 @@ async function fetchFeed(source) {
     const itemMatches = text.matchAll(/<item>([\s\S]*?)<\/item>|<entry>([\s\S]*?)<\/entry>/g);
     for (const [, itemXml = '', entryXml = ''] of itemMatches) {
       const xml = itemXml || entryXml;
-      const title = (xml.match(/<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/s) || [])[1]?.trim();
+      const title = decodeEntities((xml.match(/<title[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/s) || [])[1]?.trim());
       const link = (xml.match(/<link[^>]*href="([^"]+)"/) || xml.match(/<link[^>]*>(https?:\/\/[^<]+)<\/link>/) || [])[1]?.trim();
-      const desc = (xml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/s) || [])[1]?.replace(/<[^>]+>/g, '').trim().slice(0, 300);
-      const pubDate = (xml.match(/<pubDate>(.*?)<\/pubDate>|<published>(.*?)<\/published>|<updated>(.*?)<\/updated>/) || [])[1]?.trim();
+      const desc = decodeEntities((xml.match(/<description[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/s) || [])[1]?.replace(/<[^>]+>/g, '').trim().slice(0, 300));
+      // Alternation regex fills a DIFFERENT capture group per format: [1]=RSS
+      // <pubDate>, [2]=Atom <published>, [3]=Atom <updated>. Reading only [1]
+      // made every Atom item look 0h old — stale posts passed the 36h filter
+      // and sorted to the top of Claude's input. (Bug found 2026-06-10.)
+      const pubRaw = (xml.match(/<pubDate>([\s\S]*?)<\/pubDate>|<published>([\s\S]*?)<\/published>|<updated>([\s\S]*?)<\/updated>/) || []);
+      const pubDate = (pubRaw[1] || pubRaw[2] || pubRaw[3] || '').trim();
       if (title && link) {
-        // Filter to last 36h
-        const pub = pubDate ? new Date(pubDate) : new Date();
+        // Filter to last 36h — items with missing/unparseable dates are DROPPED
+        // (we cannot verify freshness, and "assume now" is how stale news leaks in).
+        const pub = new Date(pubDate);
         const hoursAgo = (Date.now() - pub.getTime()) / 3_600_000;
-        if (hoursAgo <= 36) {
+        if (isFinite(hoursAgo) && hoursAgo <= 36) {
           items.push({ title, link, desc: desc || '', source: source.name, hoursAgo: hoursAgo.toFixed(1) });
         }
       }
@@ -152,23 +172,25 @@ async function callClaude(prompt) {
 
 function buildMarkdown(parsed) {
   const { title, summary, body, sources, sourceUrls, topics } = parsed;
-  const srcYaml = sources.map(s => `  - "${s.replace(/"/g, '\\"')}"`).join('\n');
-  const urlYaml = sourceUrls.map(u => `  - "${u}"`).join('\n');
-  const topicsYaml = (topics || []).map(t => `  - "${t}"`).join('\n');
+  // JSON.stringify produces a valid YAML double-quoted scalar and — unlike the
+  // old "escape quotes only" approach — correctly escapes backslashes too
+  // (a title containing \n used to silently corrupt the frontmatter).
+  const yamlStr = (v) => JSON.stringify(String(v));
+  const yamlList = (arr) => arr.map(v => `  - ${yamlStr(v)}`).join('\n');
   // Convert the two-paragraph body to proper markdown paragraphs
   const bodyMd = body.trim().split(/\n\n+/).map(p => p.trim()).join('\n\n');
   return `---
-title: "${title.replace(/"/g, '\\"')}"
+title: ${yamlStr(title)}
 publishedAt: "${TODAY}"
-summary: "${summary.replace(/"/g, '\\"')}"
+summary: ${yamlStr(summary)}
 sources:
-${srcYaml}
+${yamlList(sources)}
 sourceUrls:
-${urlYaml}
+${yamlList(sourceUrls)}
 autoGenerated: true
 approved: true
 topics:
-${topicsYaml || '  []'}
+${(topics || []).length ? yamlList(topics) : '  []'}
 ---
 
 ${bodyMd}
@@ -197,6 +219,15 @@ async function main() {
 
   console.log(`[news] Total items across all feeds: ${allItems.length}`);
 
+  // Thin-day guard (mirrors the manual skill's "fewer than 3 substantive
+  // stories → don't publish"). With most feeds down, forcing Claude to spin a
+  // briefing out of 1-2 leftover items produces filler. Skip cleanly instead.
+  const distinctSources = new Set(allItems.map(i => i.source)).size;
+  if (allItems.length < 5 || distinctSources < 2) {
+    console.log(`[news] Thin news day (${allItems.length} items from ${distinctSources} source(s)) — skipping today's briefing.`);
+    process.exit(0);
+  }
+
   // Build the headlines prompt
   const headlinesList = allItems
     .sort((a, b) => parseFloat(a.hoursAgo) - parseFloat(b.hoursAgo)) // newest first
@@ -215,18 +246,21 @@ Write the daily briefing following the instructions exactly. Return only valid J
   console.log('[news] Calling Claude…');
   const raw = await callClaude(`${CURATION_PROMPT}\n\n${userPrompt}`);
 
-  // Extract JSON from response
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    console.error('[news] Claude did not return valid JSON:\n', raw);
-    process.exit(1);
+  // Extract JSON from response. Strip code fences first, then try the greedy
+  // first-{ to last-} slice; if a preamble's stray brace breaks the parse,
+  // walk the closing brace backwards until a parse succeeds.
+  const cleaned = raw.replace(/```(?:json)?/g, '').trim();
+  let parsed = null;
+  const start = cleaned.indexOf('{');
+  if (start !== -1) {
+    let end = cleaned.lastIndexOf('}');
+    while (end > start && parsed === null) {
+      try { parsed = JSON.parse(cleaned.slice(start, end + 1)); }
+      catch { end = cleaned.lastIndexOf('}', end - 1); }
+    }
   }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(jsonMatch[0]);
-  } catch (e) {
-    console.error('[news] JSON parse error:', e.message, '\nRaw:\n', raw);
+  if (parsed === null) {
+    console.error('[news] Claude did not return parseable JSON:\n', raw);
     process.exit(1);
   }
 
@@ -234,7 +268,9 @@ Write the daily briefing following the instructions exactly. Return only valid J
   // is malformed, fail loudly so the workflow aborts and nothing is committed.
   const problems = [];
   if (!parsed.title || parsed.title.trim().length < 8) problems.push('missing or too-short title');
-  if (/—/.test(`${parsed.title} ${parsed.body}`)) problems.push('contains an em-dash (—) — banned');
+  // Em-dash check must cover EVERY surfaced field — summary renders on cards
+  // and in meta descriptions, so it slipped past the old title+body-only test.
+  if (/—/.test(`${parsed.title} ${parsed.summary} ${parsed.body}`)) problems.push('contains an em-dash (—) — banned');
   if (!parsed.summary) problems.push('missing summary');
   if (parsed.summary && parsed.summary.length > 200) problems.push(`summary too long (${parsed.summary.length} > 200)`);
   if (!parsed.body || parsed.body.trim().length < 120) problems.push('missing or too-short body');
@@ -244,6 +280,12 @@ Write the daily briefing following the instructions exactly. Return only valid J
     problems.push(`sources (${parsed.sources.length}) and sourceUrls (${parsed.sourceUrls.length}) length mismatch`);
   } else if (parsed.sources.length === 0) {
     problems.push('at least one source is required');
+  } else {
+    // Zod enforces z.string().url() at build time — a scheme-less URL passing
+    // this guard would freeze EVERY subsequent Cloudflare deploy. Catch it here.
+    for (const u of parsed.sourceUrls) {
+      try { new URL(u); } catch { problems.push(`sourceUrl is not a valid absolute URL: "${u}"`); }
+    }
   }
   if (problems.length) {
     console.error('[news] Draft failed validation — NOT writing:\n - ' + problems.join('\n - '));

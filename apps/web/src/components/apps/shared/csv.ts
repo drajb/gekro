@@ -6,9 +6,17 @@
  */
 
 function escapeCell(value: string | number | null | undefined): string {
-  const str = value == null ? '' : String(value);
-  // Wrap in quotes if value contains comma, double-quote, or newline
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+  let str = value == null ? '' : String(value);
+  // Spreadsheet-formula-injection guard: cells starting with = + - @ execute
+  // as formulas when the CSV is opened in Excel/Sheets (e.g. =HYPERLINK(...)).
+  // Prefix with an apostrophe so they render as literal text. Numbers passed
+  // as numbers are unaffected (they stringify without a leading operator
+  // unless negative — negative NUMBERS are safe, so only guard strings).
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
+  // Wrap in quotes if value contains comma, double-quote, or any line break
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;

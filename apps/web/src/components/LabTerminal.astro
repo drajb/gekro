@@ -279,8 +279,11 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
                 year: 'numeric', month: '2-digit', day: '2-digit'
              });
              const itemSlug = post.slug?.current || post.slug;
-             const url = `/blog/${itemSlug}`;
-             this.printLine(`<a href="${url}" target="_blank" class="hover:text-accent hover:underline focus:text-accent outline-none">[${d}] → ${post.title} — ${url}</a>`, true);
+             // Trailing slash = canonical form (no 308); title/slug are
+             // escaped because this template lands in innerHTML and the data
+             // may eventually come from Sanity, not just local markdown.
+             const url = `/blog/${encodeURIComponent(itemSlug)}/`;
+             this.printLine(`<a href="${url}" target="_blank" class="hover:text-accent hover:underline focus:text-accent outline-none">[${d}] → ${this.escapeHtml(post.title)} — ${url}</a>`, true);
           }
         } catch (e) {
           this.printLine('Error fetching logs. Endpoint unreachable.');

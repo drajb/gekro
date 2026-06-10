@@ -102,6 +102,14 @@ export async function fetchGCPPricing() {
     const isOutput = /output/.test(description);
     if (!isInput && !isOutput) continue;
 
+    // VARIANT GUARD — cached/batch/provisioned/long-context SKU descriptions
+    // all CONTAIN the base model string ("Gemini 3.0 Pro Input Cached Tokens",
+    // "... Input Tokens (Batch)", "... above 200K"), so without this filter
+    // whichever variant the API happens to return first is recorded as the
+    // standard price. AWS (feature/usagetype) and Azure got this guard in the
+    // 2026-05-07 hardening; GCP was missed.
+    if (/cach|batch|provision|reserved|above\s*\d|long[\s-]*context/i.test(description)) continue;
+
     // Match against our tracked SKU strings. GCP descriptions are like:
     // "Gemini 3.0 Pro Input Tokens" — fuzzy match after normalization.
     const normDesc = normalize(rawDesc);
@@ -123,6 +131,9 @@ export async function fetchGCPPricing() {
     const usageUnit = pricingInfo?.pricingExpression?.usageUnit ?? '';
     let multiplier = 1000; // per-1k → per-1M
     if (/1m|million/i.test(usageUnit)) multiplier = 1;
+    // "count" = per SINGLE token — assuming per-1k here would record prices
+    // 1000x too low. Common on newer Vertex token SKUs.
+    else if (/^count$/i.test(usageUnit.trim())) multiplier = 1e6;
 
     const usdPer1M = usdPerToken * multiplier;
 

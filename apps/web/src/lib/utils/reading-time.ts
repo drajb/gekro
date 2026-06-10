@@ -21,7 +21,10 @@
 export const WORDS_PER_MINUTE = 200;
 
 export function calculateReadingTime(text: string): number {
-  const noOfWords = text.split(/\s/g).length;
+  // split(/\s+/) + filter collapses consecutive whitespace ("a  b" is 2 words,
+  // not 3) and treats '' as 0 words. The Math.max floor keeps the UI promise
+  // of "at least a 1 min read" for any non-article-length string.
+  const noOfWords = text.split(/\s+/).filter(Boolean).length;
   const minutes = noOfWords / WORDS_PER_MINUTE;
-  return Math.ceil(minutes);
+  return Math.max(1, Math.ceil(minutes));
 }

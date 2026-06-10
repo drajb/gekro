@@ -22,7 +22,9 @@ export function readState<T extends StateDefaults>(defaults: T): T {
       (result as any)[key] = raw === 'true';
     } else if (typeof defaultVal === 'number') {
       const n = Number(raw);
-      if (!isNaN(n)) (result as any)[key] = n;
+      // Number('') === 0 (silently zeroing the default) and Number('Infinity')
+      // passes !isNaN — both poison calculator math. Require a real finite value.
+      if (raw.trim() !== '' && Number.isFinite(n)) (result as any)[key] = n;
     } else {
       (result as any)[key] = raw;
     }

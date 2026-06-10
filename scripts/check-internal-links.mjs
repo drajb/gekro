@@ -25,7 +25,9 @@ const DIST = resolve(process.argv[2] || 'dist');
 // /llms.txt, /og/*.png, /api/posts.json) correctly have no trailing slash and
 // are intentionally NOT listed here.
 const ROUTES = ['blog', 'apps', 'stack', 'news', 'experiments', 'about', 'contact', 'now', 'slides'];
-const RE = new RegExp(`href="/(${ROUTES.join('|')})"`, 'g');
+// Also catch slashless links that carry a fragment or query (href="/blog#x",
+// href="/blog?x") — those 308 too. A trailing slash (href="/blog/...") is fine.
+const RE = new RegExp(`href="/(${ROUTES.join('|')})(["#?])`, 'g');
 
 async function* htmlFiles(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {

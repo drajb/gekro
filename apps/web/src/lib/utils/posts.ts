@@ -90,7 +90,15 @@ export async function getAllPosts(): Promise<FormattedPost[]> {
     topics: consolidateTopics(post.topics),
   }));
 
-  return [...formattedSanity, ...formattedLocal].sort(
+  // Dedupe by slug with LOCAL winning — Content Collections are the source of
+  // truth (decision 2026-03-24). Without this, a post present in both Sanity
+  // and local renders twice on /blog/, double-counts topics, and duplicates
+  // entries in /api/posts.json (consumed by SearchWidget + LabTerminal).
+  const slugOf = (p: { slug: { current: string } }) => p.slug.current;
+  const localSlugs = new Set(formattedLocal.map(slugOf));
+  const dedupedSanity = formattedSanity.filter(p => !localSlugs.has(slugOf(p)));
+
+  return [...dedupedSanity, ...formattedLocal].sort(
     (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
 }
