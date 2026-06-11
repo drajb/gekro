@@ -37,6 +37,7 @@
   id="theme-toggle"
   class="relative p-2.5 rounded-full border border-border-subtle hover:bg-bg-elevated hover:border-border hover:text-accent transition-all text-text-muted z-50 flex items-center justify-center bg-bg-surface/50 backdrop-blur-sm"
   aria-label="Toggle reader theme"
+  aria-pressed="false"
   title="Toggle Reading Mode"
 >
   <!-- Sun Icon (Hidden by default for dark mode) -->
@@ -92,6 +93,8 @@
     // To prevent layout shift or visual gaps if article doesn't usually have background color,
     // we must dynamically ensure parents don't override the reading experience.
     const updateUI = (light) => {
+      // Toggle state for assistive tech (button announces pressed/not pressed)
+      btn.setAttribute('aria-pressed', light ? 'true' : 'false');
       if (light) {
         document.body.classList.add('theme-light', 'bg-bg-base');
         if (defaultArticle) defaultArticle.classList.add('bg-bg-base');

@@ -92,9 +92,9 @@ const sections = [
 
         <!-- Latest news strip — fresh signal up top, drives the daily-return habit -->
         {latestNews && (
-          <a href={`/news/${latestNews.id}/`} class="group block rounded-2xl border border-border-subtle bg-bg-surface/40 hover:bg-bg-surface/70 hover:border-accent/30 transition-all p-5 sm:p-6">
+          <a href={`/news/${latestNews.id}/`} class="group block rounded-xl border border-border bg-bg-surface hover:border-accent hover:shadow-2xl hover:shadow-accent/5 transition-all p-5 sm:p-6">
             <div class="flex items-center gap-2.5 mb-2">
-              <span class="inline-block w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+              <span class="inline-block w-1.5 h-1.5 rounded-full bg-accent animate-pulse motion-reduce:animate-none"></span>
               <span class="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">Latest in AI News</span>
               <time datetime={latestNews.data.publishedAt} class="text-[10px] font-mono text-text-muted ml-auto">{latestNews.data.publishedAt}</time>
             </div>
@@ -108,7 +108,7 @@ const sections = [
         <!-- Section cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {sections.map(s => (
-            <a href={s.href} class="group flex flex-col rounded-2xl border border-border-subtle bg-bg-surface/30 hover:bg-bg-surface/60 hover:border-accent/30 transition-all p-5 min-h-[140px]">
+            <a href={s.href} class="group flex flex-col rounded-xl border border-border bg-bg-surface hover:border-accent hover:shadow-2xl hover:shadow-accent/5 transition-all p-5 min-h-[140px]">
               <div class="flex items-center justify-between mb-3">
                 <span class="text-2xl select-none" aria-hidden="true">{s.icon}</span>
                 <span class="text-[10px] font-mono text-text-muted bg-bg-elevated border border-border-subtle px-2 py-0.5 rounded-full">{s.meta}</span>
@@ -195,6 +195,13 @@ const sections = [
       const { ScrollTrigger } = await import('gsap/ScrollTrigger');
 
       gsap.registerPlugin(ScrollTrigger);
+
+      // This module stays bound to astro:after-swap for the whole session
+      // after one homepage visit — without this guard it re-animated cards on
+      // OTHER pages (double-animating with their own Motion One entrances) and
+      // accumulated ScrollTrigger instances on every navigation.
+      if (!document.querySelector('.hero-headline')) return;
+      ScrollTrigger.getAll().forEach((t: any) => t.kill());
 
       const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (isReducedMotion) return;

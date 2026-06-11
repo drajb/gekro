@@ -43,6 +43,7 @@ const highlightIdx = highlight ? headers.indexOf(highlight) : -1;
       <tr class="border-b-2 border-border">
         {headers.map((h, i) => (
           <th
+            scope="col"
             class={`text-left p-3 font-mono uppercase tracking-widest text-[10px] text-text-muted ${
               i === highlightIdx ? 'bg-accent/5 text-accent' : ''
             }`}
@@ -56,13 +57,15 @@ const highlightIdx = highlight ? headers.indexOf(highlight) : -1;
       {rows.map((row, ri) => (
         <tr class={ri < rows.length - 1 ? 'border-b border-border-subtle' : ''}>
           {row.map((cell, ci) => (
-            <td
-              class={`p-3 leading-relaxed ${
-                ci === 0 ? 'font-medium text-text-primary' : 'text-text-secondary'
-              } ${ci === highlightIdx ? 'bg-accent/5' : ''}`}
-            >
-              {cell}
-            </td>
+            ci === 0 ? (
+              <th scope="row" class="text-left p-3 leading-relaxed font-medium text-text-primary">
+                {cell}
+              </th>
+            ) : (
+              <td class={`p-3 leading-relaxed text-text-secondary ${ci === highlightIdx ? 'bg-accent/5' : ''}`}>
+                {cell}
+              </td>
+            )
           ))}
         </tr>
       ))}

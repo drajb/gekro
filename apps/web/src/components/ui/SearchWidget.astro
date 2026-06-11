@@ -43,31 +43,47 @@
 <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
 
 <script is:inline>
-  const initSearch = async () => {
-    // Check if pagefind is available (only after build)
-    try {
-      const response = await fetch('/pagefind/pagefind-ui.js');
-      if (!response.ok) throw new Error('Search not ready');
-      
-      const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
-      new PagefindUI({
-        element: '#pagefind-search',
-        showSubResults: true,
-        showImages: false,
-        resetStyles: false,
-        excerptLength: 20,
-        translations: {
-          placeholder: 'Search posts and experiments...',
-        }
-      });
-    } catch (e) {
-      console.log('Search initialization delayed or unavailable.');
-      document.getElementById('search-unavailable')?.classList.remove('hidden');
-    }
-  };
+  (function () {
+    const initSearch = async () => {
+      // Only init when this page actually has the widget, and only once per
+      // DOM instance — the data-attribute guard prevents stacking PagefindUI
+      // instances into the same container.
+      const el = document.getElementById('pagefind-search');
+      if (!el || el.hasAttribute('data-pagefind-wired')) return;
+      el.setAttribute('data-pagefind-wired', 'true');
 
-  initSearch();
-  document.addEventListener('astro:after-swap', initSearch);
+      // Check if pagefind is available (only after build)
+      try {
+        const response = await fetch('/pagefind/pagefind-ui.js');
+        if (!response.ok) throw new Error('Search not ready');
+
+        const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+        new PagefindUI({
+          element: '#pagefind-search',
+          showSubResults: true,
+          showImages: false,
+          resetStyles: false,
+          excerptLength: 20,
+          translations: {
+            placeholder: 'Search posts and experiments...',
+          }
+        });
+      } catch (e) {
+        console.log('Search initialization delayed or unavailable.');
+        document.getElementById('search-unavailable')?.classList.remove('hidden');
+      }
+    };
+
+    initSearch();
+    // Window-flag guard (mirrors SearchModal): this is:inline script
+    // re-executes on every /blog visit — without the guard, each visit
+    // stacked another after-swap listener that re-fetched Pagefind on EVERY
+    // subsequent navigation, site-wide.
+    if (!window.__gekroSearchWidgetSwap) {
+      window.__gekroSearchWidgetSwap = true;
+      document.addEventListener('astro:after-swap', initSearch);
+    }
+  })();
 </script>
 
 <!-- Pagefind UI variables live in global.css (scoped to #pagefind-search

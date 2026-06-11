@@ -24,10 +24,10 @@
  *  - startThree() defers via requestIdleCallback to protect FCP/TBT
  *
  * Reduced motion:
- *  CSS hides #three-container and shows .fallback-gradient instead.
- *  No JS is disabled — the Three.js script still runs but is invisible.
- *  This is intentional: the script is lightweight and hiding it via CSS
- *  is simpler than JS feature-detecting prefers-reduced-motion.
+ *  CSS hides #three-container and shows .fallback-gradient — AND startThree()
+ *  bails before importing Three.js at all (2026-06-10). The old CSS-only
+ *  approach kept a hidden WebGL scene rendering at 60fps for users who asked
+ *  for less motion, and still downloaded the ~490KB module.
  */
 ---
 <div id="neural-canvas-container" class="absolute inset-0 z-0 bg-bg-base pointer-events-auto overflow-hidden">
@@ -50,18 +50,25 @@
 </style>
 
 <script>
-  // Static import is intentional — Three.js is needed immediately for the hero canvas.
-  // This is NOT in frontmatter (rule: "never in frontmatter"); Astro bundles it per-page.
-  import * as THREE from 'three';
+  // Dynamic import (2026-06-10): the static `import * as THREE` form made the
+  // browser download the ~490KB module at page parse on every page mounting
+  // this component — requestIdleCallback only deferred EXECUTION, not the
+  // fetch. The type-only import below is erased at build, and the module is
+  // fetched inside startThree()'s idle callback instead. The visual is
+  // unchanged (decision 2026-04-01: the hero animation stays).
+  import type * as THREE_NS from 'three';
+  let THREE: typeof THREE_NS;
 
-  let renderer: THREE.WebGLRenderer | null = null;
-  let scene: THREE.Scene | null = null;
-  let camera: THREE.PerspectiveCamera | null = null;
-  let points: THREE.Points | null = null;
-  let lines: THREE.LineSegments | null = null;
+  let renderer: THREE_NS.WebGLRenderer | null = null;
+  let scene: THREE_NS.Scene | null = null;
+  let camera: THREE_NS.PerspectiveCamera | null = null;
+  let points: THREE_NS.Points | null = null;
+  let lines: THREE_NS.LineSegments | null = null;
   let animationId: number | null = null;
   let onMouseMoveRef: ((e: MouseEvent) => void) | null = null;
   let onResizeRef: (() => void) | null = null;
+  let visObserver: IntersectionObserver | null = null;
+  let isHeroVisible = true;
 
   const PARTICLE_COUNT = 150;
   const CONNECT_DIST = 15;
@@ -88,6 +95,9 @@
    */
   const destroyThree = () => {
     if (animationId !== null) cancelAnimationFrame(animationId);
+    animationId = null;
+    visObserver?.disconnect();
+    visObserver = null;
     if (onMouseMoveRef) window.removeEventListener('mousemove', onMouseMoveRef);
     if (onResizeRef) window.removeEventListener('resize', onResizeRef);
     onMouseMoveRef = null;
@@ -148,9 +158,10 @@
     points = new THREE.Points(pointsGeometry, pointsMaterial);
     scene.add(points);
 
-    // Lines (Connectors)
+    // Lines (Connectors) — same accent hex as the points above (was stale
+    // pre-overhaul 0x3fb1ff while points used 0x38bdf8)
     const lineMaterial = new THREE.LineBasicMaterial({
-      color: 0x3fb1ff,
+      color: 0x38bdf8,
       transparent: true,
       opacity: 0.1,
       blending: THREE.AdditiveBlending
@@ -210,6 +221,9 @@
 
     const animate = () => {
       if (!points || !scene || !camera || !renderer) return;
+      // Suspend the O(n²) loop while the hero is scrolled out of view — the
+      // IntersectionObserver below restarts it when it re-enters the viewport.
+      if (!isHeroVisible) { animationId = null; return; }
       animationId = requestAnimationFrame(animate);
 
       // Smooth mouse follow
@@ -292,6 +306,16 @@
       renderer.render(scene, camera);
     };
 
+    // Pause rendering while the hero is offscreen (it kept burning a full
+    // core at 60fps under long pages before this).
+    isHeroVisible = true;
+    visObserver = new IntersectionObserver(([entry]) => {
+      const wasVisible = isHeroVisible;
+      isHeroVisible = entry.isIntersecting;
+      if (isHeroVisible && !wasVisible && animationId === null) animate();
+    });
+    visObserver.observe(container);
+
     animate();
     container.classList.add('ready');
 
@@ -312,10 +336,19 @@
    * Falls back to setTimeout(500) for browsers without requestIdleCallback.
    */
   const startThree = () => {
+    // Reduced-motion users see the CSS fallback gradient — skip the ~490KB
+    // module download and the render loop entirely.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const boot = async () => {
+      // Fetch Three.js now (idle time), not at page parse.
+      if (!THREE) THREE = await import('three');
+      initThree();
+    };
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => initThree(), { timeout: 2000 });
+      requestIdleCallback(() => { boot(); }, { timeout: 2000 });
     } else {
-      setTimeout(initThree, 500);
+      setTimeout(boot, 500);
     }
   };
 

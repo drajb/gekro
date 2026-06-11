@@ -88,8 +88,9 @@ const breadcrumbs = {
       <aside class="space-y-8 lg:sticky lg:top-32">
         <h3 class="text-xs font-mono uppercase tracking-widest text-text-muted">Filter by topic</h3>
         <div class="flex flex-wrap lg:flex-col gap-3">
-          <!-- "All Posts" chip is always active by default -->
-          <Tag title="All Posts" active />
+          <!-- "All Posts" chip is always active by default; it links back to
+               the archive itself — /topics/all-posts/ doesn't exist (was a 404) -->
+          <Tag title="All Posts" active href="/blog/" />
           {topics.map(topic => (
             <Tag title={topic.title} count={topic.count} />
           ))}

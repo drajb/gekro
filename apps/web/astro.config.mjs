@@ -99,6 +99,10 @@ if (process.env.PUBLIC_SANITY_PROJECT_ID) {
 
 export default defineConfig({
   site: 'https://gekro.com',
+  // Hover-triggered prefetch: the next page's HTML is already in cache by the
+  // time the click lands — near-instant navigation on a static site for free.
+  // NOT 'viewport' — /apps renders 69 links and would prefetch all of them.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   integrations: [
     ...sanityIntegration,
     sitemap({

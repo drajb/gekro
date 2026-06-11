@@ -24,13 +24,16 @@ interface Props {
   title: string;
   count?: number;
   active?: boolean;
+  /** Override the derived /topics/ link — e.g. "All Posts" points at /blog/
+      (the derived /topics/all-posts/ page doesn't exist → 404). */
+  href?: string;
 }
 
-const { title, count, active } = Astro.props;
+const { title, count, active, href } = Astro.props;
 ---
 
 <a
-  href={`/topics/${topicToSlug(title)}/`}
+  href={href ?? `/topics/${topicToSlug(title)}/`}
   class={`px-4 py-2 rounded-full border transition-all duration-300 font-mono text-sm flex items-center gap-2 ${
     active 
       ? 'bg-accent text-bg-base border-accent' 

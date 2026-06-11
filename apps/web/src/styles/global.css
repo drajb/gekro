@@ -438,7 +438,9 @@ body {
 }
 
 .prose p {
-  @apply mb-12;
+  /* mb-7 ≈ 1.75rem — typographic norm for 18px body. The previous mb-12
+     (3rem) doubled article scroll length and read as sparse. */
+  @apply mb-7;
 }
 
 .prose h2 {
@@ -514,4 +516,65 @@ body {
 .theme-light .prose code:not(pre code),
 .theme-light .prose a {
   color: #1864b3;
+}
+
+/* Static text-accent utilities (TOC active link, TLDR label, topic chips,
+   newsletter label) rendered raw sky-400 on cream — same 1.4.3 failure the
+   hover/prose overrides above fixed. */
+.theme-light .text-accent {
+  color: #1864b3;
+}
+/* Text selection in light mode inverted to near-white-on-sky (~2:1). */
+.theme-light ::selection {
+  background-color: #1864b3;
+  color: #fdfcf9;
+}
+
+/* ── Keyboard accessibility (2026-06-10 audit) ────────────────────────────
+   Site-wide :focus-visible — many controls used focus:outline-none with only
+   a border-color swap, leaving keyboard users without a reliable indicator
+   (WCAG 2.4.7). :focus-visible keeps mouse clicks clean while giving Tab
+   navigation a branded ring. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.theme-light :focus-visible {
+  outline-color: #1864b3;
+}
+
+/* Skip-to-content link (first element in <body>) — visually hidden until
+   focused, then a small branded pill in the top-left. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-accent);
+  border-radius: 0 0 0.75rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* Anchor targets (TOC clicks, shared #hash URLs) used to land under the fixed
+   header. scroll-margin keeps the heading visible below it. */
+.prose h2,
+.prose h3,
+.prose h4 {
+  scroll-margin-top: 6rem;
+}
+
+/* Touch devices have no hover — the code-copy button (opacity-0 until
+   group-hover) was literally invisible to them. Show it always. */
+@media (pointer: coarse) {
+  .copy-button {
+    opacity: 1;
+  }
 }

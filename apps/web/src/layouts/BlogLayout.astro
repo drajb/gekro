@@ -293,7 +293,7 @@ const howtoSchema = post.howto ? {
         try {
           await navigator.clipboard.writeText(window.location.href);
           const originalHTML = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<span class="text-emerald-400">✓</span> Copied!';
+          copyBtn.innerHTML = '<span class="text-accent-success">✓</span> Copied!';
           setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
         } catch (err) {
           console.error('Failed to copy link:', err);

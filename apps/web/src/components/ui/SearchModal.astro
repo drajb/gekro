@@ -37,10 +37,13 @@
 <div
   id="search-modal-backdrop"
   class="fixed inset-0 z-[100] bg-bg-base/80 backdrop-blur-xl opacity-0 pointer-events-none transition-opacity duration-300 flex items-start justify-center pt-[15vh]"
-  aria-hidden="true"
+  inert
 >
   <div
     id="search-modal-content"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Site search"
     class="w-full max-w-2xl mx-4 bg-bg-surface border border-border rounded-2xl shadow-2xl shadow-accent/5 overflow-hidden"
   >
     <!-- Header bar: "Search" label + Escape hint -->
@@ -92,10 +95,14 @@
       if (!backdrop || state.open) return;
 
       state.open = true;
+      // Remember the invoking element so focus returns there on close (the
+      // Pagefind input previously sat focusable inside aria-hidden — inert
+      // handles both focus and AT exposure correctly).
+      state.returnFocus = document.activeElement;
       backdrop.classList.remove('opacity-0', 'pointer-events-none');
       backdrop.classList.add('opacity-100');
       backdrop.style.pointerEvents = 'auto';
-      backdrop.setAttribute('aria-hidden', 'false');
+      backdrop.removeAttribute('inert');
       document.body.style.overflow = 'hidden';
 
       // Lazy-load Pagefind on first open (mirrors SearchWidget's probe pattern)
@@ -140,8 +147,13 @@
       state.open = false;
       backdrop.classList.remove('opacity-100');
       backdrop.classList.add('opacity-0', 'pointer-events-none');
-      backdrop.setAttribute('aria-hidden', 'true');
+      backdrop.setAttribute('inert', '');
       document.body.style.overflow = '';
+      // Restore focus to whatever opened the modal (keyboard or header button)
+      if (state.returnFocus && typeof state.returnFocus.focus === 'function') {
+        state.returnFocus.focus();
+        state.returnFocus = null;
+      }
     };
 
     /**
@@ -171,6 +183,10 @@
      * cross-execution reference).
      */
     const initSearchModal = () => {
+      // Expose the opener for the header search button (and any future
+      // trigger) — module scope isn't reachable from other components.
+      state.openFn = openSearchModal;
+
       // Remove any previous listeners attached by an earlier init pass
       if (window.__gekroSearchKeydown) {
         document.removeEventListener('keydown', window.__gekroSearchKeydown);

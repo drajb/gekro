@@ -88,6 +88,7 @@ const breadcrumbs = {
             id="sidebar-search"
             type="search"
             placeholder="Jump to app…"
+            aria-label="Jump to app"
             autocomplete="off"
             class="w-full bg-bg-elevated border border-border rounded-lg pl-8 pr-3 py-2
                    text-xs font-mono text-text-primary
@@ -138,12 +139,16 @@ const breadcrumbs = {
     <!-- Main content column -->
     <div class="flex-1 min-w-0">
 
+      <!-- Spacer for the fixed header — OUTSIDE the sticky switcher so it
+           scrolls away; it used to live inside, permanently pinning ~120px of
+           dead space to the top of every phone viewport. -->
+      <div class="lg:hidden h-14"></div>
+
       <!-- Mobile app switcher -->
       <div class="lg:hidden sticky top-0 z-40 px-4 py-3 border-b border-border-subtle bg-bg-base/90 backdrop-blur-sm" style="padding-top: calc(env(safe-area-inset-top) + 0.75rem)">
-        <!-- spacer for fixed header on mobile -->
-        <div class="h-14"></div>
         <select
           id="mobile-app-select"
+          aria-label="Switch to another app"
           class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-3
                  text-text-primary focus:outline-none focus:border-accent transition-colors
                  [font-size:16px] min-h-[44px]"

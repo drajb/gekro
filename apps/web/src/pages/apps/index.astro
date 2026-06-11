@@ -140,6 +140,7 @@ const breadcrumbs = {
         <input
           type="search"
           id="apps-search"
+            aria-label="Search apps"
           placeholder="Search apps…"
           autocomplete="off"
           class="w-full bg-bg-elevated border border-border rounded-xl pl-10 pr-4 py-2.5
@@ -155,10 +156,11 @@ const breadcrumbs = {
         {categories.map(cat => (
           <button
             class:list={[
-              'filter-chip text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-lg border transition-all',
+              'filter-chip text-[10px] font-mono uppercase tracking-widest px-3 py-2 min-h-[44px] rounded-lg border transition-all',
               cat.id === 'all' ? 'active' : '',
             ]}
             data-category={cat.id}
+            aria-pressed={cat.id === 'all' ? 'true' : 'false'}
           >
             {cat.label}
             {cat.id !== 'all' && <span class="ml-1 opacity-50">{cat.count}</span>}
@@ -293,7 +295,11 @@ const breadcrumbs = {
     chips.forEach(chip => {
       chip.addEventListener('click', () => {
         activeCategory = chip.dataset.category || 'all';
-        chips.forEach(c => c.classList.toggle('active', c.dataset.category === activeCategory));
+        chips.forEach(c => {
+          const isActive = c.dataset.category === activeCategory;
+          c.classList.toggle('active', isActive);
+          c.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
         applyFilters();
       });
     });

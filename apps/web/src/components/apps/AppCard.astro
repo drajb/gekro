@@ -11,16 +11,22 @@ interface Props {
 
 const { title, job, category, icon, status, slug, publishedAt } = Astro.props;
 
+// Category chips use ONLY locked design-system tokens (design_system 2026-05-03:
+// "never invent new colors") — the previous raw blue/green/yellow/purple/orange
+// Tailwind palette values were off-token. Chips also carry the category text,
+// so the palette doesn't need to be 1:1 unique.
 const categoryColors: Record<string, string> = {
   ai:      'border-accent/20 bg-accent/5 text-accent',
-  infra:   'border-blue-500/20 bg-blue-500/5 text-blue-400',
-  ev:      'border-green-500/20 bg-green-500/5 text-green-400',
-  trading: 'border-yellow-500/20 bg-yellow-500/5 text-yellow-400',
-  dev:     'border-purple-500/20 bg-purple-500/5 text-purple-400',
-  finance: 'border-orange-500/20 bg-orange-500/5 text-orange-400',
+  infra:   'border-border bg-bg-elevated text-text-secondary',
+  ev:      'border-accent-success/20 bg-accent-success/5 text-accent-success',
+  health:  'border-accent-success/20 bg-accent-success/5 text-accent-success',
+  trading: 'border-accent-warm/20 bg-accent-warm/5 text-accent-warm',
+  finance: 'border-accent-warm/20 bg-accent-warm/5 text-accent-warm',
+  dev:     'border-accent-danger/20 bg-accent-danger/5 text-accent-danger',
+  fun:     'border-accent-danger/20 bg-accent-danger/5 text-accent-danger',
 };
 
-const categoryColor = categoryColors[category] ?? categoryColors.dev;
+const categoryColor = categoryColors[category] ?? categoryColors.infra;
 ---
 
 <a

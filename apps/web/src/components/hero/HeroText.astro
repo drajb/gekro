@@ -31,9 +31,11 @@ import { getCollection } from 'astro:content';
 const appCount = (await getCollection('apps', a => a.data.status !== 'archived')).length;
 const appCountLabel = `${Math.floor(appCount / 5) * 5}+`;
 ---
-<div class="relative z-10 text-center space-y-12 pt-32 md:pt-40 pb-20 px-4 min-h-[70vh] flex flex-col justify-center select-none">
+<div class="relative z-10 text-center space-y-12 pt-32 md:pt-40 pb-20 px-4 min-h-[70vh] flex flex-col justify-center">
   <div class="space-y-6">
-    <h1 class="hero-headline text-4xl md:text-8xl font-display font-bold tracking-tight text-text-primary leading-[1.1] md:leading-[0.9]">
+    <!-- select-none scoped to the animated headline only — the value-prop
+         paragraph below stays selectable/copyable -->
+    <h1 class="hero-headline select-none text-4xl md:text-8xl font-display font-bold tracking-tight text-text-primary leading-[1.1] md:leading-[0.9]">
       <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text">Building</span></div>
       <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text">at the edge</span></div>
       <div class="overflow-hidden py-1 md:py-2"><span class="inline-block stagger-text text-accent">of possibility.</span></div>

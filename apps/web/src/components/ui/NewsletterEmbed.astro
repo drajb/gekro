@@ -53,6 +53,7 @@ const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
       id="newsletter-form"
       class="flex flex-col gap-3 max-w-md"
       data-publication-id={publicationId || ''}
+      data-env={import.meta.env.PROD ? 'prod' : 'dev'}
     >
       <input
         type="email"
@@ -134,6 +135,11 @@ const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
               } catch (err) {
                 state.textContent = 'Network error — try again or reach out on LinkedIn.';
               }
+            } else if (form.getAttribute('data-env') === 'prod') {
+              // Production WITHOUT a publication ID = misconfiguration. The
+              // old behavior showed fake success and silently dropped the
+              // subscriber — be honest instead.
+              state.textContent = 'Newsletter signup is temporarily unavailable — reach out on LinkedIn instead.';
             } else {
               // Dev / no publication ID configured — local-only success
               form.classList.add('hidden');

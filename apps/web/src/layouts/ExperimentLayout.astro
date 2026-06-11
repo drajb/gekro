@@ -227,9 +227,9 @@ const breadcrumbs = {
   </article>
 
   <!-- ── Mermaid diagram support ────────────────────────────────────────────── -->
-  <!-- CDN load; initMermaid() below replaces Shiki-rendered mermaid code blocks -->
-  <!-- with live SVG renders after each page load / View Transition.             -->
-  <script is:inline src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- Lazy CDN load: the ~600KB+ library used to be a parser-blocking script on
+       EVERY experiment page, diagrams or not. loadMermaid() below injects it
+       only when the page actually contains a mermaid code block.              -->
   <script>
     /**
      * initMermaid — renders `mermaid` fenced code blocks as SVG diagrams.
@@ -245,9 +245,25 @@ const breadcrumbs = {
      * Note: mermaid is loaded globally via is:inline CDN script above, so we
      * access it via (window as any).mermaid to satisfy TypeScript.
      */
+    /** Inject the mermaid CDN script on demand (once per session). */
+    const loadMermaid = () =>
+      new Promise<void>((resolve, reject) => {
+        if (typeof (window as any).mermaid !== 'undefined') return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/mermaid@10.9.3/dist/mermaid.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Mermaid CDN load failed'));
+        document.head.appendChild(s);
+      });
+
     const initMermaid = async () => {
-      if (typeof (window as any).mermaid === 'undefined') {
-        console.error('Mermaid not loaded');
+      // Bail before any network cost when the page has no diagrams.
+      if (!document.querySelector('pre[data-language="mermaid"]')) return;
+
+      try {
+        await loadMermaid();
+      } catch (err) {
+        console.error('Mermaid not loaded:', err);
         return;
       }
 

@@ -57,7 +57,7 @@ const buildTime = new Date().toLocaleTimeString('en-GB', {
       </div>
       <p class="text-[10px] font-mono text-text-muted uppercase tracking-widest pt-4">© {currentYear} gekro.</p>
       <div class="flex items-center gap-2 pt-2">
-        <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse motion-reduce:animate-none"></div>
         <p class="text-[9px] font-mono text-text-muted uppercase tracking-widest">
           Last System Sync: <span id="sync-time" class="text-text-secondary">{buildTime}</span>
         </p>
