@@ -14,6 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@astrojs/check": "^0.9.9",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "3.7.3",
     "@sanity/astro": "^3.4.0",
@@ -33,7 +34,8 @@
     "sharp": "^0.34.5",
     "shiki": "^4.1.0",
     "tailwindcss": "^4.3.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "typescript": "^6.0.3"
   },
   "devDependencies": {
     "@gekro/eslint-config": "workspace:*",
