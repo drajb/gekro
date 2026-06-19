@@ -118,4 +118,18 @@ For reference — these were in the original 2026-05-22 list and have since ship
 
 ---
 
+## Shipped — 2026-06-19 (Rohit picked 3 of 4 proposed)
+
+Proposed 4 new AI-eng apps; Rohit selected 3 (skipped the Secret/API-key Scanner). **All 3 shipped same day** (gekro-apps@e095f2b). Browser-verified: templates/sampling-math/cost-model correct, XSS-safe, no console errors. Catalog now **72 apps**. Zero-dep, client-only, category `ai`.
+
+| Slug | Job | Notes |
+|---|---|---|
+| `chat-template-builder` | messages[] (system/user/assistant) → exact prompt string for Llama-3, ChatML (GPT/Qwen), Mistral, Gemma, Phi-3, with special tokens shown | pairs with `tokenizer`; zero-dep; hand-rolled templates per family |
+| `sampling-playground` | temperature / top-p / top-k / min-p / repetition-penalty applied live to a sample logit distribution, visualized | pairs with `token-probability-visualizer`; canvas/SVG, zero-dep |
+| `agent-loop-cost-estimator` | model + N steps + avg tokens & tool-calls/step → cumulative $ cost, context growth, latency estimate | extends `llm-cost-calculator` + `context-window-visualizer`; zero-dep |
+
+**Not selected (keep on ice):** Secret / API-key Scanner (paste code → flag leaked creds by pattern + redact).
+
+---
+
 *This doc and `app_ideas_backlog.md` are the canonical pair. When updating one, update the other in the same turn.*
