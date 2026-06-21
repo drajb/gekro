@@ -29,7 +29,7 @@ const newer = idx > 0 ? all[idx - 1] : null;
 const older = idx < all.length - 1 ? all[idx + 1] : null;
 
 const uniqueSources = [...new Map(
-  briefing.data.sources.map((name, i) => [briefing.data.sourceUrls[i] ?? name, { name, url: briefing.data.sourceUrls[i] }])
+  briefing.data.sources.map((name: string, i: number): [string, { name: string; url: string }] => [briefing.data.sourceUrls[i] ?? name, { name, url: briefing.data.sourceUrls[i] }])
 ).values()];
 
 const pageURL = `https://gekro.com/news/${briefing.id}/`;

@@ -51,6 +51,11 @@ export interface FormattedPost {
   // BlogLayout uses it for dateModified in JSON-LD and OG article:modified_time.
   // Falls back to publishedAt when absent.
   updatedAt?: string;
+  // Optional structured-data blocks from blog frontmatter, consumed by
+  // BlogLayout for FAQPage / HowTo JSON-LD. Mirror of the Zod schema in
+  // content.config.ts so flattened local posts type-check.
+  faq?: { question: string; answer: string }[];
+  howto?: { name: string; totalTime?: string; steps: { name: string; text: string }[] };
 }
 
 /**

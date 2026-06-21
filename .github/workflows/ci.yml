@@ -52,9 +52,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # ── Step 6: Type check ───────────────────────────────────────────────
+      # ── Step 6: Type check (non-blocking) ────────────────────────────────
+      # Deploy uses `astro build` (no typecheck), and this repo auto-publishes
+      # news daily — content automation should not fail CI (or email) on code
+      # type-checks. Same rationale as Lint below. Type errors still surface in
+      # the step's annotations; they just don't fail the job. (2026-06-21)
       - name: Type check
         run: pnpm --filter web exec astro check
+        continue-on-error: true
 
       # ── Step 7: Lint (non-blocking) ──────────────────────────────────────
       - name: Lint

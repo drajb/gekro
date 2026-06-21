@@ -76,24 +76,24 @@
   class LabTerminal extends HTMLElement {
     isOpen = false;
     isBooted = false;
-    history = [];
+    history: string[] = [];
     historyIndex = -1;
-    container = null;
-    output = null;
-    form = null;
-    input = null;
-    closeBtn = null;
+    container: HTMLElement | null = null;
+    output: HTMLElement | null = null;
+    form: HTMLFormElement | null = null;
+    input: HTMLInputElement | null = null;
+    closeBtn: HTMLElement | null = null;
 
     constructor() {
       super();
     }
 
     connectedCallback() {
-      this.container = this.querySelector('#lab-terminal-container');
-      this.output = this.querySelector('#lab-terminal-output');
-      this.form = this.querySelector('form#lab-terminal-form');
-      this.input = this.querySelector('input#lab-terminal-input');
-      this.closeBtn = this.querySelector('#lab-terminal-close');
+      this.container = this.querySelector<HTMLElement>('#lab-terminal-container');
+      this.output = this.querySelector<HTMLElement>('#lab-terminal-output');
+      this.form = this.querySelector<HTMLFormElement>('form#lab-terminal-form');
+      this.input = this.querySelector<HTMLInputElement>('input#lab-terminal-input');
+      this.closeBtn = this.querySelector<HTMLElement>('#lab-terminal-close');
 
       // Bind methods to instance so removeEventListener can match the same ref
       this.handleKeydown = this.handleKeydown.bind(this);
@@ -111,7 +111,7 @@
       document.removeEventListener('keydown', this.handleKeydown);
     }
 
-    printLine(text, isHTML = false) {
+    printLine(text: string, isHTML = false) {
       if (!this.output) return;
       const line = document.createElement('div');
       if (isHTML) {
@@ -130,7 +130,7 @@
      * The terminal has no server component, so the threat is the user
      * attacking their own session — but escaping costs nothing.
      */
-    escapeHtml(str) {
+    escapeHtml(str: string) {
       return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -139,7 +139,7 @@
         .replace(/'/g, '&#39;');
     }
 
-    async slowPrint(lines, delayMs = 120) {
+    async slowPrint(lines: string[], delayMs = 120) {
       for (const line of lines) {
         this.printLine(line);
         await new Promise(r => setTimeout(r, delayMs));
@@ -201,7 +201,7 @@
         this.container.classList.add('opacity-0', 'pointer-events-none');
         this.container.setAttribute('aria-hidden', 'true');
         setTimeout(() => {
-          this.container.style.display = 'none';
+          this.container!.style.display = 'none';
         }, 300);
       }
     }
@@ -211,7 +211,7 @@
      * Ignores the key when focus is in an INPUT or TEXTAREA (other than the
      * terminal's own input, which should also toggle-close the terminal).
      */
-    handleKeydown(e) {
+    handleKeydown(e: KeyboardEvent) {
       // Match the physical backtick key regardless of keyboard layout. On
       // dead-key / international layouts (US-International, many EU layouts) the
       // ` key reports e.key === 'Dead' (or a composed char), so we key off
@@ -219,7 +219,7 @@
       // and keep e.key === '`' as a fallback for older browsers. Without the
       // e.code check the terminal never opened on those layouts (2026-06-02).
       if (e.code === 'Backquote' || e.key === '`') {
-        const target = e.target;
+        const target = e.target as HTMLElement | null;
         if (target && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
             e.preventDefault();
             this.toggleTerminal();
@@ -239,7 +239,7 @@
      * Echoes the command to the output first, then appends to history,
      * then dispatches to the appropriate handler.
      */
-    async handleCommand(cmd) {
+    async handleCommand(cmd: string) {
       const trimmed = cmd.trim();
       if (!trimmed) return;
 
@@ -309,7 +309,7 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       }
     }
 
-    handleSubmit(e) {
+    handleSubmit(e: Event) {
       e.preventDefault();
       if (this.input) {
          this.handleCommand(this.input.value);
@@ -317,7 +317,8 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       }
     }
 
-    handleInputKeydown(e) {
+    handleInputKeydown(e: KeyboardEvent) {
+      if (!this.input) return;
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         if (this.historyIndex > 0) {
