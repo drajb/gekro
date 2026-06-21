@@ -1,15 +1,16 @@
 /**
- * content/config.ts — Astro Content Collections schema definitions
+ * content.config.ts — Astro Content Collections schema definitions
  *
  * Single source of truth for all markdown frontmatter shapes.
- * Astro validates every .md file in src/content/{blog,experiments,apps,stack}/
+ * Astro validates every .md file in src/content/{blog,experiments,apps,stack,news}/
  * against these Zod schemas at build time — type errors surface during `astro build`.
  *
- * Collections:
- *  blog        — blog posts (type: 'content' — markdown with frontmatter)
- *  experiments — experiment case studies (type: 'content')
- *  apps        — gekro-built stateless tools (type: 'content')
- *  stack       — third-party tool reviews ("Verified by an AI engineer"; type: 'content').
+ * Registered collections (see the `collections` export at the bottom):
+ *  blog        — blog posts (markdown with frontmatter, via glob loader)
+ *  experiments — experiment case studies
+ *  apps        — gekro-built stateless tools
+ *  news        — daily AI industry briefings (auto-generated + human-reviewed)
+ *  stack       — third-party tool reviews ("Verified by an AI engineer").
  *                See .gekro/docs/stack-standard.md for the methodology. Note that
  *                the `badAt` field has .min(1) — that is intentional and is the
  *                structural defense against affiliate fatigue (the format

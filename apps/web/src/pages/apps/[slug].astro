@@ -9,8 +9,12 @@
  *
  * Adding a new app:
  *  1. Create apps/web/src/content/apps/{slug}.md  (public repo — metadata)
- *  2. Create {slug}/Calculator.astro in drajb/gekro-apps  (private repo — implementation)
- *  3. Update the submodule ref in gekro, then add one import + one entry to CALCULATOR_MAP below
+ *  2. Create {slug}/Calculator.astro in drajb/gekro-apps, then commit + push there
+ *     (private repo — implementation). apps-private is NOT a submodule: it's
+ *     gitignored and cloned fresh at build time (HEAD of main), so there is no
+ *     ref to update here.
+ *  3. Add one import + one entry to CALCULATOR_MAP below. The next build clones
+ *     HEAD of gekro-apps automatically and picks up the new Calculator.
  */
 
 import { getCollection, render } from 'astro:content';

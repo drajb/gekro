@@ -3,7 +3,7 @@
  * BaseLayout.astro — Root shell for every page on gekro.com
  *
  * Responsibilities:
- *  - Injects <head> (SEO, fonts, GA, GTM, ViewTransitions)
+ *  - Injects <head> (SEO, fonts, GA, GTM, ClientRouter)
  *  - Wraps page content in the #swup transition container
  *  - Mounts the global fixed Header, Footer, and LabTerminal (the `\`` easter-egg)
  *  - Mounts CursorFollower (custom cursor dot, desktop only)
@@ -22,7 +22,7 @@
  *  - Cloudflare Web Analytics: HARDCODED override (beacon token) — same decision.
  *
  * View Transitions:
- *  Astro's <ViewTransitions /> drives all page-to-page navigation.
+ *  Astro's <ClientRouter /> drives all page-to-page navigation.
  *  Any component that attaches DOM event listeners MUST also listen for
  *  'astro:after-swap' and re-attach them, because the old DOM is replaced
  *  on each transition and inline one-shot scripts do not re-run.

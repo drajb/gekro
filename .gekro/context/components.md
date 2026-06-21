@@ -58,6 +58,37 @@ Every component in `apps/web/src/components/`, grouped by domain. Path is implie
 | `Tag.astro` | Topic chip with count. Consumes `getTopicCounts()` output from `lib/utils/posts.ts`. |
 | `ThemeToggle.astro` | Light/dark toggle — only active on reading pages (`/blog/[slug]`, `/experiments/[slug]`). Uses View Transitions API with clip-path reveal animation. Light theme binds to `document.body` (not `<article>`) to cover the sticky header. **Requires cleanup script on `astro:after-swap` to strip `.theme-light` from body when navigating back to non-reading pages.** One-time pulse hint on first session visit (sessionStorage-gated, reduced-motion respecting). |
 
+## `apps/` — `/apps` platform shell (PUBLIC; stays in this repo)
+
+| File | Purpose |
+|---|---|
+| `AppShell.astro` | Title + JTBD + category badge, toolbar (Export/Copy/Share/Reset), methodology link, "Last verified" stamp, `AttributionFooter`. Wraps each app island. |
+| `AppCard.astro` | Landing-page grid card for an app. Same hover-tilt/glow treatment as `PostCard`/`ExperimentCard`. |
+| `AttributionFooter.astro` | `© · license · Built at gekro.com · View source` plus the site-wide "as-is" disclaimer. |
+| `shared/` | Closed-set primitives reused by all apps: `NumberInput`, `Select`, `Tabs`, `ResultCard`, `CopyButton`, `ExportButton`, `ResetButton`, plus `csv.ts` (RFC-4180 export) and `url-state.ts` (URL round-trip). |
+
+> Note: there is **no** `AppFilters.astro` component — the search + category-chip filter UI lives inline in `pages/apps/index.astro`.
+
+## `apps-private/` — the Calculator implementations (PRIVATE)
+
+Gitignored; cloned at build time from `drajb/gekro-apps` (NOT a git submodule — see CLAUDE.md §8). Contains the **72** per-app `Calculator.astro` islands (+ optional `data.ts`), dynamic-imported by `pages/apps/[slug].astro`. The IP lives here; this repo holds only the shell above.
+
+## `stack/` — `/stack` tool reviews
+
+| File | Purpose |
+|---|---|
+| `StackHeader.astro` | Review header (tool name, meta). |
+| `StackCard.astro` | Listing card on `/stack`. |
+| `StackVerdict.astro` | The headline verdict block. |
+| `StackPros.astro` / `StackCons.astro` | Pros / cons (`badAt` is Zod-required, surfaced in Cons). |
+| `StackMeta.astro` | `lastVerified` + metadata strip. |
+| `StackReferralFooter.astro` | Muted, named referral disclosure (the only named disclosure per the referral rule). |
+| `ComparisonTable.astro`, `SimpleBarChart.astro` | Optional in-review comparison visuals. |
+
+## News (`/news`)
+
+The news section renders inline in `pages/news/index.astro` and `pages/news/[slug].astro` — there is currently **no dedicated `components/news/` directory**. Briefing content comes from the `news` content collection; feeds are emitted by `news-rss.xml.ts` / `news-sitemap.xml.ts` and OG images by `og/news/[slug].png.ts`.
+
 ## Root `components/`
 
 | File | Purpose |

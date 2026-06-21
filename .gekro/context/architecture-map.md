@@ -32,8 +32,8 @@ Every source file that matters, annotated. Node_modules, dist, .astro, .turbo, a
 |---|---|
 | `docs/deep-dive-standard.md` | Authoritative Deep Dive content rules (V2, Rohit persona, 5-section structure). |
 | `docs/linkedin-standard.md` | Authoritative LinkedIn rules (8-line + image + prohibited phrases). |
-| `logs/decision-log.md` | **Mutable, pre-flight read.** 13 decisions as of 2026-04-01. |
-| `logs/issue-tracker.md` | **Mutable, pre-flight read.** 17 resolved issues + 1 open backlog (proof layer). |
+| `logs/decision-log.md` | **Mutable, pre-flight read.** ~36 decisions (latest 2026-06-19). |
+| `logs/issue-tracker.md` | **Mutable, pre-flight read.** ~38 logged issues (incl. the proof-layer backlog item). |
 | `context/*` | This knowledge base. |
 
 ## `.artifacts/` — historical / aspirational
@@ -48,7 +48,7 @@ Every source file that matters, annotated. Node_modules, dist, .astro, .turbo, a
 
 ## `.github/workflows/ci.yml`
 
-Single CI job: checkout → pnpm v9 → node 20 with pnpm cache → `pnpm install --frozen-lockfile` → `pnpm --filter web exec astro check` (typecheck) → `pnpm --filter web lint` (`continue-on-error: true`) → `pnpm --filter web build` (with Sanity env secrets). Runs on push to all branches + PRs to `main`/`dev`.
+Single CI job: checkout → pnpm v9 → node 22 with pnpm cache → clone `drajb/gekro-apps` into `apps/web/src/components/apps-private` (the `apps-private/` step, runs **before** install, authed via `SUBMODULE_PAT`) → `pnpm install --frozen-lockfile` → `pnpm --filter web exec astro check` (typecheck) → `pnpm --filter web lint` (`continue-on-error: true`) → `pnpm --filter web build` (with Sanity env secrets). Runs on push to all branches + PRs to `main`/`dev`.
 
 ## `apps/web/` — the Astro site (main work)
 
@@ -69,15 +69,22 @@ Single CI job: checkout → pnpm v9 → node 20 with pnpm cache → `pnpm instal
 ### `src/components/`
 Organised by domain. See [components.md](components.md) for a full catalogue.
 
+### `src/content.config.ts`
+- Zod schemas — 5 collections: `blog`, `experiments`, `apps`, `stack`, `news`. (Single source of truth for markdown frontmatter; lives at `src/content.config.ts`, not inside `content/`.)
+
 ### `src/content/`
-- `config.ts` — Zod schemas for `blog` and `experiments` collections.
-- `blog/` — 11 markdown posts + `_template.md`.
+- `blog/` — 13 markdown posts + `_template.md`.
 - `experiments/` — 3 markdown experiments + `_template.md`.
+- `apps/` — 72 app methodology markdown files + `_template.md`.
+- `stack/` — third-party tool-review markdown files.
+- `news/` — daily AI-briefing markdown files.
 
 ### `src/layouts/`
-- `BaseLayout.astro` — wraps every page. View Transitions, GTM (deferred 3.5s hardcoded), Cloudflare beacon (hardcoded), `LabTerminal`, post-swap GSAP fade.
+- `BaseLayout.astro` — wraps every page. View Transitions via `<ClientRouter />` (the Astro 4 `<ViewTransitions />` component was renamed `ClientRouter` and is the current import), GTM (deferred 3.5s hardcoded), Cloudflare beacon (hardcoded), `LabTerminal`, post-swap GSAP fade.
 - `BlogLayout.astro` — post wrapper. Light-mode theme binds to `document.body` (not `<article>`) — key fix from 2026-03-31.
 - `ExperimentLayout.astro` — experiment wrapper.
+- `AppLayout.astro` — `/apps/[slug]` wrapper (extends BaseLayout; no hero canvas).
+- `StackLayout.astro` — `/stack/[slug]` wrapper.
 
 ### `src/lib/`
 - `sanity/client.ts` — `createClient` if `PUBLIC_SANITY_PROJECT_ID` else a stub with rejecting `fetch`. All callers wrap in try/catch.
@@ -86,7 +93,7 @@ Organised by domain. See [components.md](components.md) for a full catalogue.
 - `utils/reading-time.ts` — pure util, tested in `reading-time.test.ts`.
 
 ### `src/pages/`
-See [pages.md](pages.md) for full route → layout → data map.
+See [pages.md](pages.md) for full route → layout → data map. Beyond blog/experiments/topics, the `apps`, `stack`, and `news` collections each have index + `[slug]` routes, plus a `404.astro`. Additional endpoints now exist: dynamic OG-image generators at `og/{apps,blog,experiments,news,stack}/[slug].png.ts`, the full LLM manifest at `llms-full.txt.ts`, and news-specific feeds `news-rss.xml.ts` + `news-sitemap.xml.ts`. (The Zod `collections` export defines 5 collections — blog, experiments, apps, stack, news.)
 
 ### `src/styles/global.css`
 Tailwind v4 `@theme` block with CSS variables: `--color-bg-base/surface/elevated`, `--color-text-primary/secondary/muted`, `--color-accent` (`#3fb1ff` electric blue), `--color-accent-warm` (amber), `--color-border[/-subtle]`, `--font-display/heading/body/mono`. `.theme-light` class overrides tokens for localized light reader mode (applied to `document.body` during View Transitions). Prose overrides for `.prose` children.
@@ -115,6 +122,6 @@ Tailwind v4 `@theme` block with CSS variables: `--color-bg-base/surface/elevated
 ## Mental model
 
 - **apps/web is the product.** Everything user-facing lives there.
-- **apps/studio is optional content tooling.** The site will build without Sanity env vars, falling back to local Content Collections. When modifying content models, update BOTH `apps/web/src/content/config.ts` (Zod) AND `apps/studio/schemas/` (Sanity) to keep them in sync.
+- **apps/studio is optional content tooling.** The site will build without Sanity env vars, falling back to local Content Collections. When modifying content models, update BOTH `apps/web/src/content.config.ts` (Zod) AND `apps/studio/schemas/` (Sanity) to keep them in sync.
 - **packages/ is mostly scaffolding.** `tsconfig` is real; `eslint-config` and `ui` are reserved placeholders. Don't assume they export anything yet.
 - **.agents/, .gekro/, .artifacts/** overlap historically. The authoritative live context is `.agents/rules/` (always-on prompts) + `.gekro/logs/` (mutable state) + `.gekro/context/` (this KB). `.artifacts/` is archival only.

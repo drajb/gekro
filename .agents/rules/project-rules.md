@@ -7,7 +7,7 @@ trigger: always_on
 ## Project Identity
 
 This is gekro.com — a personal AI engineering lab and tech blog.
-Stack: Astro 4, Tailwind CSS v4, TypeScript, Sanity CMS, Three.js, GSAP, Motion One.
+Stack: Astro 6, Tailwind CSS v4, TypeScript, Sanity CMS, Three.js, GSAP, Motion One.
 Monorepo managed with Turborepo + pnpm workspaces.
 The main site lives at apps/web/. Sanity Studio at apps/studio/.
 
@@ -49,7 +49,7 @@ The main site lives at apps/web/. Sanity Studio at apps/studio/.
 
 - Every page MUST include the SEOHead.astro component with populated title, description, and ogImage.
 - Every blog post and experiment MUST include JSON-LD structured data via JsonLD.astro.
-- Every post MUST have a populated `aiSummary` field in Sanity (2 sentences, plain text, no markdown).
+- Every post MUST have a populated `aiSummary` field in markdown frontmatter (local-first Content Collections; Sanity is the optional headless mirror). 2 sentences, plain text, no markdown.
 - The TLDR.astro block must appear before the first H2 on every post.
 - Canonical URLs must always be set explicitly.
 - The public /api/posts.json endpoint must always stay live and return valid JSON.
@@ -81,9 +81,9 @@ The main site lives at apps/web/. Sanity Studio at apps/studio/.
 
 ## Design System Rules
 
-- Dark mode is the default and only mode (toggle may be added in Phase 2).
+- Dark mode is the default site-wide. A localized light reader mode has shipped on the reading routes (`/blog/[slug]` and `/experiments/[slug]`) via the ThemeToggle — it binds `.theme-light` to `document.body` during View Transitions. All other pages stay dark-only.
 - Use the established colour palette CSS variables — no new colours without updating global.css first.
-- Typography scale is defined in typography.css — do not override with arbitrary font sizes.
+- Typography scale is defined in src/styles/global.css (Tailwind v4 `@theme` tokens) — do not override with arbitrary font sizes.
 - Card components must use: surface background, border, subtle shadow, and hover state.
 - Spacing: prefer Tailwind's scale (4px base). No arbitrary pixel values without comment.
 

@@ -6,7 +6,7 @@
  * local Content Collections AND Sanity CMS (Sanity fetch fails silently).
  *
  * Rendering modes:
- *  isLocal = true  → Astro markdown render via post.render(); provides
+ *  isLocal = true  → Astro markdown render via render(post); provides
  *                    Content component and heading extraction.
  *  isLocal = false → Sanity PortableText render via <PortableText> component;
  *                    headings are hardcoded stubs (Sanity posts don't auto-extract).

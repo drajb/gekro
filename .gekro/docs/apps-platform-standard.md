@@ -51,8 +51,8 @@ These rules exist because we already know the trap: a 20-app platform tempts pre
 
 ```
 apps/web/src/
+├── content.config.ts                      # +apps collection (Zod schema, §4)
 ├── content/
-│   ├── config.ts                          # +apps collection (Zod schema, §4)
 │   └── apps/
 │       ├── _template.md                   # frontmatter scaffold
 │       └── {slug}.md                      # one .md per app
@@ -93,7 +93,7 @@ gekro/
 
 ## 4. Content collection schema
 
-Add to `apps/web/src/content/config.ts`:
+Add to `apps/web/src/content.config.ts`:
 
 ```ts
 const apps = defineCollection({
@@ -101,7 +101,7 @@ const apps = defineCollection({
   schema: z.object({
     title: z.string(),                                    // "LLM Cost Calculator"
     slug: z.string(),                                     // "llm-cost-calculator"
-    category: z.enum(['ai', 'infra', 'ev', 'trading', 'dev', 'finance']),
+    category: z.enum(['ai', 'infra', 'ev', 'trading', 'dev', 'finance', 'fun', 'health']),
     job: z.string(),                                      // JTBD one-liner: "Compare LLM API costs across providers"
     description: z.string(),                              // 1–2 sentence summary (meta/OG)
     aiSummary: z.string().optional(),                     // GEO-optimised 2-sentence summary
@@ -115,10 +115,10 @@ const apps = defineCollection({
   }),
 });
 
-export const collections = { blog, experiments, apps };
+export const collections = { blog, experiments, apps, stack, news };
 ```
 
-**Categories taxonomy (v1, locked, additive only):**
+**Categories taxonomy (locked, additive only) — 8 categories:**
 
 | Category | Domain |
 |---|---|
@@ -128,8 +128,10 @@ export const collections = { blog, experiments, apps };
 | `trading` | Position sizing, risk/reward, Kelly criterion, options math |
 | `dev` | Regex, cron, JSON/YAML, encoding/decoding, dev productivity |
 | `finance` | Amortization, rate comparison, retirement, savings math |
+| `fun` | Playful / general-purpose utilities |
+| `health` | Health and wellness calculators |
 
-Adding a new category requires a decision log entry.
+Adding a new category requires a decision log entry. (`fun` and `health` were added after v1 via that process.)
 
 ---
 
@@ -223,7 +225,7 @@ Renders: `© 2026 Rohit Burani · {license} · Built at gekro.com · View source
 
 Sections:
 1. **Hero strip** — headline ("Free tools I built for myself, public versions"), subhead (1 sentence), no animation overhead.
-2. **Filter bar** — `AppFilters.astro` renders search input + 6 category chips (matches the v1 taxonomy). Vanilla JS array filter — no Fuse.js, no Pagefind.
+2. **Filter bar** — the inline filter UI in `apps/index.astro` renders a search input + 8 category chips (matches the taxonomy). Vanilla JS array filter — no Fuse.js, no Pagefind.
 3. **Card grid** — `AppCard` for each app, sorted by `publishedAt` desc, filtered live by search + category state.
 4. **Empty state** — shown when filters return 0 results.
 

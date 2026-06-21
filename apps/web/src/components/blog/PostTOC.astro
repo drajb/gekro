@@ -6,9 +6,10 @@
  *
  * Props:
  *  headings — array of { depth, text, slug } extracted from the post markdown
- *             by Astro's post.render() — available for local Content Collection
- *             posts only. Sanity posts receive a hardcoded stub array from
- *             blog/[slug].astro (no heading extraction on Sanity posts).
+ *             by Astro 6's standalone render(post) from 'astro:content' -
+ *             available for local Content Collection posts only. Sanity posts
+ *             receive a hardcoded stub array from blog/[slug].astro (no heading
+ *             extraction on Sanity posts).
  *
  * Scroll-spy:
  *  An IntersectionObserver watches every H2/H3 in the article body. When a

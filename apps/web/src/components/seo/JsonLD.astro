@@ -5,10 +5,14 @@
  * Used in: BlogLayout.astro (BlogPosting schema), ExperimentLayout.astro (TechArticle schema)
  *
  * Receives a plain JS object and serialises it to JSON inside a
- * script element with type="application/ld+json". Astro's set:html directive
- * handles the serialisation — no XSS risk because JSON.stringify()
- * produces safe output and set:html bypasses Astro's HTML escaping
- * intentionally (the output is a script tag, not prose HTML).
+ * script element with type="application/ld+json". set:html bypasses Astro's
+ * HTML escaping intentionally (the output is a script tag, not prose HTML).
+ * JSON.stringify() alone is NOT safe here: a value containing the literal
+ * "</script>" sequence (reachable via auto-published news article titles)
+ * would close the script element early and allow markup injection. We escape
+ * every "<" to its unicode form (backslash-u-003c) before injecting - this
+ * neutralises "</script>" (and any other "<...>" sequence) while remaining
+ * valid JSON inside a script. The escaping is applied below.
  *
  * The caller is responsible for passing a valid schema.org object.
  * See BlogLayout.astro and ExperimentLayout.astro for usage examples.
@@ -21,4 +25,4 @@ interface Props {
 const { data } = Astro.props;
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(data)} />
+<script type="application/ld+json" set:html={JSON.stringify(data).replace(/</g, '\\u003c')} />

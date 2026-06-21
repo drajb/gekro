@@ -15,7 +15,7 @@
 
 | Layer | Choice |
 |---|---|
-| Framework | Astro 4.x (island arch, mostly `.astro` files) |
+| Framework | Astro 6.x (island arch, mostly `.astro` files) |
 | Styling | Tailwind CSS v4 (`@theme` block in `global.css`) |
 | Interactivity | TypeScript strict, Three.js, GSAP + ScrollTrigger, Motion One |
 | CMS | Sanity v3 (optional — site builds local-only if env missing) |
@@ -43,25 +43,33 @@ gekro/
 │   │       │   ├── layout/       → Header, Footer
 │   │       │   ├── seo/          → SEOHead, JsonLD
 │   │       │   ├── ui/           → BrandLogo, ContactForm, LabGallery, NewsletterEmbed, SearchWidget, Tag, ThemeToggle
-│   │       │   ├── apps/         → AppShell, AppCard, AppFilters, AttributionFooter, shared/ (PUBLIC — stays here)
-│   │       │   ├── apps-private/ → ⭐ git submodule → drajb/gekro-apps (PRIVATE — 51 Calculator components)
+│   │       │   ├── apps/         → AppShell, AppCard, AttributionFooter, shared/ (PUBLIC — stays here; apps/index.astro holds the inline filter UI)
+│   │       │   ├── stack/        → StackHeader, StackCard, StackVerdict, StackPros/Cons, StackMeta, StackReferralFooter, ComparisonTable, SimpleBarChart
+│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 72 Calculator components; see §8, NOT a git submodule)
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
+│   │       ├── content.config.ts → Zod schemas — 5 collections (blog, experiments, apps, stack, news)
 │   │       ├── content/
-│   │       │   ├── config.ts     → Zod schemas for blog + experiments collections
-│   │       │   ├── blog/         → 11 markdown posts + _template.md
-│   │       │   └── experiments/  → 3 markdown experiments + _template.md
-│   │       ├── layouts/          → BaseLayout, BlogLayout, ExperimentLayout
+│   │       │   ├── blog/         → 13 markdown posts + _template.md
+│   │       │   ├── experiments/  → 3 markdown experiments + _template.md
+│   │       │   ├── apps/         → 72 app methodology markdown files + _template.md
+│   │       │   ├── stack/        → tool-review markdown files
+│   │       │   └── news/         → daily AI-briefing markdown files
+│   │       ├── layouts/          → BaseLayout, BlogLayout, ExperimentLayout, AppLayout, StackLayout
 │   │       ├── lib/
 │   │       │   ├── sanity/       → client.ts (stub-on-missing), queries.ts (GROQ)
 │   │       │   └── utils/        → posts.ts (⭐ central post fetcher), reading-time.ts (+ vitest)
 │   │       ├── pages/
 │   │       │   ├── index.astro                → homepage
-│   │       │   ├── about.astro, contact.astro, now.astro, slides.astro
+│   │       │   ├── about.astro, contact.astro, now.astro, slides.astro, 404.astro
 │   │       │   ├── blog/index.astro, blog/[slug].astro
 │   │       │   ├── experiments/index.astro, experiments/[slug].astro
+│   │       │   ├── apps/index.astro, apps/[slug].astro
+│   │       │   ├── stack/index.astro, stack/[slug].astro
+│   │       │   ├── news/index.astro, news/[slug].astro
 │   │       │   ├── topics/[topic].astro
+│   │       │   ├── og/{apps,blog,experiments,news,stack}/[slug].png.ts → dynamic OG images
 │   │       │   ├── api/posts.json.ts          → public JSON API
-│   │       │   └── rss.xml.ts
+│   │       │   └── rss.xml.ts, news-rss.xml.ts, news-sitemap.xml.ts, llms-full.txt.ts
 │   │       └── styles/global.css              → Tailwind v4 @theme tokens + prose overrides
 │   └── studio/           → Sanity Studio (schemas/: post, experiment, slideDeck, topic)
 ├── packages/
@@ -87,7 +95,7 @@ gekro/
 - **Topic chips** → `getTopicCounts()` in the same file.
 - **Sanity access** → `client` in [apps/web/src/lib/sanity/client.ts](apps/web/src/lib/sanity/client.ts) returns a stub rejecting-fetch if `PUBLIC_SANITY_PROJECT_ID` is missing. All callers must wrap in try/catch.
 - **Page → layout chain** → `BaseLayout.astro` wraps everything (View Transitions, GTM deferred 3.5s, Cloudflare beacon, `LabTerminal`, post-swap GSAP fade). `BlogLayout` and `ExperimentLayout` extend it.
-- **Content schemas** → `apps/web/src/content/config.ts` (Zod, single source of truth for markdown frontmatter). Sanity schemas in `apps/studio/schemas/` are the headless mirror.
+- **Content schemas** → `apps/web/src/content.config.ts` (Zod, single source of truth for markdown frontmatter; 5 collections: blog, experiments, apps, stack, news). Sanity schemas in `apps/studio/schemas/` are the headless mirror.
 - **SEO** → `SEOHead.astro` is mandatory on every page; `JsonLD.astro` on every post/experiment; `aiSummary` field is optimised for AI citation (GEO).
 
 ## 5. Commands
@@ -121,8 +129,8 @@ The project uses a formal **decision log + issue tracker** workflow. These files
 3. **Override protocol:** If a user request contradicts an existing decision, STOP, cite the conflicting decision's date, reason through trade-offs, and wait for the user to say literally **"Override"** before proceeding.
 4. **Proactive verification:** If a proposed change might break an existing decision or recreate a known issue, warn the user before implementing.
 
-Current decision count: **13 decisions** (latest: 2026-04-01 perf overhaul vs aesthetics, override count 1).
-Current issue count: **17 resolved + 1 backlog** (proof layer in experiment detail pages — every new experiment must have at least one screenshot or `render_diffs` block).
+Current decision count: **~36 decisions** (latest: 2026-06-19; override count 1).
+Current issue count: **~38 logged** (incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
 
 ## 6a. Content Protection Protocol (hard rule — no exceptions)
 
@@ -165,7 +173,7 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 | What | Repo | Visibility |
 |---|---|---|
 | App shell, routing, content, shared UI | `drajb/gekro` (this repo) | Public |
-| All 51 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
+| All 72 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
 
 `apps-private/` is **NOT a git submodule** — it is **gitignored** and cloned fresh at build time by each build system. This was necessary because CF Pages v3 hard-codes submodule auth before the build command runs, with no injection point for credentials.
 
@@ -185,7 +193,7 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 - **Editing an existing Calculator:** work in `G:/Git/gekro-apps`, commit + push there. The next CI/CF Pages build clones the latest automatically.
 - **Shared utilities** (`apps/shared/csv.ts`, `url-state.ts`, etc.) stay in this public repo. Calculators in `apps-private/` that import shared code use `../../apps/shared/`.
 - **Relative imports** from `apps-private/[slug]/` to `content/` use `../../../content/`.
-- **Never move `AppShell.astro`, `AppCard.astro`, `AppFilters.astro`, `AttributionFooter.astro`, or `shared/`** to the private repo.
+- **Never move `AppShell.astro`, `AppCard.astro`, `AttributionFooter.astro`, or `shared/`** to the private repo.
 
 ### Required secrets (one-time setup)
 - **CF Pages:** `GITHUB_PAT` — PAT with Contents:Read on `drajb/gekro-apps`, set in CF Pages project → Settings → Variables and Secrets
@@ -204,7 +212,7 @@ git clone https://github.com/drajb/gekro-apps.git apps/web/src/components/apps-p
 - Site gracefully degrades to local-only Content Collections if Sanity env is missing.
 - **Hardcoded exceptions** (overrides of the env-only rule): GTM ID `GTM-MBGML7FV` and Cloudflare beacon token, both in `BaseLayout.astro`. Do **not** "fix" these back to env vars without Override.
 
-## 9. Working with Gemini CLI (dual-agent setup)
+## 10. Working with Gemini CLI (dual-agent setup)
 
 This repo is developed hand-in-hand with Gemini CLI. Both agents share:
 - `CLAUDE.md` (this file) and `GEMINI.md` (thin pointer to the same content)
@@ -214,7 +222,7 @@ This repo is developed hand-in-hand with Gemini CLI. Both agents share:
 
 **Coordination rule of thumb:** treat the decision log as a mutex. Before a non-trivial change, skim it for conflicts with the other agent's recent work. Append to the issue tracker/decision log in real time so the other agent sees your work next session.
 
-## 10. Skills (Claude-invocable workflows)
+## 11. Skills (Claude-invocable workflows)
 
 Defined in `.agents/skills/`:
 - **blog-post-creation** — converts brain-dumps into Gekro Deep Dive posts per [.gekro/docs/deep-dive-standard.md](.gekro/docs/deep-dive-standard.md). Five-section structure (Hook, Architecture, Build, Tradeoffs, Where This Goes), Rohit persona, 6–8 min reading time, no clichés. **Must wait for user approval before committing.**
@@ -222,4 +230,4 @@ Defined in `.agents/skills/`:
 
 ---
 
-*Last updated: 2026-04-11. Update this file when the monorepo structure, stack, or governance flow meaningfully changes.*
+*Last updated: 2026-06-20. Update this file when the monorepo structure, stack, or governance flow meaningfully changes.*
