@@ -42,27 +42,36 @@ const formattedDate = new Date(publishedAt).toLocaleDateString('en-US', {
 const readingTime = readingTimeProp ?? 5;
 ---
 
-<header class="space-y-8 py-24">
-  <div class="space-y-4">
-    <div class="flex flex-wrap gap-3">
-      {topics.map(topic => (
-        <a 
-          href={`/topics/${topicToSlug(topic)}/`}
-          class="text-[10px] uppercase font-mono tracking-widest text-accent border border-accent/20 px-3 py-1 rounded-full bg-accent/5 hover:bg-accent/10 hover:border-accent/40 transition-all"
-        >
-          {topic}
-        </a>
-      ))}
-    </div>
-    
-    <h1 class="text-4xl lg:text-7xl font-heading font-medium text-text-primary leading-[1.1] tracking-tight">
-      {title}
-    </h1>
-    
-    <div class="flex items-center gap-6 text-xs text-text-muted font-mono uppercase tracking-widest pt-4">
-      <time datetime={publishedAt}>{formattedDate}</time>
-      <span class="w-1 h-1 bg-border rounded-full"></span>
-      <span>{readingTime} min read</span>
-    </div>
+<header class="space-y-5 pt-16 pb-10 lg:pt-20 lg:pb-12">
+  <!-- Kicker: primary topic (linked to its /topics page) -->
+  {topics.length > 0 && (
+    <a
+      href={`/topics/${topicToSlug(topics[0])}/`}
+      class="inline-block text-[11px] font-mono uppercase tracking-[0.25em] text-accent hover:text-text-primary transition-colors"
+    >
+      {topics[0]}
+    </a>
+  )}
+
+  <!-- Display headline -->
+  <h1 class="font-display text-[2.25rem] sm:text-5xl lg:text-6xl font-semibold text-text-primary leading-[1.05] tracking-tight">
+    {title}
+  </h1>
+
+  <!-- Byline rule: date · reading time · remaining topics -->
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-text-muted border-t border-border-subtle pt-5">
+    <time datetime={publishedAt} class="text-text-secondary">{formattedDate}</time>
+    <span class="text-border-subtle" aria-hidden="true">·</span>
+    <span>{readingTime} min read</span>
+    {topics.length > 1 && (
+      <>
+        <span class="text-border-subtle" aria-hidden="true">·</span>
+        <div class="flex flex-wrap gap-x-2.5 gap-y-1">
+          {topics.slice(1).map(topic => (
+            <a href={`/topics/${topicToSlug(topic)}/`} class="hover:text-accent transition-colors">#{topic}</a>
+          ))}
+        </div>
+      </>
+    )}
   </div>
 </header>

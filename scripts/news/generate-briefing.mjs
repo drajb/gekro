@@ -34,6 +34,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '../..');
 const NEWS_DIR = resolve(REPO_ROOT, 'apps/web/src/content/news');
 const DRY_RUN = process.argv.includes('--dry-run');
+// --emit-prompt: build and print the exact model prompt + the citable-URL
+// allow-list, then exit BEFORE calling the API. Lets the prompt and the
+// citation gate be inspected/tested without an API key.
+const EMIT_PROMPT = process.argv.includes('--emit-prompt');
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-4-6';
 const TODAY = process.env.NEWS_DATE || new Date().toISOString().slice(0, 10);
@@ -45,7 +49,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(TODAY) || isNaN(new Date(`${TODAY}T00:00:00Z`).g
   process.exit(1);
 }
 
-if (!ANTHROPIC_API_KEY) {
+if (!ANTHROPIC_API_KEY && !EMIT_PROMPT) {
   console.error('[news] ANTHROPIC_API_KEY is not set. Export it and try again.');
   process.exit(1);
 }
@@ -112,12 +116,16 @@ OUTPUT FORMAT - return only valid JSON, no markdown wrapper:
 CRITICAL: "sources" and "sourceUrls" MUST be the same length and aligned by index - sources[i] is the display name for sourceUrls[i]. Include every source you cite inline, once per distinct URL.`;
 
 // ── Personalization + freshness + citation-integrity helpers ───────────────────
-// Normalise a URL to origin + path (lowercased, no query/fragment, no trailing
-// slash) so a cited URL can be matched against the ones we actually supplied.
+// Normalise a URL to host + path for matching a cited URL against the ones we
+// supplied. Deliberately lenient on the parts that vary without changing the
+// target - protocol (http vs https), a leading "www.", query, fragment, and a
+// trailing slash - so the gate rejects fabricated URLs without false-rejecting
+// a real one the model reformatted slightly. Host + path still must match.
 function normalizeUrl(u) {
   const x = new URL(u);
-  const path = x.pathname.replace(/\/+$/, '');
-  return `${x.protocol}//${x.host}${path}`.toLowerCase();
+  const host = x.host.toLowerCase().replace(/^www\./, '');
+  const path = x.pathname.replace(/\/+$/, '').toLowerCase();
+  return `${host}${path}`;
 }
 
 // Read the optional interest profile (scripts/news/interests.json). This is the
@@ -324,6 +332,14 @@ Here are the candidate headlines from the last 36 hours across vetted AI publica
 ${headlinesList}
 
 Write the daily briefing following the instructions exactly. Return only valid JSON.`;
+
+  if (EMIT_PROMPT) {
+    const fullPrompt = `${CURATION_PROMPT}\n\n${userPrompt}`;
+    await writeFile(resolve(REPO_ROOT, 'scripts/news/.dryrun-prompt.txt'), fullPrompt, 'utf-8');
+    await writeFile(resolve(REPO_ROOT, 'scripts/news/.dryrun-allowed.json'), JSON.stringify([...allowedUrls], null, 2), 'utf-8');
+    console.log(`[news] --emit-prompt: prompt ${fullPrompt.length} chars · ${allowedUrls.size} citable URLs · ${candidates.length} candidates · ${recent.length} recent briefings in dedup context`);
+    return;
+  }
 
   console.log('[news] Calling Claude…');
   const raw = await callClaude(`${CURATION_PROMPT}\n\n${userPrompt}`);

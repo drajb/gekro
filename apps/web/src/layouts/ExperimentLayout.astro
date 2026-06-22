@@ -131,7 +131,7 @@ const breadcrumbs = {
   <JsonLD data={breadcrumbs} />
   <ReadingProgress />
 
-  <article class="max-w-6xl mx-auto px-6 py-32 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
+  <article class="max-w-6xl mx-auto px-6 pt-28 sm:pt-32 pb-20 relative overflow-hidden rounded-[2rem] transition-colors duration-[400ms]">
     <!-- Theme toggle: top-right, mirrors BlogLayout placement.
          Mobile top-20 clears the fixed header's menu-toggle button that
          lives at the same right-6 / top-4 area on small screens. -->
@@ -139,17 +139,17 @@ const breadcrumbs = {
       <ThemeToggle />
     </div>
 
-    <!-- ── Experiment meta header ── -->
-    <header class="space-y-12 mb-24">
-      <div class="space-y-6">
-        <span class="text-xs font-mono uppercase tracking-[0.3em] text-accent">Experiment Log</span>
-        <h1 class="text-5xl lg:text-8xl font-heading font-medium text-text-primary tracking-tighter">
+    <!-- ── Experiment meta header — editorial: kicker · display headline · meta rule ── -->
+    <header class="space-y-8 mb-14">
+      <div class="space-y-4">
+        <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent">Experiment Log</p>
+        <h1 class="font-display text-[2.25rem] sm:text-5xl lg:text-6xl font-semibold text-text-primary leading-[1.05] tracking-tight">
           {experiment.title}
         </h1>
       </div>
 
       <!-- Status / complexity / stack / date grid -->
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-8 border-y border-border-subtle py-8">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-6 border-y border-border-subtle py-7">
         <div>
           <span class="block text-[10px] uppercase font-mono text-text-muted mb-1">Status</span>
           <span class="text-sm text-accent uppercase tracking-widest">{experiment.status}</span>
@@ -190,7 +190,7 @@ const breadcrumbs = {
     </header>
 
     <!-- ── Article body ── -->
-    <div class="max-w-4xl mx-auto px-6 py-24">
+    <div class="max-w-4xl mx-auto px-6 pb-16">
       <div class="prose prose-invert max-w-none
                   prose-headings:font-heading prose-headings:font-medium
                   prose-h1:text-5xl prose-h1:mb-20

@@ -59,7 +59,7 @@ const isCurrent = (href: string) =>
       <a
         href={item.href}
         aria-current={isCurrent(item.href)}
-        class={`text-xs font-mono uppercase tracking-widest transition-colors hover:text-accent ${isCurrent(item.href) ? 'text-accent' : 'text-text-secondary'}`}
+        class={`text-[13px] font-medium tracking-wide transition-colors hover:text-accent ${isCurrent(item.href) ? 'text-accent' : 'text-text-secondary'}`}
       >
         {item.label}
       </a>
@@ -93,7 +93,7 @@ const isCurrent = (href: string) =>
     {navItems.map((item, idx) => (
       <a 
         href={item.href} 
-        class="mobile-link text-4xl font-heading font-medium text-text-primary hover:text-accent transition-colors"
+        class="mobile-link text-4xl font-display font-semibold text-text-primary hover:text-accent transition-colors"
         style={`--idx: ${idx}`}
       >
         {item.label}

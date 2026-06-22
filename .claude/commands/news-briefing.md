@@ -31,7 +31,7 @@ Pick the 3-5 most significant stories for a technical / AI-engineering audience:
 - Report what happened and what it changes for practitioners. State implications as facts attributed to sources, not as personal takes.
 - NO hype words (revolutionary, groundbreaking, game-changing, stunning). Specific, measurable claims only.
 - **No em-dashes (—). Use a regular hyphen (-).** Hard brand rule.
-- Exactly 2 paragraphs. First paragraph = the lead story in depth. Second = the other 2-4 items.
+- **Length: 3 to 4 paragraphs, roughly 350-450 words total.** Deeper than a headline digest, but still lean - no filler, every sentence carries a fact. NOT a 500-900 word essay; if it runs long, cut. The lead paragraph covers the top story in depth (what changed, the key numbers, why it matters to practitioners). Each of the next 2-3 paragraphs takes one of the other stories and gives enough context that a reader understands the significance without clicking through.
 - Prose only, no bullet lists in the body.
 
 ### CITATIONS — LEGAL REQUIREMENT, DO NOT SKIP ANY
@@ -74,9 +74,13 @@ topics:
   - "keyword2"
 ---
 
-[paragraph 1 with inline citations on every claim]
+[paragraph 1 - the lead story in depth, inline citations on every claim]
 
-[paragraph 2 with inline citations on every claim]
+[paragraph 2 - second story with context, inline citations on every claim]
+
+[paragraph 3 - third story with context, inline citations on every claim]
+
+[paragraph 4 (optional, only if a 4th story warrants it) - inline citations on every claim]
 ```
 
 `sources` / `sourceUrls` should list every distinct source cited in the body. Set `approved: true`. If a file for today already exists, STOP and report "already published today" — do not overwrite.

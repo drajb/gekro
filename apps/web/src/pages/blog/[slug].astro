@@ -107,7 +107,7 @@ const allPostsForRelated = await getAllPosts();
 <BlogLayout post={displayPost} headings={headings}>
   <div class="space-y-12">
 
-    <!-- ── Post meta bar: difficulty badge + publish date ── -->
+    <!-- ── Post meta bar: difficulty badge (publish date lives in PostHeader's byline) ── -->
     <div class="space-y-4">
       <div class="flex items-center gap-3">
         <!-- Difficulty badge: colour-coded by level -->
@@ -117,11 +117,6 @@ const allPostsForRelated = await getAllPosts();
                                                       'border-purple-500/30 bg-purple-500/5 text-purple-400'
         }`}>
           {displayPost.difficulty || 'Beginner'}
-        </span>
-        <span class="text-[10px] uppercase tracking-widest font-mono text-text-muted">
-          {displayPost.publishedAt
-            ? new Date(displayPost.publishedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-            : ''}
         </span>
       </div>
 
