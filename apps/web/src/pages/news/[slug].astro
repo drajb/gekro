@@ -116,65 +116,65 @@ const breadcrumbs = {
   <JsonLD data={breadcrumbs} />
   <main class="max-w-2xl mx-auto px-5 sm:px-6 pt-28 sm:pt-32 pb-24">
 
-    <a href="/news/" class="inline-flex items-center gap-1.5 text-[11px] font-mono text-text-muted hover:text-accent transition-colors mb-8">
-      ← News Feed
+    <!-- Back to feed — real pill control (comfortable tap target) -->
+    <a
+      href="/news/"
+      class="group inline-flex items-center gap-2 mb-10 pl-2.5 pr-4 py-2 rounded-full border border-border-subtle bg-bg-surface text-[13px] font-medium text-text-secondary hover:text-accent hover:border-accent/40 transition-colors"
+    >
+      <span class="text-base leading-none transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span>
+      News
     </a>
 
-    <!-- Headline + dateline -->
-    <header class="mb-8">
-      <div class="flex items-center gap-2.5 mb-3">
-        <span class="text-[10px] font-mono uppercase tracking-[0.2em] text-accent">AI News</span>
-      </div>
-      <h1 class="text-2xl sm:text-[1.85rem] font-heading font-medium tracking-tight text-text-primary leading-tight mb-3">
+    <!-- Article header — editorial: kicker · display headline · standfirst · byline rule -->
+    <header class="mb-9">
+      <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent mb-4">AI News</p>
+      <h1 class="font-display text-[2rem] sm:text-[2.75rem] font-semibold tracking-tight text-text-primary leading-[1.08] mb-5">
         {briefing.data.title}
       </h1>
-      <p class="text-[12px] font-mono text-text-muted flex flex-wrap items-center gap-x-2.5 gap-y-1">
-        <time datetime={briefing.data.publishedAt}>{dateline}</time>
+      <!-- Standfirst / dek: the summary as a readable lead (also the SEO/AI summary block) -->
+      <p class="text-lg sm:text-xl text-text-secondary leading-relaxed mb-6">
+        {briefing.data.summary}
+      </p>
+      <!-- Byline row -->
+      <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-text-muted border-t border-border-subtle pt-4">
+        <time datetime={briefing.data.publishedAt} class="text-text-secondary">{dateline}</time>
         <span class="text-border-subtle" aria-hidden="true">·</span>
         <span>{readMins} min read</span>
         <span class="text-border-subtle" aria-hidden="true">·</span>
         <span>{uniqueSources.length} source{uniqueSources.length === 1 ? '' : 's'}</span>
-      </p>
+      </div>
     </header>
-
-    <!-- TL;DR: scannable takeaway up top (also a clean summary block for SEO/AI) -->
-    <div class="mb-9 p-4 sm:p-5 bg-bg-elevated border border-border-subtle rounded-xl">
-      <p class="text-[10px] font-mono uppercase tracking-[0.2em] text-accent mb-2">The gist</p>
-      <p class="text-[15px] sm:text-base text-text-primary leading-relaxed">{briefing.data.summary}</p>
-    </div>
 
     <!-- Body (inline citations render as accent links) -->
     <article class="prose prose-invert max-w-none
-      prose-p:text-text-secondary prose-p:leading-[1.75] prose-p:text-[15px] sm:prose-p:text-[16px] prose-p:mb-6
+      prose-p:text-text-secondary prose-p:leading-[1.8] prose-p:text-[16px] sm:prose-p:text-[17px] prose-p:mb-6
       prose-strong:text-text-primary prose-strong:font-semibold
       prose-a:text-accent prose-a:font-normal prose-a:no-underline prose-a:border-b prose-a:border-accent/30 hover:prose-a:border-accent
     ">
       <Content />
     </article>
 
-    <!-- Sources -->
+    <!-- Sources — horizontal chips (space-efficient, scannable) -->
     {uniqueSources.length > 0 && (
-      <footer class="mt-10 pt-7 border-t border-border-subtle">
-        <p class="text-[10px] font-mono uppercase tracking-[0.15em] text-text-muted mb-3">Sources</p>
-        <ul class="space-y-2">
+      <section class="mt-12 pt-6 border-t border-border-subtle">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[11px] font-mono uppercase tracking-[0.15em] text-text-muted mr-1">Sources</span>
           {uniqueSources.map(s => (
-            <li>
-              <a
-                href={s.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="group inline-flex items-baseline gap-1.5 text-[13px] font-mono text-text-secondary hover:text-accent transition-colors break-all"
-              >
-                <span class="text-text-muted group-hover:text-accent flex-shrink-0">↗</span>
-                <span>{s.name}</span>
-              </a>
-            </li>
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group inline-flex items-center gap-1.5 text-[12px] font-mono text-text-secondary bg-bg-elevated border border-border-subtle px-2.5 py-1 rounded-full hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              <span class="text-text-muted group-hover:text-accent" aria-hidden="true">↗</span>
+              <span>{s.name}</span>
+            </a>
           ))}
-        </ul>
-        <p class="mt-5 text-[10px] font-mono text-text-muted leading-relaxed">
-          Compiled automatically from the linked sources and published without manual editing. A neutral summary of third-party reporting, for information only - every claim links to its origin; follow those for the full story. Not original reporting.
+        </div>
+        <p class="mt-5 text-[11px] text-text-muted leading-relaxed max-w-prose">
+          Compiled automatically from the linked sources and published without manual editing - a neutral summary of third-party reporting, for information only. Every claim links to its origin. Not original reporting.
         </p>
-      </footer>
+      </section>
     )}
 
     <!-- Prev / Next -->
