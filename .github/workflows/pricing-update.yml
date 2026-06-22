@@ -41,7 +41,7 @@ jobs:
     steps:
       # ── Step 1: Get the repo onto the VM ────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # ── Step 2: Verify the runner's pre-installed Node is usable ───────
       # No setup-node needed: ubuntu-latest ships with Node 20+ already
