@@ -40,6 +40,8 @@ const SOURCES = [
   { name: 'Google DeepMind',       url: 'https://deepmind.google/blog/feed/basic/' },
   { name: 'VentureBeat · AI',      url: 'https://venturebeat.com/category/ai/feed/' },
   { name: 'IEEE Spectrum · AI',    url: 'https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss' },
+  { name: 'MarkTechPost',          url: 'https://www.marktechpost.com/feed/' },
+  { name: 'The Decoder',           url: 'https://the-decoder.com/feed/' },
 ];
 
 const decodeEntities = (s) => String(s || '')

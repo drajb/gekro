@@ -1,0 +1,31 @@
+{
+  "updatedAt": "2026-06-22",
+  "source": "manual seed - the weekly knowledge-base distill overwrites this file",
+  "_note": "PUBLIC topics only. This file is committed to a public repo and is read verbatim into the news selection prompt. Never add anything personal, employer/client-specific, financial-account, or identifying.",
+  "emphasis": [
+    "local and on-device inference",
+    "open-weight model releases",
+    "agent orchestration and MCP",
+    "self-hosted AI infrastructure and home labs",
+    "AI developer tooling and coding agents",
+    "inference cost and token economics",
+    "RAG and retrieval systems",
+    "quantization and model efficiency",
+    "small language models",
+    "EV and energy telemetry"
+  ],
+  "topics": [
+    "open-source",
+    "inference",
+    "agents",
+    "tooling",
+    "benchmarks",
+    "infrastructure"
+  ],
+  "avoid": [
+    "celebrity and personality drama",
+    "funding-round-only stories",
+    "AGI speculation without evidence",
+    "pure stock-market and valuation coverage"
+  ]
+}

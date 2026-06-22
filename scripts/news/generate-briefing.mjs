@@ -26,7 +26,7 @@
  */
 
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -73,6 +73,8 @@ const SOURCES = [
   { name: 'Google DeepMind',       url: 'https://deepmind.google/blog/feed/basic/' },
   { name: 'VentureBeat · AI',      url: 'https://venturebeat.com/category/ai/feed/' },
   { name: 'IEEE Spectrum · AI',    url: 'https://spectrum.ieee.org/feeds/topic/artificial-intelligence.rss' },
+  { name: 'MarkTechPost',          url: 'https://www.marktechpost.com/feed/' },
+  { name: 'The Decoder',           url: 'https://the-decoder.com/feed/' },
 ];
 
 // ── Curation prompt ───────────────────────────────────────────────────────────
@@ -93,6 +95,8 @@ VOICE + STYLE (strict):
 - NO em-dashes (the character "—"). Use a regular hyphen "-" with spaces, or rewrite the sentence.
 - 2 paragraphs. First paragraph: the lead story in depth. Second paragraph: the remaining 1-3 items.
 - EVERY factual claim must carry an inline citation as a markdown link in this exact form: ([Source Name](https://url)). Multiple claims may reuse the same source. Do not state anything you cannot link.
+- CITE ONLY THE URLs PROVIDED with the headlines below, copied EXACTLY from each headline's "URL:" line. NEVER invent, guess, complete, or recall a URL from memory, and never cite a source or domain that is not in the provided list. Every entry in "sourceUrls" must be one of the provided URLs verbatim. If a claim cannot be supported by a provided URL, leave the claim out.
+- Report ONLY what the provided headlines and descriptions actually support. Do not add specific numbers, dates, names, quotes, or other details that are not present in the provided source text.
 - Prose only - no bullet lists, no headings inside the body.
 
 OUTPUT FORMAT - return only valid JSON, no markdown wrapper:
@@ -106,6 +110,61 @@ OUTPUT FORMAT - return only valid JSON, no markdown wrapper:
 }
 
 CRITICAL: "sources" and "sourceUrls" MUST be the same length and aligned by index - sources[i] is the display name for sourceUrls[i]. Include every source you cite inline, once per distinct URL.`;
+
+// ── Personalization + freshness + citation-integrity helpers ───────────────────
+// Normalise a URL to origin + path (lowercased, no query/fragment, no trailing
+// slash) so a cited URL can be matched against the ones we actually supplied.
+function normalizeUrl(u) {
+  const x = new URL(u);
+  const path = x.pathname.replace(/\/+$/, '');
+  return `${x.protocol}//${x.host}${path}`.toLowerCase();
+}
+
+// Read the optional interest profile (scripts/news/interests.json). This is the
+// ONLY personalization input; if it is missing or malformed we return null and
+// the briefing runs on the static curation prompt exactly as before.
+function loadInterests() {
+  try {
+    const p = resolve(__dirname, 'interests.json');
+    if (!existsSync(p)) return null;
+    const data = JSON.parse(readFileSync(p, 'utf-8'));
+    const hasList = ['emphasis', 'topics', 'avoid'].some(k => Array.isArray(data?.[k]) && data[k].length);
+    return hasList ? data : null;
+  } catch { return null; }
+}
+
+// Turn the interest profile into a READER FOCUS block. This biases WHICH stories
+// get selected and how they rank - never the neutral, third-person voice, and it
+// never addresses the reader (the page is public).
+function buildReaderFocus(interests) {
+  const emph = (interests.emphasis || interests.topics || []).slice(0, 24);
+  const avoid = (interests.avoid || []).slice(0, 24);
+  if (!emph.length && !avoid.length) return '';
+  let s = `\n\nREADER FOCUS - bias which stories you SELECT and how you rank them toward this audience's active interests, all else equal. This affects SELECTION ONLY. It does not change the neutral, third-person, sourced voice, and you must never address the reader directly.`;
+  if (emph.length) s += `\nEmphasize: ${emph.join('; ')}.`;
+  if (avoid.length) s += `\nDe-emphasize: ${avoid.join('; ')}.`;
+  return s;
+}
+
+// Read the last `days` published briefings (excluding today) so the model can
+// avoid re-reporting a story it already covered - the fix for a multi-day saga
+// resurfacing in the feed every single morning.
+function loadRecentBriefings(days) {
+  try {
+    return readdirSync(NEWS_DIR)
+      .filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f))
+      .map(f => f.replace(/\.md$/, ''))
+      .filter(d => d < TODAY)
+      .sort()
+      .slice(-days)
+      .map(d => {
+        const md = readFileSync(resolve(NEWS_DIR, `${d}.md`), 'utf-8');
+        const title = (md.match(/^title:\s*"?(.*?)"?\s*$/m) || [])[1] || '';
+        return { date: d, title: title.replace(/"/g, '').trim() };
+      })
+      .filter(r => r.title);
+  } catch { return []; }
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function fetchFeed(source) {
@@ -228,16 +287,39 @@ async function main() {
     process.exit(0);
   }
 
-  // Build the headlines prompt
-  const headlinesList = allItems
+  // Build the headlines prompt. Include the REAL feed URL for every candidate:
+  // the model is told to cite only these URLs, verbatim, which (with the
+  // allow-list check in the validation gate) makes a fabricated citation
+  // impossible to publish - the old failure mode that put invented domains
+  // like "FreeFable.org" on the public site.
+  const candidates = allItems
     .sort((a, b) => parseFloat(a.hoursAgo) - parseFloat(b.hoursAgo)) // newest first
-    .slice(0, 40) // cap to avoid token overflow
-    .map(item => `[${item.source} · ${item.hoursAgo}h ago] ${item.title}\n  ${item.desc}`)
+    .slice(0, 40); // cap to avoid token overflow
+  const headlinesList = candidates
+    .map(item => `[${item.source} · ${item.hoursAgo}h ago] ${item.title}\n  ${item.desc}\n  URL: ${item.link}`)
     .join('\n\n');
 
-  const userPrompt = `Today is ${TODAY}.
+  // Allow-list of citable URLs (normalised), enforced by the validation gate.
+  const allowedUrls = new Set();
+  for (const i of candidates) { try { allowedUrls.add(normalizeUrl(i.link)); } catch { /* skip unparseable */ } }
 
-Here are the headlines from the last 36 hours across vetted AI publications:
+  // Personalization: bias selection toward the reader's interests, if present.
+  const interests = loadInterests();
+  const focusBlock = interests ? buildReaderFocus(interests) : '';
+  if (interests) console.log(`[news] Reader focus loaded (${(interests.emphasis || interests.topics || []).length} emphasis topics)`);
+  else console.log('[news] No interests.json - using the static curation prompt');
+
+  // Freshness: tell the model what it already covered so a multi-day story is
+  // not re-reported every morning (the staleness the feed used to have).
+  const recent = loadRecentBriefings(6);
+  const recentBlock = recent.length
+    ? `\n\nALREADY COVERED in the last ${recent.length} briefings. Do NOT re-report any of these unless today brings a genuinely NEW, material development (a new fact, not just a fresh article rehashing the same one). Prefer stories the reader has not seen yet:\n${recent.map(r => `- (${r.date}) ${r.title}`).join('\n')}`
+    : '';
+  if (recent.length) console.log(`[news] Dedup context: ${recent.length} recent briefings loaded`);
+
+  const userPrompt = `Today is ${TODAY}.${focusBlock}${recentBlock}
+
+Here are the candidate headlines from the last 36 hours across vetted AI publications. Cite ONLY the URLs shown here, copied exactly:
 
 ${headlinesList}
 
@@ -284,7 +366,14 @@ Write the daily briefing following the instructions exactly. Return only valid J
     // Zod enforces z.string().url() at build time — a scheme-less URL passing
     // this guard would freeze EVERY subsequent Cloudflare deploy. Catch it here.
     for (const u of parsed.sourceUrls) {
-      try { new URL(u); } catch { problems.push(`sourceUrl is not a valid absolute URL: "${u}"`); }
+      let norm = null;
+      try { norm = normalizeUrl(u); } catch { problems.push(`sourceUrl is not a valid absolute URL: "${u}"`); }
+      // Citation integrity: a cited URL the pipeline never supplied is almost
+      // always a model-fabricated link. Reject the whole briefing rather than
+      // publish an unverifiable citation - fail closed.
+      if (norm && !allowedUrls.has(norm)) {
+        problems.push(`sourceUrl was not among the provided sources (possible fabrication): "${u}"`);
+      }
     }
   }
   if (problems.length) {
