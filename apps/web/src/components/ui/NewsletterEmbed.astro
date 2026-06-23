@@ -26,8 +26,13 @@
  *  app.beehiiv.com → Settings → Publication → Publication ID (format: pub_xxxxx)
  */
 
-// Resolve the Beehiiv publication ID from env (undefined in local dev without .env.local)
-const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID;
+// Beehiiv subscribe-form ID. Env-var first, then a hardcoded fallback so the
+// live form keeps working even when the Cloudflare Pages build env is missing
+// the var — which silently broke prod (the form rendered an empty ID and showed
+// "temporarily unavailable" on every submit). This ID is NOT a secret: it ships
+// in the client HTML on every newsletter render, same class as the hardcoded
+// GTM / GA4 / Cloudflare-beacon IDs (decision 2026-03-30).
+const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID || '016ca01a-2686-4989-8f1e-feb399d46628';
 ---
 
 <section class="relative rounded-2xl border border-border bg-bg-surface overflow-hidden">
