@@ -1,0 +1,74 @@
+name: E2E (apps smoke)
+
+# Browser smoke test for every /apps/[slug]: island mounts, no "coming soon"
+# stub, renders content, no console/page errors, no horizontal overflow.
+#
+# Path-filtered on purpose: this is the expensive job (clone + build + Chromium
+# + 72 page loads), so it only runs when something that can affect the apps
+# changes — never on the daily news auto-commit. Always runs on PRs to main.
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'apps/web/src/components/**'
+      - 'apps/web/src/pages/apps/**'
+      - 'apps/web/src/content/apps/**'
+      - 'apps/web/src/layouts/AppLayout.astro'
+      - 'apps/web/e2e/**'
+      - 'apps/web/playwright.config.ts'
+      - '.github/workflows/e2e.yml'
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  e2e:
+    name: Playwright apps smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Same private-apps clone strategy as ci.yml (apps-private is not a
+      # submodule — cloned at build time with a read PAT).
+      - name: Clone private apps components
+        env:
+          PAT: ${{ secrets.SUBMODULE_PAT }}
+        run: |
+          git clone \
+            https://x-access-token:${PAT}@github.com/drajb/gekro-apps.git \
+            apps/web/src/components/apps-private
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      # Build once; the smoke runs against `astro preview` of this output
+      # (started automatically by playwright.config.ts webServer).
+      - name: Build
+        run: pnpm --filter web build
+        env:
+          PUBLIC_SANITY_PROJECT_ID: ${{ secrets.PUBLIC_SANITY_PROJECT_ID }}
+          PUBLIC_SANITY_DATASET: ${{ secrets.PUBLIC_SANITY_DATASET }}
+
+      - name: Run apps smoke (Playwright)
+        run: pnpm --filter web test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

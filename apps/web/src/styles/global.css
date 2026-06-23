@@ -473,6 +473,27 @@ body {
   @apply my-16 border-border;
 }
 
+/* Wide markdown tables (common in app methodology) must scroll within their
+   column instead of pushing the whole page sideways on mobile. display:block
+   turns the table into its own horizontal scroll container; small tables still
+   render at content width (max-content capped at 100%). */
+.prose :where(table) {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Long unbreakable tokens — config directives, URLs, hashes, base64 — wrap
+   instead of forcing horizontal overflow. Inline code gets `anywhere` so a
+   single long token can break; fenced <pre> keeps its own overflow-x scroll. */
+.prose :where(p, li, h1, h2, h3, h4, td, th, dd, dt) {
+  overflow-wrap: break-word;
+}
+.prose :where(:not(pre) > code) {
+  overflow-wrap: anywhere;
+}
+
 /* ── Light-mode interactive-state contrast overrides ─────────────────────
    The brand accent (sky-400 #38bdf8) hits 8-9:1 on dark backgrounds — a
    confident focus / hover / active indicator. On the warm cream light

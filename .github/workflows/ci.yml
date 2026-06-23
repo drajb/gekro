@@ -66,7 +66,15 @@ jobs:
         run: pnpm --filter web lint
         continue-on-error: true
 
-      # ── Step 8: Build ────────────────────────────────────────────────────
+      # ── Step 8: Unit + integrity tests (BLOCKING) ───────────────────────
+      # Fast, deterministic, no browser. Guards the apps content<->map<->
+      # component invariant (a drift silently ships a "coming soon" stub).
+      # Safe to block: it only reads app files, so the daily news auto-commit
+      # never trips it. Browser-level app smoke runs in e2e.yml.
+      - name: Unit & integrity tests
+        run: pnpm --filter web test
+
+      # ── Step 9: Build ────────────────────────────────────────────────────
       - name: Build
         run: pnpm --filter web build
         env:

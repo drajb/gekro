@@ -11,7 +11,8 @@
     "astro": "astro",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.9",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@gekro/eslint-config": "workspace:*",
     "@gekro/tsconfig": "workspace:*",
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/typography": "0.5.0-alpha.3",
     "@types/diff": "^8.0.0",
     "@types/papaparse": "^5.5.2",
