@@ -11,47 +11,9 @@
  * with zero maintenance when apps are added.
  */
 import { test, expect, type ConsoleMessage } from '@playwright/test';
-import { readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { appSlugs, isAllowed } from './helpers';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const contentDir = join(here, '..', 'src/content/apps');
-
-const slugs = readdirSync(contentDir)
-  .filter((f) => f.endsWith('.md') && f !== '_template.md')
-  .map((f) => f.replace(/\.md$/, ''))
-  .sort();
-
-/**
- * Benign, environment-driven errors to ignore per app. These are NOT app bugs —
- * they're headless-browser realities (no microphone, no real WebGL, blocked
- * outbound network, CDN model downloads, intentional WebSocket connects).
- * Keep this list tight: anything not matched here is treated as a real failure.
- */
-const ALLOWED_ERRORS: Record<string, RegExp[]> = {
-  'voice-transcriber': [/speechrecognition/i, /not-allowed/i, /microphone/i, /permission/i],
-  'translator': [/transformers/i, /failed to fetch/i, /huggingface|hf\.co|jsdelivr|cdn|onnx/i, /load model/i],
-  'rag-eval-toolkit': [/transformers/i, /failed to fetch/i, /huggingface|jsdelivr|cdn|onnx/i],
-  'device-info': [/webgl/i, /failed to fetch/i, /1\.1\.1\.1|cloudflare|trace/i],
-  'currency-converter': [/failed to fetch/i, /exchangerate|frankfurter|api/i, /networkerror/i],
-  'mcp-server-tester': [/failed to fetch/i, /cors/i, /networkerror/i],
-  'websocket-tester': [/websocket/i, /failed to fetch/i],
-  'streaming-response-player': [/failed to fetch/i],
-};
-
-// Errors that are never an app's fault regardless of slug (favicon, beacons,
-// third-party analytics that may be blocked in the test environment).
-const GLOBAL_IGNORE: RegExp[] = [
-  /favicon/i,
-  /cloudflareinsights|static\.cloudflare/i,
-  /googletagmanager|google-analytics|gtag/i,
-  /ERR_BLOCKED_BY_CLIENT/i,
-  /net::ERR_/i,
-  /Download the React DevTools/i,
-];
-
-for (const slug of slugs) {
+for (const slug of appSlugs()) {
   test(`/apps/${slug} mounts and runs clean`, async ({ page }) => {
     const errors: string[] = [];
     const onConsole = (m: ConsoleMessage) => {
@@ -88,8 +50,7 @@ for (const slug of slugs) {
       expect(overflow, `${slug}: horizontal overflow at ${width}px`).toBe(false);
     }
 
-    const allowed = [...(ALLOWED_ERRORS[slug] ?? []), ...GLOBAL_IGNORE];
-    const real = errors.filter((e) => !allowed.some((re) => re.test(e)));
+    const real = errors.filter((e) => !isAllowed(slug, e));
     expect(real, `${slug}: ${real.length} unexpected error(s):\n - ${real.join('\n - ')}`).toEqual([]);
   });
 }

@@ -24,6 +24,10 @@ export default defineConfig({
     baseURL,
     headless: true,
     trace: 'on-first-retry',
+    // Fail-soft budget for individual actions (fill/click/selectOption). The
+    // interaction suite wraps actions in .catch() — without this, one stuck
+    // action waits silently until the whole test times out.
+    actionTimeout: 5_000,
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   // When PW_BASE_URL is set we trust an external server and skip managing one.
