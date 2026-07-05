@@ -14,6 +14,13 @@ node scripts/news/fetch-headlines.mjs
 
 It returns the last 36h of items from vetted AI feeds as `{ items: [{ source, title, link, desc, hoursAgo }] }`.
 
+## Step 1.5 — Load the reader profile and what you already covered
+
+Two more reads before you select:
+
+1. **Reader focus** — read `scripts/news/interests.json` if it exists. Its `emphasis` / `topics` are what this publication's audience is actively building with; its `avoid` list is what to down-rank. Use it to BIAS selection (Step 3), all else equal. It changes WHICH stories get picked, never the neutral voice, and it is never mentioned on the page. If the file is missing, just use the default PREFER/AVOID.
+2. **Don't repeat yourself** — read the last ~6 dated briefings in `apps/web/src/content/news/` (the most recent files before today) and note their `title` / `summary`. Do NOT re-report a story already covered there unless today brings a genuinely NEW, material development (a new fact, not just a fresh article rehashing the same one). A multi-day story that already led a briefing does not lead again without new substance.
+
 ## Step 2 — Decide whether there's enough to publish
 
 If fewer than 3 substantive AI-engineering stories are present (a slow news day with only product fluff), STOP — do not publish a thin briefing. Report "skipped — not enough signal today" and exit. Quality over cadence.
@@ -22,7 +29,9 @@ If fewer than 3 substantive AI-engineering stories are present (a slow news day 
 
 Pick the 3-5 most significant stories for a technical / AI-engineering audience:
 - ✅ PREFER: model releases (open-weight especially), research papers with engineering implications, infra/tooling, real benchmarks, API/pricing changes that affect developers, security issues relevant to builders
-- ❌ AVOID: standalone funding rounds, pure business gossip, opinion pieces, press releases with no substance, AI celebrity drama, AGI speculation without evidence
+- ❌ AVOID: standalone funding rounds, pure business gossip, M&A and stock moves, personnel churn, opinion pieces, press releases with no substance, AI celebrity drama, AGI speculation without evidence
+- 🎯 BIAS by the reader focus from Step 1.5: when several stories qualify, prefer the ones matching the profile's `emphasis` / `topics` and push down anything on its `avoid` list. The LEAD story especially should reflect what this audience actually builds with (local inference, open-weight models, agents/MCP, infra, tooling), not generic industry business news.
+- 🔁 SKIP anything already covered in the last ~6 briefings (Step 1.5) unless there is a genuinely new development today.
 
 ## Step 4 — Write the briefing
 
@@ -44,6 +53,7 @@ Rules:
 - If two sources support one claim, cite both.
 - Never reproduce more than a short phrase (under ~15 words) verbatim from a source. Paraphrase and link. This protects against copyright/plagiarism claims.
 - If you cannot find a source URL for a claim, DO NOT include that claim.
+- **Cite ONLY URLs that appear in the fetched headlines JSON from Step 1** (an item's `link` field), copied exactly. Do NOT invent, guess, complete, or recall a URL from memory, and never cite a source or domain that was not in the fetched set. If a claim can only be supported by a URL you don't have, drop the claim. This is what stops fabricated citations (e.g. `FreeFable.org`, random low-trust blogs) from ever reaching the page.
 - The inline links are the legal protection. The frontmatter `sources` list is secondary (a clean summary list); the inline links are mandatory.
 
 ### Headline
