@@ -99,6 +99,8 @@ import LlmJsonRepair from '../../components/apps-private/llm-json-repair/Calcula
 import LlmApiBuilder from '../../components/apps-private/llm-api-builder/Calculator.astro';
 import EmbeddingPlayground from '../../components/apps-private/embedding-playground/Calculator.astro';
 import GgufInspector from '../../components/apps-private/gguf-inspector/Calculator.astro';
+import FinetuneDatasetAuditor from '../../components/apps-private/finetune-dataset-auditor/Calculator.astro';
+import RateLimitPlanner from '../../components/apps-private/rate-limit-planner/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -177,6 +179,8 @@ const CALCULATOR_MAP: Record<string, any> = {
   'llm-api-builder': LlmApiBuilder,
   'embedding-playground': EmbeddingPlayground,
   'gguf-inspector': GgufInspector,
+  'finetune-dataset-auditor': FinetuneDatasetAuditor,
+  'rate-limit-planner': RateLimitPlanner,
 };
 
 export async function getStaticPaths() {

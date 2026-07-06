@@ -33,11 +33,14 @@
 - [x] W4-3 `llm-api-builder` (zero-dep; NO api-key input) — DONE + tested, shipped milestone A
 - [x] W4-2 `embedding-playground` (transformers.js CDN; e2e allowlist added) — DONE + tested, shipped milestone B (gekro-apps@c8f03ba)
 - [x] W4-6 `gguf-inspector` (File.slice + DataView; bounds-checked) — DONE + tested, shipped milestone B (gekro-apps@c8f03ba)
-- [ ] W4-4 `finetune-dataset-auditor` (stream-parse, 50MB cap)
-- [ ] W4-5 `rate-limit-planner` (curated tier data, lastVerified)
+- [x] W4-4 `finetune-dataset-auditor` (stream-parse, 50MB cap) — DONE + tested, milestone C
+- [x] W4-5 `rate-limit-planner` (curated tier data, lastVerified) — DONE + tested, milestone C
 
 ### Final
-- [ ] Update parking-lot + memory backlog (remove shipped)
-- [ ] Final full e2e green, both repos pushed
+- [x] Update parking-lot + memory backlog (removed shipped) — done this commit
+- [x] Final full e2e green (build 160 pages, vitest 86/86, e2e 156/156), both repos pushed
+
+## ✅ COMPLETE — all 6 Wave 4 apps + clock fix shipped to prod 2026-07-05.
+Catalog now 78 apps. Backlog empty.
 
 _Update the STATUS checkboxes + commit this file as each unit completes._
