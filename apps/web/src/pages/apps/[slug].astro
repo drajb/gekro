@@ -95,6 +95,8 @@ import Translator from '../../components/apps-private/translator/Calculator.astr
 import ChatTemplateBuilder from '../../components/apps-private/chat-template-builder/Calculator.astro';
 import SamplingPlayground from '../../components/apps-private/sampling-playground/Calculator.astro';
 import AgentLoopCostEstimator from '../../components/apps-private/agent-loop-cost-estimator/Calculator.astro';
+import LlmJsonRepair from '../../components/apps-private/llm-json-repair/Calculator.astro';
+import LlmApiBuilder from '../../components/apps-private/llm-api-builder/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -169,6 +171,8 @@ const CALCULATOR_MAP: Record<string, any> = {
   'chat-template-builder': ChatTemplateBuilder,
   'sampling-playground': SamplingPlayground,
   'agent-loop-cost-estimator': AgentLoopCostEstimator,
+  'llm-json-repair': LlmJsonRepair,
+  'llm-api-builder': LlmApiBuilder,
 };
 
 export async function getStaticPaths() {
