@@ -24,6 +24,21 @@ Catalog count: **72 apps** total (current; see the 2026-06-19 wave below for the
 
 ---
 
+## Pending build — Wave 4 (approved 2026-07-05, blueprint ready)
+
+Full implementation specs in **`.gekro/docs/apps-blueprint-wave4.md`** (the Opus handoff doc). Build in this order; remove each row here AND from the memory backlog when it ships.
+
+| # | Slug | Job (one line) | Notes |
+|---|---|---|---|
+| W4-1 | `llm-json-repair` | Fix a model's almost-JSON + validate against a schema | zero-dep; highest SEO intent |
+| W4-2 | `embedding-playground` | In-browser embeddings → similarity heatmap + PCA scatter | transformers.js CDN pattern (translator/rag-eval) |
+| W4-3 | `llm-api-builder` | Visual request builder → curl/Python/TS for Anthropic/OpenAI/Gemini | zero-dep; lastVerified data; NO api-key input ever |
+| W4-4 | `finetune-dataset-auditor` | JSONL training-set lint + token stats + FT cost per provider | stream-parse; completes the FT trio |
+| W4-5 | `rate-limit-planner` | Workload vs provider TPM/RPM tiers → binding limit + queue math | curated tier data, lastVerified |
+| W4-6 | `gguf-inspector` | Parse a GGUF header client-side (File.slice) → arch/quant/tensors | binary parsing; never read the whole file |
+
+Tier-3 parked ideas (do not build without asking): image-gen cost calculator, vector-DB cost comparator, A/B prompt judge scorecard, latency budget planner. Secret/API-key scanner stays on ice (2026-06-19).
+
 ## Pending decisions
 
 *(none — empty queue)*
