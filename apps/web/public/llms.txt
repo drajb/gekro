@@ -25,7 +25,7 @@ Fields: title, slug, description, topics, publishedAt, url
 - /              Homepage — latest experiments and recent posts
 - /blog          Archive of technical deep dives and engineering notes
 - /experiments   Detailed case studies — architecture, outcomes, failures
-- /apps          Free single-session browser tools (72 utilities across AI, finance, dev, EV)
+- /apps          Free single-session browser tools (78 utilities across AI, finance, dev, EV)
 - /stack         Verified third-party tool reviews by an AI engineer (referral disclosures on each entry)
 - /news          Daily AI industry briefings - neutral, every claim linked to its source
 - /about         Philosophy, mission, and author biography
