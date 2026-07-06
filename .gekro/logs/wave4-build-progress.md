@@ -31,8 +31,8 @@
 ### Wave 4 apps (build order: 1,3 → 2,6 → 4,5)
 - [x] W4-1 `llm-json-repair` (zero-dep) — DONE + tested, shipped milestone A
 - [x] W4-3 `llm-api-builder` (zero-dep; NO api-key input) — DONE + tested, shipped milestone A
-- [ ] W4-2 `embedding-playground` (transformers.js CDN; add e2e allowlist)
-- [ ] W4-6 `gguf-inspector` (File.slice + DataView; BigInt-safe)
+- [x] W4-2 `embedding-playground` (transformers.js CDN; e2e allowlist added) — DONE + tested, shipped milestone B (gekro-apps@c8f03ba)
+- [x] W4-6 `gguf-inspector` (File.slice + DataView; bounds-checked) — DONE + tested, shipped milestone B (gekro-apps@c8f03ba)
 - [ ] W4-4 `finetune-dataset-auditor` (stream-parse, 50MB cap)
 - [ ] W4-5 `rate-limit-planner` (curated tier data, lastVerified)
 

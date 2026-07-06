@@ -25,6 +25,7 @@ export const ALLOWED_ERRORS: Record<string, RegExp[]> = {
   'voice-transcriber': [/speechrecognition/i, /not-allowed/i, /microphone/i, /permission/i],
   'translator': [/transformers/i, /failed to fetch/i, /huggingface|hf\.co|jsdelivr|cdn|onnx/i, /load model/i],
   'rag-eval-toolkit': [/transformers/i, /failed to fetch/i, /huggingface|jsdelivr|cdn|onnx/i, /404/],
+  'embedding-playground': [/transformers/i, /failed to fetch/i, /huggingface|jsdelivr|cdn|onnx/i, /404/, /model|embed/i],
   // html-to-image walks stylesheets during PNG export; cross-origin Google
   // Fonts CSS can't be read in headless and logs SecurityErrors while the
   // export itself still completes.
