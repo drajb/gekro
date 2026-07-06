@@ -73,9 +73,9 @@ Organised by domain. See [components.md](components.md) for a full catalogue.
 - Zod schemas — 5 collections: `blog`, `experiments`, `apps`, `stack`, `news`. (Single source of truth for markdown frontmatter; lives at `src/content.config.ts`, not inside `content/`.)
 
 ### `src/content/`
-- `blog/` — 13 markdown posts + `_template.md`.
+- `blog/` — 14 markdown posts + `_template.md`.
 - `experiments/` — 3 markdown experiments + `_template.md`.
-- `apps/` — 72 app methodology markdown files + `_template.md`.
+- `apps/` — 78 app methodology markdown files + `_template.md`.
 - `stack/` — third-party tool-review markdown files.
 - `news/` — daily AI-briefing markdown files.
 

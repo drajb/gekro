@@ -1,6 +1,6 @@
 # Gekro Apps - Wave 4 Blueprint (handoff for Opus)
 
-**Status:** approved for build (Rohit, 2026-07-05). Build in the order listed.
+**Status:** ✅ **ALL 6 SHIPPED 2026-07-05** (catalog 72 → 78). This doc is now a historical build spec — kept for reference. Components in `gekro-apps` (9da652c, c8f03ba, ef22a54); content + wiring in public `gekro` (e1d0582, 2c1d6c5, 6e1d8d5). Verified: build clean (160 pages), vitest 86/86, e2e 156/156. See decision-log 2026-07-05.
 **Read first:** `.gekro/docs/apps-platform-standard.md` (build recipe + quality bar), `CLAUDE.md` §8 (dual-repo), `.gekro/logs/decision-log.md` + `issue-tracker.md` (governance pre-flight).
 
 ## Why these six

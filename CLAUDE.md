@@ -45,13 +45,13 @@ gekro/
 │   │       │   ├── ui/           → BrandLogo, ContactForm, LabGallery, NewsletterEmbed, SearchWidget, Tag, ThemeToggle
 │   │       │   ├── apps/         → AppShell, AppCard, AttributionFooter, shared/ (PUBLIC — stays here; apps/index.astro holds the inline filter UI)
 │   │       │   ├── stack/        → StackHeader, StackCard, StackVerdict, StackPros/Cons, StackMeta, StackReferralFooter, ComparisonTable, SimpleBarChart
-│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 72 Calculator components; see §8, NOT a git submodule)
+│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 78 Calculator components; see §8, NOT a git submodule)
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
 │   │       ├── content.config.ts → Zod schemas — 5 collections (blog, experiments, apps, stack, news)
 │   │       ├── content/
-│   │       │   ├── blog/         → 13 markdown posts + _template.md
+│   │       │   ├── blog/         → 14 markdown posts + _template.md
 │   │       │   ├── experiments/  → 3 markdown experiments + _template.md
-│   │       │   ├── apps/         → 72 app methodology markdown files + _template.md
+│   │       │   ├── apps/         → 78 app methodology markdown files + _template.md
 │   │       │   ├── stack/        → tool-review markdown files
 │   │       │   └── news/         → daily AI-briefing markdown files
 │   │       ├── layouts/          → BaseLayout, BlogLayout, ExperimentLayout, AppLayout, StackLayout
@@ -129,8 +129,8 @@ The project uses a formal **decision log + issue tracker** workflow. These files
 3. **Override protocol:** If a user request contradicts an existing decision, STOP, cite the conflicting decision's date, reason through trade-offs, and wait for the user to say literally **"Override"** before proceeding.
 4. **Proactive verification:** If a proposed change might break an existing decision or recreate a known issue, warn the user before implementing.
 
-Current decision count: **~36 decisions** (latest: 2026-06-19; override count 1).
-Current issue count: **~38 logged** (incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
+Current decision count: **~46 decisions** (latest: 2026-07-06; override count 1).
+Current issue count: **~47 logged** (latest: 2026-07-06 build-PAT expiry; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
 
 ## 6a. Content Protection Protocol (hard rule — no exceptions)
 
@@ -173,7 +173,7 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 | What | Repo | Visibility |
 |---|---|---|
 | App shell, routing, content, shared UI | `drajb/gekro` (this repo) | Public |
-| All 72 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
+| All 78 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
 
 `apps-private/` is **NOT a git submodule** — it is **gitignored** and cloned fresh at build time by each build system. This was necessary because CF Pages v3 hard-codes submodule auth before the build command runs, with no injection point for credentials.
 
@@ -198,6 +198,8 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 ### Required secrets (one-time setup)
 - **CF Pages:** `GITHUB_PAT` — PAT with Contents:Read on `drajb/gekro-apps`, set in CF Pages project → Settings → Variables and Secrets
 - **GitHub Actions:** `SUBMODULE_PAT` — same permissions, set in drajb/gekro → Settings → Secrets → Actions
+
+> ⚠️ **These PATs expire and take the whole pipeline down when they do.** Both are fine-grained GitHub PATs (Contents: Read-only on `drajb/gekro-apps`) and they are **separate secrets that must be rotated together**. On **2026-07-06** both expired simultaneously: every CF Pages deploy failed at the `git clone` step (`remote: Invalid username or token`), so production silently froze on the last good build (the visible symptom was a stale app count) and CI went red at "Clone private apps components". **Fix = rotate both:** generate one new fine-grained PAT (owner `drajb`, repo `drajb/gekro-apps`, Contents: Read-only, **max expiry**), paste it into `GITHUB_PAT` (CF Pages) *and* `SUBMODULE_PAT` (Actions), then retry the deploy / re-run the workflow. If the site ever freezes on old content, check the CF Pages build log for this clone-auth error first. See issue-tracker 2026-07-06 and decision-log 2026-07-06.
 
 ### Local development after fresh clone
 ```bash
@@ -230,4 +232,4 @@ Defined in `.agents/skills/`:
 
 ---
 
-*Last updated: 2026-06-20. Update this file when the monorepo structure, stack, or governance flow meaningfully changes.*
+*Last updated: 2026-07-06. Update this file when the monorepo structure, stack, or governance flow meaningfully changes.*

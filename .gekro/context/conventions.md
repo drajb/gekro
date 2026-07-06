@@ -25,7 +25,7 @@ Source of truth: `.cursorrules` and `.agents/rules/project-rules.md` (both alway
 - Layouts → `src/layouts/`.
 - Utilities → `src/lib/utils/`.
 - **Never create files in the repo root.** Shared config → `packages/`.
-- Sanity schema changes: update the schema file **and** `apps/web/src/content/config.ts` Zod schema to keep them in sync.
+- Sanity schema changes: update the schema file **and** `apps/web/src/content.config.ts` Zod schema to keep them in sync.
 
 ## Animations
 

@@ -11,7 +11,7 @@
 | What | Where |
 |---|---|
 | Methodology spec | `.gekro/docs/stack-standard.md` |
-| Content collection schema | `apps/web/src/content/config.ts` — `stack` collection |
+| Content collection schema | `apps/web/src/content.config.ts` — `stack` collection |
 | Entry markdown files | `apps/web/src/content/stack/<slug>.md` |
 | Template | `apps/web/src/content/stack/_template.md` |
 | Layout | `apps/web/src/layouts/StackLayout.astro` |

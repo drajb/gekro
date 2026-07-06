@@ -20,7 +20,7 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 | #14 | `websocket-tester` | ✅ Shipped 2026-05-23 (gekro-apps@aa41f9b, content @00f6e91) |
 | #15 | `tax-loss-harvester` | ✅ Shipped 2026-05-25 (gekro-apps@9531ad4, content @7a6e476) |
 
-Catalog count: **72 apps** total (current; see the 2026-06-19 wave below for the latest additions).
+Catalog count: **78 apps** total (current; see the Wave 4 section above for the latest additions, shipped 2026-07-05).
 
 ---
 
@@ -96,7 +96,7 @@ V2 candidates if Rohit asks later: image-compressor target-size mode, EXIF strip
 
 ---
 
-Catalog count at this point in history: **67 apps** (was 66 — pdf-merger added; image-compressor v2 expansion didn't add a new slug). Current total is **72** (see the 2026-06-19 wave below).
+Catalog count at this point in history: **67 apps** (was 66 — pdf-merger added; image-compressor v2 expansion didn't add a new slug). Current total is **78** (see the Wave 4 section for the latest additions).
 
 ---
 

@@ -91,5 +91,5 @@ BaseLayout.astro
 
 - **Don't fetch posts outside `lib/utils/posts.ts`.** Use `getAllPosts()` or `getTopicCounts()`. The centralized fetcher is a hard decision from 2026-03-24 (duplicated-logic maintenance hazard).
 - **Content Collections are the primary source of truth.** Sanity is supplementary; the site must build local-only when Sanity env is missing (`client.ts` returns a rejecting stub).
-- **Zod schema in `src/content/config.ts` is the gate.** If you add a frontmatter field to a markdown post or experiment, update the Zod schema first or the build will fail on content load.
-- **Sanity schema must mirror Zod schema** for shared fields. When changing one, update the other (apps/studio/schemas/post.ts ↔ apps/web/src/content/config.ts).
+- **Zod schema in `src/content.config.ts` is the gate.** If you add a frontmatter field to a markdown post or experiment, update the Zod schema first or the build will fail on content load.
+- **Sanity schema must mirror Zod schema** for shared fields. When changing one, update the other (apps/studio/schemas/post.ts ↔ apps/web/src/content.config.ts).

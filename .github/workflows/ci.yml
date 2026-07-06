@@ -29,6 +29,13 @@ jobs:
       #   Classic PAT → repo:read  OR
       #   Fine-grained PAT → drajb/gekro-apps → Contents: Read-only
       #   Stored in: drajb/gekro → Settings → Secrets → Actions → SUBMODULE_PAT
+      #
+      # ⚠️ PAT EXPIRY: SUBMODULE_PAT and CF Pages' GITHUB_PAT are the same token
+      # in two places and expire together. When they lapse this step fails with
+      # "remote: Invalid username or token" and CF Pages silently freezes prod on
+      # the last good build. Fix = rotate BOTH secrets with one new fine-grained
+      # PAT (max expiry), then re-run this workflow + retry the CF deploy.
+      # (Incident: 2026-07-06 — see .gekro/logs/issue-tracker.md.)
       - name: Clone private apps components
         env:
           PAT: ${{ secrets.SUBMODULE_PAT }}

@@ -14,7 +14,7 @@ You are picking up work on **gekro.com** — Rohit Burani's AI engineering lab +
 2. `.gekro/docs/apps-platform-standard.md` — **the canonical spec for this work**. This is your bible. Do not deviate without an Override.
 3. `.gekro/logs/decision-log.md` — the three 2026-04-19 entries cover the apps section, scaling decisions, and licensing. All decisions are confirmed by the user.
 4. `.gekro/logs/issue-tracker.md` — known pitfalls. Pay particular attention to the View Transitions listener pattern (2026-04-11 and 2026-04-15 entries).
-5. `apps/web/src/content/config.ts` — existing collection schema (the pattern you're mirroring).
+5. `apps/web/src/content.config.ts` — existing collection schema (the pattern you're mirroring).
 6. `apps/web/src/pages/experiments/index.astro` — closest analogue for the landing page.
 7. `apps/web/src/pages/experiments/[slug].astro` and `apps/web/src/layouts/ExperimentLayout.astro` — closest analogues for the dynamic route + layout.
 8. `apps/web/src/components/layout/Header.astro` — where you'll add the `/apps` nav link (note the AbortController scroll-listener pattern).
@@ -39,7 +39,7 @@ For App #1 (LLM Cost Calculator), source:
 
 Build per `.gekro/docs/apps-platform-standard.md` §3–§10:
 
-- Add `apps` collection to `apps/web/src/content/config.ts`
+- Add `apps` collection to `apps/web/src/content.config.ts`
 - Create `apps/web/src/content/apps/_template.md`
 - Create `apps/web/src/content/apps/llm-cost-calculator.md` (frontmatter + methodology body — leave a `TODO: numbers` placeholder for the calculator output)
 - Create `apps/web/src/layouts/AppLayout.astro`

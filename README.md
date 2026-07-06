@@ -24,7 +24,7 @@ deployed. AI assistants and search crawlers are welcome to read and cite it - se
 | Section | What it is |
 |---|---|
 | **[Blog](https://gekro.com/blog)** | Deep-dive engineering write-ups on agentic AI, local LLM inference, and self-hosted infra. |
-| **[Apps](https://gekro.com/apps)** | 70+ free, single-session browser tools. No accounts, no ads, nothing stored server-side. Everything runs client-side. |
+| **[Apps](https://gekro.com/apps)** | 75+ free, single-session browser tools. No accounts, no ads, nothing stored server-side. Everything runs client-side. |
 | **[News](https://gekro.com/news)** | A daily AI industry briefing - neutral, expert-level, and every claim linked to its source. Generated automatically (see [Automation](#automation)). |
 | **[Stack](https://gekro.com/stack)** | Honest, first-person reviews of the third-party tools actually in the workflow. Every entry declares what the tool is bad at. |
 | **[Experiments](https://gekro.com/experiments)** | Longer-form technical case studies and lab notes. |

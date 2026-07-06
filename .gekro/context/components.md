@@ -71,7 +71,7 @@ Every component in `apps/web/src/components/`, grouped by domain. Path is implie
 
 ## `apps-private/` — the Calculator implementations (PRIVATE)
 
-Gitignored; cloned at build time from `drajb/gekro-apps` (NOT a git submodule — see CLAUDE.md §8). Contains the **72** per-app `Calculator.astro` islands (+ optional `data.ts`), dynamic-imported by `pages/apps/[slug].astro`. The IP lives here; this repo holds only the shell above.
+Gitignored; cloned at build time from `drajb/gekro-apps` (NOT a git submodule — see CLAUDE.md §8). Contains the **78** per-app `Calculator.astro` islands (+ optional `data.ts`), dynamic-imported by `pages/apps/[slug].astro`. The IP lives here; this repo holds only the shell above.
 
 ## `stack/` — `/stack` tool reviews
 

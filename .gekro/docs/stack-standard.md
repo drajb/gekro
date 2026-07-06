@@ -36,7 +36,7 @@ It **is**:
 
 ```yaml
 name: "Cursor"
-category: "editor"        # one of the enum values in content/config.ts
+category: "editor"        # one of the enum values in content.config.ts
 tagline: "AI-first VS Code fork that actually ships."  # ≤ 80 chars
 status: "active"          # active | watching | dropped
 publishedAt: "2026-05-15"

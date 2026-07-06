@@ -13,6 +13,14 @@ Source of truth for *current* state: `.gekro/logs/decision-log.md` and `.gekro/l
 - **2026-03-31** — Localized light reader mode shipped for blog + experiments via View Transitions API + scoped CSS variables, later escalated from `<article>` binding to `document.body` to fix sticky-header illegibility. `ReadingProgress` scroll-bar lost after View Transitions — refactored to `initProgress()` bound to `astro:after-swap`.
 - **2026-04-01** — Mobile TBT was 34 seconds (Lighthouse). Three.js nested loops + GSAP bound-box queries were locking the CPU synchronously before FCP. Fixed by wrapping `initThree()` and `initHomeAnimations()` in `requestIdleCallback`, capping WebGL pixel ratio at 1.5, deferring GTM by 3.5s. **Decision 13 (override count 1): GSAP hero fade is kept despite Lighthouse Element Render Delay penalty** — the premium "wow factor" is prioritized over literal 100/100 LCP. Don't revert this without Override.
 - **2026-04-04 → 2026-04-11** — Governance refinement, workspace rules polish, neural network hero animation iteration.
+- **2026-04-19 → 2026-04-24** — `/apps` section launched and rapidly scaled: single-session, client-only, zero-backend tools, each with a methodology page. Platform standard locked (shared CSV export / URL-state / AppShell; category taxonomy; no-delete rule). Grew from App #1 (LLM cost calculator) past 40 apps in days.
+- **2026-05-07** — **Dual-repo split.** Calculator implementations (the IP) moved to private `drajb/gekro-apps`; public `gekro` keeps shell, routing, content, shared UI. Cloned at build time into `apps-private/` — **not a submodule** (CF Pages can't inject private-submodule auth). See dual-repo memory + CLAUDE.md §8.
+- **2026-05-26 → 2026-06-01** — `/news` section: daily AI briefings, auto-published by a scheduled cloud Claude routine (key-free), neutral third-person wire-service voice. Later personalized via a public `interests.json` (selection only, never the voice) with fail-closed citation integrity.
+- **2026-05-31 → 2026-06-01** — `/stack` section: honest first-person third-party tool reviews with disclosed referral handling.
+- **2026-06-21 → 2026-06-23** — Intensive multi-round code review across the whole repo + a docs-accuracy sweep (Astro 4→6, counts, submodule→clone). CI typecheck made non-blocking; all 89 `astro check` errors fixed. Automated apps test pipeline added: vitest integrity (blocking) + Playwright e2e smoke (path-filtered) — first run caught 11 real horizontal-overflow bugs.
+- **2026-06-22** — Site-wide editorial/magazine redesign (Syne display headlines, restrained sizes, standfirst deks, hairline bylines) propagated from the `/news` template. All within locked design tokens.
+- **2026-07-05** — **Two-day exhaustive per-app audit** (61 bugs found + fixed across all apps; 144/144 e2e + integrity now guard regressions). **Wave 4 shipped:** 6 AI-eng apps (llm-json-repair, llm-api-builder, embedding-playground, gguf-inspector, finetune-dataset-auditor, rate-limit-planner) + `global-clock` redesign. Catalog 72 → **78 apps**.
+- **2026-07-06** — **Build-PAT expiry incident.** Both build tokens (`GITHUB_PAT` / `SUBMODULE_PAT`) expired together; CF Pages deploys silently failed at the private-repo clone step and prod froze on the last good build (symptom: stale "72 apps"). Rotated both PATs → deploy + CI green. Hardened the docs with a rotation protocol.
 
 ## Key architectural decisions still in force
 
@@ -67,6 +75,12 @@ Twice now: Beehiiv newsletter showed a fallback message because `PUBLIC_BEEHIIV_
 34-second TBT incident. Three.js nested loops + GSAP bound-box queries running synchronously in the main thread.
 
 **Fix pattern:** `requestIdleCallback` wrapping for anything expensive, dynamic imports for heavy libraries, `setTimeout` deferring for third-party scripts.
+
+### 7. Build-time private-repo clone fails silently → prod freezes on stale content
+
+The `apps-private/` components are cloned from private `drajb/gekro-apps` at build time using a fine-grained GitHub PAT (`GITHUB_PAT` in CF Pages, `SUBMODULE_PAT` in Actions). When a PAT **expires**, the clone step fails (`remote: Invalid username or token`), Astro never runs, and Cloudflare Pages keeps serving the **last successful build** — so the symptom is *stale content* (e.g. an old app count), not an error page. Happened 2026-07-06 when both PATs expired together.
+
+**Fix pattern:** rotate **both** secrets together with one fine-grained PAT (Contents: Read-only on `gekro-apps`), set **max expiry**. First diagnostic when prod shows stale content after a known-good push: open the CF Pages **build log** and look for the clone-auth error before touching any code. The site code is almost never the cause — a build that never deployed is. See issue-tracker + decision-log 2026-07-06.
 
 ## Open backlog
 
