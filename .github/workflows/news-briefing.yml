@@ -61,6 +61,12 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEWS_DATE: ${{ inputs.date || '' }}
         run: |
+          # pipefail: without it the pipeline returns tee's exit code (0), so a
+          # FATAL generation error (bad key, $0 credit balance, malformed draft)
+          # still shows the run GREEN — which is exactly how the feed silently
+          # froze on stale content. With pipefail, node's non-zero exit fails
+          # the step red so the failure is actually visible/notified.
+          set -o pipefail
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             node scripts/news/generate-briefing.mjs --dry-run 2>&1 | tee briefing-draft.txt
           else
