@@ -22,7 +22,8 @@
  *
  * Optional env:
  *   NEWS_DATE          — Override the date, e.g. "2026-05-25" (default: today UTC)
- *   NEWS_MODEL         — Claude model to use (default: claude-sonnet-4-6)
+ *   NEWS_MODEL         — Claude model to use (default: claude-haiku-4-5, the
+ *                        cheapest model; ample for daily curation/summarization)
  */
 
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
@@ -39,7 +40,10 @@ const DRY_RUN = process.argv.includes('--dry-run');
 // citation gate be inspected/tested without an API key.
 const EMIT_PROMPT = process.argv.includes('--emit-prompt');
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-5';
+// Haiku 4.5 is the cheapest Claude model ($1/$5 per Mtok). This job is light
+// curation + summarization once a day, so Haiku is more than enough — no reason
+// to pay Sonnet/Opus rates. Override with NEWS_MODEL if quality ever needs it.
+const MODEL = process.env.NEWS_MODEL || 'claude-haiku-4-5';
 const TODAY = process.env.NEWS_DATE || new Date().toISOString().slice(0, 10);
 
 // NEWS_DATE is interpolated into the output filename and frontmatter — reject
@@ -411,7 +415,7 @@ Write the daily briefing following the instructions exactly. Return only valid J
   if (!existsSync(NEWS_DIR)) await mkdir(NEWS_DIR, { recursive: true });
   await writeFile(outPath, markdown, 'utf-8');
   console.log(`[news] Wrote ${outPath}`);
-  console.log(`[news] Cost estimate: ~$0.01-0.05 (Sonnet-level call)`);
+  console.log(`[news] Cost estimate: ~$0.01-0.02 (Haiku 4.5 call)`);
 }
 
 main().catch(e => { console.error('[news] Fatal:', e); process.exit(1); });
