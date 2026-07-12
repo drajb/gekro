@@ -39,7 +39,7 @@ const DRY_RUN = process.argv.includes('--dry-run');
 // citation gate be inspected/tested without an API key.
 const EMIT_PROMPT = process.argv.includes('--emit-prompt');
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-4-6';
+const MODEL = process.env.NEWS_MODEL || 'claude-sonnet-5';
 const TODAY = process.env.NEWS_DATE || new Date().toISOString().slice(0, 10);
 
 // NEWS_DATE is interpolated into the output filename and frontmatter — reject
