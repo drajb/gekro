@@ -8,9 +8,11 @@
 # length bounds) + the Zod schema at build time stop a broken briefing from
 # publishing. A failed validation aborts the run and commits nothing.
 #
-# Required secrets (repo → Settings → Secrets → Actions):
-#   ANTHROPIC_API_KEY  — Anthropic API key (console.anthropic.com). WITHOUT THIS
-#                        the job fails immediately and no briefing is produced.
+# Required secrets (repo → Settings → Secrets → Actions) — set ONE:
+#   OPENROUTER_API_KEY — OpenRouter key → FREE models ($0). Preferred.
+#   ANTHROPIC_API_KEY  — Anthropic API key (console.anthropic.com), pay-as-you-go.
+#                        Used only if OPENROUTER_API_KEY is absent.
+#   With NEITHER set, the job fails immediately and no briefing is produced.
 #
 # The default GITHUB_TOKEN (contents: write, below) is what pushes to main.
 # ────────────────────────────────────────────────────────────────────────────
@@ -58,6 +60,9 @@ jobs:
 
       - name: Generate briefing
         env:
+          # If OPENROUTER_API_KEY is set, the generator uses OpenRouter's free
+          # models ($0). Otherwise it falls back to ANTHROPIC_API_KEY (paid).
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEWS_DATE: ${{ inputs.date || '' }}
         run: |

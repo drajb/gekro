@@ -17,13 +17,17 @@
  * Dry run (prints the draft, doesn't write):
  *   node scripts/news/generate-briefing.mjs --dry-run
  *
- * Required env:
- *   ANTHROPIC_API_KEY  — Anthropic API key (console.anthropic.com)
+ * Model provider (set ONE key — at least one is required):
+ *   OPENROUTER_API_KEY   — OpenRouter key → uses FREE models ($0). Preferred.
+ *   ANTHROPIC_API_KEY    — Anthropic key (console.anthropic.com), pay-as-you-go.
+ *   If both are set, OpenRouter wins.
  *
  * Optional env:
- *   NEWS_DATE          — Override the date, e.g. "2026-05-25" (default: today UTC)
- *   NEWS_MODEL         — Claude model to use (default: claude-haiku-4-5, the
- *                        cheapest model; ample for daily curation/summarization)
+ *   NEWS_DATE            — Override the date, e.g. "2026-05-25" (default: today UTC)
+ *   NEWS_MODEL           — Primary model. Default: openrouter/free (OpenRouter)
+ *                          or claude-haiku-4-5 (Anthropic).
+ *   NEWS_MODEL_FALLBACKS — Comma-separated models tried in order if the primary
+ *                          errors. Default (OpenRouter): two free instruct models.
  */
 
 import { writeFile, readFile, mkdir } from 'node:fs/promises';
@@ -40,10 +44,31 @@ const DRY_RUN = process.argv.includes('--dry-run');
 // citation gate be inspected/tested without an API key.
 const EMIT_PROMPT = process.argv.includes('--emit-prompt');
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-// Haiku 4.5 is the cheapest Claude model ($1/$5 per Mtok). This job is light
-// curation + summarization once a day, so Haiku is more than enough — no reason
-// to pay Sonnet/Opus rates. Override with NEWS_MODEL if quality ever needs it.
-const MODEL = process.env.NEWS_MODEL || 'claude-haiku-4-5';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+// Provider selection: an OpenRouter key routes to OpenRouter's FREE models
+// ($0/day); otherwise fall back to the Anthropic API. This lets the daily job
+// run for free without ever touching an Anthropic credit balance.
+const USE_OPENROUTER = !!OPENROUTER_API_KEY;
+
+// Primary model.
+//  - OpenRouter: `openrouter/free` is a meta-router that auto-selects an
+//    available free model per request (built-in cross-model fallback).
+//  - Anthropic: Haiku 4.5, the cheapest Claude model ($1/$5 per Mtok) — this
+//    job is light once-a-day curation, so Haiku is more than enough.
+// Override the primary via NEWS_MODEL.
+const MODEL = process.env.NEWS_MODEL || (USE_OPENROUTER ? 'openrouter/free' : 'claude-haiku-4-5');
+
+// Explicit fallbacks tried in order if the primary errors (belt-and-suspenders
+// on top of openrouter/free's own routing). Comma-separated via NEWS_MODEL_FALLBACKS.
+// The Anthropic path has no default fallback (single paid model).
+const MODEL_FALLBACKS = process.env.NEWS_MODEL_FALLBACKS
+  ? process.env.NEWS_MODEL_FALLBACKS.split(',').map((m) => m.trim()).filter(Boolean)
+  : USE_OPENROUTER
+    ? ['meta-llama/llama-3.3-70b-instruct:free', 'openai/gpt-oss-120b:free']
+    : [];
+
+// Ordered, de-duped list: primary first, then any distinct fallbacks.
+const MODELS = [MODEL, ...MODEL_FALLBACKS.filter((m) => m !== MODEL)];
 const TODAY = process.env.NEWS_DATE || new Date().toISOString().slice(0, 10);
 
 // NEWS_DATE is interpolated into the output filename and frontmatter — reject
@@ -53,8 +78,8 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(TODAY) || isNaN(new Date(`${TODAY}T00:00:00Z`).g
   process.exit(1);
 }
 
-if (!ANTHROPIC_API_KEY && !EMIT_PROMPT) {
-  console.error('[news] ANTHROPIC_API_KEY is not set. Export it and try again.');
+if (!ANTHROPIC_API_KEY && !OPENROUTER_API_KEY && !EMIT_PROMPT) {
+  console.error('[news] No model API key set. Export OPENROUTER_API_KEY (free tier) or ANTHROPIC_API_KEY.');
   process.exit(1);
 }
 
@@ -219,7 +244,7 @@ async function fetchFeed(source) {
   }
 }
 
-async function callClaude(prompt) {
+async function callAnthropic(model, prompt) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -228,17 +253,59 @@ async function callClaude(prompt) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     }),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Claude API ${res.status}: ${err}`);
-  }
+  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  return data.content[0].text;
+  const text = data.content?.[0]?.text;
+  if (!text) throw new Error(`Anthropic empty response: ${JSON.stringify(data).slice(0, 300)}`);
+  return text;
+}
+
+async function callOpenRouter(model, prompt) {
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      // Attribution headers OpenRouter uses for its dashboard/rankings.
+      'HTTP-Referer': 'https://gekro.com',
+      'X-Title': 'Gekro News Briefing',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  // OpenRouter can return HTTP 200 with an error body when a provider fails —
+  // treat that as a failure so the fallback loop moves to the next model.
+  if (data.error) throw new Error(`OpenRouter provider error: ${JSON.stringify(data.error).slice(0, 300)}`);
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error(`OpenRouter empty response: ${JSON.stringify(data).slice(0, 300)}`);
+  return text;
+}
+
+// Try the primary model, then each fallback in order. Only give up (throw) if
+// every model fails — a single flaky free model no longer kills the run.
+async function callModel(prompt) {
+  let lastErr;
+  for (const model of MODELS) {
+    try {
+      const text = USE_OPENROUTER ? await callOpenRouter(model, prompt) : await callAnthropic(model, prompt);
+      if (MODELS.length > 1) console.log(`[news]   → generated with ${model}`);
+      return text;
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[news]   ✗ ${model} failed: ${e.message}`);
+    }
+  }
+  throw new Error(`All models failed (${MODELS.join(', ')}). Last error: ${lastErr?.message}`);
 }
 
 function buildMarkdown(parsed) {
@@ -277,7 +344,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.log(`[news] Generating briefing for ${TODAY} using ${MODEL}${DRY_RUN ? ' (DRY RUN)' : ''}`);
+  console.log(`[news] Generating briefing for ${TODAY} via ${USE_OPENROUTER ? 'OpenRouter' : 'Anthropic'} (${MODELS.join(' → ')})${DRY_RUN ? ' (DRY RUN)' : ''}`);
   console.log('[news] Fetching RSS feeds…');
 
   const results = await Promise.all(SOURCES.map(fetchFeed));
@@ -346,7 +413,7 @@ Write the daily briefing following the instructions exactly. Return only valid J
   }
 
   console.log('[news] Calling Claude…');
-  const raw = await callClaude(`${CURATION_PROMPT}\n\n${userPrompt}`);
+  const raw = await callModel(`${CURATION_PROMPT}\n\n${userPrompt}`);
 
   // Extract JSON from response. Strip code fences first, then try the greedy
   // first-{ to last-} slice; if a preamble's stray brace breaks the parse,
@@ -415,7 +482,7 @@ Write the daily briefing following the instructions exactly. Return only valid J
   if (!existsSync(NEWS_DIR)) await mkdir(NEWS_DIR, { recursive: true });
   await writeFile(outPath, markdown, 'utf-8');
   console.log(`[news] Wrote ${outPath}`);
-  console.log(`[news] Cost estimate: ~$0.01-0.02 (Haiku 4.5 call)`);
+  console.log(`[news] Cost: ${USE_OPENROUTER ? '$0.00 (OpenRouter free tier)' : '~$0.01-0.02 (Haiku 4.5 call)'}`);
 }
 
 main().catch(e => { console.error('[news] Fatal:', e); process.exit(1); });
