@@ -335,6 +335,53 @@ ${bodyMd}
 `;
 }
 
+// Pull the JSON object out of a model response: strip code fences, then take the
+// first-{ … last-} slice, walking the closing brace back until it parses.
+function extractDraftJson(raw) {
+  const cleaned = raw.replace(/```(?:json)?/g, '').trim();
+  const start = cleaned.indexOf('{');
+  if (start === -1) return null;
+  let end = cleaned.lastIndexOf('}');
+  while (end > start) {
+    try { return JSON.parse(cleaned.slice(start, end + 1)); }
+    catch { end = cleaned.lastIndexOf('}', end - 1); }
+  }
+  return null;
+}
+
+// Returns an array of human-readable problems; [] means the draft is publishable.
+// REQUIRED for safe unattended auto-publish — a malformed draft must never ship.
+function validateDraft(parsed, allowedUrls) {
+  const problems = [];
+  if (!parsed.title || parsed.title.trim().length < 8) problems.push('missing or too-short title');
+  // Em-dash check covers EVERY surfaced field — summary renders on cards and in
+  // meta descriptions, so a title+body-only test would miss it.
+  if (/—/.test(`${parsed.title} ${parsed.summary} ${parsed.body}`)) problems.push('contains an em-dash (—) — banned');
+  if (!parsed.summary) problems.push('missing summary');
+  if (parsed.summary && parsed.summary.length > 200) problems.push(`summary too long (${parsed.summary.length} > 200)`);
+  if (!parsed.body || parsed.body.trim().length < 120) problems.push('missing or too-short body');
+  if (!Array.isArray(parsed.sources) || !Array.isArray(parsed.sourceUrls)) {
+    problems.push('sources/sourceUrls must both be arrays');
+  } else if (parsed.sources.length !== parsed.sourceUrls.length) {
+    problems.push(`sources (${parsed.sources.length}) and sourceUrls (${parsed.sourceUrls.length}) length mismatch`);
+  } else if (parsed.sources.length === 0) {
+    problems.push('at least one source is required');
+  } else {
+    // Zod enforces z.string().url() at build time — a scheme-less URL passing
+    // this guard would freeze every subsequent Cloudflare deploy. Catch it here.
+    for (const u of parsed.sourceUrls) {
+      let norm = null;
+      try { norm = normalizeUrl(u); } catch { problems.push(`sourceUrl is not a valid absolute URL: "${u}"`); }
+      // Citation integrity: a cited URL the pipeline never supplied is almost
+      // always a model-fabricated link — fail closed rather than publish it.
+      if (norm && !allowedUrls.has(norm)) {
+        problems.push(`sourceUrl was not among the provided sources (possible fabrication): "${u}"`);
+      }
+    }
+  }
+  return problems;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   const outPath = resolve(NEWS_DIR, `${TODAY}.md`);
@@ -412,59 +459,39 @@ Write the daily briefing following the instructions exactly. Return only valid J
     return;
   }
 
-  console.log('[news] Calling Claude…');
-  const raw = await callModel(`${CURATION_PROMPT}\n\n${userPrompt}`);
-
-  // Extract JSON from response. Strip code fences first, then try the greedy
-  // first-{ to last-} slice; if a preamble's stray brace breaks the parse,
-  // walk the closing brace backwards until a parse succeeds.
-  const cleaned = raw.replace(/```(?:json)?/g, '').trim();
+  // Generate → validate, retrying with corrective feedback. A cheap/weak model
+  // (Haiku, or a free OpenRouter model) occasionally slips on a mechanical rule
+  // — most often mismatched sources/sourceUrls counts, or an em-dash — which the
+  // validator (correctly) rejects. Rather than silently skip the whole day, feed
+  // the exact failures back and let the model fix them. Only give up (exit 1,
+  // which the workflow now surfaces as a RED, notified run) if every attempt
+  // fails — no more silent freezes on a stale briefing.
+  const MAX_ATTEMPTS = 3;
+  const basePrompt = `${CURATION_PROMPT}\n\n${userPrompt}`;
   let parsed = null;
-  const start = cleaned.indexOf('{');
-  if (start !== -1) {
-    let end = cleaned.lastIndexOf('}');
-    while (end > start && parsed === null) {
-      try { parsed = JSON.parse(cleaned.slice(start, end + 1)); }
-      catch { end = cleaned.lastIndexOf('}', end - 1); }
+  let lastProblems = [];
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const correction = attempt === 1 ? '' : `
+
+YOUR PREVIOUS ATTEMPT WAS REJECTED for these reasons:
+ - ${lastProblems.join('\n - ')}
+
+Fix ALL of them and regenerate. In particular: "sources" and "sourceUrls" MUST be arrays of exactly the same length — one source name per URL, in the same order. Cite ONLY URLs from the candidate list above, copied verbatim. Never use an em-dash (—); use a regular hyphen. Return only valid JSON.`;
+    console.log(`[news] Calling model (attempt ${attempt}/${MAX_ATTEMPTS})…`);
+    const raw = await callModel(basePrompt + correction);
+    const draft = extractDraftJson(raw);
+    if (!draft) {
+      lastProblems = ['response was not parseable JSON'];
+      console.warn(`[news] Attempt ${attempt}/${MAX_ATTEMPTS}: unparseable JSON`);
+      continue;
     }
+    const problems = validateDraft(draft, allowedUrls);
+    if (problems.length === 0) { parsed = draft; break; }
+    lastProblems = problems;
+    console.warn(`[news] Attempt ${attempt}/${MAX_ATTEMPTS} failed validation:\n - ${problems.join('\n - ')}`);
   }
   if (parsed === null) {
-    console.error('[news] Claude did not return parseable JSON:\n', raw);
-    process.exit(1);
-  }
-
-  // Validation guard — REQUIRED for safe unattended auto-publish. If the draft
-  // is malformed, fail loudly so the workflow aborts and nothing is committed.
-  const problems = [];
-  if (!parsed.title || parsed.title.trim().length < 8) problems.push('missing or too-short title');
-  // Em-dash check must cover EVERY surfaced field — summary renders on cards
-  // and in meta descriptions, so it slipped past the old title+body-only test.
-  if (/—/.test(`${parsed.title} ${parsed.summary} ${parsed.body}`)) problems.push('contains an em-dash (—) — banned');
-  if (!parsed.summary) problems.push('missing summary');
-  if (parsed.summary && parsed.summary.length > 200) problems.push(`summary too long (${parsed.summary.length} > 200)`);
-  if (!parsed.body || parsed.body.trim().length < 120) problems.push('missing or too-short body');
-  if (!Array.isArray(parsed.sources) || !Array.isArray(parsed.sourceUrls)) {
-    problems.push('sources/sourceUrls must both be arrays');
-  } else if (parsed.sources.length !== parsed.sourceUrls.length) {
-    problems.push(`sources (${parsed.sources.length}) and sourceUrls (${parsed.sourceUrls.length}) length mismatch`);
-  } else if (parsed.sources.length === 0) {
-    problems.push('at least one source is required');
-  } else {
-    // Zod enforces z.string().url() at build time — a scheme-less URL passing
-    // this guard would freeze EVERY subsequent Cloudflare deploy. Catch it here.
-    for (const u of parsed.sourceUrls) {
-      let norm = null;
-      try { norm = normalizeUrl(u); } catch { problems.push(`sourceUrl is not a valid absolute URL: "${u}"`); }
-      // Citation integrity: a cited URL the pipeline never supplied is almost
-      // always a model-fabricated link. Reject the whole briefing rather than
-      // publish an unverifiable citation - fail closed.
-      if (norm && !allowedUrls.has(norm)) {
-        problems.push(`sourceUrl was not among the provided sources (possible fabrication): "${u}"`);
-      }
-    }
-  }
-  if (problems.length) {
-    console.error('[news] Draft failed validation — NOT writing:\n - ' + problems.join('\n - '));
+    console.error(`[news] Draft failed validation after ${MAX_ATTEMPTS} attempts — NOT writing:\n - ${lastProblems.join('\n - ')}`);
     process.exit(1);
   }
 
