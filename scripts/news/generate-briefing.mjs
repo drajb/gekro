@@ -349,6 +349,51 @@ function extractDraftJson(raw) {
   return null;
 }
 
+// Pull inline citations out of the body in document order, deduped by distinct
+// (normalized) URL — one entry per distinct cited link, first display name wins.
+// The body's ([Name](url)) links are the ground truth of what's actually cited.
+function extractBodyCitations(body) {
+  const re = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
+  const seen = new Set();
+  const sources = [];
+  const sourceUrls = [];
+  let m;
+  while ((m = re.exec(body)) !== null) {
+    const name = m[1].trim();
+    const url = m[2].trim();
+    let key;
+    try { key = normalizeUrl(url); } catch { key = url; }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    sources.push(name);
+    sourceUrls.push(url);
+  }
+  return { sources, sourceUrls };
+}
+
+// Deterministic repair of the two mechanical failures that used to freeze the
+// feed — done in code, not by re-prompting the model (so it costs nothing):
+//   1. Em-dashes → " - " across every surfaced field (the house style).
+//   2. sources/sourceUrls rebuilt from the body's inline citations, so the two
+//      arrays are ALWAYS aligned (one per distinct cited URL). Anti-fabrication
+//      is still enforced afterward (each URL is checked against allowedUrls).
+function normalizeDraft(parsed) {
+  const deDash = (s) => (typeof s === 'string' ? s.replace(/\s*—\s*/g, ' - ') : s);
+  parsed.title = deDash(parsed.title);
+  parsed.summary = deDash(parsed.summary);
+  parsed.body = deDash(parsed.body);
+  if (typeof parsed.body === 'string') {
+    const cites = extractBodyCitations(parsed.body);
+    // Only override the model's arrays when the body actually has citations;
+    // an empty body (a genuinely broken draft) falls through to validation.
+    if (cites.sourceUrls.length) {
+      parsed.sources = cites.sources;
+      parsed.sourceUrls = cites.sourceUrls;
+    }
+  }
+  return parsed;
+}
+
 // Returns an array of human-readable problems; [] means the draft is publishable.
 // REQUIRED for safe unattended auto-publish — a malformed draft must never ship.
 function validateDraft(parsed, allowedUrls) {
@@ -459,39 +504,26 @@ Write the daily briefing following the instructions exactly. Return only valid J
     return;
   }
 
-  // Generate → validate, retrying with corrective feedback. A cheap/weak model
-  // (Haiku, or a free OpenRouter model) occasionally slips on a mechanical rule
-  // — most often mismatched sources/sourceUrls counts, or an em-dash — which the
-  // validator (correctly) rejects. Rather than silently skip the whole day, feed
-  // the exact failures back and let the model fix them. Only give up (exit 1,
-  // which the workflow now surfaces as a RED, notified run) if every attempt
-  // fails — no more silent freezes on a stale briefing.
-  const MAX_ATTEMPTS = 3;
-  const basePrompt = `${CURATION_PROMPT}\n\n${userPrompt}`;
-  let parsed = null;
-  let lastProblems = [];
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const correction = attempt === 1 ? '' : `
-
-YOUR PREVIOUS ATTEMPT WAS REJECTED for these reasons:
- - ${lastProblems.join('\n - ')}
-
-Fix ALL of them and regenerate. In particular: "sources" and "sourceUrls" MUST be arrays of exactly the same length — one source name per URL, in the same order. Cite ONLY URLs from the candidate list above, copied verbatim. Never use an em-dash (—); use a regular hyphen. Return only valid JSON.`;
-    console.log(`[news] Calling model (attempt ${attempt}/${MAX_ATTEMPTS})…`);
-    const raw = await callModel(basePrompt + correction);
-    const draft = extractDraftJson(raw);
-    if (!draft) {
-      lastProblems = ['response was not parseable JSON'];
-      console.warn(`[news] Attempt ${attempt}/${MAX_ATTEMPTS}: unparseable JSON`);
-      continue;
-    }
-    const problems = validateDraft(draft, allowedUrls);
-    if (problems.length === 0) { parsed = draft; break; }
-    lastProblems = problems;
-    console.warn(`[news] Attempt ${attempt}/${MAX_ATTEMPTS} failed validation:\n - ${problems.join('\n - ')}`);
-  }
+  // ONE model call. The two failures that froze the feed (mismatched
+  // sources/sourceUrls counts, and stray em-dashes) are mechanical, so we repair
+  // them deterministically in code — no second API call, no extra cost — instead
+  // of paying the model to try again. normalizeDraft() rebuilds the source arrays
+  // from the body's inline citations (their ground truth) and strips em-dashes.
+  console.log('[news] Calling model…');
+  const raw = await callModel(`${CURATION_PROMPT}\n\n${userPrompt}`);
+  let parsed = extractDraftJson(raw);
   if (parsed === null) {
-    console.error(`[news] Draft failed validation after ${MAX_ATTEMPTS} attempts — NOT writing:\n - ${lastProblems.join('\n - ')}`);
+    console.error('[news] Model did not return parseable JSON:\n', raw);
+    process.exit(1);
+  }
+  normalizeDraft(parsed);
+
+  // Validation guard — REQUIRED for safe unattended auto-publish. Anything that
+  // survives here is genuinely bad (fabricated URL, too-short body), so fail
+  // loudly: exit 1 → RED, notified run (no silent freeze), nothing committed.
+  const problems = validateDraft(parsed, allowedUrls);
+  if (problems.length) {
+    console.error('[news] Draft failed validation — NOT writing:\n - ' + problems.join('\n - '));
     process.exit(1);
   }
 
