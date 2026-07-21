@@ -382,6 +382,18 @@ function normalizeDraft(parsed) {
   parsed.title = deDash(parsed.title);
   parsed.summary = deDash(parsed.summary);
   parsed.body = deDash(parsed.body);
+
+  // 3. Trim an over-long summary at a word boundary. Zod caps summary at 200
+  //    chars, and a model overshooting it by a few words used to throw the whole
+  //    day away (this cost the 2026-07-19 briefing at 243 chars). Truncating is
+  //    safe and lossless in practice: the summary is a one-line card teaser, and
+  //    the full story is in the body.
+  if (typeof parsed.summary === 'string' && parsed.summary.length > 200) {
+    let s = parsed.summary.slice(0, 199);
+    const cut = s.lastIndexOf(' ');
+    if (cut > 140) s = s.slice(0, cut);
+    parsed.summary = `${s.replace(/[\s.,;:-]+$/, '')}.`;
+  }
   if (typeof parsed.body === 'string') {
     const cites = extractBodyCitations(parsed.body);
     // Only override the model's arrays when the body actually has citations;
