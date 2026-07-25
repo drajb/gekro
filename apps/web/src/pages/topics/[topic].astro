@@ -20,10 +20,8 @@
  *  Content Collection reads via its internal cache at build time.
  */
 
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
-import ExperimentCard from '../../components/experiments/ExperimentCard.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 import { getAllPosts } from '../../lib/utils/posts';
 import { topicToSlug } from '../../lib/utils/slugify';
