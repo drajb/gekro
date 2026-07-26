@@ -13,10 +13,30 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
+import { NEWS_INDEX_LIMIT, newsMonthParts, formatMonthLabel } from '../../lib/utils/news-dates';
 
-const feed = (await getCollection('news'))
+const allBriefings = (await getCollection('news'))
   .filter(b => b.data.approved)
   .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
+
+// Only the newest NEWS_INDEX_LIMIT render here; the tail lives in month
+// archives. Without this the index grew ~365 entries/year (already 134KB at 53).
+const feed = allBriefings.slice(0, NEWS_INDEX_LIMIT);
+
+// Month archives, newest first, with a count each. Every briefing stays
+// reachable in two clicks and each month is its own indexable page.
+const monthCounts = new Map<string, number>();
+for (const b of allBriefings) {
+  const { year, month } = newsMonthParts(b.data.publishedAt);
+  const key = `${year}/${month}`;
+  monthCounts.set(key, (monthCounts.get(key) || 0) + 1);
+}
+const archives = [...monthCounts.entries()]
+  .sort((a, b) => b[0].localeCompare(a[0]))
+  .map(([key, count]) => {
+    const [year, month] = key.split('/');
+    return { href: `/news/${key}/`, label: formatMonthLabel(year, month), count };
+  });
 
 const collectionSchema = {
   "@context": "https://schema.org",
@@ -82,7 +102,7 @@ const relative = (iso: string): string => {
       <div class="mt-1 flex items-center gap-3 text-[11px] font-mono text-text-muted">
         <a href="/news-rss.xml" class="hover:text-accent transition-colors">RSS</a>
         <span class="text-border-subtle">·</span>
-        <span>{feed.length} briefing{feed.length === 1 ? '' : 's'}</span>
+        <span>{allBriefings.length} briefing{allBriefings.length === 1 ? '' : 's'}</span>
       </div>
       <p class="mt-4 text-[14px] sm:text-[15px] text-text-secondary leading-relaxed max-w-xl">
         Daily AI industry briefings - model releases, research, infrastructure, and pricing - summarized neutrally from vetted sources, with every claim linked to its origin.
@@ -149,8 +169,26 @@ const relative = (iso: string): string => {
       </div>
     )}
 
+    <!-- Month archives — the tail beyond NEWS_INDEX_LIMIT lives here -->
+    {archives.length > 1 && (
+      <nav class="mt-16 pt-8 border-t border-border-subtle" aria-label="News archive by month">
+        <h2 class="text-[11px] font-mono uppercase tracking-[0.2em] text-text-muted mb-4">Archive</h2>
+        <div class="flex flex-wrap gap-2">
+          {archives.map(a => (
+            <a
+              href={a.href}
+              class="inline-flex items-baseline gap-1.5 text-[12px] font-mono text-text-secondary bg-bg-elevated border border-border-subtle px-2.5 py-1 rounded-full hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              {a.label}
+              <span class="text-text-muted">{a.count}</span>
+            </a>
+          ))}
+        </div>
+      </nav>
+    )}
+
     <!-- Footer note -->
-    <p class="mt-16 pt-8 border-t border-border-subtle text-[11px] font-mono text-text-muted leading-relaxed">
+    <p class="mt-12 pt-8 border-t border-border-subtle text-[11px] font-mono text-text-muted leading-relaxed">
       Summarized from vetted sources, every claim linked. For information only.
     </p>
   </main>

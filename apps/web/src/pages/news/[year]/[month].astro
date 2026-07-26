@@ -1,0 +1,161 @@
+---
+/**
+ * /news/[year]/[month] — monthly briefing archive (e.g. /news/2026/07/)
+ *
+ * WHY
+ *  /news/ used to render every briefing ever published: 53 entries and 134KB,
+ *  growing ~365/year. That buries the tail (crawlers see one enormous page) and
+ *  keeps degrading LCP. The index now holds the newest NEWS_INDEX_LIMIT and the
+ *  rest live here.
+ *
+ *  These pages are not just overflow — "AI news July 2026" is a real query
+ *  shape, so each month becomes its own indexable, self-describing surface with
+ *  a full ItemList.
+ *
+ * ROUTING
+ *  Two path segments, so this never collides with /news/[slug] (single segment,
+ *  where the slug is the full date "2026-07-24").
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import JsonLD from '../../../components/seo/JsonLD.astro';
+import { newsMonthParts, formatMonthLabel, newsPublishedISO } from '../../../lib/utils/news-dates';
+
+export async function getStaticPaths() {
+  const all = await getCollection('news', b => b.data.approved);
+  const byMonth = new Map<string, typeof all>();
+
+  for (const b of all) {
+    const { year, month } = newsMonthParts(b.data.publishedAt);
+    const key = `${year}/${month}`;
+    if (!byMonth.has(key)) byMonth.set(key, []);
+    byMonth.get(key)!.push(b);
+  }
+
+  return [...byMonth.entries()].map(([key, briefings]) => {
+    const [year, month] = key.split('/');
+    return {
+      params: { year, month },
+      props: {
+        year,
+        month,
+        briefings: briefings.sort((a, b) =>
+          b.data.publishedAt.localeCompare(a.data.publishedAt)),
+      },
+    };
+  });
+}
+
+const { year, month, briefings } = Astro.props;
+const label = formatMonthLabel(year, month);
+const pageURL = `https://gekro.com/news/${year}/${month}/`;
+
+// Sibling months for prev/next navigation — crawlers follow these to reach the
+// whole archive without depending on the index.
+const all = await getCollection('news', b => b.data.approved);
+const monthKeys = [...new Set(all.map(b => {
+  const p = newsMonthParts(b.data.publishedAt);
+  return `${p.year}/${p.month}`;
+}))].sort();
+const idx = monthKeys.indexOf(`${year}/${month}`);
+const olderKey = idx > 0 ? monthKeys[idx - 1] : null;
+const newerKey = idx < monthKeys.length - 1 ? monthKeys[idx + 1] : null;
+const keyLabel = (k: string) => formatMonthLabel(k.split('/')[0], k.split('/')[1]);
+
+const dayLabel = (iso: string) =>
+  new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC',
+  });
+
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "inLanguage": "en-US",
+  "@id": pageURL,
+  "name": `AI News Archive — ${label} | gekro`,
+  "description": `All ${briefings.length} daily AI briefings published on gekro.com in ${label}, each summarized from vetted sources with every claim linked.`,
+  "url": pageURL,
+  "isPartOf": { "@id": "https://gekro.com/#website" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": briefings.length,
+    "itemListElement": briefings.map((b, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://gekro.com/news/${b.id}/`,
+      "name": b.data.title,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": "News", "item": "https://gekro.com/news/" },
+    { "@type": "ListItem", "position": 3, "name": label, "item": pageURL },
+  ],
+};
+---
+
+<BaseLayout
+  title={`AI News Archive — ${label} | gekro`}
+  description={`Every daily AI briefing from ${label}: model releases, research, infrastructure and pricing, summarized neutrally from vetted sources with each claim linked to its origin.`}
+>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-2xl mx-auto px-5 sm:px-6 pt-28 sm:pt-32 pb-24">
+
+    <a
+      href="/news/"
+      class="group inline-flex items-center gap-2 mb-10 pl-2.5 pr-4 py-2 rounded-full border border-border-subtle bg-bg-surface text-[13px] font-medium text-text-secondary hover:text-accent hover:border-accent/40 transition-colors"
+    >
+      <span class="text-base leading-none transition-transform group-hover:-translate-x-0.5" aria-hidden="true">←</span>
+      News
+    </a>
+
+    <header class="mb-10">
+      <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent mb-4">Archive</p>
+      <h1 class="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-text-primary mb-3">
+        {label}
+      </h1>
+      <p class="text-[14px] sm:text-[15px] text-text-secondary leading-relaxed max-w-xl">
+        {briefings.length} daily briefing{briefings.length === 1 ? '' : 's'} published in {label}, each summarized from vetted sources with every claim linked to its origin.
+      </p>
+    </header>
+
+    <ol class="divide-y divide-border-subtle">
+      {briefings.map(b => (
+        <li>
+          <a href={`/news/${b.id}/`} class="group block py-5 -mx-3 px-3 rounded-lg hover:bg-bg-surface/40 transition-colors">
+            <time datetime={newsPublishedISO(b.data)} class="text-[11px] font-mono text-text-muted">
+              {dayLabel(b.data.publishedAt)}
+            </time>
+            <h2 class="mt-1.5 text-[17px] sm:text-lg font-heading font-medium text-text-primary leading-snug group-hover:text-accent transition-colors">
+              {b.data.title}
+            </h2>
+            <p class="mt-1.5 text-[14px] text-text-secondary leading-relaxed">
+              {b.data.summary}
+            </p>
+          </a>
+        </li>
+      ))}
+    </ol>
+
+    <!-- Month-to-month navigation: keeps the archive crawlable on its own -->
+    <nav class="mt-14 pt-8 border-t border-border-subtle flex items-center justify-between gap-4 text-[13px]" aria-label="Archive navigation">
+      {olderKey ? (
+        <a href={`/news/${olderKey}/`} class="text-text-secondary hover:text-accent transition-colors">
+          ← {keyLabel(olderKey)}
+        </a>
+      ) : <span></span>}
+      {newerKey ? (
+        <a href={`/news/${newerKey}/`} class="text-text-secondary hover:text-accent transition-colors text-right">
+          {keyLabel(newerKey)} →
+        </a>
+      ) : <span></span>}
+    </nav>
+  </main>
+</BaseLayout>

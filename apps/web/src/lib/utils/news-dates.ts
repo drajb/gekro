@@ -52,3 +52,24 @@ export function newsModifiedISO(data: NewsDateFields): string {
   if (upd && !Number.isNaN(Date.parse(upd))) return new Date(upd).toISOString();
   return newsPublishedISO(data);
 }
+
+/**
+ * How many of the newest briefings stay on /news/. Older ones are reachable
+ * through the month archives, which keeps the index from growing without bound
+ * (53 briefings already made it a 134KB page) while turning the tail into its
+ * own set of indexable, query-shaped pages ("AI news July 2026").
+ */
+export const NEWS_INDEX_LIMIT = 30;
+
+/** "2026-07-24" → { year: "2026", month: "07" }. Slug IS the date, so no parsing risk. */
+export function newsMonthParts(publishedAt: string): { year: string; month: string } {
+  const [year, month] = publishedAt.split('-');
+  return { year, month };
+}
+
+/** "2026", "07" → "July 2026" */
+export function formatMonthLabel(year: string, month: string): string {
+  return new Date(`${year}-${month}-01T12:00:00Z`).toLocaleDateString('en-US', {
+    month: 'long', year: 'numeric', timeZone: 'UTC',
+  });
+}
