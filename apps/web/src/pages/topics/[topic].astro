@@ -20,25 +20,35 @@
  *  Content Collection reads via its internal cache at build time.
  */
 
+import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 import { getAllPosts } from '../../lib/utils/posts';
 import { topicToSlug } from '../../lib/utils/slugify';
+import { normalizeNewsTopics, eligibleNewsHubTopics } from '../../lib/utils/news-topics';
 
 export async function getStaticPaths() {
   const allPosts = await getAllPosts();
-  // Collect every unique topic name across all posts
-  const allTopics = new Set<string>();
+  const briefings = await getCollection('news', b => b.data.approved);
 
-  allPosts.forEach(post => {
-    post.topics?.forEach((t: string) => allTopics.add(t));
-  });
+  // Keyed by SLUG, not display name: a blog topic and a canonical news topic can
+  // resolve to the same slug ("LLMs" → llms), and emitting that path twice is a
+  // build error. First writer wins, and blog topics are seeded first so existing
+  // hub titles/URLs never change when news merges into them.
+  const bySlug = new Map<string, string>();
+  const add = (t: string) => {
+    const slug = topicToSlug(t);
+    if (slug && !bySlug.has(slug)) bySlug.set(slug, t);
+  };
 
-  // Slugify topic name for the URL param; store raw name as prop for display
-  return Array.from(allTopics).map(topic => ({
-    params: { topic: topicToSlug(topic) },
-    props: { topicName: topic },
+  allPosts.forEach(post => post.topics?.forEach((t: string) => add(t)));
+  // News-only topics need to clear MIN_HUB_ARTICLES to avoid thin hub pages.
+  eligibleNewsHubTopics(briefings).forEach(add);
+
+  return [...bySlug.entries()].map(([slug, topicName]) => ({
+    params: { topic: slug },
+    props: { topicName },
   }));
 }
 
@@ -52,6 +62,19 @@ const topicURL = `https://gekro.com/topics/${topicSlug}/`;
 const allPosts = await getAllPosts();
 const relatedPosts = allPosts
   .filter(post => post.topics.some((t: string) => t.toLowerCase() === topicName.toLowerCase()));
+
+// Daily briefings carrying this topic, newest first. Matched on the CANONICAL
+// name (normalizeNewsTopics) so "open-weight models" and "open-weights" both
+// land here instead of fragmenting into two dead-end labels.
+const relatedBriefings = (await getCollection('news', b => b.data.approved))
+  .filter(b => normalizeNewsTopics(b.data.topics)
+    .some(t => t.toLowerCase() === topicName.toLowerCase()))
+  .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
+
+const briefingDate = (iso: string) =>
+  new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  });
 
 // CollectionPage schema — tells Google this page is an index of related
 // articles. Paired with ItemList of the posts so AI answer engines can
@@ -67,13 +90,17 @@ const collectionSchema = {
   "isPartOf": { "@id": "https://gekro.com/#website" },
   "mainEntity": {
     "@type": "ItemList",
-    "numberOfItems": relatedPosts.length,
-    "itemListElement": relatedPosts.map((post, i) => ({
-      "@type": "ListItem",
-      "position": i + 1,
-      "url": `https://gekro.com/blog/${post.slug.current}/`,
-      "name": post.title,
-    })),
+    "numberOfItems": relatedPosts.length + relatedBriefings.length,
+    "itemListElement": [
+      ...relatedPosts.map(post => ({
+        "url": `https://gekro.com/blog/${post.slug.current}/`,
+        "name": post.title,
+      })),
+      ...relatedBriefings.map(b => ({
+        "url": `https://gekro.com/news/${b.id}/`,
+        "name": b.data.title,
+      })),
+    ].map((item, i) => ({ "@type": "ListItem", "position": i + 1, ...item })),
   },
 };
 
@@ -90,7 +117,7 @@ const breadcrumbs = {
 };
 ---
 
-<BaseLayout title={`${topicName} — posts & experiments | gekro`} description={`${relatedPosts.length} article${relatedPosts.length !== 1 ? 's' : ''} on ${topicName} from gekro.com — deep dives, architecture walkthroughs, and engineering post-mortems by Rohit Burani.`}>
+<BaseLayout title={`${topicName} — posts & briefings | gekro`} description={`${relatedPosts.length + relatedBriefings.length} article${relatedPosts.length + relatedBriefings.length !== 1 ? 's' : ''} on ${topicName} from gekro.com — deep dives, engineering post-mortems, and daily AI briefings by Rohit Burani.`}>
   <JsonLD data={collectionSchema} />
   <JsonLD data={breadcrumbs} />
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-24">
@@ -110,21 +137,45 @@ const breadcrumbs = {
     <div class="space-y-16">
 
       <!-- Written content: filtered post cards, 2-column grid -->
-      <div class="space-y-8">
-        <h2 class="text-2xl font-heading text-text-primary border-b border-border pb-4">Written Content</h2>
-        {relatedPosts.length > 0 ? (
+      {relatedPosts.length > 0 && (
+        <div class="space-y-8">
+          <h2 class="text-2xl font-heading text-text-primary border-b border-border pb-4">Written Content</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             {relatedPosts.map(post => <PostCard post={post} />)}
           </div>
-        ) : (
-          // Empty state: no posts match this topic yet
-          <div class="py-12 text-center border border-dashed border-border rounded-xl">
-            <p class="text-text-muted">No articles found in this cluster yet. Stay tuned.</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <!-- TODO: Add related experiments section when experiments support topics -->
+      <!-- Daily briefings carrying this topic. Compact list rather than cards:
+           a hub can hold 20+ briefings and cards would bury the written work. -->
+      {relatedBriefings.length > 0 && (
+        <div class="space-y-8">
+          <h2 class="text-2xl font-heading text-text-primary border-b border-border pb-4">
+            Daily Briefings
+            <span class="ml-2 text-sm font-mono text-text-muted">{relatedBriefings.length}</span>
+          </h2>
+          <ul class="divide-y divide-border-subtle">
+            {relatedBriefings.map(b => (
+              <li>
+                <a href={`/news/${b.id}/`} class="group flex flex-col sm:flex-row sm:items-baseline sm:gap-4 py-4 hover:bg-bg-surface/40 -mx-3 px-3 rounded-lg transition-colors">
+                  <time datetime={b.data.publishedAt} class="shrink-0 text-[12px] font-mono text-text-muted sm:w-28">
+                    {briefingDate(b.data.publishedAt)}
+                  </time>
+                  <span class="text-text-secondary group-hover:text-accent transition-colors leading-snug">
+                    {b.data.title}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {relatedPosts.length === 0 && relatedBriefings.length === 0 && (
+        <div class="py-12 text-center border border-dashed border-border rounded-xl">
+          <p class="text-text-muted">No articles found in this cluster yet. Stay tuned.</p>
+        </div>
+      )}
     </div>
 
     <!-- ── Back to archive ── -->

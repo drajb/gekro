@@ -9,6 +9,8 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
+import { normalizeNewsTopics, eligibleNewsHubTopics } from '../../lib/utils/news-topics';
+import { topicToSlug } from '../../lib/utils/slugify';
 
 export async function getStaticPaths() {
   const briefings = await getCollection('news', b => b.data.approved);
@@ -27,6 +29,20 @@ const all = (await getCollection('news', b => b.data.approved))
 const idx = all.findIndex(b => b.id === briefing.id);
 const newer = idx > 0 ? all[idx - 1] : null;
 const older = idx < all.length - 1 ? all[idx + 1] : null;
+
+// Topic chips. Only link topics that actually have a hub page — either it
+// cleared MIN_HUB_ARTICLES on news alone, or a blog post already established
+// it. Linking a topic with no hub would emit a 404 into every briefing.
+const blogTopicSlugs = new Set(
+  (await getCollection('blog')).flatMap(p => (p.data.topics ?? []).map((t: string) => topicToSlug(t))),
+);
+const hubSlugs = new Set([
+  ...eligibleNewsHubTopics(all).map(topicToSlug),
+  ...blogTopicSlugs,
+]);
+const topicChips = normalizeNewsTopics(briefing.data.topics)
+  .map(name => ({ name, slug: topicToSlug(name) }))
+  .filter(t => hubSlugs.has(t.slug));
 
 const uniqueSources = [...new Map(
   briefing.data.sources.map((name: string, i: number): [string, { name: string; url: string }] => [briefing.data.sourceUrls[i] ?? name, { name, url: briefing.data.sourceUrls[i] }])
@@ -143,6 +159,21 @@ const breadcrumbs = {
         <span class="text-border-subtle" aria-hidden="true">·</span>
         <span>{uniqueSources.length} source{uniqueSources.length === 1 ? '' : 's'}</span>
       </div>
+
+      <!-- Topic chips — the inbound half of the topic cluster. Without these a
+           briefing's only internal links were the index and prev/next. -->
+      {topicChips.length > 0 && (
+        <nav class="flex flex-wrap items-center gap-2 mt-4" aria-label="Topics">
+          {topicChips.map(t => (
+            <a
+              href={`/topics/${t.slug}/`}
+              class="text-[12px] font-mono text-text-secondary bg-bg-elevated border border-border-subtle px-2.5 py-1 rounded-full hover:border-accent/40 hover:text-accent transition-colors"
+            >
+              {t.name}
+            </a>
+          ))}
+        </nav>
+      )}
     </header>
 
     <!-- Body (inline citations render as accent links) -->
