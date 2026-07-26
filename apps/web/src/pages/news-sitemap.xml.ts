@@ -14,6 +14,7 @@
  */
 
 import { getCollection } from 'astro:content';
+import { newsPublishedISO } from '../lib/utils/news-dates';
 
 const SITE = 'https://gekro.com';
 
@@ -25,9 +26,11 @@ export async function GET() {
   const all = await getCollection('news', b => b.data.approved);
 
   // Google News: include only articles published in the last 48 hours.
+  // Window is measured from the real publish instant (see news-dates.ts), not a
+  // midday guess, so an article ages out ~48h after it actually shipped.
   const cutoff = Date.now() - 48 * 60 * 60 * 1000;
   const recent = all
-    .filter(n => new Date(n.data.publishedAt + 'T12:00:00Z').getTime() >= cutoff)
+    .filter(n => new Date(newsPublishedISO(n.data)).getTime() >= cutoff)
     .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
 
   const urls = recent.map(n => `  <url>
@@ -37,7 +40,7 @@ export async function GET() {
         <news:name>gekro</news:name>
         <news:language>en</news:language>
       </news:publication>
-      <news:publication_date>${n.data.publishedAt}</news:publication_date>
+      <news:publication_date>${newsPublishedISO(n.data)}</news:publication_date>
       <news:title>${escapeXml(n.data.title)}</news:title>
     </news:news>
   </url>`).join('\n');

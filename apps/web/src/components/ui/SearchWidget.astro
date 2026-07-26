@@ -58,7 +58,7 @@
         if (!response.ok) throw new Error('Search not ready');
 
         const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
-        new PagefindUI({
+        const ui = new PagefindUI({
           element: '#pagefind-search',
           showSubResults: true,
           showImages: false,
@@ -68,6 +68,16 @@
             placeholder: 'Search posts and experiments...',
           }
         });
+
+        // Deep-link support: /blog/?q=term runs the search on load, so a search
+        // result is shareable and bookmarkable.
+        //
+        // NB this is NOT for schema.org SearchAction. Google deprecated the
+        // sitelinks search box on 2024-10-21 (fully removed 2024-11-21), so
+        // SearchAction earns no rich result and stays out of GlobalSchema —
+        // see the note there dated 2026-06-10.
+        const q = new URLSearchParams(window.location.search).get('q');
+        if (q && typeof ui.triggerSearch === 'function') ui.triggerSearch(q);
       } catch (e) {
         console.log('Search initialization delayed or unavailable.');
         document.getElementById('search-unavailable')?.classList.remove('hidden');

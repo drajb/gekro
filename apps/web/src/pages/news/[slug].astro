@@ -10,6 +10,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 import { normalizeNewsTopics, eligibleNewsHubTopics } from '../../lib/utils/news-topics';
+import { newsPublishedISO, newsModifiedISO } from '../../lib/utils/news-dates';
 import { topicToSlug } from '../../lib/utils/slugify';
 
 export async function getStaticPaths() {
@@ -75,8 +76,10 @@ const newsSchema = {
   // Google requires `image` for Article-family rich results — the per-briefing
   // OG card already exists, so point at it.
   "image": [`https://gekro.com${ogImage}`],
-  "datePublished": briefing.data.publishedAt,
-  "dateModified": briefing.data.publishedAt,
+  // Full ISO 8601 instants, not bare dates: for a daily feed the time is a real
+  // freshness signal in Google News, and a date-only value reads as midnight UTC.
+  "datePublished": newsPublishedISO(briefing.data),
+  "dateModified": newsModifiedISO(briefing.data),
   "author": {
     "@type": "Person",
     "@id": "https://gekro.com/about/#person",
@@ -123,8 +126,8 @@ const breadcrumbs = {
   description={briefing.data.summary}
   ogImage={ogImage}
   ogType="article"
-  publishedTime={briefing.data.publishedAt}
-  modifiedTime={briefing.data.publishedAt}
+  publishedTime={newsPublishedISO(briefing.data)}
+  modifiedTime={newsModifiedISO(briefing.data)}
   author="Rohit Burani"
   section="AI News"
 >
@@ -153,7 +156,7 @@ const breadcrumbs = {
       </p>
       <!-- Byline row -->
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[13px] text-text-muted border-t border-border-subtle pt-4">
-        <time datetime={briefing.data.publishedAt} class="text-text-secondary">{dateline}</time>
+        <time datetime={newsPublishedISO(briefing.data)} class="text-text-secondary">{dateline}</time>
         <span class="text-border-subtle" aria-hidden="true">·</span>
         <span>{readMins} min read</span>
         <span class="text-border-subtle" aria-hidden="true">·</span>

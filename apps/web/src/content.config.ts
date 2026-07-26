@@ -237,6 +237,11 @@ const news = defineCollection({
   schema: z.object({
     title: z.string(),
     publishedAt: z.string(),       // ISO date, e.g. "2026-05-26"
+    // Exact publish instant (ISO 8601), written by the generator at run time.
+    // Optional: briefings published before this field existed fall back to a
+    // documented publish hour via lib/utils/news-dates.ts rather than having
+    // their protected markdown rewritten.
+    publishedTime: z.string().optional(),
     summary: z.string().max(200),  // 1 sentence shown on the index card (card line-clamps at 2)
     sources: z.array(z.string()),  // source names, e.g. ["The Verge", "Ars Technica"]
     sourceUrls: z.array(z.string().url()),

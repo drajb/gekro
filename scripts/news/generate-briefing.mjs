@@ -317,9 +317,19 @@ function buildMarkdown(parsed) {
   const yamlList = (arr) => arr.map(v => `  - ${yamlStr(v)}`).join('\n');
   // Convert the two-paragraph body to proper markdown paragraphs
   const bodyMd = body.trim().split(/\n\n+/).map(p => p.trim()).join('\n\n');
+  // Exact publish instant. publishedAt stays date-only (it is the slug and the
+  // display date); publishedTime carries the precision Google News uses as a
+  // freshness signal. Backdated runs (NEWS_DATE) anchor to the target date's
+  // publish hour instead of "now", so a backfill never claims to be fresh.
+  const isBackdated = TODAY !== new Date().toISOString().slice(0, 10);
+  const publishedTime = isBackdated
+    ? `${TODAY}T09:00:00.000Z`
+    : new Date().toISOString();
+
   return `---
 title: ${yamlStr(title)}
 publishedAt: "${TODAY}"
+publishedTime: "${publishedTime}"
 summary: ${yamlStr(summary)}
 sources:
 ${yamlList(sources)}
