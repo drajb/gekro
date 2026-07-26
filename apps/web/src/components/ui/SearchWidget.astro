@@ -33,11 +33,11 @@
 -->
 <div id="search-wrapper" class="relative w-full max-w-xl mx-auto">
   <div id="pagefind-search"></div>
-  {import.meta.env.DEV && (
-    <p id="search-unavailable" class="hidden text-sm text-text-muted font-mono text-center py-4">
-      Search is available after a production build.
-    </p>
-  )}
+  <!-- Rendered in prod too: if the index or the UI bundle fails, the reader
+       gets an explanation instead of an empty box (see the catch below). -->
+  <p id="search-unavailable" class="hidden text-sm text-text-muted font-mono text-center py-4">
+    Search is temporarily unavailable. Browse the archive below.
+  </p>
 </div>
 
 <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
@@ -57,7 +57,18 @@
         const response = await fetch('/pagefind/pagefind-ui.js');
         if (!response.ok) throw new Error('Search not ready');
 
-        const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+        const mod = await import('/pagefind/pagefind-ui.js');
+        // Pagefind 1.5 ships pagefind-ui.js as a bundle that ASSIGNS
+        // window.PagefindUI instead of exporting it, so the old
+        // `const { PagefindUI } = await import(...)` destructure silently
+        // yielded undefined and threw "not a constructor" into the catch below
+        // — search rendered an empty box in production. Accept either shape so
+        // a version bump in either direction keeps working.
+        const PagefindUI = mod.PagefindUI ?? window.PagefindUI;
+        if (typeof PagefindUI !== 'function') {
+          throw new Error('PagefindUI constructor not found on module or window');
+        }
+
         const ui = new PagefindUI({
           element: '#pagefind-search',
           showSubResults: true,
@@ -79,7 +90,12 @@
         const q = new URLSearchParams(window.location.search).get('q');
         if (q && typeof ui.triggerSearch === 'function') ui.triggerSearch(q);
       } catch (e) {
-        console.log('Search initialization delayed or unavailable.');
+        // Was console.log with no error attached, and the fallback element only
+        // existed in DEV — so a broken search looked like an empty box in
+        // production with nothing in the console to explain it. That is how the
+        // Pagefind 1.5 export change went unnoticed. Log the real error and
+        // always show the fallback.
+        console.warn('[search] Pagefind UI failed to initialise:', e);
         document.getElementById('search-unavailable')?.classList.remove('hidden');
       }
     };
