@@ -1,16 +1,25 @@
-# ── Hyperscaler pricing weekly update ──────────────────────────────────────
+# ── Hyperscaler pricing weekly update (AUTO-PUBLISH) ───────────────────────
 # Fires every Monday at 09:00 UTC. Runs the pricing fetchers, diffs the
-# canonical hyperscaler-pricing.json, and opens a PR if anything substantive
-# changed. Manual trigger button also exposed via workflow_dispatch.
+# canonical hyperscaler-pricing.json, validates the result, and commits it
+# straight to `main`. Manual trigger also exposed via workflow_dispatch.
+#
+# Why direct-commit instead of a PR: the PR flow looked safe but wasn't. Nobody
+# merged PR #22 for 8 weeks, so the shipped data froze at 2026-06-01 while every
+# Monday's run reported success — automation that "succeeds" while publishing
+# nothing. See issue-tracker 2026-07-26.
+#
+# The review gate is replaced, not removed: scripts/pricing/validate-pricing.mjs
+# refuses the commit on mass model/SKU loss, non-finite or negative prices,
+# absurd magnitudes, or a >5x price jump. A failed validation leaves `main` on
+# the last good data and turns the run RED.
 #
 # Setup checklist (one-time, in the GitHub repo settings):
 #   1. Settings → Secrets and variables → Actions
 #      → New repository secret: GCP_BILLING_API_KEY (see scripts/pricing/lib/fetch-gcp.mjs)
 #   2. Settings → Actions → General → Workflow permissions
-#      → "Read and write permissions" + "Allow GitHub Actions to create pull requests"
+#      → "Read and write permissions"
 #
-# Without those two steps: AWS + Azure fetchers will run, GCP will skip, and
-# PR creation will fail (you'll see the diff in the run logs but no PR).
+# Without the secret: AWS + Azure fetchers run, GCP skips (logs a warning).
 # ───────────────────────────────────────────────────────────────────────────
 
 name: Update hyperscaler pricing
@@ -28,14 +37,14 @@ on:
   workflow_dispatch:
 
 # Permissions the GITHUB_TOKEN injected into this workflow needs.
-# Default token is read-only; we need write to commit + create PRs.
+# Default token is read-only; we need contents:write to push the commit.
+# pull-requests:write is no longer required — this workflow opens no PRs.
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   update:
-    name: Fetch + diff + PR
+    name: Fetch + validate + publish
     runs-on: ubuntu-latest
 
     steps:
@@ -99,43 +108,46 @@ jobs:
             git checkout -- apps/web/src/content/data/hyperscaler-pricing.json
           fi
 
-      # ── Step 5: Open a PR if there are real changes ─────────────────────
-      # peter-evans/create-pull-request stages all modified files, creates a
-      # branch, commits, pushes, and opens a PR. Battle-tested action used
-      # by hundreds of thousands of repos. If a PR with the same branch
-      # already exists, it updates that PR instead of creating duplicates.
-      - name: Open pull request
+      # ── Step 5: Validate before publishing ──────────────────────────────
+      # This used to open a PR for a human to review. Nobody did: PR #22 sat
+      # unmerged for 8 weeks while the workflow reported success every Monday,
+      # so the shipped data silently froze at 2026-06-01 (issue-tracker
+      # 2026-07-26). The job now commits straight to main — which removes the
+      # review gate, so this replaces it with an automated one.
+      #
+      # The validator diffs the new file against the committed version and fails
+      # on anything that reads as a fetcher malfunction rather than a real price
+      # move: mass model/SKU loss, non-finite or negative prices, absurd
+      # magnitudes, or a >5x jump. On failure the step exits non-zero, nothing
+      # is committed, and main keeps the last good data — stale-but-correct
+      # beats confidently wrong.
+      - name: Validate pricing data
         if: steps.check.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v8
-        with:
-          commit-message: 'chore(pricing): weekly hyperscaler pricing verification'
-          branch: pricing/auto-update
-          delete-branch: true
-          title: 'chore(pricing): weekly hyperscaler pricing update'
-          body: |
-            ## Automated pricing verification
+        run: |
+          git show HEAD:apps/web/src/content/data/hyperscaler-pricing.json > /tmp/pricing-prev.json 2>/dev/null || true
+          node scripts/pricing/validate-pricing.mjs \
+            apps/web/src/content/data/hyperscaler-pricing.json \
+            /tmp/pricing-prev.json
 
-            Hit the AWS Bedrock + Azure Foundry + GCP Vertex pricing APIs and
-            found ${{ steps.check.outputs.diff_lines }} line(s) of substantive
-            changes in `hyperscaler-pricing.json`.
-
-            ### Run summary
-
-            ```
-            See pricing-run.log artifact below for the full output.
-            ```
-
-            ### Review checklist
-
-            - [ ] Price changes look right vs the [vendor pricing pages](https://aws.amazon.com/bedrock/pricing/)
-            - [ ] No models marked unavailable that should be available
-            - [ ] `last_verified` dates updated as expected
-            - [ ] Run `pnpm --filter web build` to confirm nothing broke
-
-            Auto-generated by `.github/workflows/pricing-update.yml`.
-          labels: |
-            pricing
-            automated
+      # ── Step 6: Commit straight to main ─────────────────────────────────
+      - name: Commit pricing update
+        if: steps.check.outputs.has_changes == 'true'
+        run: |
+          set -o pipefail
+          git config user.name "gekro-pricing-bot"
+          git config user.email "pricing-bot@users.noreply.github.com"
+          git add apps/web/src/content/data/hyperscaler-pricing.json
+          git commit -m "chore(pricing): weekly hyperscaler pricing verification (${{ steps.check.outputs.diff_lines }} line(s))"
+          # Rebase onto anything that landed since checkout, then push. No
+          # "|| true": a swallowed conflict would leave the repo mid-rebase and
+          # push a no-op — a GREEN run that silently drops the update, which is
+          # the exact failure mode this change exists to eliminate.
+          if ! git pull --rebase --autostash origin main; then
+            git rebase --abort || true
+            echo "::error::Rebase conflict while publishing pricing — aborting. Data preserved in the run artifact."
+            exit 1
+          fi
+          git push origin HEAD:main
 
       # ── Step 6: Upload the run log as an artifact (always) ──────────────
       # Even if no PR is opened, the log is useful for debugging "why didn't
