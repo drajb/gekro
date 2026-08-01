@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "last_updated": "2026-06-01",
-  "source_notes": "Hand-assembled from official model cards (Meta, Alibaba, Mistral, Google, Microsoft, DeepSeek, IBM, Cohere, etc.) and the Ollama library. Architecture fields (layers/kv_heads/head_dim/hidden_dim) sourced from each vendor's HuggingFace config.json. Quantization recommendations follow llama.cpp community consensus (Q4_K_M as the sensible default). Where a model is MoE, `params` is total weights, `params_active` is what runs per forward pass. Apps should always handle missing fields gracefully — newer models in the Ollama library may not have a row here until the auto-fetcher PR (per #9 design) lands.",
+  "source_notes": "Hand-assembled from official model cards (Meta, Alibaba, Mistral, Google, Microsoft, DeepSeek, IBM, Cohere, etc.) and the Ollama library. Architecture fields (layers/kv_heads/head_dim/hidden_dim) sourced from each vendor's HuggingFace config.json. Quantization recommendations follow llama.cpp community consensus (Q4_K_M as the sensible default). Where a model is MoE, `params` is total weights, `params_active` is what runs per forward pass. Apps should always handle missing fields gracefully - newer models in the Ollama library may not have a row here until the auto-fetcher PR (per #9 design) lands.",
   "license_glossary": {
     "Llama-3-Community": "Meta's permissive license with 700M MAU revenue cap and acceptable-use policy",
     "Llama-4-Community": "Same shape as Llama-3-Community; revenue cap raised",
@@ -10,7 +10,7 @@
     "Gemma-Terms-of-Use": "Google's permissive license with acceptable-use restrictions",
     "Microsoft-Research-License": "Non-commercial-only for Phi-3.5 mini variants pre-MIT relicense",
     "DeepSeek-License": "Permissive with acceptable-use restrictions; commercial use allowed",
-    "MRL": "Mistral Research License — non-commercial; commercial use requires Mistral Commercial License",
+    "MRL": "Mistral Research License - non-commercial; commercial use requires Mistral Commercial License",
     "Cohere-CC-BY-NC-4.0": "Non-commercial only; commercial use requires separate license"
   },
   "type_tags": [
@@ -1764,7 +1764,7 @@
         "json_mode": true
       },
       "default_quant": "Q4_K_M",
-      "notes": "Optimized for RAG and tool use. Non-commercial weights — commercial needs Cohere license.",
+      "notes": "Optimized for RAG and tool use. Non-commercial weights - commercial needs Cohere license.",
       "last_verified": "2026-06-01"
     },
     {

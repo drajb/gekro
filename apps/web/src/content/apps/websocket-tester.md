@@ -36,7 +36,7 @@ Paste a `ws://`, `wss://`, `http://`, or `https://` URL. Hit Connect. Watch fram
 - Reproducing a "sometimes the connection drops" bug with first-frame and max-gap stats
 - Proving to your backend team that yes, the server is closing the socket with code 1006
 
-## Browser security model — what you should know
+## Browser security model - what you should know
 
 WebSocket and EventSource in browsers are deliberately less flexible than `curl` or a Node client:
 

@@ -15,7 +15,7 @@ license: "MIT"
 
 LLMs are probability distributions over tokens. At every position the model picks one token from many candidates with different likelihoods. **logprobs** is the request flag that exposes those probabilities. This tool turns that data into a visualization:
 
-- **Token stream**: each token in the response is colour-coded — green where the model was very confident (>85%), red where it was guessing (<15%)
+- **Token stream**: each token in the response is colour-coded - green where the model was very confident (>85%), red where it was guessing (<15%)
 - **Click any token**: see the top-K alternatives the model considered, with their probabilities
 - **Stats panel**: mean / median per-token probability, most-uncertain token, total sequence log-probability
 
@@ -28,11 +28,11 @@ LLMs are probability distributions over tokens. At every position the model pick
 
 ## When It's Useful
 
-- **Hallucination detection** — low-confidence tokens in factual claims are red flags
-- **Prompt comparison** — same prompt, two different system messages — compare mean probabilities
-- **Few-shot debugging** — see which example influenced the model and where confidence drops
-- **Evaluation** — sequence log-probability is a standard scoring metric for prompt-quality comparison
-- **Education** — actually SEE what "the model considered" instead of just imagining it
+- **Hallucination detection** - low-confidence tokens in factual claims are red flags
+- **Prompt comparison** - same prompt, two different system messages - compare mean probabilities
+- **Few-shot debugging** - see which example influenced the model and where confidence drops
+- **Evaluation** - sequence log-probability is a standard scoring metric for prompt-quality comparison
+- **Education** - actually SEE what "the model considered" instead of just imagining it
 
 ## Supported Formats
 
@@ -45,12 +45,12 @@ The parser auto-detects which shape you pasted.
 
 ## What's NOT In Scope
 
-- **Embedding visualization** — see [Tokenizer](/apps/tokenizer/) for byte/token splits
-- **Token cost** — see [LLM Cost Calculator](/apps/llm-cost-calculator/) and [Reasoning Cost Calculator](/apps/reasoning-cost-calculator/)
-- **Live API calls** — paste-only, no backend
+- **Embedding visualization** - see [Tokenizer](/apps/tokenizer/) for byte/token splits
+- **Token cost** - see [LLM Cost Calculator](/apps/llm-cost-calculator/) and [Reasoning Cost Calculator](/apps/reasoning-cost-calculator/)
+- **Live API calls** - paste-only, no backend
 
 ## Related Tools
 
-- [Tokenizer](/apps/tokenizer/) — see token boundaries
-- [Prompt Token Counter](/apps/prompt-token-counter/) — count before sending
-- [System Prompt Linter](/apps/system-prompt-linter/) — catch prompt issues
+- [Tokenizer](/apps/tokenizer/) - see token boundaries
+- [Prompt Token Counter](/apps/prompt-token-counter/) - count before sending
+- [System Prompt Linter](/apps/system-prompt-linter/) - catch prompt issues

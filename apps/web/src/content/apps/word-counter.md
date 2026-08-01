@@ -15,12 +15,12 @@ license: "MIT"
 
 Paste or type text on the left. Stats update live on the right.
 
-- **Headline number** — big "X,XXX words · Y,YYY characters" at the top, the same way most counter sites lead
-- **Full stats panel** — words, characters (with/without spaces), sentences, paragraphs, reading time, speaking time, reading level (Flesch-Kincaid grade), average word length, average sentence length, unique words, longest word
-- **Top-10 most-used words** — collapsible list with counts. Spot repetition before your editor does
-- **Word goal** — slider from 50 to 5000, live progress bar that turns green when you hit it
-- **Case converter** — UPPER, lower, Title, Sentence, aLtErNaTiNg
-- **Native spell check** — right-click any underlined word for suggestions. Works offline, in your locale, free
+- **Headline number** - big "X,XXX words · Y,YYY characters" at the top, the same way most counter sites lead
+- **Full stats panel** - words, characters (with/without spaces), sentences, paragraphs, reading time, speaking time, reading level (Flesch-Kincaid grade), average word length, average sentence length, unique words, longest word
+- **Top-10 most-used words** - collapsible list with counts. Spot repetition before your editor does
+- **Word goal** - slider from 50 to 5000, live progress bar that turns green when you hit it
+- **Case converter** - UPPER, lower, Title, Sentence, aLtErNaTiNg
+- **Native spell check** - right-click any underlined word for suggestions. Works offline, in your locale, free
 
 ## How the numbers are calculated
 
@@ -59,11 +59,11 @@ Other counter sites bolt a paid "Check" button onto their UI that pings a remote
 
 ## What's NOT Included
 
-- **Grammar check** — see above, deliberate scope choice
-- **Persistent state** — reload = blank slate, by design (every other Gekro app in this batch follows the same rule)
-- **Thesaurus / synonyms** — would need a 1-2 MB word database; out of scope
-- **Multi-document tabs** — one textarea, one counter; if you need multiple drafts use separate browser tabs
-- **History / undo button** — the `<textarea>` has native Ctrl+Z / Ctrl+Y, no JS button needed
+- **Grammar check** - see above, deliberate scope choice
+- **Persistent state** - reload = blank slate, by design (every other Gekro app in this batch follows the same rule)
+- **Thesaurus / synonyms** - would need a 1-2 MB word database; out of scope
+- **Multi-document tabs** - one textarea, one counter; if you need multiple drafts use separate browser tabs
+- **History / undo button** - the `<textarea>` has native Ctrl+Z / Ctrl+Y, no JS button needed
 
 ## Related Tools
 

@@ -17,7 +17,7 @@ Drop PDFs. Drag the **⠿** handle to reorder. Type which pages of each file to 
 
 - **Multiple files** at once via drag-drop or file picker
 - **Drag to reorder** using the handle in each row
-- **Per-file page ranges** (the killer feature — most online mergers can't do this)
+- **Per-file page ranges** (the killer feature - most online mergers can't do this)
 - **Live page count** under each row shows how many you've selected vs total
 - **Total counts** in the hero update as you change ranges
 - **Hard 100 MB cap per file** for sanity (browser memory)
@@ -49,19 +49,19 @@ Out-of-range pages (e.g. asking for page 10 of a 5-page PDF) get a clear inline 
 
 ## Why Local-Only Matters
 
-Most online PDF mergers (smallpdf, ilovepdf, etc.) require you to upload your file. For a contract, a tax form, a medical record, a draft of anything sensitive — that means a stranger's server now has a copy of your document. Even if they promise to delete it within an hour, you can't verify that.
+Most online PDF mergers (smallpdf, ilovepdf, etc.) require you to upload your file. For a contract, a tax form, a medical record, a draft of anything sensitive - that means a stranger's server now has a copy of your document. Even if they promise to delete it within an hour, you can't verify that.
 
-This app uses [pdf-lib](https://pdf-lib.js.org/) (MIT), a pure-JavaScript PDF library that runs entirely in your browser. The library is lazy-loaded from the page on first interaction (one-time ~280 KB download, cached after). Your PDFs are read into browser memory, merged, and the result is offered as a direct download — at no point does any file leave your machine.
+This app uses [pdf-lib](https://pdf-lib.js.org/) (MIT), a pure-JavaScript PDF library that runs entirely in your browser. The library is lazy-loaded from the page on first interaction (one-time ~280 KB download, cached after). Your PDFs are read into browser memory, merged, and the result is offered as a direct download - at no point does any file leave your machine.
 
 ## What's NOT Included (intentional)
 
-- **Visual page thumbnails** — would require PDF.js (~1.5 MB extra bundle). The page-range text input is fast once you know the syntax; thumbnails are coming if there's demand.
-- **Split mode** (one PDF in → N PDFs out) — the inverse operation, tracked as a v2 feature
-- **Per-page rotation** — most PDFs come pre-oriented; if needed, do it in your reader before merging
-- **Password-protected input** — pdf-lib refuses encrypted PDFs by design. Unlock with your reader's "save as" first.
-- **Image-based compression** — separate concern; if your output is too big consider re-saving in your reader first
-- **OCR scanned PDFs** — separate tool (~10 MB Tesseract.js bundle)
-- **Cloud storage integration** — your PDFs are on your machine, that's the point
+- **Visual page thumbnails** - would require PDF.js (~1.5 MB extra bundle). The page-range text input is fast once you know the syntax; thumbnails are coming if there's demand.
+- **Split mode** (one PDF in → N PDFs out) - the inverse operation, tracked as a v2 feature
+- **Per-page rotation** - most PDFs come pre-oriented; if needed, do it in your reader before merging
+- **Password-protected input** - pdf-lib refuses encrypted PDFs by design. Unlock with your reader's "save as" first.
+- **Image-based compression** - separate concern; if your output is too big consider re-saving in your reader first
+- **OCR scanned PDFs** - separate tool (~10 MB Tesseract.js bundle)
+- **Cloud storage integration** - your PDFs are on your machine, that's the point
 
 ## Related Tools
 

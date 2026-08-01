@@ -15,13 +15,13 @@ license: "MIT"
 
 Paste a trace. See the agent's tool calls as a collapsible tree.
 
-- **Format auto-detection** — Anthropic SDK messages, OpenAI tool_calls, or Claude Code JSONL
-- **Categorized tool pills** — fs / exec / search / web / mcp / meta / other (heuristic name match)
-- **Pass / fail flags** — green ✓ for successful calls, red ✗ for tool_results marked with `is_error: true`
-- **Input + result inspection** — click any call to expand JSON; toggle "Show results" to see the matched tool_result inline
-- **Stats panel** — total calls, unique tools, failures, assistant turns, top-8 most-called tools
-- **Three samples** — one per supported format, so you can see what it does before pasting your own
-- **Export** — download the normalized call list (turn index, tool name, category, input, result, is_error) as JSON
+- **Format auto-detection** - Anthropic SDK messages, OpenAI tool_calls, or Claude Code JSONL
+- **Categorized tool pills** - fs / exec / search / web / mcp / meta / other (heuristic name match)
+- **Pass / fail flags** - green ✓ for successful calls, red ✗ for tool_results marked with `is_error: true`
+- **Input + result inspection** - click any call to expand JSON; toggle "Show results" to see the matched tool_result inline
+- **Stats panel** - total calls, unique tools, failures, assistant turns, top-8 most-called tools
+- **Three samples** - one per supported format, so you can see what it does before pasting your own
+- **Export** - download the normalized call list (turn index, tool name, category, input, result, is_error) as JSON
 
 ## When To Use It
 
@@ -33,10 +33,10 @@ Paste a trace. See the agent's tool calls as a collapsible tree.
 
 ## What's NOT Included
 
-- **Token / cost accounting** — that's the [Reasoning Cost Calculator](/apps/reasoning-cost-calculator/) and [LLM Cost Calculator](/apps/llm-cost-calculator/)
-- **Editing or replaying the trace** — read-only. To replay an SSE log, see [Streaming Response Player](/apps/streaming-response-player/)
-- **Live connection** — paste an existing trace; for live MCP tool inspection see [MCP Server Tester](/apps/mcp-server-tester/)
-- **Persistent state** — reload starts fresh
+- **Token / cost accounting** - that's the [Reasoning Cost Calculator](/apps/reasoning-cost-calculator/) and [LLM Cost Calculator](/apps/llm-cost-calculator/)
+- **Editing or replaying the trace** - read-only. To replay an SSE log, see [Streaming Response Player](/apps/streaming-response-player/)
+- **Live connection** - paste an existing trace; for live MCP tool inspection see [MCP Server Tester](/apps/mcp-server-tester/)
+- **Persistent state** - reload starts fresh
 
 ## Why this and not n8n
 

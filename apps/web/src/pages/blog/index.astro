@@ -40,7 +40,7 @@ const collectionSchema = {
   "inLanguage": "en-US",
   "@id": "https://gekro.com/blog/",
   "name": "gekro Blog Archive",
-  "description": "Complete archive of deep-dive technical posts from gekro.com — AI engineering, local-first systems, and self-hosted infrastructure.",
+  "description": "Complete archive of deep-dive technical posts from gekro.com - AI engineering, local-first systems, and self-hosted infrastructure.",
   "url": "https://gekro.com/blog/",
   "isPartOf": { "@id": "https://gekro.com/#website" },
   "mainEntity": {
@@ -65,7 +65,7 @@ const breadcrumbs = {
 };
 ---
 
-<BaseLayout title="Blog | gekro" description="Deep dives into agentic AI, local-first LLM infrastructure, self-hosted systems, and autonomous trading — written by an AI engineer building in production.">
+<BaseLayout title="Blog | gekro" description="Deep dives into agentic AI, local-first LLM infrastructure, self-hosted systems, and autonomous trading - written by an AI engineer building in production.">
   <JsonLD data={collectionSchema} />
   <JsonLD data={breadcrumbs} />
   <main class="max-w-6xl mx-auto px-6 pt-28 sm:pt-32 pb-24 space-y-14">
@@ -90,7 +90,7 @@ const breadcrumbs = {
         <h3 class="text-xs font-mono uppercase tracking-widest text-text-muted">Filter by topic</h3>
         <div class="flex flex-wrap lg:flex-col gap-3">
           <!-- "All Posts" chip is always active by default; it links back to
-               the archive itself — /topics/all-posts/ doesn't exist (was a 404) -->
+               the archive itself - /topics/all-posts/ doesn't exist (was a 404) -->
           <Tag title="All Posts" active href="/blog/" />
           {topics.map(topic => (
             <Tag title={topic.title} count={topic.count} />

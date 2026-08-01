@@ -39,7 +39,7 @@ This calculator does the math for all of them based on hardware + model dimensio
 |---|---|---|---|
 | Q2_K | 2.625 | Bad | You really cannot fit the full model |
 | Q3_K_M | 3.91 | Acceptable | Aggressive VRAM constraints |
-| Q4_K_M | 4.83 | Sweet spot | Default — best quality/size ratio |
+| Q4_K_M | 4.83 | Sweet spot | Default - best quality/size ratio |
 | Q5_K_M | 5.69 | Very good | Have headroom, want better quality |
 | Q6_K | 6.56 | Near-lossless | Have plenty of VRAM |
 | Q8_0 | 8.5 | Lossless | Reference for evals |

@@ -72,7 +72,7 @@ const collectionSchema = {
   "@type": "CollectionPage",
   "inLanguage": "en-US",
   "@id": pageURL,
-  "name": `AI News Archive — ${label} | gekro`,
+  "name": `AI News Archive - ${label} | gekro`,
   "description": `All ${briefings.length} daily AI briefings published on gekro.com in ${label}, each summarized from vetted sources with every claim linked.`,
   "url": pageURL,
   "isPartOf": { "@id": "https://gekro.com/#website" },
@@ -100,7 +100,7 @@ const breadcrumbs = {
 ---
 
 <BaseLayout
-  title={`AI News Archive — ${label} | gekro`}
+  title={`AI News Archive - ${label} | gekro`}
   description={`Every daily AI briefing from ${label}: model releases, research, infrastructure and pricing, summarized neutrally from vetted sources with each claim linked to its origin.`}
 >
   <JsonLD data={collectionSchema} />

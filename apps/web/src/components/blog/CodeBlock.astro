@@ -24,7 +24,7 @@ const html = highlighter.codeToHtml(code, {
   {filename && (
     <div class="flex items-center justify-between border-b border-border bg-bg-elevated/50 px-4 py-2">
       <span class="text-[10px] font-mono uppercase tracking-widest text-text-muted">{filename}</span>
-      {/* /60 alpha removed 2026-05-03 — even on the bumped #8a8a93 muted token,
+      {/* /60 alpha removed 2026-05-03 - even on the bumped #8a8a93 muted token,
           60% alpha collapsed back to ~2.1:1 against bg-elevated. The language
           label is meaningful info (which Shiki theme to read against), not
           decoration, so it gets full opacity. */}

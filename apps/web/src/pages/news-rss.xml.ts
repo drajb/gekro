@@ -10,7 +10,7 @@ export async function GET(context: APIContext) {
     .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
 
   return rss({
-    title: 'gekro.com — AI News Briefings',
+    title: 'gekro.com - AI News Briefings',
     description: 'Daily AI industry signal from Rohit Burani. No hype, no VC press releases. Curated from vetted sources for engineers.',
     site: context.site ?? 'https://gekro.com',
     xmlns: { atom: 'http://www.w3.org/2005/Atom' },

@@ -9,7 +9,7 @@ interface Props {
   sublabel?: string;
 }
 
-const { label, id, value = '—', suffix, accent = false, muted = false, sublabel } = Astro.props;
+const { label, id, value = '-', suffix, accent = false, muted = false, sublabel } = Astro.props;
 ---
 
 <div class={`p-5 rounded-xl border ${accent ? 'border-accent/30 bg-accent/5' : 'border-border bg-bg-elevated'} space-y-1`}>

@@ -3,9 +3,9 @@
   "last_updated": "2026-05-13",
   "notes": [
     "Direct API pricing (per 1M tokens). Reasoning tokens are billed at the model's output rate by every major provider.",
-    "Effort multipliers represent typical hidden-reasoning-token counts as a multiple of visible output tokens. Actual usage varies wildly by prompt complexity — these are calibrated against published benchmark data and community telemetry.",
+    "Effort multipliers represent typical hidden-reasoning-token counts as a multiple of visible output tokens. Actual usage varies wildly by prompt complexity - these are calibrated against published benchmark data and community telemetry.",
     "Cached input rates apply where the provider supports prompt caching (Anthropic, OpenAI, Google).",
-    "Manually maintained for now. Auto-fetcher pipeline planned — provider direct-pricing pages don't have public APIs the way hyperscaler catalogues do."
+    "Manually maintained for now. Auto-fetcher pipeline planned - provider direct-pricing pages don't have public APIs the way hyperscaler catalogues do."
   ],
   "models": [
     {
@@ -94,7 +94,7 @@
       "cached_input_per_1m_usd": 0.14,
       "reasoning_effort_multipliers": { "low": 5, "medium": 15, "high": 30 },
       "default_effort": "medium",
-      "notes": "Pure reasoning model — reasoning tokens often 15-30× the visible output. Cheap per-token but bills add up fast."
+      "notes": "Pure reasoning model - reasoning tokens often 15-30× the visible output. Cheap per-token but bills add up fast."
     },
     {
       "id": "xai/grok-4-thinking",

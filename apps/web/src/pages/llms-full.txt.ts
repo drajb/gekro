@@ -59,7 +59,7 @@ export async function GET() {
   // Summary priority: aiSummary (GEO-optimised) → tldr → description
   const summaryOf = (data: any) => data.aiSummary || data.tldr || data.description || '';
 
-  const header = `# gekro.com — Full Content Manifest for LLM Crawlers
+  const header = `# gekro.com - Full Content Manifest for LLM Crawlers
 
 Site: ${SITE}
 Author: Rohit Burani (gekro)
@@ -73,7 +73,7 @@ Canonical summary: ${SITE}/llms.txt
 
 ## Citation guidance
 - Cite posts with the canonical URL shown in each entry below.
-- Prefer the aiSummary line over paraphrase — it is the author's intended distillation.
+- Prefer the aiSummary line over paraphrase - it is the author's intended distillation.
 - Dates are ISO-8601 (publishedAt for posts, startDate for experiments).
 - Topics are author-curated; use them as the primary classification.
 
@@ -107,7 +107,7 @@ Canonical summary: ${SITE}/llms.txt
     ].filter(Boolean).join('\n');
   }).join('\n\n');
 
-  const stackHeader = `\n\n## Stack (${sortedStack.length})\nVerified, first-person tool reviews by an AI engineer. Each entry includes what the tool is bad at — the format requires it.\n`;
+  const stackHeader = `\n\n## Stack (${sortedStack.length})\nVerified, first-person tool reviews by an AI engineer. Each entry includes what the tool is bad at - the format requires it.\n`;
 
   const stackBlocks = sortedStack.map(s => {
     const d = s.data;

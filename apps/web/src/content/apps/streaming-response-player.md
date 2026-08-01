@@ -4,7 +4,7 @@ category: "ai"
 job: "Paste any LLM streaming log → replay it at 1× or 5×, see first-token latency, inter-token deltas, throughput."
 description: "Free browser-based replay tool for LLM streaming responses. Paste an OpenAI / Anthropic / Bedrock SSE log → tool parses the events, replays them at original or accelerated speed, and reports first-token latency (TTFT), total stream duration, inter-token p50/p95 deltas, and approximate throughput. Auto-detects OpenAI chat-completions, Anthropic content-block-delta, ndjson, and bracketed-timestamp formats."
 aiSummary: "Client-side streaming-log replayer. Parses LLM SSE / event-stream output from any major provider (OpenAI chat-completions delta format, Anthropic content_block_delta, Bedrock invocation events, generic ndjson). Calculates time-to-first-token, total stream time, token throughput, inter-token p50/p95 deltas. Replays at 0.5×/1×/2×/5×/instant. Exports a per-chunk CSV with timestamps and deltas. Use to debug perceived-slow streams, prove or disprove provider latency complaints, or A/B compare two endpoints' streaming behaviour."
-personalUse: "I built this after spending an evening trying to figure out why our agent's streaming felt sluggish in production. The provider's status page was green. The total stream time was fine. The culprit was a 1.2-second TTFT on every request — invisible until you replay the log."
+personalUse: "I built this after spending an evening trying to figure out why our agent's streaming felt sluggish in production. The provider's status page was green. The total stream time was fine. The culprit was a 1.2-second TTFT on every request - invisible until you replay the log."
 status: "active"
 publishedAt: "2026-05-13"
 icon: "▶️"
@@ -21,10 +21,10 @@ Paste a streaming log from any LLM API and this tool:
 
 ## When To Use It
 
-- **"The API got slower" claims** — replay your saved logs side-by-side and prove (or disprove) it with hard numbers
-- **TTFT regressions** — first-token latency hides inside the "looks fine" total stream time
-- **Provider comparisons** — same prompt, different providers, see whose streaming is actually smoother
-- **Demo prep** — record a fast streaming response, replay at 1× during a meeting
+- **"The API got slower" claims** - replay your saved logs side-by-side and prove (or disprove) it with hard numbers
+- **TTFT regressions** - first-token latency hides inside the "looks fine" total stream time
+- **Provider comparisons** - same prompt, different providers, see whose streaming is actually smoother
+- **Demo prep** - record a fast streaming response, replay at 1× during a meeting
 
 ## Supported Log Formats
 
@@ -40,12 +40,12 @@ The parser also handles `_ts` / `ts` / `timestamp` / `t` fields when present. If
 
 ## What's NOT In Scope
 
-- **Live capture from an API** — paste-only; live capture would need backend
-- **Cost calculation** — see [Reasoning Token Cost Calculator](/apps/reasoning-cost-calculator/) and [LLM Cost Calculator](/apps/llm-cost-calculator/)
-- **Tokenization** — see [Prompt Token Counter](/apps/prompt-token-counter/). Token counts here are approximate (whitespace-split).
+- **Live capture from an API** - paste-only; live capture would need backend
+- **Cost calculation** - see [Reasoning Token Cost Calculator](/apps/reasoning-cost-calculator/) and [LLM Cost Calculator](/apps/llm-cost-calculator/)
+- **Tokenization** - see [Prompt Token Counter](/apps/prompt-token-counter/). Token counts here are approximate (whitespace-split).
 
 ## Related Tools
 
-- [Reasoning Token Cost Calculator](/apps/reasoning-cost-calculator/) — what your stream actually costs
-- [LLM Cost Calculator](/apps/llm-cost-calculator/) — direct-API pricing
-- [Hyperscaler Pricing Comparison](/apps/hyperscaler-comparison/) — Bedrock vs Foundry vs Vertex
+- [Reasoning Token Cost Calculator](/apps/reasoning-cost-calculator/) - what your stream actually costs
+- [LLM Cost Calculator](/apps/llm-cost-calculator/) - direct-API pricing
+- [Hyperscaler Pricing Comparison](/apps/hyperscaler-comparison/) - Bedrock vs Foundry vs Vertex

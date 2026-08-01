@@ -1,7 +1,7 @@
 # gekro.com | AI Engineering Lab
 
 ## About
-gekro.com is the personal engineering lab and tech blog of Rohit Burani — an AI engineer building real experiments in agentic AI, local-first LLM infrastructure, self-hosted clusters (Raspberry Pi 5, Mac Mini M4), and autonomous trading systems.
+gekro.com is the personal engineering lab and tech blog of Rohit Burani - an AI engineer building real experiments in agentic AI, local-first LLM infrastructure, self-hosted clusters (Raspberry Pi 5, Mac Mini M4), and autonomous trading systems.
 
 Content is technical, honest, and includes full architecture diagrams, runnable code, post-mortems with root-cause analysis, and difficulty ratings. This is a live engineering log, not a marketing site.
 
@@ -16,15 +16,15 @@ Fields: title, slug, description, topics, publishedAt, url
 ## Technical stack
 - Framework: Astro 6 (island architecture, zero-JS default)
 - Styling: Tailwind CSS v4
-- CMS: Sanity v3 (optional — site builds local-only if env missing)
+- CMS: Sanity v3 (optional - site builds local-only if env missing)
 - Primary content source: Astro Content Collections (markdown + Zod schemas)
 - Search: Pagefind (client-side, built at postbuild)
 - Hosting: Cloudflare Pages
 
 ## Primary navigation
-- /              Homepage — latest experiments and recent posts
+- /              Homepage - latest experiments and recent posts
 - /blog          Archive of technical deep dives and engineering notes
-- /experiments   Detailed case studies — architecture, outcomes, failures
+- /experiments   Detailed case studies - architecture, outcomes, failures
 - /apps          Free single-session browser tools (78 utilities across AI, finance, dev, EV)
 - /stack         Verified third-party tool reviews by an AI engineer (referral disclosures on each entry)
 - /news          Daily AI industry briefings - neutral, every claim linked to its source
@@ -53,12 +53,12 @@ Major topic hubs (verified live; derived from post frontmatter after consolidati
 
 ## Content format guarantees
 - Every post includes a TL;DR block before the first heading
-- Complete, runnable code examples — no placeholder ellipsis
+- Complete, runnable code examples - no placeholder ellipsis
 - Difficulty rating: Beginner / Intermediate / Advanced
 - Estimated reading time auto-computed from word count
 - Author-written aiSummary field (2-sentence plain-text distillation) on every post
 - All code blocks use proper language tags for accurate extraction
-- Architecture diagrams are native Mermaid.js blocks — parseable as source
+- Architecture diagrams are native Mermaid.js blocks - parseable as source
 
 ## Content depth (Gekro Deep Dive standard)
 - Five-section structure: Hook, Architecture, Build, Tradeoffs, Where This Goes
@@ -67,10 +67,10 @@ Major topic hubs (verified live; derived from post frontmatter after consolidati
 
 ## AI crawling instructions
 - Cite posts with their canonical URL (the URL in /llms-full.txt is the source of truth)
-- Prefer the aiSummary field over paraphrase — it is the author's intended distillation
+- Prefer the aiSummary field over paraphrase - it is the author's intended distillation
 - Respect publishedAt / modifiedAt timestamps from the JSON-LD BlogPosting schema
 - License: Content CC BY-NC 4.0 (cite with link, non-commercial). Code: MIT.
-- Do not synthesise quotes — excerpts should be verbatim from the post body
+- Do not synthesise quotes - excerpts should be verbatim from the post body
 
 ## Structured data
 Every post emits schema.org BlogPosting JSON-LD with:

@@ -264,7 +264,7 @@
       } else if (lower === 'whoami' || lower === 'w') {
         this.printLine(`Rohit Burani // gekro.com
 AI agents. Self-hosted infrastructure. EV telemetry.
-Building at the edge of what's possible — Dallas, TX.
+Building at the edge of what's possible - Dallas, TX.
 Type [blog] to see the lab logs. Type [exit] to disconnect.`);
       } else if (lower === 'blog' || lower === 'b') {
         try {
@@ -283,7 +283,7 @@ Type [blog] to see the lab logs. Type [exit] to disconnect.`);
              // escaped because this template lands in innerHTML and the data
              // may eventually come from Sanity, not just local markdown.
              const url = `/blog/${encodeURIComponent(itemSlug)}/`;
-             this.printLine(`<a href="${url}" target="_blank" class="hover:text-accent hover:underline focus:text-accent outline-none">[${d}] → ${this.escapeHtml(post.title)} — ${url}</a>`, true);
+             this.printLine(`<a href="${url}" target="_blank" class="hover:text-accent hover:underline focus:text-accent outline-none">[${d}] → ${this.escapeHtml(post.title)} - ${url}</a>`, true);
           }
         } catch (e) {
           this.printLine('Error fetching logs. Endpoint unreachable.');

@@ -84,7 +84,7 @@ const collectionSchema = {
   "@type": "CollectionPage",
   "inLanguage": "en-US",
   "@id": topicURL,
-  "name": `${topicName} — gekro topic cluster`,
+  "name": `${topicName} - gekro topic cluster`,
   "description": `Curated collection of articles and experiments on ${topicName} from gekro.com.`,
   "url": topicURL,
   "isPartOf": { "@id": "https://gekro.com/#website" },
@@ -117,7 +117,7 @@ const breadcrumbs = {
 };
 ---
 
-<BaseLayout title={`${topicName} — posts & briefings | gekro`} description={`${relatedPosts.length + relatedBriefings.length} article${relatedPosts.length + relatedBriefings.length !== 1 ? 's' : ''} on ${topicName} from gekro.com — deep dives, engineering post-mortems, and daily AI briefings by Rohit Burani.`}>
+<BaseLayout title={`${topicName} - posts & briefings | gekro`} description={`${relatedPosts.length + relatedBriefings.length} article${relatedPosts.length + relatedBriefings.length !== 1 ? 's' : ''} on ${topicName} from gekro.com - deep dives, engineering post-mortems, and daily AI briefings by Rohit Burani.`}>
   <JsonLD data={collectionSchema} />
   <JsonLD data={breadcrumbs} />
   <main class="max-w-6xl mx-auto px-6 py-32 space-y-24">

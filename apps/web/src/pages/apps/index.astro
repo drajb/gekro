@@ -18,7 +18,7 @@ const apps = await getCollection('apps', ({ data }) => data.status !== 'archived
  * Adding a new category requires updating this map.
  */
 const CATEGORY_PRIORITY: Record<string, number> = {
-  ai: 1,        // most on-brand — every AI tool first
+  ai: 1,        // most on-brand - every AI tool first
   trading: 2,
   ev: 3,
   infra: 4,
@@ -87,7 +87,7 @@ const breadcrumbs = {
 
 <BaseLayout
   title="Apps | gekro"
-  description={`Free browser tools from an AI engineer's workbench — LLM cost calculator, CSV to JSON converter, mortgage calculator, position sizer, Tesla trip planner, and ${apps.length - 5} more. No login, no data collection, all client-side.`}
+  description={`Free browser tools from an AI engineer's workbench - LLM cost calculator, CSV to JSON converter, mortgage calculator, position sizer, Tesla trip planner, and ${apps.length - 5} more. No login, no data collection, all client-side.`}
 >
   <JsonLD data={collectionSchema} />
   <JsonLD data={breadcrumbs} />
@@ -110,7 +110,7 @@ const breadcrumbs = {
         </h1>
 
         <p class="text-lg text-text-secondary max-w-xl leading-relaxed">
-          Tools I built for my own workflow — now public. Each runs entirely in your browser. Nothing stored anywhere.
+          Tools I built for my own workflow - now public. Each runs entirely in your browser. Nothing stored anywhere.
         </p>
 
         <!-- Stats strip -->

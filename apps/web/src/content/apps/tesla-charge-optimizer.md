@@ -18,17 +18,17 @@ Most EVs let you schedule charging start time but DON'T know your utility's time
 1. Pick your vehicle (or set custom battery + charger rate)
 2. Set current SoC + target SoC
 3. Pick plug-in time + departure time
-4. Set hourly rates (preset or custom — click any hour to edit)
+4. Set hourly rates (preset or custom - click any hour to edit)
 
 You get: the cheapest contiguous charging window, dollar savings vs charging immediately, and a copy-pasteable schedule for Tesla / Home Assistant / EVCC / OpenEVSE.
 
 ## Rate Presets Included
 
-- **PG&E EV2-A** — California, common Tesla owner default. ~$0.31 off-peak / $0.61 peak (4-9pm)
-- **SCE TOU-D-PRIME** — Southern California. ~$0.26 super-off-peak / $0.54 peak (4-9pm)
-- **ERCOT flat** — Texas reference flat rate ~$0.13/kWh
-- **TXU Free Nights** — Texas plan with free charging 8pm-6am
-- **Solar self-consumption** — Cheap midday from rooftop solar, expensive overnight
+- **PG&E EV2-A** - California, common Tesla owner default. ~$0.31 off-peak / $0.61 peak (4-9pm)
+- **SCE TOU-D-PRIME** - Southern California. ~$0.26 super-off-peak / $0.54 peak (4-9pm)
+- **ERCOT flat** - Texas reference flat rate ~$0.13/kWh
+- **TXU Free Nights** - Texas plan with free charging 8pm-6am
+- **Solar self-consumption** - Cheap midday from rooftop solar, expensive overnight
 
 Click "Custom" and edit any hour to match your specific plan.
 
@@ -42,14 +42,14 @@ for hour-segment from start to start+D:
 total_cost = sum(segment_costs)
 ```
 
-Pick the start time with lowest total_cost. O(N) in number of 5-minute slots — fast enough to recompute on every input change.
+Pick the start time with lowest total_cost. O(N) in number of 5-minute slots - fast enough to recompute on every input change.
 
 ## Limitations
 
-- **Assumes constant kW charging** — real EVs taper above ~80% SoC. Above 80% target, expect 5-15 more minutes than the calculator estimates.
-- **No demand charges** — commercial / industrial TOU plans sometimes also charge for peak kW pulled. Not modelled.
-- **Tesla supercharger pricing** is location-dependent and not in scope — this is for home charging.
-- **5-minute resolution** — most utilities bill at the hour, so this is fine.
+- **Assumes constant kW charging** - real EVs taper above ~80% SoC. Above 80% target, expect 5-15 more minutes than the calculator estimates.
+- **No demand charges** - commercial / industrial TOU plans sometimes also charge for peak kW pulled. Not modelled.
+- **Tesla supercharger pricing** is location-dependent and not in scope - this is for home charging.
+- **5-minute resolution** - most utilities bill at the hour, so this is fine.
 
 ## Related Tools
 

@@ -136,19 +136,19 @@ const publicationId = import.meta.env.PUBLIC_BEEHIIV_PUBLICATION_ID || '016ca01a
                   body: body.toString(),
                 });
                 form.classList.add('hidden');
-                state.textContent = `✓ Got it — confirmation email sent to ${email}. Check your inbox.`;
+                state.textContent = `✓ Got it - confirmation email sent to ${email}. Check your inbox.`;
               } catch (err) {
-                state.textContent = 'Network error — try again or reach out on LinkedIn.';
+                state.textContent = 'Network error - try again or reach out on LinkedIn.';
               }
             } else if (form.getAttribute('data-env') === 'prod') {
               // Production WITHOUT a publication ID = misconfiguration. The
               // old behavior showed fake success and silently dropped the
               // subscriber — be honest instead.
-              state.textContent = 'Newsletter signup is temporarily unavailable — reach out on LinkedIn instead.';
+              state.textContent = 'Newsletter signup is temporarily unavailable - reach out on LinkedIn instead.';
             } else {
               // Dev / no publication ID configured — local-only success
               form.classList.add('hidden');
-              state.textContent = `✓ Got it — we'll reach out to ${email} when there's something worth sharing.`;
+              state.textContent = `✓ Got it - we'll reach out to ${email} when there's something worth sharing.`;
             }
           });
         };

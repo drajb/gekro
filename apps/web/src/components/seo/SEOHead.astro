@@ -57,7 +57,7 @@ interface Props {
 
 const {
   title,
-  description = "gekro.com — Rohit Burani's personal AI engineering lab. Deep dives on agentic AI, local LLM inference, self-hosted infrastructure, and autonomous trading systems.",
+  description = "gekro.com - Rohit Burani's personal AI engineering lab. Deep dives on agentic AI, local LLM inference, self-hosted infrastructure, and autonomous trading systems.",
   ogImage = "/og/default.png",
   canonicalURL: canonicalProp,
   ogType = 'website',
@@ -136,7 +136,7 @@ const bingToken = import.meta.env.PUBLIC_BING_VERIFICATION;
 <meta property="og:image" content={ogImageURL} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content={`${siteTitle} — social preview image`} />
+<meta property="og:image:alt" content={`${siteTitle} - social preview image`} />
 
 {ogType === 'article' && publishedTime && (
   <meta property="article:published_time" content={publishedTime} />
@@ -163,7 +163,7 @@ const bingToken = import.meta.env.PUBLIC_BING_VERIFICATION;
 <meta name="twitter:title" content={siteTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImageURL} />
-<meta name="twitter:image:alt" content={`${siteTitle} — social preview image`} />
+<meta name="twitter:image:alt" content={`${siteTitle} - social preview image`} />
 
 <!-- Browser chrome color (matches --color-bg-base warm dark) -->
 <meta name="theme-color" content="#0c0b09" />
