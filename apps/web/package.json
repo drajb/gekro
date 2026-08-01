@@ -20,7 +20,7 @@
     "@astrojs/sitemap": "3.7.3",
     "@sanity/astro": "^3.4.0",
     "@sanity/client": "^6.29.1",
-    "@tailwindcss/vite": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.3",
     "astro": "^6.4.6",
     "browser-image-compression": "^2.0.2",
     "diff": "^9.0.0",
@@ -34,7 +34,7 @@
     "qr-code-styling": "^1.9.2",
     "sharp": "^0.34.5",
     "shiki": "^4.1.0",
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.3.3",
     "three": "^0.184.0",
     "typescript": "^6.0.3"
   },
