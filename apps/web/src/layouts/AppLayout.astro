@@ -22,10 +22,31 @@ const grouped = CATEGORY_ORDER
   .map(cat => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, apps: allApps.filter(a => a.data.category === cat) }))
   .filter(({ apps }) => apps.length > 0);
 
-// Meta/OG description: the human-written `description` (~150 chars), NOT
-// aiSummary — aiSummary runs up to ~1,200 chars and was being truncated
-// mid-clause in every SERP snippet. aiSummary stays the JSON-LD/llms surface.
-const seoDescription = data.description || data.aiSummary;
+// Meta/OG description.
+//
+// The comment here used to claim `description` was "~150 chars". It is not: it
+// runs to 513, and 71 of the 78 app pages were emitting a meta description over
+// Google's ~160-char display limit, so the snippet was being cut mid-sentence on
+// the site's biggest search-traffic surface.
+//
+// `job` is the one-line "what this does" and is much closer to the right size
+// (median 91), but 10 apps have one under 70 chars, which is too thin to earn a
+// good snippet. So compose: lead with `job`, top up from `description` when
+// there is room, and cut on a word boundary just under the limit.
+const META_MAX = 158;
+const composeMeta = (job?: string, desc?: string): string => {
+  const j = (job ?? '').trim();
+  const d = (desc ?? '').trim();
+  let s = j || d;
+  // Only top up when the lead is short enough that the extra clause survives.
+  if (j && d && j.length < 110 && !d.startsWith(j)) s = `${j.replace(/[.\s]+$/, '')}. ${d}`;
+  if (s.length <= META_MAX) return s;
+  const cut = s.slice(0, META_MAX);
+  const at = cut.lastIndexOf(' ');
+  return `${(at > 100 ? cut.slice(0, at) : cut).replace(/[\s.,;:-]+$/, '')}.`;
+};
+const seoDescription = composeMeta(data.job, data.description || data.aiSummary);
+// aiSummary stays the rich JSON-LD / GEO surface - length is an asset there.
 const aiDescription = data.aiSummary || data.description;
 const pageURL = `https://gekro.com/apps/${app.id}/`;
 const ogImage = `/og/apps/${app.id}.png`;
