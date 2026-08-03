@@ -46,7 +46,7 @@ jobs:
 
       # ── Step 3: Install pnpm (version from root package.json) ───────────
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@v6.0.9
 
       # ── Step 4: Node + pnpm cache ────────────────────────────────────────
       - name: Setup Node.js
