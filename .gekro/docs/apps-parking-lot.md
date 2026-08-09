@@ -20,7 +20,24 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 | #14 | `websocket-tester` | ✅ Shipped 2026-05-23 (gekro-apps@aa41f9b, content @00f6e91) |
 | #15 | `tax-loss-harvester` | ✅ Shipped 2026-05-25 (gekro-apps@9531ad4, content @7a6e476) |
 
-Catalog count: **78 apps** total (current; see the Wave 4 section above for the latest additions, shipped 2026-07-05).
+Catalog count: **84 apps** total (current; see the Wave 5 section above for the latest additions, shipped 2026-08-08).
+
+---
+
+## Wave 5 — ✅ ALL 6 SHIPPED 2026-08-08 (traffic-driven batch)
+
+Rohit asked for high-traffic ideas; picked all 6 from a shortlist. All verified (build clean, vitest 92/92, e2e 252/252). Components in gekro-apps@d4ef357.
+
+| # | Slug | Category | Notes |
+|---|---|---|---|
+| W5-1 | `ai-energy-calculator` | ai | inference + training energy/CO₂/water + EV-mile equivalences; curated editable coefficients |
+| W5-2 | `config-converter` | dev | JSON⇄YAML⇄TOML⇄.env, hand-rolled zero-dep parsers, offline |
+| W5-3 | `hidden-text-inspector` | ai | zero-width/tag/bidi/homoglyph detector. XSS guardrail: textContent-only rendering, never innerHTML with user data, never renders input as HTML |
+| W5-4 | `markdown-table-generator` | dev | grid editor → GFM/CSV/HTML; escapes pipes + HTML |
+| W5-5 | `inference-latency-estimator` | ai | roofline model; total vs active params; curated editable GPU specs |
+| W5-6 | `vector-db-calculator` | ai | index RAM (flat/HNSW/IVF) + self-hosted vs managed cost |
+
+Catalog count after Wave 5: **84 apps**.
 
 ---
 

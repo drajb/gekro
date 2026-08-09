@@ -101,6 +101,12 @@ import EmbeddingPlayground from '../../components/apps-private/embedding-playgro
 import GgufInspector from '../../components/apps-private/gguf-inspector/Calculator.astro';
 import FinetuneDatasetAuditor from '../../components/apps-private/finetune-dataset-auditor/Calculator.astro';
 import RateLimitPlanner from '../../components/apps-private/rate-limit-planner/Calculator.astro';
+import ConfigConverter from '../../components/apps-private/config-converter/Calculator.astro';
+import MarkdownTableGenerator from '../../components/apps-private/markdown-table-generator/Calculator.astro';
+import HiddenTextInspector from '../../components/apps-private/hidden-text-inspector/Calculator.astro';
+import InferenceLatencyEstimator from '../../components/apps-private/inference-latency-estimator/Calculator.astro';
+import AiEnergyCalculator from '../../components/apps-private/ai-energy-calculator/Calculator.astro';
+import VectorDbCalculator from '../../components/apps-private/vector-db-calculator/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -181,6 +187,12 @@ const CALCULATOR_MAP: Record<string, any> = {
   'gguf-inspector': GgufInspector,
   'finetune-dataset-auditor': FinetuneDatasetAuditor,
   'rate-limit-planner': RateLimitPlanner,
+  'config-converter': ConfigConverter,
+  'markdown-table-generator': MarkdownTableGenerator,
+  'hidden-text-inspector': HiddenTextInspector,
+  'inference-latency-estimator': InferenceLatencyEstimator,
+  'ai-energy-calculator': AiEnergyCalculator,
+  'vector-db-calculator': VectorDbCalculator,
 };
 
 export async function getStaticPaths() {
