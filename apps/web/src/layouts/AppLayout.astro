@@ -182,7 +182,11 @@ const breadcrumbs = {
         </select>
       </div>
 
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16 lg:pt-24">
+      <!-- overflow-x-clip: app pages must never scroll sideways. Wide children
+           (tables, Shiki code blocks) keep their own overflow-x:auto and scroll
+           internally; this just guarantees nothing leaks past the viewport at
+           mobile widths, even under sub-pixel headless-browser rendering. -->
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16 lg:pt-24 overflow-x-clip">
         <slot />
 
         <!-- Methodology content from markdown body -->
