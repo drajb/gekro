@@ -20,7 +20,21 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 | #14 | `websocket-tester` | ✅ Shipped 2026-05-23 (gekro-apps@aa41f9b, content @00f6e91) |
 | #15 | `tax-loss-harvester` | ✅ Shipped 2026-05-25 (gekro-apps@9531ad4, content @7a6e476) |
 
-Catalog count: **84 apps** total (current; see the Wave 5 section above for the latest additions, shipped 2026-08-08).
+Catalog count: **87 apps** total (current; see the Wave 6 section above, shipped 2026-08-13).
+
+---
+
+## Wave 6 — ✅ ALL 3 SHIPPED 2026-08-13 (gekro-apps@fa5d369; catalog 84 → 87)
+
+Triggered by Anthropic's 2026-08-02 AI-content marking (imperceptible **statistical** text watermark + C2PA signed metadata on files), shipped for EU AI Act Art. 50 transparency. Source: support.claude.com/en/articles/16266773.
+
+| # | Slug | Job | Category | Notes |
+|---|---|---|---|---|
+| W6-1 | `ai-provenance-inspector` | Check text/files for AI-provenance signals: C2PA manifest presence, hidden Unicode, statistical-watermark status | ai | **Honest-scope rule: Anthropic has NOT published detection yet ("forthcoming"), so this must NEVER claim to detect Claude's statistical watermark.** Reports only what is verifiable + explains the rest. C2PA = presence detection, not signature verification. Absence ≠ human-written. |
+| W6-2 | `punctuation-fixer` | Normalize smart quotes, em/en dashes, ellipses, NBSP, stray spacing | dev | Per-rule toggles. Serves Rohit's own no-em-dash rule. **Not to be framed or marketed as watermark removal** (it isn't - the mark is statistical). |
+| W6-3 | `text-formatter` | Case conversion + line ops (trim/dedupe/sort/wrap/number) | dev | Evergreen search ("case converter", "text formatter"). Zero-dep. |
+
+**DECLINED (do not build, 2026-08-13):** AI-watermark *removal* tool. Reasons: (1) the mark exists to satisfy EU AI Act Art. 50 transparency, so a remover is a regulatory-circumvention tool; (2) it is a statistical watermark in token choices - there is nothing to "strip", defeating it needs aggressive paraphrase that degrades text, so a client-side tool would be snake oil; (3) dominant use is passing AI text as human (academic fraud, undisclosed AI content). Detection/transparency tooling covers every legitimate need. Rohit raised it twice; declined both times with this rationale.
 
 ---
 

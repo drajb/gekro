@@ -107,6 +107,9 @@ import HiddenTextInspector from '../../components/apps-private/hidden-text-inspe
 import InferenceLatencyEstimator from '../../components/apps-private/inference-latency-estimator/Calculator.astro';
 import AiEnergyCalculator from '../../components/apps-private/ai-energy-calculator/Calculator.astro';
 import VectorDbCalculator from '../../components/apps-private/vector-db-calculator/Calculator.astro';
+import AiProvenanceInspector from '../../components/apps-private/ai-provenance-inspector/Calculator.astro';
+import PunctuationFixer from '../../components/apps-private/punctuation-fixer/Calculator.astro';
+import TextFormatter from '../../components/apps-private/text-formatter/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -193,6 +196,9 @@ const CALCULATOR_MAP: Record<string, any> = {
   'inference-latency-estimator': InferenceLatencyEstimator,
   'ai-energy-calculator': AiEnergyCalculator,
   'vector-db-calculator': VectorDbCalculator,
+  'ai-provenance-inspector': AiProvenanceInspector,
+  'punctuation-fixer': PunctuationFixer,
+  'text-formatter': TextFormatter,
 };
 
 export async function getStaticPaths() {
