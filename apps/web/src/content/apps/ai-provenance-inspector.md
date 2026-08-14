@@ -17,10 +17,11 @@ icon: "🔎"
 
 On 2 August 2026 Anthropic began marking Claude's output, using two different mechanisms: an **imperceptible statistical watermark** embedded in generated text, and **C2PA signed provenance metadata** on supported file types. Google has run SynthID-Text across Gemini for a while. The obvious question - "can I check whether this was AI-generated?" - has a more interesting answer than most tools admit.
 
-This inspector answers it in two modes:
+This inspector answers it in three modes:
 
 - **Text** - scans for hidden Unicode markers: zero-width characters, Unicode Tag-block smuggling, bidi controls, and variation selectors. These are real, checkable, and sometimes used for invisible tagging.
 - **File** - scans a PNG, JPEG, or SVG for an embedded **C2PA Content Credentials** manifest, by looking for the JUMBF container box and the PNG `caBX` chunk that C2PA embeddings use.
+- **Mixed provenance** - a teaching model (it analyses no text) showing why documents written by several models, or by a model plus a human, defeat document-level detection. See below.
 
 ## What It Deliberately Refuses To Do
 
@@ -29,6 +30,28 @@ It will not tell you that text is "87% likely Claude." It cannot, and neither ca
 Anthropic's text watermark is a **statistical** one: the signal lives in *which words the model chose*, biased at sampling time, not in any character you could search for. Verifying it requires Anthropic's keyed detector, and Anthropic's own documentation says detection details are still forthcoming. Google's SynthID-Text works the same way, using tournament sampling over pseudo-random token partitions. Any site claiming to detect either one today is guessing, and a confident wrong answer here has real consequences for the person being accused.
 
 So statistical watermarks are reported as **not checkable**, with an explanation, rather than as a number.
+
+## Mixed Provenance: Why Documents Beat Detectors
+
+Real documents are rarely written by one author. People switch models mid-draft, route through OpenRouter, paste between chatbots, and edit by hand. That breaks detection in a way that is worth seeing rather than being told.
+
+Green-list watermark detection is a z-test over token counts:
+
+```
+z = (greens - γT) / sqrt(T · γ(1-γ))
+```
+
+If only `W` of a document's `T` tokens are machine-written, each lifting the green rate by `ε`, the expected green count is `Tγ + Wε`, so the whole-document statistic is `Wε / sqrt(T · γ(1-γ))`. Score just the machine-written span instead and you get `ε·sqrt(W) / sqrt(γ(1-γ))`. Divide one by the other and the whole thing collapses to a single number:
+
+```
+z_whole / z_span = sqrt(W/T) = sqrt(f)
+```
+
+Scoring the whole document keeps only **the square root of the machine-written fraction** of your detection power. At 10% AI-written, that is about 32%. A 300-token passage that would clear threshold comfortably on its own vanishes inside a 3,000-token document. The Mixed provenance tab lets you move those numbers and watch the two z-scores diverge.
+
+The consequence is the important part: **mixing models is not an attack on the watermark, it is an attack on the detector's choice of window.** Sliding-window scoring recovers the power (the WinMax approach in the SynthID-Text paper), but scoring hundreds of windows means hundreds of hypothesis tests, so the threshold has to rise to keep false positives controlled. And windowing only ever localizes one vendor's mark, because each provider keys its own detector.
+
+There is also a lane where the question never arises. Watermarking requires whoever runs inference to bias sampling, so open-weight models carry no mark at all. Routing to Claude or Gemini through OpenRouter preserves the watermark, because it is applied inside the provider's stack before tokens are returned. Routing to Llama or Qwen through the same service produces unmarked text, as does running them locally.
 
 ## Reading The Result Honestly
 
