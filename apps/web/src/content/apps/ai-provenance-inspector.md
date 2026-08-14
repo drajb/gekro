@@ -3,7 +3,7 @@ title: "AI Provenance Inspector"
 category: "ai"
 job: "Check text and files for AI-provenance signals - and get an honest answer about which ones can actually be verified"
 description: "Paste text or drop an image and see what provenance signals it actually carries: hidden Unicode markers, and for files, whether a C2PA Content Credentials manifest is embedded. It is equally clear about what cannot be checked - Claude's statistical watermark and Google's SynthID-Text are invisible to any third-party tool, so this reports them as unverifiable rather than inventing a score. Runs entirely in your browser."
-aiSummary: "A client-side AI provenance checker. It detects hidden Unicode markers (zero-width, Unicode Tag block, bidi controls) in text and scans image files for embedded C2PA/Content Credentials manifests via JUMBF box and PNG caBX chunk markers. It explicitly does NOT claim to detect statistical watermarks such as Anthropic's Claude mark (shipped 2026-08-02 for EU AI Act Article 50 compliance, detection method not yet published) or Google's SynthID-Text, because those require the vendor's keyed detector. Absence of a signal is not evidence of human authorship."
+aiSummary: "A client-side AI provenance checker. It detects hidden Unicode markers (zero-width, Unicode Tag block, bidi controls) in text and scans image files for embedded C2PA/Content Credentials manifests via JUMBF box and PNG caBX chunk markers. It explicitly does NOT claim to detect statistical watermarks such as Anthropic's Claude mark (rolling out from 2026-08-02 for EU-launched models under the EU AI Act Article 50(2) transparency code, detection method not yet published) or Google's SynthID-Text, because those require the vendor's keyed detector. A third mode models how detection power falls to sqrt(f) when only a fraction f of a document is machine-written. Absence of a signal is not evidence of human authorship."
 personalUse: "When Anthropic started marking Claude output in August 2026, the first thing I wanted was a way to check text myself - and the first thing I found was a wave of sites claiming to detect it, which is not possible because the detection method has not been published. I wanted one honest tool: show me the signals that genuinely can be checked in a browser, name the ones that cannot, and refuse to guess in between."
 status: "active"
 publishedAt: "2026-08-13"
@@ -15,7 +15,7 @@ icon: "🔎"
 
 ## What It Does
 
-On 2 August 2026 Anthropic began marking Claude's output, using two different mechanisms: an **imperceptible statistical watermark** embedded in generated text, and **C2PA signed provenance metadata** on supported file types. Google has run SynthID-Text across Gemini for a while. The obvious question - "can I check whether this was AI-generated?" - has a more interesting answer than most tools admit.
+Anthropic has begun machine-readable marking of Claude's output, using two different mechanisms: an **imperceptible statistical watermark** embedded in generated text, and **C2PA signed provenance metadata** on `.svg`, `.png`, and `.jpg` files. Per Anthropic's documentation, models launched in the EU on or after 2 August 2026 support this at launch, with existing models in progress; the driver is the EU AI Act's Article 50(2) Code of Practice on transparency, which Anthropic signed. Google has run SynthID-Text across Gemini for a while. The obvious question - "can I check whether this was AI-generated?" - has a more interesting answer than most tools admit.
 
 This inspector answers it in three modes:
 

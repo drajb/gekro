@@ -26,7 +26,7 @@ Catalog count: **87 apps** total (current; see the Wave 6 section above, shipped
 
 ## Wave 6 — ✅ ALL 3 SHIPPED 2026-08-13 (gekro-apps@fa5d369; catalog 84 → 87)
 
-Triggered by Anthropic's 2026-08-02 AI-content marking (imperceptible **statistical** text watermark + C2PA signed metadata on files), shipped for EU AI Act Art. 50 transparency. Source: support.claude.com/en/articles/16266773.
+Triggered by Anthropic's AI-content marking (imperceptible **statistical** text watermark + C2PA signed metadata on .svg/.png/.jpg). Verified against source 2026-08-13: models launched **in the EU** on or after 2026-08-02 support it at launch, existing models in progress; driver is the EU AI Act **Art. 50(2) Code of Practice on Transparency** which Anthropic signed. Detection for third parties is **forthcoming, not yet available**. Source: support.claude.com/en/articles/16266773.
 
 | # | Slug | Job | Category | Notes |
 |---|---|---|---|---|
