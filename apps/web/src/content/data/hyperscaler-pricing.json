@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_run": "2026-08-10T10:14:47.291Z",
+  "last_run": "2026-08-17T09:39:04.427Z",
   "scope_notes": [
     "On-demand inference pricing only. Provisioned/committed-use tiers excluded.",
     "Region: us-east-1 (AWS), eastus (Azure), us-east5 (GCP) where available.",
@@ -33,7 +33,7 @@
           "sku_id": "Llama 4 Maverick 17B",
           "input_per_1m_usd": 0.24,
           "output_per_1m_usd": 0.97,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -41,7 +41,7 @@
           "sku_id": "Azure Llama Models Llama 4 Maverick 17B",
           "input_per_1m_usd": 0.25,
           "output_per_1m_usd": 1,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -64,7 +64,7 @@
           "sku_id": "Llama 4 Scout 17B",
           "input_per_1m_usd": 0.17,
           "output_per_1m_usd": 0.66,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -95,7 +95,7 @@
           "sku_id": "Llama 3.3 70B",
           "input_per_1m_usd": 0.72,
           "output_per_1m_usd": 0.72,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -103,7 +103,7 @@
           "sku_id": "Azure Llama Models Llama 3.3 70B",
           "input_per_1m_usd": 0.71,
           "output_per_1m_usd": 0.71,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -126,7 +126,7 @@
           "sku_id": "DeepSeek v3.2",
           "input_per_1m_usd": 0.62,
           "output_per_1m_usd": 1.85,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -134,7 +134,7 @@
           "sku_id": "Azure Deepseek Models V3.2",
           "input_per_1m_usd": 0.64,
           "output_per_1m_usd": 1.68,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -157,7 +157,7 @@
           "sku_id": "R1",
           "input_per_1m_usd": 1.35,
           "output_per_1m_usd": 5.4,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -165,7 +165,7 @@
           "sku_id": "Azure Deepseek Models R1",
           "input_per_1m_usd": 1.35,
           "output_per_1m_usd": 5.4,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -188,7 +188,7 @@
           "sku_id": "Mistral Large 3",
           "input_per_1m_usd": 0.5,
           "output_per_1m_usd": 1.5,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -196,7 +196,7 @@
           "sku_id": "Azure Mistral Models Large 3",
           "input_per_1m_usd": 0.5,
           "output_per_1m_usd": 1.5,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -219,7 +219,7 @@
           "sku_id": "Nova 2.0 Pro",
           "input_per_1m_usd": 1.375,
           "output_per_1m_usd": 11,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -242,7 +242,7 @@
           "sku_id": "Nova Premier",
           "input_per_1m_usd": 2.5,
           "output_per_1m_usd": 12.5,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -265,7 +265,7 @@
           "sku_id": "Nova Micro",
           "input_per_1m_usd": 0.035,
           "output_per_1m_usd": 0.14,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -288,7 +288,7 @@
           "sku_id": "GLM 5",
           "input_per_1m_usd": 1,
           "output_per_1m_usd": 3.2,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -296,7 +296,7 @@
           "sku_id": "Azure Fireworks Models FW GLM 5 (data-zone tier)",
           "input_per_1m_usd": 1.1,
           "output_per_1m_usd": 3.52,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -319,7 +319,7 @@
           "sku_id": "gpt-oss-120b",
           "input_per_1m_usd": 0.15,
           "output_per_1m_usd": 0.6,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -327,7 +327,7 @@
           "sku_id": "Azure Fireworks Models FW GPT OSS 120B (data-zone tier)",
           "input_per_1m_usd": 0.165,
           "output_per_1m_usd": 0.66,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -350,7 +350,7 @@
           "sku_id": "Qwen3 32B",
           "input_per_1m_usd": 0.15,
           "output_per_1m_usd": 0.6,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "azure_foundry": {
@@ -385,7 +385,7 @@
           "sku_id": "Azure OpenAI GPT5 5 pp",
           "input_per_1m_usd": 2.5,
           "output_per_1m_usd": 20,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -408,7 +408,7 @@
           "sku_id": "Azure OpenAI GPT5 5 mini pp",
           "input_per_1m_usd": 0.45,
           "output_per_1m_usd": 3.6,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -431,7 +431,7 @@
           "sku_id": "Azure OpenAI GPT5 5.2 chat 0210",
           "input_per_1m_usd": 1.75,
           "output_per_1m_usd": 14,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
@@ -454,7 +454,7 @@
           "sku_id": "Azure Grok Models Grok 4.2",
           "input_per_1m_usd": 1.25,
           "output_per_1m_usd": 2.5,
-          "last_verified": "2026-08-10",
+          "last_verified": "2026-08-17",
           "verified_via": "api"
         },
         "gcp_vertex": {
