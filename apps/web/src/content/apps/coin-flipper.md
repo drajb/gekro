@@ -9,7 +9,7 @@ publishedAt: "2026-04-19"
 lastVerified: "2026-04-19"
 license: "MIT"
 aiSummary: "A coin flipper with animated 3D CSS flip, heads/tails stats tracking, streak counter, and multi-flip simulation (up to 10,000 flips). Results use the browser's cryptographically secure random number generator."
-personalUse: "Settling debates and teaching probability with actual run data."
+personalUse: "I use this to end arguments. Someone always insists a coin is 'due' for heads, and no amount of explaining fixes it. Flipping a thousand times in front of them does. The run-length data is the part that lands - people expect streaks to be rare, and then they see a run of eight in perfectly fair flips."
 companionPostSlug: ""
 ---
 

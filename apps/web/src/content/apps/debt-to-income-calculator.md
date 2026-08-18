@@ -9,7 +9,7 @@ publishedAt: "2026-04-19"
 lastVerified: "2026-04-19"
 license: "MIT"
 aiSummary: "Calculates front-end DTI (housing costs / gross income) and back-end DTI (all monthly debts / gross income). Compares results to FHA, Conventional, VA, and USDA lender thresholds. Shows how much additional debt you can carry, and how much income you'd need to qualify at a given DTI."
-personalUse: "Was running the numbers before refinancing and wanted a tool that showed all four loan types at once - not just a single threshold."
+personalUse: "I was running my own numbers before a refinance and every calculator I found handed me one ratio against one cutoff. Lenders do not think that way. Conventional, FHA, VA, and USDA all draw the line somewhere different, so the number that fails one is comfortable for another. Seeing all four at once is the entire point."
 companionPostSlug: ""
 ---
 

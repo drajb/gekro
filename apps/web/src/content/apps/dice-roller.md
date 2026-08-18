@@ -8,7 +8,7 @@ status: "active"
 publishedAt: "2026-04-20"
 lastVerified: "2026-04-20"
 license: "free"
-personalUse: "Used for tabletop game sessions and probability experiments."
+personalUse: "I reach for this on tabletop nights when the dice are in a box in another room. It also settles the recurring table argument about whether 2d6 and 1d12 are interchangeable. They are not, and the distribution shows why in about five seconds - one is a bell curve, the other is flat."
 tags: ["dice", "random", "game", "probability", "3d"]
 aiSummary: "Browser-based 3D dice roller with 1–4 dice, pip-accurate SVG faces, crypto-random values, roll history, and session statistics. No login, no server."
 ---

@@ -9,7 +9,7 @@ publishedAt: "2026-04-19"
 lastVerified: "2026-04-19"
 license: "MIT"
 aiSummary: "Offline currency converter covering 25+ major world currencies. Switch base between USD, INR, EUR, and GBP. All exchange rates are hardcoded and clearly dated - not live. For live rates, users are directed to XE.com."
-personalUse: "Quick mental-math check when comparing international costs. The hardcoded approach means it works offline and loads instantly."
+personalUse: "I compare international pricing often enough to want it in one tab, not behind a cookie wall and four ad slots. The rates are hardcoded and stamped with the date I last checked them, which is the honest tradeoff: this is for sanity-checking whether something is roughly 200 or roughly 2,000 dollars, not for booking a transfer. It loads instantly and works on a plane."
 companionPostSlug: ""
 ---
 
