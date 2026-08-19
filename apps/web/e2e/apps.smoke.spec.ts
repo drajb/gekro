@@ -11,13 +11,13 @@
  * with zero maintenance when apps are added.
  */
 import { test, expect, type ConsoleMessage } from '@playwright/test';
-import { appSlugs, isAllowed } from './helpers';
+import { appSlugs, isAllowed, consoleText } from './helpers';
 
 for (const slug of appSlugs()) {
   test(`/apps/${slug} mounts and runs clean`, async ({ page }) => {
     const errors: string[] = [];
     const onConsole = (m: ConsoleMessage) => {
-      if (m.type() === 'error') errors.push(m.text());
+      if (m.type() === 'error') errors.push(consoleText(m));
     };
     page.on('console', onConsole);
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));

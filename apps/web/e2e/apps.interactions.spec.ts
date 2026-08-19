@@ -23,7 +23,7 @@
  * that break state, self-XSS sinks.
  */
 import { test, expect, type ConsoleMessage, type Page } from '@playwright/test';
-import { appSlugs, isAllowed } from './helpers';
+import { appSlugs, isAllowed, consoleText } from './helpers';
 
 // Executes only if an app injects user input into innerHTML/attributes unescaped.
 const XSS_PROBE = `"><img src=x onerror="window.__xssProbe=1">'-->]]>`;
@@ -106,7 +106,7 @@ for (const slug of appSlugs()) {
     test.setTimeout(90_000);
     const errors: string[] = [];
     page.on('console', (m: ConsoleMessage) => {
-      if (m.type() === 'error') errors.push(m.text());
+      if (m.type() === 'error') errors.push(consoleText(m));
     });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     // Auto-dismiss any dialog so a stray alert()/confirm() can't hang the run.

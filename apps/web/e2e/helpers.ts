@@ -44,6 +44,12 @@ export const ALLOWED_ERRORS: Record<string, RegExp[]> = {
  */
 export const GLOBAL_IGNORE: RegExp[] = [
   /favicon/i,
+  // Pagefind's UI assets are emitted by the `pagefind` postbuild step and are
+  // lazy-loaded by SearchWidget. Whether that request lands before a test's
+  // error check is a race, so it surfaced as an intermittent 404 on whichever
+  // app happened to be running. Matched via the URL that consoleText() appends
+  // (the raw console text for a failed resource carries no URL at all).
+  /\/pagefind\//i,
   /cloudflareinsights|static\.cloudflare/i,
   /googletagmanager|google-analytics|gtag/i,
   /ERR_BLOCKED_BY_CLIENT/i,
@@ -56,3 +62,18 @@ export const GLOBAL_IGNORE: RegExp[] = [
 
 export const isAllowed = (slug: string, msg: string): boolean =>
   [...(ALLOWED_ERRORS[slug] ?? []), ...GLOBAL_IGNORE].some((re) => re.test(msg));
+
+/**
+ * Console text for matching, with the offending URL appended.
+ *
+ * A failed sub-resource logs exactly "Failed to load resource: the server
+ * responded with a status of 404 ()" - no URL - so allow-listing by message
+ * alone would mean ignoring *every* 404, including real ones an app caused.
+ * Playwright exposes the failing request URL on the message location, so we
+ * fold it into the string the allow-lists are tested against. That keeps the
+ * lists URL-precise instead of blanket-ignoring a status code.
+ */
+export const consoleText = (m: { text(): string; location(): { url?: string } }): string => {
+  const url = m.location()?.url;
+  return url ? `${m.text()} ${url}` : m.text();
+};
