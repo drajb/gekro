@@ -179,3 +179,31 @@ Proposed 4 new AI-eng apps; Rohit selected 3 (skipped the Secret/API-key Scanner
 ---
 
 *This doc and `app_ideas_backlog.md` are the canonical pair. When updating one, update the other in the same turn.*
+
+---
+
+## Shipped — 2026-08-21 (regional traffic wave)
+
+Rohit asked for region-specific apps for India / China / Europe that alleviate real pain
+points and drive traffic, with two hard constraints: **no LLM inference** (client-side
+deterministic logic only) and **stay on-brand**.
+
+**China was deliberately dropped, not deferred.** gekro.com is on Cloudflare Pages, which
+has chronically poor mainland connectivity; Baidu structurally favours ICP-licensed domains,
+which requires a mainland business entity. Traffic that cannot load the page is not traffic.
+The reachable China-adjacent angle (comparison tooling for DeepSeek / Qwen / GLM / Kimi aimed
+at global devs) stays on ice as a future idea, not a regional play.
+
+| Slug | Region | Job | Notes |
+|---|---|---|---|
+| `eu-ai-act-risk-classifier` | EU | Guided Art 5 → Annex I → Annex III → Art 6(3) → Art 50 → GPAI walk-through returning a risk tier, the obligations it triggers, the compliance date and the Art 99 penalty band | Zero-dep decision tree. Grounded on **Regulation (EU) 2026/1744** (Digital Omnibus, OJ 24 Jul 2026, in force 27 Jul 2026), which moved Annex III high-risk to **2 Dec 2027** and Annex I to **2 Aug 2028** while leaving Art 50 on 2 Aug 2026. Companion to the watermarking research - same Art 50(2) that drove Anthropic's marking. Law firms gate this behind contact forms; that is the business model being undercut. |
+| `india-ctc-salary-calculator` | IN | CTC → in-hand, with the full breakup: basic/HRA split, EPF (₹1,800 cap vs 12% of full basic), gratuity 4.81%, employer NPS, state professional tax, then tax under both regimes | Zero-dep. Privacy wedge is the real hook: every incumbent is an ad-funded site people paste their actual salary into. |
+| `india-tax-regime-comparator` | IN | Old vs New regime side by side, plus the **breakeven deduction** - the exact ₹ of deductions at which the two regimes tie | Zero-dep. Breakeven solve is the differentiator; incumbents only compare two fixed scenarios. |
+
+**Tax basis:** Tax Year 2026-27 (AY 2027-28), first year under the **Income-tax Act, 2025**
+(in force 1 Apr 2026). Budget 2026 left slabs, cess, surcharge and 87A unchanged.
+
+**Strategic note for future waves:** do not build *generic* regional tools where local
+incumbents (ClearTax, Groww, ET Money) hold enormous domain authority on head terms. Build the
+**intersection of AI engineering and regional regulation/pricing**, where authority is real and
+competition is thin. The EU AI Act classifier is the archetype.

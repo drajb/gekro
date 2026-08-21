@@ -111,6 +111,11 @@ import AiProvenanceInspector from '../../components/apps-private/ai-provenance-i
 import PunctuationFixer from '../../components/apps-private/punctuation-fixer/Calculator.astro';
 import TextFormatter from '../../components/apps-private/text-formatter/Calculator.astro';
 
+// Wave 7 — regional tools (EU AI Act + India tax). Deterministic, zero-dep, no inference.
+import EuAiActRiskClassifier from '../../components/apps-private/eu-ai-act-risk-classifier/Calculator.astro';
+import IndiaCtcSalaryCalculator from '../../components/apps-private/india-ctc-salary-calculator/Calculator.astro';
+import IndiaTaxRegimeComparator from '../../components/apps-private/india-tax-regime-comparator/Calculator.astro';
+
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
   'markdown-visualizer': MarkdownVisualizer,
@@ -199,6 +204,9 @@ const CALCULATOR_MAP: Record<string, any> = {
   'ai-provenance-inspector': AiProvenanceInspector,
   'punctuation-fixer': PunctuationFixer,
   'text-formatter': TextFormatter,
+  'eu-ai-act-risk-classifier': EuAiActRiskClassifier,
+  'india-ctc-salary-calculator': IndiaCtcSalaryCalculator,
+  'india-tax-regime-comparator': IndiaTaxRegimeComparator,
 };
 
 export async function getStaticPaths() {
