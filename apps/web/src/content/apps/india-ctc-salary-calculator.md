@@ -4,7 +4,7 @@ category: "finance"
 job: "Take an Indian offer letter's CTC apart and see what actually reaches your bank account each month"
 description: "Breaks an Indian CTC into basic, HRA, special allowance, employer PF, gratuity and NPS, then runs the remainder through both tax regimes to show monthly take-home. Models the EPF wage-ceiling choice, gratuity as a five-year lock-up, state professional tax and the HRA exemption. Tax year 2026-27. Runs entirely in your browser, so your salary never leaves the tab."
 aiSummary: "A client-side Indian CTC to in-hand salary calculator for tax year 2026-27 (assessment year 2027-28), the first year under the Income-tax Act, 2025. It splits CTC into basic, HRA, special allowance, variable pay, employer EPF, the 4.81% gratuity provision and employer NPS, then computes tax under both the new regime (section 115BAC: standard deduction ₹75,000, 87A rebate up to ₹60,000 below ₹12,00,000, surcharge capped at 25%) and the old regime (standard deduction ₹50,000, HRA exemption under section 10(13A), 80C, 80D, 80CCD(1B), section 24(b) interest, surcharge to 37%). It models EPF at either the ₹15,000 statutory wage ceiling or 12% of full basic, applies state professional tax as a section 16(iii) deduction in the old regime only, and includes marginal relief on both surcharge and the 87A cliff."
-personalUse: "CTC is a number engineered to look bigger than your salary. Employer PF, the gratuity provision and any NPS contribution are all counted against your package, and not one of them reaches your bank account this month. The tools that answer this question are ad-funded sites that want you to paste your real salary into a form, which is a poor trade for arithmetic a browser can do offline. So this does the subtraction locally and shows every line, including the EPF wage-ceiling toggle that swings take-home further than anything else on the page."
+personalUse: "I have filed tax in India, so I have sat with the gap between the CTC printed on an offer letter and the number that actually turns up. Employer PF, the gratuity provision and any NPS contribution all count against your package, and not one of them reaches your bank account this month. What bothered me more is that every tool answering this question is an ad-funded site asking you to paste your real salary into a form, which is a terrible trade for arithmetic a browser can do offline. So this does the subtraction locally and shows every line, including the EPF wage-ceiling toggle that swings take-home further than anything else on the page."
 status: "active"
 publishedAt: "2026-08-21"
 lastVerified: "2026-08-21"
@@ -103,3 +103,19 @@ bands. That is the law working as written, not a rounding error here.
   [regime comparator](/apps/india-tax-regime-comparator/).
 - **Old regime deductions are yours to enter.** The tool will not check whether you actually hold
   the investments you claim.
+
+## Disclaimer
+
+**This tool is provided as is, with no warranty of any kind, express or implied**, including no
+warranty of merchantability, fitness for a particular purpose, accuracy, completeness or currency.
+There is no guarantee that the slabs, rates, limits or rules encoded here are correct or current.
+
+These are estimates from a personal engineering project. **This is not tax, legal or financial
+advice**, and no professional or advisory relationship is created by using it. Your actual
+liability depends on your full financial position, your employer's payroll policy, the
+declarations you file and provisions this tool does not model.
+
+Verify anything that matters with a qualified chartered accountant or tax adviser before you act
+on it, and do not use these figures to negotiate, plan or file. To the fullest extent permitted by
+law, no liability is accepted for any loss or damage arising from use of this tool or reliance on
+its output. Use entirely at your own risk.

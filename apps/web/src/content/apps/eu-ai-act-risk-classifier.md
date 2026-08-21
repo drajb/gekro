@@ -4,7 +4,7 @@ category: "ai"
 job: "Find out which risk tier your AI system falls into, what that obliges you to do, and the date it actually applies from"
 description: "A guided walk through the EU AI Act's classification logic: prohibited practices, Annex I and Annex III high-risk listings, the Article 6(3) derogation, Article 50 transparency and the separate general-purpose model track. Returns the tier, the obligations it triggers with article references, the compliance date and the penalty band. Runs entirely in your browser."
 aiSummary: "A client-side EU AI Act risk classifier. It walks Regulation (EU) 2024/1689 in application order - Article 5 prohibitions, Annex I product safety, Annex III high-risk use cases, the Article 6(3) derogation including the profiling override, Article 50 transparency, and GPAI obligations under Articles 51-56 - and returns a risk tier with its obligations, article citations, compliance date and Article 99 penalty band. Dates reflect Regulation (EU) 2026/1744, the Digital Omnibus on AI, which deferred Annex III high-risk obligations to 2 December 2027 and Annex I to 2 August 2028 while leaving Article 50 transparency in force from 2 August 2026. Unlike most classifiers it treats the tiers as stacking rather than mutually exclusive."
-personalUse: "I ship AI tools that anyone can load from anywhere, which makes Article 50 my problem rather than somebody else's. When I went looking for a classifier to check my own work against, the free ones were either gated behind a contact form or still printing deadlines the Digital Omnibus had already moved. So this is the version I wanted: it walks the Act in the order the Act applies, stacks the obligations instead of pretending the tiers are mutually exclusive, and names the article behind every answer so you can go read it yourself."
+personalUse: "I have never lived in the EU, and I assumed that put me comfortably outside all of this. Then I read Article 2 properly. The Act reaches any system whose output is used in the Union, and every app on this site loads from anywhere, so Article 50 turns out to be my problem too. When I went looking for a classifier to check my own work against, the free ones were either sitting behind a contact form or still printing deadlines the Digital Omnibus had already moved. So I built the one I wanted: it walks the Act in the order the Act applies, stacks the obligations instead of pretending the tiers are mutually exclusive, and names the article behind every answer so you can go and disagree with it."
 status: "active"
 publishedAt: "2026-08-21"
 lastVerified: "2026-08-21"
@@ -106,3 +106,18 @@ the two figures applies. For SMEs and start-ups it is the lower one, under Artic
   Article 6(3) is yours to make and yours to document, and an authority can disagree with it.
 - **The Act moves.** The Omnibus proved that. The date on this page is when the classification
   logic was last checked against the text.
+
+## Disclaimer
+
+**This tool is provided as is, with no warranty of any kind, express or implied**, including no
+warranty of merchantability, fitness for a particular purpose, accuracy, completeness or currency.
+
+It is a triage aid written by an engineer, not a lawyer. **It is not legal advice**, it does not
+create any professional or advisory relationship, and it must not be used as the basis for a
+compliance decision. Classification under the AI Act depends on your specific intended purpose and
+deployment context; national implementations differ; and the law moves, as the Digital Omnibus
+demonstrated in July 2026 by rewriting the compliance calendar with three weeks of notice.
+
+Check the official text and take qualified legal advice before acting on anything here. To the
+fullest extent permitted by law, no liability is accepted for any loss or damage arising from use
+of this tool or reliance on its output. Use entirely at your own risk.
