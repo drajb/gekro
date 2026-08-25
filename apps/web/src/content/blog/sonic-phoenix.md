@@ -99,7 +99,7 @@ Phase 5 locked the catalog. `05I_finalize_catalog.py` merges ID3, Shazam, and NL
 
 Phase 6 made the deletion painless. The discovery sync engine (`06E_spotify_discovery_sync.py`) cross-references catalog artists against Spotify and auto-generates genre-based "Essentials" playlists. It processed **95 artists** in the first sync run. The Spotify 403 on playlist creation (the app was in Development Mode) blocked the auto-generated playlists from landing - a one-click fix in the Spotify Developer Dashboard that I'll resolve before the next run.
 
-But the real payoff isn't Phase 6 itself. It's that the catalog is structured and enriched enough to hand to an AI - no audio files required.
+Phase 6 is not the payoff. The payoff is that the catalog is structured and enriched enough to hand to an AI - no audio files required.
 
 ### Phase 7: The AI Skill - Playlist Curation on Demand
 
@@ -123,4 +123,4 @@ The 690 mismatch entries in the mismatch report represent tracks where iTunes re
 
 ## What I Learned
 
-My kid got to hear the songs. That was the whole point, and it almost got lost in the engineering. But the real lesson is that a pile of 7,246 untagged audio files isn't a music collection - it's a data problem, and data problems are exactly what AI tooling has gotten good at. The pipeline I built over a weekend would have taken weeks of manual sorting a few years ago. Now the catalog is structured enough that an AI skill can build me a playlist in seconds from metadata I never would have had the patience to curate by hand. I deleted 30 GB of audio and kept 11 MB of JSON. The files were never the point - the data was, and datasets compound.
+My kid got to hear the songs. That was the whole point, and it almost got lost in the engineering. A pile of 7,246 untagged audio files is a data problem, not a music collection, and data problems are exactly what AI tooling has gotten good at. The pipeline I built over a weekend would have taken weeks of manual sorting a few years ago. Now the catalog is structured enough that an AI skill can build me a playlist in seconds from metadata I never would have had the patience to curate by hand. I deleted 30 GB of audio and kept 11 MB of JSON. The files were never the point - the data was, and datasets compound.

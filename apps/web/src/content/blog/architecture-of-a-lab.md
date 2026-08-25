@@ -107,4 +107,4 @@ The complexity of a distributed system is its own form of debt. If you're buildi
 
 ## Where This Goes
 
-This setup is moving toward **Physical Feedback**. I'm currently wiring the "Brain" outputs to a set of Hue lights in my DFW office. If the lab detects a critical failure on a remote server, the room literally turns red. Architecture isn't just about software; it's about the environment where the software works.
+This setup is moving toward **Physical Feedback**. I'm currently wiring the "Brain" outputs to a set of Hue lights in my DFW office. If the lab detects a critical failure on a remote server, the room literally turns red. Architecture is as much the environment where the software runs as the software itself.

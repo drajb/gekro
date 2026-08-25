@@ -125,4 +125,4 @@ The biggest hidden cost is **Context Management**. If I'm using a 128k context m
 
 ## Where This Goes
 
-This client is the first step toward a **Consensus Architecture**. Instead of one model being right, I want my client to poll three models simultaneously (Together, Groq, and Local) and use an "Adjudicator" model to pick the best answer. The goal isn't just to make the lab stay up-it's to make it smarter by comparing how different brains see the same problem.
+This client is the first step toward a **Consensus Architecture**. Instead of one model being right, I want my client to poll three models simultaneously (Together, Groq, and Local) and use an "Adjudicator" model to pick the best answer. Uptime is the floor. The goal is to make the lab smarter by comparing how different brains see the same problem.

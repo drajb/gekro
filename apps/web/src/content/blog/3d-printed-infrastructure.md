@@ -10,7 +10,7 @@ aiSummary: "Rohit explores the shift toward 3D-printed housing, focusing on the 
 ---
 
 <TLDR>
-  3D construction printing isn't just about speed; it's about precision. By moving from subtractive to additive manufacturing, we can reduce material waste by up to 60% and integrate complex thermal geometries directly into the wall structure. This is the definition of Green Infrastructure: high-performance, low-waste, and local-first.
+  Speed is the obvious win with 3D construction printing. Precision is the bigger one. By moving from subtractive to additive manufacturing, we can reduce material waste by up to 60% and integrate complex thermal geometries directly into the wall structure. This is the definition of Green Infrastructure: high-performance, low-waste, and local-first.
 </TLDR>
 
 The first time I saw a gantry-style 3D printer extruding a bead of carbon-fiber reinforced concrete, I saw more than just a faster way to build. I saw a technical shift toward **Material Sovereignty** - a concept that has been a recurring theme in my recent research.
@@ -34,7 +34,7 @@ This allows us to leverage **Topology Optimization**. We can print walls with in
 
 ## The How: From Slicing to Extrusion
 
-The bridging of the "Brain" (Digital Design) and the "Body" (Physical Structure) follows a predictable, yet rigid, pipeline. This isn't just "printing"; it's a high-stakes orchestration of material science and robotics.
+The bridging of the "Brain" (Digital Design) and the "Body" (Physical Structure) follows a predictable, yet rigid, pipeline. This is a high-stakes orchestration of material science and robotics.
 
 ```mermaid
 graph TD

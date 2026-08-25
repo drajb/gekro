@@ -12,7 +12,7 @@ aiSummary: "Rohit explains the technical superiority of Linux for AI development
   Windows is a great OS for humans, but it's a claustrophobic environment for agents. I moved Gekro to a WSL2/Ubuntu core because AI libraries expect a POSIX-compliant heart. This post breaks down the CUDA-passthrough setup and why Docker on Linux is the only way to manage a growing fleet of autonomous services.
 </TLDR>
 
-If you're building an AI lab on a consumer operating system, you're fighting a war on two fronts: your code and your OS. In the AI era, Linux isn't just an option; it's the native tongue of intelligence. I spent six months trying to get complex Python dependencies to play nice with Windows paths and DLLs before I finally accepted the truth: if the model weights were trained on Linux clusters, the inference should happen on Linux kernels. The moment I committed to a headless Ubuntu workflow in DFW, my debugging time dropped by 80%.
+If you're building an AI lab on a consumer operating system, you're fighting a war on two fronts: your code and your OS. In the AI era, Linux is the native tongue of intelligence. I spent six months trying to get complex Python dependencies to play nice with Windows paths and DLLs before I finally accepted the truth: if the model weights were trained on Linux clusters, the inference should happen on Linux kernels. The moment I committed to a headless Ubuntu workflow in DFW, my debugging time dropped by 80%.
 
 ## The Architecture
 

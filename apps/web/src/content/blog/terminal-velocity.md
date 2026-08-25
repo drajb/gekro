@@ -12,7 +12,7 @@ aiSummary: "Rohit shares his optimized WSL2/Zsh workflow, including AI-powered s
   The GUI is a lie designed for discovery, not velocity. For AI development, the terminal is the only interface that keeps up with the speed of thought. This post details the specific Zsh functions and WSL2 configurations I use to pipe system outputs directly into LLMs without ever touching a mouse.
 </TLDR>
 
-In a modern AI lab, your throughput is limited by your context-switching overhead. If you're constantly alt-tabbing to a browser to paste error logs or commit messages, you're bleeding focus. I run everything from a highly customized WSL2 instance because the terminal isn't just a way to run commands - it's the native interface for the "Intelligence Layer." By piping the OS directly into an LLM, I've reduced my "Idiot-Work" (formatting, commit messaging, log hunting) to near zero.
+In a modern AI lab, your throughput is limited by your context-switching overhead. If you're constantly alt-tabbing to a browser to paste error logs or commit messages, you're bleeding focus. I run everything from a highly customized WSL2 instance because the terminal is the native interface for the "Intelligence Layer." By piping the OS directly into an LLM, I've reduced my "Idiot-Work" (formatting, commit messaging, log hunting) to near zero.
 
 ## The Architecture
 
