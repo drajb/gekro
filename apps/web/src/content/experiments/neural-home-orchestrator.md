@@ -38,7 +38,7 @@ The system uses a hub-and-spoke model. **Home Assistant (HA)** acts as the physi
 graph TD
     subgraph "The World"
         S[Sensors: Temp/Motion] --> HA[Home Assistant]
-        P[Power: Solar/Grid] --> HA
+        P[Power: Grid Load] --> HA
     end
     subgraph "Reasoning Layer (The Lab)"
         HA -->|MQTT| A[Python Neural Agent]
@@ -65,7 +65,7 @@ mqtt_statestream:
 
 ### 2. The Neural Agent Logic
 
-The Python agent maintains a "Current State Buffer." When a significant event occurs, the agent triggers a reasoning loop. Example events include my Tesla arriving home or solar production dropping below 500W.
+The Python agent maintains a "Current State Buffer." When a significant event occurs, the agent triggers a reasoning loop. Example events include my Tesla arriving home or household load crossing a threshold.
 
 ```python
 import mqtt_client
@@ -88,8 +88,8 @@ To prevent the LLM from hallucinating commands, I use a strict **Tool-Use Schema
 
 ```text
 SYSTEM: You are the Gekro Home Orchestrator.
-CONTEXT: Tesla Model Y is charging (Level: 65%), Solar Generation: 4.2kW, Current Home Load: 1.2kW.
-GOAL: Maximize solar utilization.
+CONTEXT: Tesla Model Y is charging (Level: 65%), Current Home Load: 4.2kW, Rate Window: peak.
+GOAL: Keep household load under the configured ceiling.
 COMMANDS: [charge_tesla(amps), start_lab_compute(), cool_office()]
 OUTPUT: JSON only.
 ```
