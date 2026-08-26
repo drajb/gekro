@@ -45,7 +45,9 @@ No dashboard I have ever seen shows both. They show the flattering one.
 
 Breaking that number down by month is where it gets genuinely interesting, and it runs against the story everyone tells about electric cars. The received wisdom is that cold weather kills your range. In Texas it is the heat that does it. My most efficient month averaged **240 Wh per mile** at a mild 79 degrees. My worst was this August at **332 Wh per mile**, when the average temperature while driving was 98. That is **38 percent more energy for the same mile**, bought entirely by air conditioning and a battery working to keep itself cool.
 
-Winter barely registers here by comparison, because a Texas winter is not much of a winter. December and February, at 56 and 64 degrees, came in at 259 and 255 Wh per mile, which is close to the best months of the year. Sorted by temperature, the months above 90 degrees average 299 Wh per mile against 260 for the mild ones.
+Winter barely registers by comparison, because a Texas winter is not much of a winter. December and January, at 53 and 54 degrees, came in at 259 and 268 Wh per mile, within a few percent of the mildest months of the year. Sorted by temperature the split is stark: months above 90 degrees average 299 Wh per mile, mild months between 70 and 80 average 257, and the cold months average 264. **Heat costs me 16 percent. Cold costs me 3.** Everything I had absorbed about electric cars said it would be the other way round.
+
+One methodology note, because it changes the numbers. These are local drives only. Road trips leave the region and take their own weather with them, and letting them into the average was quietly dragging months around by as much as 35 Wh per mile. Filtering to the driving I actually do day to day is what made the pattern legible.
 
 Five hundred days is what makes that visible. One summer is an anecdote. Two summers, either side of a winter, is a pattern you can point at.
 
