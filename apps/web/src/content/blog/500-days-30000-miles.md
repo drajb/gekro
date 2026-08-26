@@ -47,8 +47,6 @@ Breaking that number down by month is where it gets genuinely interesting, and i
 
 Winter barely registers by comparison, because a Texas winter is not much of a winter. December and January, at 53 and 54 degrees, came in at 259 and 268 Wh per mile, within a few percent of the mildest months of the year. Sorted by temperature the split is stark: months above 90 degrees average 299 Wh per mile, mild months between 70 and 80 average 257, and the cold months average 264. **Heat costs me 16 percent. Cold costs me 3.** Everything I had absorbed about electric cars said it would be the other way round.
 
-One methodology note, because it changes the numbers. These are local drives only. Road trips leave the region and take their own weather with them, and letting them into the average was quietly dragging months around by as much as 35 Wh per mile. Filtering to the driving I actually do day to day is what made the pattern legible.
-
 Five hundred days is what makes that visible. One summer is an anecdote. Two summers, either side of a winter, is a pattern you can point at.
 
 ## The Part Nobody Tells You About
