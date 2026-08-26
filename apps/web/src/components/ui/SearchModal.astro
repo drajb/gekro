@@ -36,7 +36,7 @@
      Hidden by default (opacity-0 pointer-events-none); shown by openSearchModal(). -->
 <div
   id="search-modal-backdrop"
-  class="fixed inset-0 z-[100] bg-bg-base/80 backdrop-blur-xl opacity-0 pointer-events-none transition-opacity duration-300 flex items-start justify-center pt-[15vh]"
+  class="fixed inset-0 z-[100] bg-bg-base/40 opacity-0 pointer-events-none transition-opacity duration-200 flex items-start justify-center px-4 pt-[calc(2.75rem+1.25rem)]"
   inert
 >
   <div
@@ -44,7 +44,7 @@
     role="dialog"
     aria-modal="true"
     aria-label="Site search"
-    class="w-full max-w-2xl mx-4 bg-bg-surface border border-border rounded-2xl shadow-2xl shadow-accent/5 overflow-hidden"
+    class="search-panel w-full max-w-3xl bg-bg-surface border border-border rounded-xl shadow-2xl shadow-black/40 overflow-hidden"
   >
     <!-- Header bar: "Search" label + Escape hint -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
@@ -60,7 +60,7 @@
 
     <!-- Dev-mode / pre-build fallback — shown when the Pagefind probe fails -->
     <p id="search-modal-unavailable" class="hidden text-sm text-text-muted font-mono text-center py-8">
-      Search is available after a production build.
+      Search is temporarily unavailable. Try the archive on the blog page.
     </p>
   </div>
 </div>
@@ -111,7 +111,15 @@
           const response = await fetch('/pagefind/pagefind-ui.js');
           if (!response.ok) throw new Error('not built');
 
-          const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
+          const mod = await import('/pagefind/pagefind-ui.js');
+          // Pagefind 1.5 ASSIGNS window.PagefindUI rather than exporting it, so
+          // the old destructure yielded undefined, the constructor threw, and the
+          // catch below showed dev-only copy on PRODUCTION. Accept either shape.
+          // Same fix as SearchWidget.astro; this file was missed at the time.
+          const PagefindUI = mod.PagefindUI ?? window.PagefindUI;
+          if (typeof PagefindUI !== 'function') {
+            throw new Error('PagefindUI constructor not found on module or window');
+          }
           new PagefindUI({
             element: '#search-modal-pagefind',
             showSubResults: true,

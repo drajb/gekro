@@ -213,6 +213,21 @@ const howtoSchema = post.howto ? {
       readingTime={post.readingTime}
     />
 
+    {/* Hero image. mainImage previously fed only the OG social preview, and
+        PostHeader declared a mainImage prop it never rendered, so no post on
+        the site had ever displayed one. */}
+    {post.mainImage && (
+      <figure class="mt-10 mb-2">
+        <img
+          src={post.mainImage}
+          alt={`Key metrics for ${post.title}`}
+          loading="eager"
+          decoding="async"
+          class="w-full rounded-xl border border-border-subtle shadow-2xl shadow-black/30"
+        />
+      </figure>
+    )}
+
     <!-- 5-column grid: article body (4 cols) + sticky sidebar (1 col, lg only) -->
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 relative">
       <!-- ── Article body ── -->
