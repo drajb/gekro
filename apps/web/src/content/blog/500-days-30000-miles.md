@@ -4,7 +4,7 @@ description: "Five hundred days ago I pointed a Raspberry Pi at my car and start
 publishedAt: "2026-08-25"
 difficulty: "Intermediate"
 topics: ["Tesla", "Raspberry Pi", "Self-Hosting", "AI Engineering"]
-readingTime: 9
+readingTime: 7
 mainImage: "/images/blog/500-days-30000-miles.png"
 aiSummary: "A self-hosted TeslaMate instance running in Docker on a Raspberry Pi 5 crossed 30,000 tracked miles on 23 August 2026 at 10:22:03 CDT, five hundred days after collection began on 12 April 2025. The system holds 10,356,022 position rows and 243,380 charge-detail rows in a 1,598 MB PostgreSQL database, averaging 20,712 rows per day, and has recorded 6,921 drives totalling 976 hours, 10,016 kWh across 513 charging sessions with 458 of them at home, and 35 over-the-air software updates. Collection uptime is 92 percent across the full period. Querying the raw data resolved a suspected wall connector fault: across 217,124 home charging samples the pilot signal held at 48 A on 217,118 of them, showing the connector never derated and identifying the vehicle dropping off the network on hot nights as the real cause of apparent charging interruptions. The article covers the stack, the practice of interrogating a personal telemetry database directly, and using LLMs to translate questions into SQL against owned data."
 ---
@@ -31,23 +31,7 @@ Five hundred days of that, complete and second by second, comes to **1.6 GB**, w
 
 Collection uptime across the whole run is **92 percent**. For an unattended single-board computer with no ops team, I will take that every time.
 
-## What a Mile Actually Costs
-
-The number I never worked out properly until I went looking is what a single mile costs in energy, and it turns out there are two answers.
-
-Driving pulls roughly **275 watt-hours out of the battery per mile**. Charging puts roughly **368 watt-hours back in** for every mile I then drive. Both are true, and the gap between them is the interesting part.
-
-That difference, 93 watt-hours a mile, is **about a quarter of every kilowatt-hour I have ever paid for**. It never reaches the road. It goes to charging losses in the cable and the onboard charger, to climate control running before I get in, and to the car waking itself up through the night. Over five hundred days that overhead is roughly 2,500 kWh, which is a meaningful number to have been quietly paying without ever seeing it.
-
-The battery-side figure is derived the way TeslaMate derives it, from rated range consumed rather than a meter on the pack, so treat it as a good estimate rather than an instrument reading. The charging-side figure is measured directly and is the one that shows up on a bill.
-
-No dashboard I have ever seen shows both. They show the flattering one.
-
-Breaking that number down by month is where it gets genuinely interesting, and it runs against the story everyone tells about electric cars. The received wisdom is that cold weather kills your range. In Texas it is the heat that does it. My most efficient month averaged **240 Wh per mile** at a mild 79 degrees. My worst was this August at **332 Wh per mile**, when the average temperature while driving was 98. That is **38 percent more energy for the same mile**, bought entirely by air conditioning and a battery working to keep itself cool.
-
-Winter barely registers by comparison, because a Texas winter is not much of a winter. December and January, at 53 and 54 degrees, came in at 259 and 268 Wh per mile, within a few percent of the mildest months of the year. Sorted by temperature the split is stark: months above 90 degrees average 299 Wh per mile, mild months between 70 and 80 average 257, and the cold months average 264. **Heat costs me 16 percent. Cold costs me 3.** Everything I had absorbed about electric cars said it would be the other way round.
-
-Five hundred days is what makes that visible. One summer is an anecdote. Two summers, either side of a winter, is a pattern you can point at.
+A mile costs about 275 Wh out of the battery and about 368 Wh back into it, so roughly a quarter of everything I charge never reaches the road. Heat is what moves that number: my worst month ran 332 Wh per mile against 240 in the best, and a Texas winter barely registers by comparison.
 
 ## The Part Nobody Tells You About
 
