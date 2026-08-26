@@ -31,7 +31,7 @@ Five hundred days of that, complete and second by second, comes to **1.6 GB**, w
 
 Collection uptime across the whole run is **92 percent**. For an unattended single-board computer with no ops team, I will take that every time.
 
-A mile costs about 275 Wh out of the battery and about 368 Wh back into it, so roughly a quarter of everything I charge never reaches the road. Heat is what moves that number: my worst month ran 332 Wh per mile against 240 in the best, and a Texas winter barely registers by comparison.
+A mile costs about 275 Wh out of the battery and about 368 Wh back into it, so roughly a quarter of everything I charge never reaches the road. Heat is what moves it, with hot months costing me 16 percent more per mile than mild ones and a Texas winter costing 3.
 
 ## The Part Nobody Tells You About
 
