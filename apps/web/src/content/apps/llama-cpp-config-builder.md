@@ -2,11 +2,12 @@
 title: "Llama.cpp / Ollama Config Builder"
 category: "ai"
 job: "Pick hardware + model → get optimal CLI flags and an Ollama Modelfile. No more trial-and-error tuning."
-description: "Free browser-based config builder for llama.cpp and Ollama. Pick from 12 popular open-weights models (Llama 3.1/3.3/4, Qwen 3, Mistral 7B/Large 3, Gemma 2, Phi-4, DeepSeek R1 distills, GPT-OSS 120B) and 13 hardware presets (Pi 5 8/16GB, Mac M4 Pro/Max, RTX 3090/4090/5090, A100, H100, H200) - tool computes weight size, KV cache size, layer-offload count, and emits ready-to-paste llama-cli command + Ollama Modelfile. Adjusts for quantization (Q2_K through F16), context length (2K-128K), KV cache precision, Flash Attention, mlock."
+description: "Free browser-based config builder for llama.cpp and Ollama. Pick from 12 popular open-weights models (Llama 3.1/3.3/4, Qwen 3, Mistral 7B/Large 3, Gemma 2, Phi-4, DeepSeek R1 distills, GPT-OSS 120B) and 17 hardware presets (Pi 5 8/16GB, Mac mini M6 and M5 Pro, Mac Studio M5 Max and M5 Ultra 512GB, Mac M4 Pro/Max and M3 Ultra, RTX 3090/4090/5090, A100, H100, H200) - tool computes weight size, KV cache size, layer-offload count, and emits ready-to-paste llama-cli command + Ollama Modelfile. Adjusts for quantization (Q2_K through F16), context length (2K-128K), KV cache precision, Flash Attention, mlock."
 aiSummary: "Client-side llama.cpp / Ollama configuration generator. Inputs: hardware spec (CPU threads, RAM, VRAM via preset or custom), model (12-model catalogue with params/layers/kv_heads/head_dim metadata), quantization (Q2_K=2.625 bpw through F16=16 bpw), context length, KV cache precision (f16/q8_0/q4_0). Computes weight memory = params * bpw / 8, KV cache memory = 2 * kv_heads * head_dim * bytes_per_kv * context * layers, then assigns -ngl (gpu layers) by greedily fitting layers into 90% of VRAM after KV reservation. Also recommends -b (batch) and temperature/top_p based on use case (chat/code/rag/agent). Outputs: ready-to-run llama-cli command and equivalent Ollama Modelfile."
 personalUse: "Built this after losing 45 minutes binary-searching -ngl for Llama 4 Maverick on my Mac M4 Pro. Should have been a 3-second calculation."
 status: "active"
 publishedAt: "2026-05-13"
+lastVerified: "2026-08-28"
 icon: "⚙️"
 license: "MIT"
 ---

@@ -3,11 +3,11 @@ title: "GPU VRAM Calculator"
 category: "ai"
 job: "Estimate VRAM needed to run or fine-tune any LLM at any quantization, then see which GPUs fit"
 description: "Pick a model size (1B → 405B), quantization (FP16 → INT4 → Q4_K_M), context length, and batch size. Get exact VRAM breakdown - model weights, KV cache, activations - and see at a glance which GPUs (RTX 3060/4090, A6000, H100, M-series Macs, Pi AI HAT) can run it. Inference and LoRA fine-tuning modes covered."
-aiSummary: "A client-side GPU VRAM estimator for LLM inference and LoRA fine-tuning. Computes weights memory (params × bytes_per_param at chosen quantization), KV cache (2 × layers × heads × head_dim × seq_len × batch × bytes), and activation overhead. Compares against a curated hardware table covering NVIDIA consumer (RTX 3060/4070/4080/4090/5090), datacenter (A100/H100/A6000), Apple Silicon unified memory (M2 Ultra, M4 Max), and Raspberry Pi AI HAT 2 (Hailo-10H). Flags fit/no-fit per device."
+aiSummary: "A client-side GPU VRAM estimator for LLM inference and LoRA fine-tuning. Computes weights memory (params × bytes_per_param at chosen quantization), KV cache (2 × layers × heads × head_dim × seq_len × batch × bytes), and activation overhead. Compares against a curated hardware table covering NVIDIA consumer (RTX 3060/4070/4080/4090/5090), datacenter (A100/H100/A6000), Apple Silicon unified memory (Mac mini M6 and M5 Pro, Mac Studio M5 Max and M5 Ultra up to 512 GB, plus previous-generation M4 Pro, M4 Max and M3 Ultra), and Raspberry Pi AI HAT 2 (Hailo-10H). Flags fit/no-fit per device."
 personalUse: "Before I commit to spinning up an A100 hour or buying yet another consumer GPU, I want to know if the model I'm targeting will actually fit. This is the calculation that should happen before the cloud bill."
 status: "active"
 publishedAt: "2026-04-20"
-lastVerified: "2026-04-20"
+lastVerified: "2026-08-28"
 companionPostSlug: ""
 license: "MIT"
 icon: "🎮"
@@ -75,7 +75,7 @@ This is why quantization exists and why it's the first lever engineers reach for
 
 **Practical example: can I run Llama 3 70B Q4 on an RTX 4090?**
 - Weights: 70B × 0.5625 bytes = ~39 GB - already over the 24 GB VRAM limit, before KV cache.
-- Answer: No. A single RTX 4090 cannot run Llama 3 70B at any quantization. You need two RTX 4090s, an A100 80GB, or an M2 Ultra (192 GB unified memory).
+- Answer: No. A single RTX 4090 cannot run Llama 3 70B at any quantization. You need two RTX 4090s, an A100 80GB, or a Mac with enough unified memory - a 64 GB M5 Pro clears it at Q4.
 
 **Practical example: can I run Llama 3 8B Q4 on an RTX 4090?**
 - Weights: 8B × 0.5625 bytes = ~4.5 GB
@@ -103,12 +103,12 @@ With 8-bit Adam and rank 16, a 13B model fine-tunes on approximately 16–20 GB 
 
 - **Start with Q4_K_M.** It's the practical sweet spot: 4× size reduction with minimal quality loss on most tasks. If it fits, you're done. Only go lower if Q4 doesn't fit.
 - **Context length is quadratic in attention cost but linear in VRAM.** Setting context to 32K when you're only sending 2K prompts wastes KV cache allocation. Set context length to 2–3× your actual expected input length.
-- **Apple Silicon is a different constraint.** Unified memory means the GPU and CPU share the same RAM pool. A Mac Studio with 192 GB of unified memory can technically fit a 70B FP16 model. The constraint is bandwidth - inference is slower than NVIDIA VRAM because the memory bandwidth is lower per dollar.
+- **Apple Silicon is a different constraint.** Unified memory means the GPU and CPU share the same RAM pool. A Mac Studio with 512 GB of unified memory can technically fit models no single NVIDIA card comes near. The constraint is bandwidth: decode speed is bandwidth divided by the bytes read per token, so capacity alone does not make a large dense model usable. The [Apple Silicon LLM Configurator](/apps/apple-silicon-llm-configurator/) works that trade-off out per machine.
 - **Pair with the [LLM Cost Calculator](/apps/llm-cost-calculator/)** to compare self-hosting cost (GPU amortization + power) against API cost for your use case.
 
 ## Hardware Coverage
 
-The tool checks fit against NVIDIA consumer (RTX 3060 through 5090), NVIDIA datacenter (A100 40/80GB, H100, H200, A6000), Apple Silicon (M2 Ultra through M4 Max), and edge devices (Pi AI HAT 2, Jetson Orin).
+The tool checks fit against NVIDIA consumer (RTX 3060 through 5090), NVIDIA datacenter (A100 40/80GB, H100, H200, A6000), Apple Silicon (Mac mini M6 through Mac Studio M5 Ultra 512 GB, plus previous generations), and edge devices (Pi AI HAT 2, Jetson Orin).
 
 ## Limitations
 

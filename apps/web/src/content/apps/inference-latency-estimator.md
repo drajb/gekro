@@ -7,7 +7,7 @@ aiSummary: "A client-side LLM inference latency and throughput estimator using a
 personalUse: "Before I rent a GPU or pick a serving config, I want a back-of-envelope for how fast a model will actually run - especially the split between time-to-first-token and streaming speed, which come from completely different bottlenecks. I kept redoing the same roofline arithmetic in a scratchpad, so I turned it into a tool that also makes the prefill-vs-decode distinction obvious."
 status: "active"
 publishedAt: "2026-08-08"
-lastVerified: "2026-08-08"
+lastVerified: "2026-08-28"
 companionPostSlug: ""
 license: "MIT"
 icon: "⏱️"

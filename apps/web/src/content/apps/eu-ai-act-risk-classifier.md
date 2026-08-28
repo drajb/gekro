@@ -6,8 +6,8 @@ description: "A guided walk through the EU AI Act's classification logic: prohib
 aiSummary: "A client-side EU AI Act risk classifier. It walks Regulation (EU) 2024/1689 in application order - Article 5 prohibitions, Annex I product safety, Annex III high-risk use cases, the Article 6(3) derogation including the profiling override, Article 50 transparency, and GPAI obligations under Articles 51-56 - and returns a risk tier with its obligations, article citations, compliance date and Article 99 penalty band. Dates reflect Regulation (EU) 2026/1744, the Digital Omnibus on AI, which deferred Annex III high-risk obligations to 2 December 2027 and Annex I to 2 August 2028 while leaving Article 50 transparency in force from 2 August 2026. Unlike most classifiers it treats the tiers as stacking rather than mutually exclusive."
 personalUse: "I have never lived in the EU, and I assumed that put me comfortably outside all of this. Then I read Article 2 properly. The Act reaches any system whose output is used in the Union, and every app on this site loads from anywhere, so Article 50 turns out to be my problem too. When I went looking for a classifier to check my own work against, the free ones were either sitting behind a contact form or still printing deadlines the Digital Omnibus had already moved. So I built the one I wanted: it walks the Act in the order the Act applies, stacks the obligations instead of pretending the tiers are mutually exclusive, and names the article behind every answer so you can go and disagree with it."
 status: "active"
-publishedAt: "2026-08-21"
-lastVerified: "2026-08-21"
+publishedAt: "2026-08-28"
+lastVerified: "2026-08-28"
 companionPostSlug: ""
 license: "MIT"
 icon: "🇪🇺"
@@ -88,10 +88,10 @@ the two figures applies. For SMEs and start-ups it is the lower one, under Artic
 
 ## Sources
 
-- [EU AI Act, Regulation (EU) 2024/1689](https://artificialintelligenceact.eu/) - consolidated article text, verified 2026-08-21
-- [Article 6, classification rules](https://artificialintelligenceact.eu/article/6/) - the derogation and the profiling override, verified 2026-08-21
-- [Annex III, high-risk use cases](https://artificialintelligenceact.eu/annex/3/) - the eight areas, verified 2026-08-21
-- Regulation (EU) 2026/1744, the Digital Omnibus on AI - OJ 24 July 2026, in force 27 July 2026, verified against two independent legal-practitioner summaries 2026-08-21
+- [EU AI Act, Regulation (EU) 2024/1689](https://artificialintelligenceact.eu/) - consolidated article text, verified 2026-08-28
+- [Article 6, classification rules](https://artificialintelligenceact.eu/article/6/) - the derogation and the profiling override, verified 2026-08-28
+- [Annex III, high-risk use cases](https://artificialintelligenceact.eu/annex/3/) - the eight areas, verified 2026-08-28
+- Regulation (EU) 2026/1744, the Digital Omnibus on AI - OJ 24 July 2026, in force 27 July 2026, verified against two independent legal-practitioner summaries 2026-08-28
 
 ## Limitations
 

@@ -20,7 +20,7 @@
  * 111A / 112A / 115AD and on domestic dividends. These are salary tools; feeding
  * capital gains in as ordinary income will overstate surcharge at the top end.
  *
- * Last verified against published slabs: 2026-08-21.
+ * Last verified against published slabs: 2026-08-28.
  */
 
 /** Age band drives only the old regime's basic exemption limit. */

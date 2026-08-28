@@ -6,8 +6,8 @@ description: "Breaks an Indian CTC into basic, HRA, special allowance, employer 
 aiSummary: "A client-side Indian CTC to in-hand salary calculator for tax year 2026-27 (assessment year 2027-28), the first year under the Income-tax Act, 2025. It splits CTC into basic, HRA, special allowance, variable pay, employer EPF, the 4.81% gratuity provision and employer NPS, then computes tax under both the new regime (section 115BAC: standard deduction ₹75,000, 87A rebate up to ₹60,000 below ₹12,00,000, surcharge capped at 25%) and the old regime (standard deduction ₹50,000, HRA exemption under section 10(13A), 80C, 80D, 80CCD(1B), section 24(b) interest, surcharge to 37%). It models EPF at either the ₹15,000 statutory wage ceiling or 12% of full basic, applies state professional tax as a section 16(iii) deduction in the old regime only, and includes marginal relief on both surcharge and the 87A cliff."
 personalUse: "I have filed tax in India, so I have sat with the gap between the CTC printed on an offer letter and the number that actually turns up. Employer PF, the gratuity provision and any NPS contribution all count against your package, and not one of them reaches your bank account this month. What bothered me more is that every tool answering this question is an ad-funded site asking you to paste your real salary into a form, which is a terrible trade for arithmetic a browser can do offline. So this does the subtraction locally and shows every line, including the EPF wage-ceiling toggle that swings take-home further than anything else on the page."
 status: "active"
-publishedAt: "2026-08-21"
-lastVerified: "2026-08-21"
+publishedAt: "2026-08-28"
+lastVerified: "2026-08-28"
 companionPostSlug: ""
 license: "MIT"
 icon: "🇮🇳"
@@ -83,10 +83,10 @@ bands. That is the law working as written, not a rounding error here.
 
 ## Sources
 
-- Income-tax Act, 2025 - in force 1 April 2026, verified 2026-08-21
-- Published slab, surcharge, cess and section 87A figures for tax year 2026-27 (assessment year 2027-28), cross-checked across multiple sources, verified 2026-08-21
-- EPF statutory wage ceiling of ₹15,000 and the 12% contribution rate, verified 2026-08-21
-- Professional tax rates by state, subject to the ₹2,500 annual constitutional cap under Article 276(2), verified 2026-08-21
+- Income-tax Act, 2025 - in force 1 April 2026, verified 2026-08-28
+- Published slab, surcharge, cess and section 87A figures for tax year 2026-27 (assessment year 2027-28), cross-checked across multiple sources, verified 2026-08-28
+- EPF statutory wage ceiling of ₹15,000 and the 12% contribution rate, verified 2026-08-28
+- Professional tax rates by state, subject to the ₹2,500 annual constitutional cap under Article 276(2), verified 2026-08-28
 
 ## Limitations
 

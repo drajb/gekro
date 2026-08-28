@@ -6,8 +6,8 @@ description: "Compares India's old and new income tax regimes side by side for t
 aiSummary: "A client-side comparator for India's old and new income tax regimes, tax year 2026-27 (assessment year 2027-28) under the Income-tax Act, 2025. It computes tax under both regimes and binary-searches the breakeven deduction level at which they cost the same. New regime: slabs from ₹4,00,000 to ₹24,00,000 at 5% to 30%, standard deduction ₹75,000, section 87A rebate up to ₹60,000 for taxable income up to ₹12,00,000, surcharge capped at 25%. Old regime: ₹2,50,000 basic exemption rising to ₹3,00,000 for senior and ₹5,00,000 for super-senior citizens, standard deduction ₹50,000, 87A rebate ₹12,500 up to ₹5,00,000, deductions under 80C, 80D, 80CCD(1B), section 10(13A) HRA and section 24(b), surcharge to 37%. Marginal relief is applied to both surcharge thresholds and the 87A cliff."
 personalUse: "I have filed tax in India, which is how I know that every comparison I found answers the wrong question. They tell you which regime is cheaper at the deductions you already have. What you actually need is the level you would have to reach before the old regime is worth the paperwork at all. That is one number, it is solvable, so this solves it. If the breakeven sits above anything you could realistically claim, the decision is already made, and you can stop reading tax blogs in February."
 status: "active"
-publishedAt: "2026-08-21"
-lastVerified: "2026-08-21"
+publishedAt: "2026-08-28"
+lastVerified: "2026-08-28"
 companionPostSlug: ""
 license: "MIT"
 icon: "⚖️"
@@ -76,9 +76,9 @@ more you would have to find.
 
 ## Sources
 
-- Income-tax Act, 2025 - in force 1 April 2026, replacing the Income-tax Act, 1961, verified 2026-08-21
-- Published slab, surcharge, cess and section 87A figures for tax year 2026-27, cross-checked across multiple sources, verified 2026-08-21
-- Section 115BAC surcharge cap of 25% under the new regime, against 37% under the old, verified 2026-08-21
+- Income-tax Act, 2025 - in force 1 April 2026, replacing the Income-tax Act, 1961, verified 2026-08-28
+- Published slab, surcharge, cess and section 87A figures for tax year 2026-27, cross-checked across multiple sources, verified 2026-08-28
+- Section 115BAC surcharge cap of 25% under the new regime, against 37% under the old, verified 2026-08-28
 
 ## Limitations
 

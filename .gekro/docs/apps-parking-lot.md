@@ -182,7 +182,7 @@ Proposed 4 new AI-eng apps; Rohit selected 3 (skipped the Secret/API-key Scanner
 
 ---
 
-## Shipped — 2026-08-21 (regional traffic wave)
+## Shipped — 2026-08-28 (regional traffic wave)
 
 Rohit asked for region-specific apps for India / China / Europe that alleviate real pain
 points and drive traffic, with two hard constraints: **no LLM inference** (client-side
@@ -207,3 +207,32 @@ at global devs) stays on ice as a future idea, not a regional play.
 incumbents (ClearTax, Groww, ET Money) hold enormous domain authority on head terms. Build the
 **intersection of AI engineering and regional regulation/pricing**, where authority is real and
 competition is thin. The EU AI Act classifier is the archetype.
+
+---
+
+## Shipped — 2026-08-28 (Apple unified-memory wave)
+
+Rohit's idea, prompted by Apple's 25 Aug 2026 launch of the M6 / M5 Pro Mac mini and the
+M5 Max / M5 Ultra Mac Studio (ships 22 Sept; the 512 GB Ultra config late October).
+
+**Pre-flight finding:** four existing apps already carried Apple Silicon entries
+(`gpu-vram-calculator`, `local-model-recommender`, `inference-latency-estimator`,
+`llama-cpp-config-builder`) and every one of them was a full generation behind. The
+flagship went from 192 GB / 800 GB/s to **512 GB / 1.2 TB/s**, which more than doubles
+the ceiling for local inference. That made the refresh mandatory regardless of the new app.
+
+| Slug | Job | Notes |
+|---|---|---|
+| `apple-silicon-llm-configurator` | Which Mac to buy for a given model: fit, theoretical tok/s ceiling, price, and $ per tok/s across the whole current lineup | Framed as a **buy-decision** tool, not another VRAM calculator - the memory is soldered, so the decision is permanent and unupgradeable. |
+
+**The thesis that makes it distinct from `gpu-vram-calculator`:** capacity without bandwidth
+is a trap, and 512 GB makes it acute. Decode is bandwidth-bound, so tok/s ≈ bandwidth ÷
+*active* weight bytes. On the M5 Ultra a dense 405B at Q4 fits and crawls, while a 671B MoE
+with ~37B active runs comfortably. The entire buy decision turns on the total-vs-active
+parameter split, and no other calculator says so.
+
+**Hard constraint honoured:** decision log 2026-04-19 forbids estimating benchmarks from
+specs. This app therefore reports a **roofline theoretical ceiling** derived from published
+bandwidth, explicitly labelled as such, and never claims a measured tok/s. New Mac entries
+added to `llm-cost-calculator/data.ts` carry `null` benchmarks because the hardware has not
+shipped and no measurements exist.
