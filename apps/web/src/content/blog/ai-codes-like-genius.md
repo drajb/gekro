@@ -14,6 +14,10 @@ aiSummary: "AI coding tools act as stateless engines that degrade without archit
 
 Two weeks after the demo looked incredible, the build was unfixable. Not broken in one place - broken everywhere, in ways that contradicted each other. That's what zero-shot scaling actually looks like. Non-developers and occasional coders are screaming from the rooftops about how AI can build entire applications in seconds. They look at a shiny, functional Proof of Concept stitched together with zero-shot prompting and assume it's basically finished, completely ignoring the genuine, grinding structural time it takes to refine a product to its end state.
 
+I did salvage it, eventually. Not by patching it. I kept what I had learned, threw the
+structure away, and rebuilt on a memory layer the agent had to read before it was allowed
+to write anything. The whole detour cost about three weeks. Cheap, for what it taught me.
+
 ![A brilliantly polished futuristic app hologram on the front, but pulling back the curtain reveals an operational disaster of duct tape, tangled wires, and a tiny goldfish randomly pushing buttons.](/images/blog/ai_goldfish_facade.png)
 
 ## The Architecture
@@ -123,6 +127,19 @@ Finally, always require the agent to generate a test suite for each new feature.
 
 The tension here is entirely between the upfront cost of building a template and the deceptive speed of raw prompting. Maintaining reusable templates takes weekend hours I'd rather spend building features. Furthermore, when a new major version of an underlying framework drops, the template fundamentally breaks. Every subsequent AI generation based on it requires heavy manual steering until the foundation is patched.
 
+There is a second tradeoff I have not solved, and I am not sure anyone has. Memory is still
+the weak point. Even with a good memory layer, a sensible skills setup and several agents
+coordinating, a large project still quietly drops things that a human who knew it would never
+drop. So you repeat yourself. That is the part of this workflow I find genuinely irritating,
+and no amount of templating fixes it.
+
 ## Where This Goes
+
+It is worth saying what I got wrong. I used to think AI code generation was simply bug-prone:
+that it wrote confidently without understanding, and that no amount of context rescued it.
+That was a fair reading of the models I formed the opinion on. It is not a fair reading of the
+current ones. They have come a long way, and they can be trusted considerably further than I
+once allowed - but strictly in proportion to the context you hand them, which is the entire
+argument of this post.
 
 We are moving away from prompting models for code toward prompting models for architectural compliance. Constraining AI within personal templates is the prerequisite for treating AI as a reliable engineering companion rather than a chaotic entity that slowly destroys your production codebase.

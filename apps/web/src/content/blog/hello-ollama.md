@@ -14,6 +14,11 @@ aiSummary: "Rohit demonstrates how to deploy Ollama on a Raspberry Pi cluster to
 
 The first time my internet went down during a late-night build session and I still had a local Llama 3 instance answering questions from my Raspberry Pi, I realized we had hit a tipping point. We are no longer dependent on a persistent connection to a multi-billion dollar data center for basic reasoning tasks. In the **Gekro Lab**, Ollama is the architectural insurance policy that keeps my agents working during a provider outage.
 
+I did not start there for noble reasons. It was curiosity and cost. I wanted things running
+constantly so I would keep learning, and access to the models I wanted was gated behind
+spending I did not want to commit to. A Pi that churns away quietly for the price of the
+electricity solves both. Slower, yes. Still working, though.
+
 ## The Architecture
 
 My setup isn't a single machine; it's a distributed inference chain. I prioritize **Together AI** for high-complexity cloud reasoning, but the "Nervous System" of the lab is anchored by a three-node Raspberry Pi 5 cluster (16GB each) running Ollama.
@@ -23,6 +28,15 @@ My setup isn't a single machine; it's a distributed inference chain. I prioritiz
 | **Llama-3-8B** | 4.7GB | Q4_K_M | ~5.2GB | 4-6 t/s | General reasoning |
 | **Phi-3-Mini** | 2.3GB | Q4_0 | ~2.8GB | 12-15 t/s | Fast classification |
 | **Mistral-7B** | 4.1GB | Q4_0 | ~4.5GB | 3-4 t/s | Tool use/Function calling |
+
+The order matters more than the hardware. Free models on OpenRouter go first, the Pi sits in
+the middle, and paid OpenRouter is the last resort. That middle position is not decorative.
+When the free tier is unavailable, which happens often enough to notice, the Pi is what
+answers. It has genuinely kept me working on days when the alternative was paying for it.
+
+Getting there took a few rounds of trial and error. I kept swapping models trying to find the
+one that fit, and the lesson each time was the same: when the big model was too slow, the fix
+was a smaller parameter count and a heavier quantization, not more patience.
 
 On ARM64 architecture, memory bandwidth is the bottleneck. With 16GB per node, I have headroom to run larger models than the typical 8GB Pi builds you see online. I've found that **4-bit quantization (Q4)** is the sweet spot: any lower and the model loses its "common sense," any higher and you're cutting into the system overhead without meaningful quality gains.
 
@@ -74,6 +88,13 @@ if __name__ == "__main__":
     brain = LocalBrain(model="phi3:mini")
     print(brain.inference("What is the current state of the Raspberry Pi cluster?"))
 ```
+
+### The Board Tells You It Is Working
+
+You can hear a Pi think. Mine ran hot, the fan would spin up, and sitting beside it I could
+tell it was mid-prompt without looking at the terminal. Thermal throttling is not an abstract
+line on a spec sheet at this scale - it is a noise on your desk. Plan for airflow before you
+plan for anything else.
 
 ### WSL2 Note
 If you're testing this in WSL2 on Windows, Ollama now has a native Windows installer that leverages your NVIDIA GPU. Run the Windows app, then set `OLLAMA_HOST=172.x.x.x` (your Windows Ethernet adapter IP) inside WSL2 to access that GPU power from your Linux environment.

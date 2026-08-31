@@ -12,7 +12,7 @@ aiSummary: "Rohit details the decoupling of 'Brain' (Python/AI logic) from 'Body
   Monoliths are a debt trap for AI developers. I split Gekro into a Python-powered "Brain" for asynchronous reasoning and an Astro-based "Body" for high-performance delivery. This post breaks down the hardware stack - from Mac Minis to Pi clusters - and the FastAPI nervous system that bridges them.
 </TLDR>
 
-Most developers treat an LLM like a glorified database query - a synchronous request-response cycle handled within a single Next.js or Node server. This is architectural suicide. When you're running complex agentic workflows that might take 30 seconds to "think" and another 10 to validate, you cannot block your UI thread. In my lab, I’ve pioneered a **Split-Brain Architecture**. The "Brain" (Intelligence) lives in specialized Python environments across a distributed hardware cluster, while the "Body" (Interface) is a lean, mean Astro machine that prioritizes speed and SEO.
+Most developers treat an LLM like a glorified database query - a synchronous request-response cycle handled within a single Next.js or Node server. That holds up right until the work takes real time. When you're running complex agentic workflows that might take 30 seconds to "think" and another 10 to validate, you cannot block your UI thread. In my lab, I’ve settled on a **Split-Brain Architecture**. The "Brain" (Intelligence) lives in specialized Python environments across a distributed hardware cluster, while the "Body" (Interface) is a lean, mean Astro machine that prioritizes speed and SEO.
 
 ## The Architecture
 
@@ -103,7 +103,17 @@ When bridging these layers on a Windows machine, I run Redis and the FastAPI "Br
 
 The biggest challenge isn't the code; it's **State Synchronization**. If the Brain completes a task but the Body doesn't poll for the update, the user sees a stale UI. I spent three weeks chasing a bug where an agent had finished summarizing a 4k log file, but the Redis key hadn't propagated correctly, leading to "Infinite Thinking" loops in the browser. 
 
+I budgeted two to three hours to do the split itself. It took a full day. Almost all of the
+overrun went on the seam between brain and body, which is fussy until the settings are right
+and then quietly stops being a problem. It has not bitten me in a long time. The first week
+was nothing but seam.
+
 The complexity of a distributed system is its own form of debt. If you're building a simple app, don't do this. But if you're building a lab that needs to survive a 2 AM cloud blackout, you need the resilience that only a split-brain architecture provides.
+
+It is also less hands-off than the diagram suggests. I still SSH into individual Pis on demand,
+because each one is running its own project and I know which is which. That is less a flaw in
+the design than an admission that a three-node cluster is small enough to keep in your head,
+and that I have not yet needed to pretend otherwise.
 
 ## Where This Goes
 

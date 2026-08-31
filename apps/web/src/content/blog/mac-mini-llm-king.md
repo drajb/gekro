@@ -62,7 +62,11 @@ For a 64GB Mac, **Q4_K_M** is the "Goldilocks" quantization for Llama 3-70B. It 
 
 ## The Tradeoffs
 
-The Mac Mini isn't perfect. The biggest "Tax" is the **Lack of CUDA**. If you're doing model *training* or fine-tuning, the Mac is a paperweight compared to an NVIDIA build. Most cutting-edge research code is written for CUDA first, and "Metal support" is often an afterthought that arrives months later.
+The Mac Mini isn't perfect. The biggest "Tax" is the **Lack of CUDA**. If you're doing model *training* or fine-tuning, the Mac is a paperweight compared to an NVIDIA build. Most new research code is written for CUDA first, and "Metal support" is often an afterthought that arrives months later.
+
+In fairness, I never actually hit that wall. Everything I run in this lab is inference, and
+inference on Metal has been fine. I flag it because it would bite the day I tried to fine-tune
+something on Apple silicon, not because it ever bit me.
 
 I also hit a major issue with **Heat Soak**. During a 4-hour batch processing run of 1,000 Tesla telemetry logs, the Mac Mini’s internal fan finally kicked in, and the inference speed dropped from 8 TPS to 5 TPS. Even Apple's efficiency has limits when pushed to 100% utilization for hours. I ended up 3D-printing a custom stand with a 120mm fan to keep the bottom of the chassis cool during long inference runs.
 

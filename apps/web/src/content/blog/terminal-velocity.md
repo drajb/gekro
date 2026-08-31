@@ -14,6 +14,9 @@ aiSummary: "Rohit shares his optimized WSL2/Zsh workflow, including AI-powered s
 
 In a modern AI lab, your throughput is limited by your context-switching overhead. If you're constantly alt-tabbing to a browser to paste error logs or commit messages, you're bleeding focus. I run everything from a highly customized WSL2 instance because the terminal is the native interface for the "Intelligence Layer." By piping the OS directly into an LLM, I've reduced my "Idiot-Work" (formatting, commit messaging, log hunting) to near zero.
 
+The move was not ideological. My IDE kept failing on PowerShell and Bash commands, over and
+over, and the terminal simply did the thing. That was the entire conversion.
+
 ## The Architecture
 
 My workflow treats the shell as a **Composable Data Pipeline**. The output of any command - a failed build, a `git diff`, or a `curl` response - is just text. Text is the primary language of LLMs.
@@ -80,9 +83,19 @@ To make this feel like a native Linux experience on Windows, you need to fix the
 
 ## The Tradeoffs
 
+Setting this up cost me hours I had not budgeted. I was trying to get a model to walk me
+through the WSL2 and Zsh configuration, and it sent me round in loops - this was the second
+Gemini generation - handing me a command with total confidence, watching me paste it, watching
+it fail, then handing me another one. I got there by reading the actual documentation, like it
+was 2015. If you are doing this setup, budget an afternoon and skip the shortcut.
+
 The biggest failure I see engineers make is **Alias Overload**. I once had 200+ aliases and spent more time remembering the shortcut than I would have spent typing the command. I've since pruned them down to the "High-Frequency Five": `aic` (AI commit), `gup` (Docker Compose Up), `ld` (Log Dump), `pf` (Python Format), and `explain`.
 
 Operational reality: **Piping sensitive logs to a cloud LLM is a security breach waiting to happen.** I learned this when I accidentally sent a production `.env` file containing clear-text credentials to a cloud provider because it was caught in a `grep` I piped to an "explain" alias. **Always use a local Ollama instance for shell piping** to ensure your environmental variables stay on your machine.
+
+One more, and it takes some air out of the title. I use both now. The terminal won the jobs it
+is good at, the GUI kept the ones it is good at, and somewhere along the way I stopped keeping
+score. If you came for a conversion story with a clean ending, that is the honest version.
 
 ## Where This Goes
 

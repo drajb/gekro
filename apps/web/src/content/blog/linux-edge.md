@@ -12,7 +12,12 @@ aiSummary: "Rohit explains the technical superiority of Linux for AI development
   Windows is a great OS for humans, but it's a claustrophobic environment for agents. I moved Gekro to a WSL2/Ubuntu core because AI libraries expect a POSIX-compliant heart. This post breaks down the CUDA-passthrough setup and why Docker on Linux is the only way to manage a growing fleet of autonomous services.
 </TLDR>
 
-If you're building an AI lab on a consumer operating system, you're fighting a war on two fronts: your code and your OS. In the AI era, Linux is the native tongue of intelligence. I spent six months trying to get complex Python dependencies to play nice with Windows paths and DLLs before I finally accepted the truth: if the model weights were trained on Linux clusters, the inference should happen on Linux kernels. The moment I committed to a headless Ubuntu workflow in DFW, my debugging time dropped by 80%.
+If you're building an AI lab on a consumer operating system, you're fighting a war on two fronts: your code and your OS. In the AI era, Linux is the native tongue of intelligence. I spent six months trying to get complex Python dependencies to play nice with Windows paths and DLLs before I finally accepted the truth: if the model weights were trained on Linux clusters, the inference should happen on Linux kernels. The moment I committed to a headless Ubuntu workflow in DFW, the debugging that was about my
+operating system rather than my code stopped almost entirely.
+
+The specific thing that finished it was watching AI-generated PowerShell fail, retry, fail
+again, and burn tokens doing it. Not once - as a pattern. That still happens today, which is
+why I gave up on PowerShell for agent work rather than trying to fix it.
 
 ## The Architecture
 
@@ -81,6 +86,16 @@ processors=8
 ## The Tradeoffs
 
 Let's talk about the pain: **Symlinks and File Performance**. If you store your code on the Windows C: drive but try to run it inside WSL2, it will be 10x slower because of the 9P protocol translation. I lost a week of productivity wondering why my vector database was crawling before I realized I had to move the entire project folder *into* the Linux file system (`/home/rohit/gkro`). 
+
+What I miss is the interoperability. On Windows I could let updates grind away on one side of
+the screen while I worked on the other, or leave a generator running and go do something else.
+That is largely gone, and I have not found a clean replacement for it.
+
+The migration itself was gentler than I expected. I braced for the new system to throw me and
+it mostly did not. The thing that took far longer than anything else was file sync: getting
+OneDrive to behave, and getting files onto the Raspberry Pis reliably. What I still miss is
+muscle memory. Two decades of Windows commands, gone, and being comfortable in Linux does not
+give that back.
 
 Also, **VRAM is a finite resource**. If I have Chrome open with 50 tabs in Windows, it’s stealing VRAM from my Llama 3 instance in WSL2. You have to learn to be a ruthless scavenger of memory in a hybrid environment.
 
