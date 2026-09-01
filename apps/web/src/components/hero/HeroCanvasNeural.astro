@@ -47,6 +47,10 @@
     #three-container { display: none !important; }
     .fallback-gradient { display: block !important; }
   }
+  /* Set by startThree() when shouldSkipCanvas() decides this device should not
+     run the scene. Same end state as reduced-motion, reached from JS. */
+  #neural-canvas-container.canvas-disabled #three-container { display: none; }
+  #neural-canvas-container.canvas-disabled .fallback-gradient { display: block; }
 </style>
 
 <script>
@@ -335,10 +339,53 @@
    * timeout is a safety net for browsers that delay idle callbacks indefinitely.
    * Falls back to setTimeout(500) for browsers without requestIdleCallback.
    */
+  /**
+   * shouldSkipCanvas — capability gate, added 2026-09-01.
+   *
+   * A Lighthouse mobile run scored the homepage at 33, with 12,780ms of Total
+   * Blocking Time and 39.8s of main-thread work on an emulated Moto G Power
+   * over slow 4G. The cause is this file: ~717KB of Three.js to parse, then a
+   * 150-particle field whose connection pass is O(n²) — 11,175 distance checks
+   * every frame, written through BufferAttribute accessors.
+   *
+   * That is affordable on a desktop GPU and ruinous on a mid-range phone. And
+   * the cursor repulsion, which is the entire reason the scene is interactive,
+   * needs a mouse — so a touch device was paying the full cost for none of the
+   * payoff. Those devices now get the same CSS gradient reduced-motion users
+   * already see, and never download the module at all.
+   *
+   * Desktop behaviour is deliberately unchanged.
+   */
+  const shouldSkipCanvas = (): boolean => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+    // Touch-primary: no cursor, so no repulsion, so nothing gained.
+    if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return true;
+    // Small viewports, where a full-viewport WebGL scene earns least. Guard the
+    // zero case: a hidden, backgrounded or pre-rendering tab reports innerWidth
+    // 0, which means "not laid out yet", not "small". Without this the scene is
+    // skipped for the whole page load and never comes back.
+    if (window.innerWidth > 0 && window.innerWidth < 768) return true;
+    // Core count is the cheapest honest proxy for "this will block the main thread".
+    const cores = navigator.hardwareConcurrency;
+    if (typeof cores === 'number' && cores > 0 && cores <= 4) return true;
+    // Chromium-only; absent elsewhere, so it only ever acts when present.
+    const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory;
+    if (typeof mem === 'number' && mem > 0 && mem <= 4) return true;
+    // Respect an explicit request to conserve data, and very slow links.
+    const conn = (navigator as unknown as {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }).connection;
+    if (conn && (conn.saveData === true || /(^|-)2g$/.test(conn.effectiveType ?? ''))) return true;
+    return false;
+  };
+
   const startThree = () => {
-    // Reduced-motion users see the CSS fallback gradient — skip the ~490KB
-    // module download and the render loop entirely.
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Skip the module download and the render loop entirely where the scene is
+    // not worth its cost; the container class reveals the gradient fallback.
+    if (shouldSkipCanvas()) {
+      document.getElementById('neural-canvas-container')?.classList.add('canvas-disabled');
+      return;
+    }
 
     const boot = async () => {
       // Fetch Three.js now (idle time), not at page parse.
