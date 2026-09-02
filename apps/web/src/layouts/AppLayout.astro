@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
+import AppIcon from '../components/apps/AppIcon.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
@@ -135,7 +136,7 @@ const breadcrumbs = {
                 ]}
                 data-title={a.data.title.toLowerCase()}
               >
-                <span class="text-sm shrink-0 leading-none">{a.data.icon}</span>
+                <AppIcon slug={a.id} fallback={a.data.icon} size={15} class="shrink-0" />
                 <span class="truncate leading-tight">{a.data.title}</span>
                 {a.id === app.id && (
                   <span class="ml-auto w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
@@ -176,7 +177,7 @@ const breadcrumbs = {
         >
           {allApps.map(a => (
             <option value={`/apps/${a.id}/`} selected={a.id === app.id}>
-              {a.data.icon} {a.data.title}
+              {a.data.title}
             </option>
           ))}
         </select>

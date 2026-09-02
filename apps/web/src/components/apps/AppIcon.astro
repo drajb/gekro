@@ -1,0 +1,75 @@
+---
+/**
+ * AppIcon.astro — renders an app's icon as an inline Lucide SVG.
+ *
+ * Why not emoji: emoji render differently on every platform, several apps had
+ * collided on the same glyph (three apps shared 🔌, three shared 📉), and they
+ * sit badly next to a monospace-and-hairline design system. Lucide is one
+ * consistent 24px stroke grid, MIT licensed.
+ *
+ * Why not an icon component library: this reads the SVG off disk in the
+ * frontmatter, which runs at build time, and inlines the paths. `lucide-static`
+ * is a devDependency and ships ZERO bytes of client JavaScript - which matters
+ * here, since the homepage already cost a Lighthouse incident from client
+ * weight (decision log 2026-09-01).
+ *
+ * Colour comes from `currentColor`, so the icon inherits whatever text colour
+ * the caller sets and works in both themes without a second asset.
+ *
+ * Falls back to the app's emoji if a slug has no mapping, so a new app renders
+ * something sensible before anyone gets round to choosing its icon.
+ */
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { ICON_FOR_SLUG } from './app-icons';
+
+interface Props {
+  slug: string;
+  /** Emoji from frontmatter, used only when the slug has no Lucide mapping. */
+  fallback?: string;
+  /** Pixel size of the rendered square. */
+  size?: number;
+  class?: string;
+  strokeWidth?: number;
+}
+
+const { slug, fallback, size = 28, class: className = '', strokeWidth = 1.5 } = Astro.props;
+
+const here = dirname(fileURLToPath(import.meta.url));
+const iconsDir = join(here, '../../../node_modules/lucide-static/icons');
+
+const name = ICON_FOR_SLUG[slug];
+let inner = '';
+
+if (name) {
+  const file = join(iconsDir, `${name}.svg`);
+  if (existsSync(file)) {
+    const raw = readFileSync(file, 'utf8');
+    // Keep only the children of <svg>; the wrapper is rebuilt below so size,
+    // stroke weight and accessibility are controlled from one place.
+    const m = raw.match(/<svg[^>]*>([\s\S]*?)<\/svg>/);
+    inner = m ? m[1].trim() : '';
+  }
+}
+---
+
+{inner ? (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width={strokeWidth}
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class={className}
+    aria-hidden="true"
+    focusable="false"
+    set:html={inner}
+  />
+) : (
+  <span class={className} aria-hidden="true" style={`font-size:${size * 0.8}px;line-height:1`}>{fallback ?? '▦'}</span>
+)}
