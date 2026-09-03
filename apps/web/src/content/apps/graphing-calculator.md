@@ -1,15 +1,15 @@
 ---
 title: "Graphing Calculator"
-description: "A full-featured graphing calculator with basic, scientific, 2D function graphing, and 3D surface plotting. Pan, zoom, and rotate entirely in the browser."
-job: "Basic · Scientific · 2D graph · 3D surface - all modes, zero deps"
+description: "A graphing calculator with basic, scientific, 2D plotting and 3D surfaces, plus a numeric analysis panel: derivatives, definite integrals by Simpson's rule, and automatic detection of roots and turning points in the visible window. Pan, zoom and rotate entirely in the browser."
+job: "Plot a function, then actually ask questions about it - slope, area, roots, turning points"
 icon: "📐"
 category: "dev"
 status: "active"
 publishedAt: "2026-04-19"
-lastVerified: "2026-04-19"
+lastVerified: "2026-09-02"
 license: "MIT"
-aiSummary: "Four-mode graphing calculator running entirely in the browser. Basic mode handles standard arithmetic. Scientific mode adds trig, logarithms, factorials, and inverse functions. 2D graphing mode plots up to six simultaneous y=f(x) equations on a pannable/zoomable canvas. 3D surface mode renders z=f(x,y) as a colored wireframe mesh with mouse-drag rotation."
-personalUse: "I kept opening Desmos for quick plots but wanted something that also did 3D surfaces without installing anything - so I built it into the toolbox."
+aiSummary: "Four-mode graphing calculator running entirely in the browser with a numeric calculus panel. Basic mode handles arithmetic; scientific adds trig, logarithms, factorials and inverses; 2D mode plots up to six simultaneous y=f(x) equations on a pannable, zoomable canvas; 3D mode renders z=f(x,y) as a coloured wireframe mesh with drag rotation. The analysis panel computes f(x), the first derivative by central difference and the second derivative by a three-point stencil, evaluates definite integrals with Simpson's rule over 1000 panels, and locates roots and turning points across the visible window by scanning for sign changes then bisecting. Methods are numeric rather than symbolic, and the app states so. Verified against sin(x): integral from 0 to pi equals 2, roots at exact multiples of pi, turning points at pi/2 plus k*pi."
+personalUse: "I kept opening Desmos for quick plots but wanted something that also did 3D surfaces without installing anything, so I built it into the toolbox. Plotting turned out to be the easy half. What I actually kept wanting was the questions you ask after the curve appears - where does this cross zero, where does it turn over, what is the area under this bit - and that is what the analysis panel does now."
 companionPostSlug: ""
 ---
 
@@ -33,6 +33,35 @@ The 2D graphing mode is Desmos-like: type a function of `x`, see it plotted, pan
 1. Enter a function of two variables (e.g., `sin(sqrt(x^2 + y^2))`, `x^2 - y^2`).
 2. Click and drag to rotate (azimuth + elevation). Scroll to zoom.
 3. Use the resolution slider to adjust mesh density (6–36 divisions per axis). Higher resolution shows more detail but slows rendering on complex expressions.
+
+## The analysis panel
+
+Plotting a curve is the easy half. The useful half is asking things about it, and that is what
+this panel does. Pick one of your equations and it reports, live:
+
+- **f(x)** at any x you type.
+- **f'(x)**, the slope of the tangent, by central difference. The step size scales with x, using
+  the cube root of machine epsilon - large enough not to vanish into floating-point noise, small
+  enough to stay local.
+- **f''(x)**, from a three-point stencil, labelled concave up, concave down or inflection.
+- **The definite integral** from a to b by Simpson's rule over 1000 panels, with the region shaded
+  on the plot. If the interval contains a pole, it says the value is undefined rather than
+  returning a confident wrong number.
+- **Roots and turning points** across whatever window you are currently looking at, marked on the
+  canvas and listed underneath. Roots come from scanning for sign changes then bisecting sixty
+  times; turning points are the roots of the first derivative, found the same way.
+
+You can also overlay f'(x) as a dashed curve, which is the quickest way to see why a function
+turns where it does.
+
+Everything here is **numeric, not symbolic**. A computer algebra system in a zero-dependency
+browser app is a different project, and pretending an approximation is an exact answer would be
+worse than saying so. One honest consequence: a sign-change scan cannot find a repeated root that
+touches the axis without crossing it. No sign-change method can, including this one, and the app
+says that where you can see it.
+
+Sanity check, using sin(x) with the defaults: the integral from 0 to pi comes out at exactly 2,
+f'(0) at exactly 1, roots land on exact multiples of pi and turning points on pi/2 plus k*pi.
 
 ## The Math / How It Works
 
