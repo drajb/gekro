@@ -4,7 +4,9 @@ interface Props {
   label?: string;
 }
 
-const { filename = 'export.csv', label = 'Export CSV' } = Astro.props;
+// "Download" is true for every app; "Export CSV" was not - many apps hand
+// back .txt, .css, .json or .png.
+const { filename = 'export.csv', label = 'Download' } = Astro.props;
 ---
 
 <button

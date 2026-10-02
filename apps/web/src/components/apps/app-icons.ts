@@ -99,6 +99,7 @@ export const ICON_FOR_SLUG: Record<string, string> = {
   'tax-loss-harvester': 'receipt',
 
   // ── Fun ───────────────────────────────────────────────────────────────────
+  'ambigram-maker': 'rotate-cw-square',
   'coin-flipper': 'circle-dot',
   'dice-roller': 'dice-5',
   'global-clock': 'globe',

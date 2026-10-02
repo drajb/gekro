@@ -346,18 +346,22 @@ body {
   transition: color 120ms ease, background-color 120ms ease;
   white-space: nowrap;
 }
-.app-btn-tab:hover:not(.active) {
+.app-btn-tab:hover:not(.active):not([data-active="true"]) {
   color: var(--color-text-primary);
   background-color: rgba(255, 255, 255, 0.05);
 }
-.app-btn-tab.active {
+/* Some apps mark the live tab with data-active="true" instead of .active.
+   Both spellings must light up, or the selected tab is invisible. */
+.app-btn-tab.active,
+.app-btn-tab[data-active="true"] {
   background-color: rgba(56, 189, 248, 0.14);
   color: var(--color-accent);
 }
-.theme-light .app-btn-tab:hover:not(.active) {
+.theme-light .app-btn-tab:hover:not(.active):not([data-active="true"]) {
   background-color: rgba(0, 0, 0, 0.04);
 }
-.theme-light .app-btn-tab.active {
+.theme-light .app-btn-tab.active,
+.theme-light .app-btn-tab[data-active="true"] {
   background-color: rgba(56, 189, 248, 0.11);
 }
 

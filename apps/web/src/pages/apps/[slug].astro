@@ -122,6 +122,9 @@ import AppleSiliconLlmConfigurator from '../../components/apps-private/apple-sil
 // Wave 9 - multi-domain unit converter (data/electrical/physical).
 import UnitConverter from '../../components/apps-private/unit-converter/Calculator.astro';
 
+// Wave 10 - rotational ambigram generator (stroke-union glyph engine).
+import AmbigramMaker from '../../components/apps-private/ambigram-maker/Calculator.astro';
+
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
   'markdown-visualizer': MarkdownVisualizer,
@@ -215,6 +218,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'india-tax-regime-comparator': IndiaTaxRegimeComparator,
   'apple-silicon-llm-configurator': AppleSiliconLlmConfigurator,
   'unit-converter': UnitConverter,
+  'ambigram-maker': AmbigramMaker,
 };
 
 export async function getStaticPaths() {
