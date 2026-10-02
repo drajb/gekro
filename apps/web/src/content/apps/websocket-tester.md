@@ -1,5 +1,5 @@
 ---
-title: "WebSocket / SSE Live Tester"
+title: "WebSocket Tester"
 category: "dev"
 job: "Connect to any WebSocket or Server-Sent Events endpoint from your browser, see frames stream live, measure latency, send messages, validate JSON inline."
 description: "Free browser-based tester for WebSocket (ws:// / wss://) and Server-Sent Events (http:// / https://) endpoints. Connect, watch frames live with timestamps and byte counts, JSON pretty-print with token colors, send text / JSON / binary (hex) messages on WebSocket connections, measure first-frame latency, median frame gap, and max stall. Export the full session log as JSON. Auto-reconnect on close with optional 5-second delay. WebSocket subprotocols supported. No accounts, no proxy - the browser connects directly to your endpoint."

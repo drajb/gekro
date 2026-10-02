@@ -1,5 +1,5 @@
 ---
-title: "Text Diff / Code Compare"
+title: "Diff Checker"
 category: "dev"
 job: "Compare two text blocks or code files and highlight exact additions and deletions"
 description: "A side-by-side and unified diff viewer. Paste two versions of any text or code and see additions highlighted in green, deletions in red, and line-level or character-level diff detail. Uses the MIT-licensed diff library. Nothing leaves your browser."

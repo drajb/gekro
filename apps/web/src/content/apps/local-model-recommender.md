@@ -1,5 +1,5 @@
 ---
-title: "Local Model Browser"
+title: "Local LLM Picker"
 category: "ai"
 job: "Filter 54+ open-weight LLMs by hardware + task + license + capability. See which fit your VRAM at your chosen quantization, with a clearly-labeled performance estimate."
 description: "Free browser for the 2026 open-weight LLM catalog. Filter Llama / Qwen / Mistral / Gemma / Phi / DeepSeek / GPT-OSS / Granite / Command / Yi / StarCoder by hardware (Pi 5 to 2× H100), task (chat / code / vision / reasoning / agentic), required capabilities (tool-use, JSON mode, vision input, reasoning trace), license category (permissive / restricted / non-commercial), and minimum context window. Each result shows estimated weights size at your quantization, fit verdict against your hardware (with CPU-offload warning if it won't fit in VRAM), and a directional throughput estimate based on memory bandwidth. Includes Ollama pull commands and HuggingFace links. Catalog is the same shared data file (`local-models.json`) used by the llama.cpp config builder and LoRA memory calculator."
@@ -7,7 +7,7 @@ aiSummary: "Faceted browser over the shared local-models.json catalog (54 entrie
 personalUse: "I have a Pi 5 cluster, an M4 Pro, and an RTX 4090 sitting in different rooms and constantly forget which models fit which. I built this so I can pick a model + quant and instantly see 'fits comfortably on the M4 Pro at ~25 tok/s, won't fit the 4090 at Q4_K_M without CPU offload'."
 status: "active"
 publishedAt: "2026-05-25"
-lastVerified: "2026-08-28"
+lastVerified: "2026-10-02"
 icon: "🧭"
 license: "MIT"
 ---

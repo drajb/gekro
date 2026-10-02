@@ -1,5 +1,5 @@
 ---
-title: "Hyperscaler AI Pricing - Bedrock vs Foundry vs Vertex"
+title: "AI Cloud Pricing Comparison"
 category: "ai"
 job: "Compare on-demand inference pricing for the same model across AWS Bedrock, Azure AI Foundry, and Google Vertex AI"
 description: "Side-by-side cost comparison for foundation models on the three managed AI platforms. Plug in your daily token volumes and see where each model is cheapest. Pricing is auto-verified weekly via each platform's official pricing API - every row shows the date it was last confirmed against the live data. Covers Llama 4, Claude, GPT-5, Gemini, DeepSeek, Mistral, Nova, GLM, Qwen and more."

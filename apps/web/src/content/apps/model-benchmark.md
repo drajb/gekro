@@ -1,5 +1,5 @@
 ---
-title: "Model Benchmark Comparator"
+title: "LLM Benchmark Comparison"
 category: "ai"
 job: "Compare LLMs on context, pricing, MMLU, HumanEval, and capabilities side by side"
 description: "Pick up to 4 LLMs and compare them across context window, pricing, MMLU, HumanEval, GPQA, MATH benchmarks, and capabilities like vision and tool use. Static reference data, no API calls required. Updated April 2026."
@@ -7,7 +7,7 @@ aiSummary: "A static comparison tool for 15 major LLMs covering context window s
 personalUse: "I keep getting asked 'which model should I use for X?' and I always end up context-switching to 5 different docs pages. This is my single-pane comparison."
 status: "active"
 publishedAt: "2026-04-24"
-lastVerified: "2026-04-24"
+lastVerified: "2026-10-02"
 companionPostSlug: ""
 license: "MIT"
 icon: "📈"

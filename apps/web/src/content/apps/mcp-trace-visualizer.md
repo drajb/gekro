@@ -1,5 +1,5 @@
 ---
-title: "MCP / Agent Trace Visualizer"
+title: "MCP Trace Viewer"
 category: "ai"
 job: "Paste a Claude Code, Cursor, Anthropic, or OpenAI trace - see the agent's tool calls as a collapsible tree with categories, results, and failure flags."
 description: "Free in-browser visualizer for LLM agent tool-call traces. Auto-detects format: Anthropic SDK messages (tool_use / tool_result blocks), OpenAI chat completions with tool_calls, or Claude Code JSONL transcripts (one JSON per line, as written to ~/.claude/projects/.../*.jsonl). Renders the agent's call sequence as a vertical tree: each tool call is collapsible, categorized (fs / exec / search / web / mcp / meta / other), tagged with success or failure, and shows the matched tool_result side-by-side when 'Show results' is on. Stats panel: total calls, unique tools, failures, assistant turns, top-8 tool frequency. Export the normalized call list as JSON. No data leaves your browser."

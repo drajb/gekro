@@ -8,6 +8,13 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 
 ---
 
+## Wave 7 - SHIPPED 2026-10-02
+
+- `ambigram-maker` (fun) - "Ambigram Generator", rotational stroke-union engine with per-slot legibility scores. Queue empty again.
+- awesome-llm-apps review (2026-10-02) produced 12 client-only app ideas awaiting Rohit's pick: see `.gekro/docs/awesome-llm-apps-review-2026-10.md`. Log any he picks here before building.
+
+---
+
 ## Status as of 2026-05-25
 
 **All 5 items from the 2026-05-22 backlog shipped.** Nothing pending.

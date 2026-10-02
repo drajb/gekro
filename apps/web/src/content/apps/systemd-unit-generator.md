@@ -1,5 +1,5 @@
 ---
-title: "systemd Unit File Generator"
+title: "systemd Service Generator"
 category: "infra"
 job: "Generate a properly-formatted systemd unit file from a command, restart policy, env vars, and user - with security-hardening defaults baked in"
 description: "Pick the unit type (simple / forking / oneshot / notify), enter your command, set restart policy and env vars, optionally add a user/group and working directory. The tool emits a complete .service file with the security-hardening defaults you should always have but rarely remember (NoNewPrivileges, ProtectSystem, PrivateTmp, etc.). Copy-paste-ready."

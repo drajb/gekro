@@ -1,5 +1,5 @@
 ---
-title: "Prompt Token Counter"
+title: "Token Counter"
 category: "ai"
 job: "Estimate token count and API cost for any prompt across all major models"
 description: "Paste your prompt and get an instant token estimate plus the API input cost for Claude, GPT, and Gemini. Shows context window utilization for each model. Zero dependencies, client-side only."

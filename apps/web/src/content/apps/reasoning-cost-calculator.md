@@ -7,6 +7,7 @@ aiSummary: "Client-side calculator that surfaces the true cost of reasoning mode
 personalUse: "I built this after a $200 surprise bill from a DeepSeek R1 evaluation run - the visible answers were tiny but the hidden reasoning traces were 20× longer. The mainstream LLM cost calculators (OpenAI's, third-party ones) all assume output = billable. For reasoning models that's flat wrong."
 status: "active"
 publishedAt: "2026-05-13"
+lastVerified: "2026-10-02"
 icon: "🧠"
 license: "MIT"
 ---

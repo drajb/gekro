@@ -7,6 +7,7 @@ aiSummary: "Client-side prompt-caching cost analyzer. Calculates the financial i
 personalUse: "I built this after realising our agent was paying full price on a 3,500-token system prompt for every single request. The hit-rate math is non-obvious because of Anthropic's write surcharge - needed a tool to actually verify caching would help, not just claim it would."
 status: "active"
 publishedAt: "2026-05-13"
+lastVerified: "2026-10-02"
 icon: "💾"
 license: "MIT"
 ---

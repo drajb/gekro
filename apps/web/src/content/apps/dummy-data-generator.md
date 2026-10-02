@@ -1,5 +1,5 @@
 ---
-title: "Dummy Data Generator"
+title: "Mock Data Generator"
 category: "dev"
 job: "Generate realistic fake datasets as JSON or CSV for testing and prototyping"
 description: "Build a column schema, pick data types for each field, set the row count, and generate up to 1000 rows of realistic fake data. Export as JSON or CSV. Uses a hand-rolled micro-faker - no external dependencies, instant generation. Everything stays in your browser."

@@ -1,5 +1,5 @@
 ---
-title: "Glass & Mesh Gradient Generator"
+title: "CSS Gradient Generator"
 category: "dev"
 job: "Generate glassmorphism panels and mesh gradients with live preview and copy-ready CSS"
 description: "Two CSS generators in one: Glass creates backdrop-blur glassmorphism panels with tunable blur, opacity, and border settings; Mesh stacks radial gradients with configurable color stops and positions to produce organic mesh-style backgrounds. Outputs Tailwind v4 classes and raw CSS. No server, no dependencies."

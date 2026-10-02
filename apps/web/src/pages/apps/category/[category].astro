@@ -1,0 +1,146 @@
+---
+/**
+ * Category hubs for /apps (added 2026-10-02).
+ *
+ * Why: the /apps index filters categories with client-side JS, so a search for
+ * "free ai engineering tools" or "nginx config generator" had no indexable page
+ * scoped to that intent. Each hub is a real URL with its own title, description,
+ * intro copy, ItemList JSON-LD and breadcrumb, and every app page links back to
+ * its hub (AppLayout "Related tools" + breadcrumb level 3).
+ *
+ * Only categories with MIN_APPS_FOR_HUB or more live apps get a page, so we
+ * never publish a thin one-card page.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import AppCard from '../../../components/apps/AppCard.astro';
+import JsonLD from '../../../components/seo/JsonLD.astro';
+import { getCollection } from 'astro:content';
+import { CATEGORY_META, MIN_APPS_FOR_HUB, categoryHubUrl } from '../../../lib/utils/apps-seo';
+import type { AppCategory } from '../../../lib/utils/apps-seo';
+
+export async function getStaticPaths() {
+  const apps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+  const cats = [...new Set(apps.map(a => a.data.category))];
+  return cats
+    .filter(cat => apps.filter(a => a.data.category === cat).length >= MIN_APPS_FOR_HUB)
+    .map(cat => ({ params: { category: cat } }));
+}
+
+const { category } = Astro.params as { category: AppCategory };
+const meta = CATEGORY_META[category];
+
+const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+const apps = allApps
+  .filter(a => a.data.category === category)
+  .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
+
+// Other hubs, for cross-links at the foot of the page.
+const otherHubs = (Object.keys(CATEGORY_META) as AppCategory[])
+  .filter(c => c !== category)
+  .map(c => ({ c, meta: CATEGORY_META[c], n: allApps.filter(a => a.data.category === c).length }))
+  .filter(h => h.n >= MIN_APPS_FOR_HUB);
+
+const url = `https://gekro.com${categoryHubUrl(category)}`;
+const latest = apps
+  .map(a => a.data.lastVerified || a.data.publishedAt)
+  .sort()
+  .at(-1);
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': url,
+  name: meta.heading.replace(/^./, ch => ch.toUpperCase()),
+  description: meta.description,
+  url,
+  inLanguage: 'en',
+  dateModified: latest,
+  isPartOf: { '@id': 'https://gekro.com/#website' },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: apps.length,
+    itemListElement: apps.map((app, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://gekro.com/apps/${app.id}/`,
+      name: app.data.title,
+    })),
+  },
+};
+
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Apps', item: 'https://gekro.com/apps/' },
+    { '@type': 'ListItem', position: 3, name: `${meta.label} tools`, item: url },
+  ],
+};
+---
+
+<BaseLayout title={meta.title} description={meta.description}>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20">
+    <nav aria-label="Breadcrumb" class="mb-6 text-xs font-mono text-text-muted">
+      <ol class="flex flex-wrap items-center gap-2">
+        <li><a href="/apps/" class="hover:text-accent transition-colors">Apps</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page" class="text-text-secondary">{meta.label}</li>
+      </ol>
+    </nav>
+
+    <header class="mb-10 space-y-4 max-w-3xl">
+      <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent">{apps.length} free tools · No login · Client-only</p>
+      <h1 class="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-text-primary">
+        {meta.heading.replace(/^./, ch => ch.toUpperCase())}
+      </h1>
+      <p class="text-lg text-text-secondary leading-relaxed">{meta.intro}</p>
+    </header>
+
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
+      {apps.map(app => (
+        <li>
+          <AppCard
+            title={app.data.title}
+            job={app.data.job}
+            category={app.data.category}
+            icon={app.data.icon}
+            status={app.data.status}
+            slug={app.id}
+            publishedAt={app.data.publishedAt}
+          />
+        </li>
+      ))}
+    </ul>
+
+    {otherHubs.length > 0 && (
+      <section class="mt-16 pt-8 border-t border-border" aria-labelledby="more-hubs">
+        <h2 id="more-hubs" class="font-display text-xl font-semibold text-text-primary mb-4">More tool collections</h2>
+        <ul class="flex flex-wrap gap-2" role="list">
+          {otherHubs.map(h => (
+            <li>
+              <a
+                href={categoryHubUrl(h.c)}
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-bg-elevated text-xs font-mono text-text-secondary hover:border-accent hover:text-accent transition-colors"
+              >
+                {h.meta.label} <span class="text-text-muted">{h.n}</span>
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href="/apps/" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-bg-elevated text-xs font-mono text-text-secondary hover:border-accent hover:text-accent transition-colors">
+              All apps <span class="text-text-muted">{allApps.length}</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    )}
+
+    <p class="mt-12 text-[10px] font-mono text-text-muted leading-relaxed max-w-2xl">
+      For informational purposes only. Not financial, medical, or legal advice. You are solely responsible for how you use these tools.
+    </p>
+  </main>
+</BaseLayout>

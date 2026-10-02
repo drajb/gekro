@@ -1,5 +1,5 @@
 ---
-title: "India CTC to In-Hand Salary Calculator"
+title: "In-Hand Salary Calculator (India)"
 category: "finance"
 job: "Take an Indian offer letter's CTC apart and see what actually reaches your bank account each month"
 description: "Breaks an Indian CTC into basic, HRA, special allowance, employer PF, gratuity and NPS, then runs the remainder through both tax regimes to show monthly take-home. Models the EPF wage-ceiling choice, gratuity as a five-year lock-up, state professional tax and the HRA exemption. Tax year 2026-27. Runs entirely in your browser, so your salary never leaves the tab."

@@ -1,5 +1,5 @@
 ---
-title: "Vector DB Sizing & Cost Calculator"
+title: "Vector Database Calculator"
 category: "ai"
 job: "Estimate the RAM a vector index needs and compare self-hosted vs managed monthly cost"
 description: "How much memory will N vectors at d dimensions actually take, and is it cheaper to self-host or pay a managed service? Set your vector count, dimensions, precision, and index type (Flat / HNSW / IVF) and get the RAM breakdown - raw vectors plus index overhead plus metadata - alongside a self-hosted vs managed monthly cost comparison. Every cost input is editable; runs entirely in your browser."

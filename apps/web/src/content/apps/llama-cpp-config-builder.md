@@ -1,5 +1,5 @@
 ---
-title: "Llama.cpp / Ollama Config Builder"
+title: "Ollama & llama.cpp Config Generator"
 category: "ai"
 job: "Pick hardware + model → get optimal CLI flags and an Ollama Modelfile. No more trial-and-error tuning."
 description: "Free browser-based config builder for llama.cpp and Ollama. Pick from 12 popular open-weights models (Llama 3.1/3.3/4, Qwen 3, Mistral 7B/Large 3, Gemma 2, Phi-4, DeepSeek R1 distills, GPT-OSS 120B) and 17 hardware presets (Pi 5 8/16GB, Mac mini M6 and M5 Pro, Mac Studio M5 Max and M5 Ultra 512GB, Mac M4 Pro/Max and M3 Ultra, RTX 3090/4090/5090, A100, H100, H200) - tool computes weight size, KV cache size, layer-offload count, and emits ready-to-paste llama-cli command + Ollama Modelfile. Adjusts for quantization (Q2_K through F16), context length (2K-128K), KV cache precision, Flash Attention, mlock."
@@ -7,7 +7,7 @@ aiSummary: "Client-side llama.cpp / Ollama configuration generator. Inputs: hard
 personalUse: "Built this after losing 45 minutes binary-searching -ngl for Llama 4 Maverick on my Mac M4 Pro. Should have been a 3-second calculation."
 status: "active"
 publishedAt: "2026-05-13"
-lastVerified: "2026-08-28"
+lastVerified: "2026-10-02"
 icon: "⚙️"
 license: "MIT"
 ---

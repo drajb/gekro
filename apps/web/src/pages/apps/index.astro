@@ -3,6 +3,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AppCard from '../../components/apps/AppCard.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 import { getCollection } from 'astro:content';
+import { CATEGORY_META, MIN_APPS_FOR_HUB, categoryHubUrl } from '../../lib/utils/apps-seo';
+import type { AppCategory } from '../../lib/utils/apps-seo';
 
 const apps = await getCollection('apps', ({ data }) => data.status !== 'archived');
 
@@ -55,6 +57,12 @@ const categories = [
 
 const uniqueCategories = new Set(apps.map(a => a.data.category)).size;
 
+// Crawlable links to the category hubs (pages/apps/category/[category].astro).
+// The filter chips above are JS buttons, which search engines do not follow.
+const hubs = categories
+  .filter(c => c.id !== 'all' && c.count >= MIN_APPS_FOR_HUB)
+  .map(c => ({ id: c.id, count: c.count, meta: CATEGORY_META[c.id as AppCategory] }));
+
 const collectionSchema = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
@@ -86,7 +94,7 @@ const breadcrumbs = {
 ---
 
 <BaseLayout
-  title="Apps | gekro"
+  title={`Free AI & Developer Tools - ${apps.length} Browser Apps | gekro`}
   description={`Free browser tools from an AI engineer's workbench - LLM cost calculator, CSV to JSON converter, mortgage calculator, position sizer, Tesla trip planner, and ${apps.length - 5} more. No login, no data collection, all client-side.`}
 >
   <JsonLD data={collectionSchema} />
@@ -234,6 +242,23 @@ const breadcrumbs = {
     <div id="apps-empty" style="display:none" class="mt-6 py-16 text-center border border-dashed border-border rounded-xl">
       <p class="text-text-muted font-mono text-sm">No apps match that filter.</p>
     </div>
+
+    <!-- Category hubs: real links for crawlers and for anyone who wants a scoped list. -->
+    {hubs.length > 0 && (
+      <section class="mt-16 pt-8 border-t border-border" aria-labelledby="hub-heading">
+        <h2 id="hub-heading" class="font-display text-xl font-semibold text-text-primary mb-4">Browse by collection</h2>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" role="list">
+          {hubs.map(h => (
+            <li>
+              <a href={categoryHubUrl(h.id)} class="group flex items-center justify-between gap-3 p-4 rounded-xl border border-border-subtle bg-bg-surface hover:border-accent transition-colors">
+                <span class="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">{h.meta.heading.replace(/^./, ch => ch.toUpperCase())}</span>
+                <span class="text-xs font-mono text-text-muted">{h.count}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     <!-- Disclaimer -->
     <p class="mt-12 text-[10px] font-mono text-text-muted leading-relaxed text-center max-w-2xl mx-auto">

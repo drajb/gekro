@@ -1,5 +1,5 @@
 ---
-title: "JSON Schema → LLM Tool Definition"
+title: "LLM Tool Schema Generator"
 category: "ai"
 job: "Convert any JSON Schema or OpenAPI operation into an OpenAI / Anthropic / Google tool/function definition - the three formats differ subtly"
 description: "Paste a JSON Schema or OpenAPI operation object. Get back the equivalent tool definition for OpenAI Chat Completions, Anthropic Messages API, and Google Gemini all at once. Handles the per-provider quirks: OpenAI's strict schema rules, Anthropic's input_schema wrapper, Gemini's parameter type-coercion."

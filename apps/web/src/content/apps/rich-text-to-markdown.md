@@ -1,5 +1,5 @@
 ---
-title: "Rich Text → Markdown"
+title: "HTML to Markdown Converter"
 description: "Paste rich text from Google Docs, Word, or any web page and convert it to clean Markdown instantly. Handles headings, bold, italic, lists, tables, links, and code."
 job: "Paste rich text or HTML → clean Markdown, copy in one click"
 icon: "✍️"

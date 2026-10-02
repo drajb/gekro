@@ -1,5 +1,5 @@
 ---
-title: "Base64 & URL Encoder"
+title: "Base64 Encoder & Decoder"
 category: "dev"
 job: "Encode/decode Base64, URL encoding, HTML entities, and hex - four encodings in one tool"
 description: "Encode and decode Base64 (standard, URL-safe, no-padding), URL encoding (encodeURIComponent and encodeURI), HTML entities, and hex. Supports file-to-Base64 encoding. Auto-detects encoded input. Zero dependencies, runs in-browser."

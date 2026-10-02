@@ -1,5 +1,5 @@
 ---
-title: "BMI & Health Metrics"
+title: "BMI Calculator"
 description: "Calculate BMI, BMR, TDEE, ideal weight range, and body fat category. Supports lbs/ft or kg/cm. Results include a visual gauge and evidence-based ranges."
 job: "BMI · BMR · TDEE · ideal weight - lbs or kg, ft/in or cm"
 icon: "⚕️"

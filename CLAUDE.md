@@ -45,25 +45,25 @@ gekro/
 │   │       │   ├── ui/           → BrandLogo, ContactForm, LabGallery, NewsletterEmbed, SearchWidget, Tag, ThemeToggle
 │   │       │   ├── apps/         → AppShell, AppCard, AttributionFooter, shared/ (PUBLIC — stays here; apps/index.astro holds the inline filter UI)
 │   │       │   ├── stack/        → StackHeader, StackCard, StackVerdict, StackPros/Cons, StackMeta, StackReferralFooter, ComparisonTable, SimpleBarChart
-│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 78 Calculator components; see §8, NOT a git submodule)
+│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 93 Calculator components; see §8, NOT a git submodule)
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
 │   │       ├── content.config.ts → Zod schemas — 5 collections (blog, experiments, apps, stack, news)
 │   │       ├── content/
 │   │       │   ├── blog/         → 14 markdown posts + _template.md
 │   │       │   ├── experiments/  → 3 markdown experiments + _template.md
-│   │       │   ├── apps/         → 78 app methodology markdown files + _template.md
+│   │       │   ├── apps/         → 93 app methodology markdown files + _template.md
 │   │       │   ├── stack/        → tool-review markdown files
 │   │       │   └── news/         → daily AI-briefing markdown files
 │   │       ├── layouts/          → BaseLayout, BlogLayout, ExperimentLayout, AppLayout, StackLayout
 │   │       ├── lib/
 │   │       │   ├── sanity/       → client.ts (stub-on-missing), queries.ts (GROQ)
-│   │       │   └── utils/        → posts.ts (⭐ central post fetcher), reading-time.ts (+ vitest)
+│   │       │   └── utils/        → posts.ts (⭐ central post fetcher), reading-time.ts (+ vitest), apps-seo.ts (category hubs, app titles, related apps)
 │   │       ├── pages/
 │   │       │   ├── index.astro                → homepage
 │   │       │   ├── about.astro, contact.astro, now.astro, slides.astro, 404.astro
 │   │       │   ├── blog/index.astro, blog/[slug].astro
 │   │       │   ├── experiments/index.astro, experiments/[slug].astro
-│   │       │   ├── apps/index.astro, apps/[slug].astro
+│   │       │   ├── apps/index.astro, apps/[slug].astro, apps/category/[category].astro (hubs, >= 3 apps)
 │   │       │   ├── stack/index.astro, stack/[slug].astro
 │   │       │   ├── news/index.astro, news/[slug].astro
 │   │       │   ├── topics/[topic].astro
@@ -129,8 +129,8 @@ The project uses a formal **decision log + issue tracker** workflow. These files
 3. **Override protocol:** If a user request contradicts an existing decision, STOP, cite the conflicting decision's date, reason through trade-offs, and wait for the user to say literally **"Override"** before proceeding.
 4. **Proactive verification:** If a proposed change might break an existing decision or recreate a known issue, warn the user before implementing.
 
-Current decision count: **~46 decisions** (latest: 2026-07-06; override count 1).
-Current issue count: **~47 logged** (latest: 2026-07-06 build-PAT expiry; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
+Current decision count: **~60+ decisions** (latest: 2026-10-02; override count 1).
+Current issue count: **~60+ logged** (latest: 2026-10-02 full app review; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
 
 ## 6a. Content Protection Protocol (hard rule — no exceptions)
 
@@ -173,7 +173,7 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 | What | Repo | Visibility |
 |---|---|---|
 | App shell, routing, content, shared UI | `drajb/gekro` (this repo) | Public |
-| All 78 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
+| All 93 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
 
 `apps-private/` is **NOT a git submodule** — it is **gitignored** and cloned fresh at build time by each build system. This was necessary because CF Pages v3 hard-codes submodule auth before the build command runs, with no injection point for credentials.
 

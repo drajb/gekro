@@ -1,5 +1,5 @@
 ---
-title: "Regex Playground"
+title: "Regex Tester"
 category: "dev"
 job: "Test regular expressions against sample text with live match highlighting"
 description: "A zero-dependency regex tester. Type a pattern, set flags, paste your test string - matches highlight in real time with index positions and capture groups. Includes 12 common pattern presets. No login, no server."

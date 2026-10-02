@@ -3,6 +3,8 @@ import BaseLayout from './BaseLayout.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
 import AppIcon from '../components/apps/AppIcon.astro';
 import { getCollection } from 'astro:content';
+import { CATEGORY_META, MIN_APPS_FOR_HUB, appPageTitle, categoryHubUrl, relatedApps } from '../lib/utils/apps-seo';
+import type { AppCategory } from '../lib/utils/apps-seo';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -51,6 +53,14 @@ const seoDescription = composeMeta(data.job, data.description || data.aiSummary)
 const aiDescription = data.aiSummary || data.description;
 const pageURL = `https://gekro.com/apps/${app.id}/`;
 const ogImage = `/og/apps/${app.id}.png`;
+const catMeta = CATEGORY_META[data.category as AppCategory];
+// Category hubs exist only for categories with enough apps to be a useful
+// page (see pages/apps/category/[category].astro); link to one only if built.
+const hasHub = allApps.filter(a => a.data.category === data.category).length >= MIN_APPS_FOR_HUB;
+const hubURL = hasHub ? `https://gekro.com${categoryHubUrl(data.category)}` : null;
+// Internal links: four related tools at the foot of every app page. Same
+// category and shared vocabulary rank first (lib/utils/apps-seo.ts).
+const related = relatedApps(app, allApps, 4);
 
 const schema = {
   '@context': 'https://schema.org',
@@ -59,9 +69,16 @@ const schema = {
   description: aiDescription,
   url: pageURL,
   image: `https://gekro.com${ogImage}`,
-  applicationCategory: 'WebApplication',
-  operatingSystem: 'Any',
+  applicationCategory: catMeta?.schemaCategory ?? 'WebApplication',
+  applicationSubCategory: catMeta?.label,
+  operatingSystem: 'Any (runs in a web browser)',
+  browserRequirements: 'Requires JavaScript. Runs entirely in the browser; no data is uploaded.',
+  inLanguage: 'en',
   datePublished: data.publishedAt,
+  // lastVerified is the date the data and logic were re-checked, which is the
+  // honest "modified" signal for a tool page (same field drives sitemap lastmod).
+  dateModified: data.lastVerified || data.publishedAt,
+  isPartOf: { '@type': 'CollectionPage', '@id': 'https://gekro.com/apps/' },
   isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   author: {
@@ -78,13 +95,18 @@ const breadcrumbs = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
     { '@type': 'ListItem', position: 2, name: 'Apps', item: 'https://gekro.com/apps/' },
-    { '@type': 'ListItem', position: 3, name: data.title, item: pageURL },
+    ...(hubURL && catMeta
+      ? [
+          { '@type': 'ListItem', position: 3, name: `${catMeta.label} tools`, item: hubURL },
+          { '@type': 'ListItem', position: 4, name: data.title, item: pageURL },
+        ]
+      : [{ '@type': 'ListItem', position: 3, name: data.title, item: pageURL }]),
   ],
 };
 ---
 
 <BaseLayout
-  title={`${data.title} | gekro`}
+  title={appPageTitle(data.title)}
   description={seoDescription}
   ogImage={ogImage}
   ogType="website"
@@ -205,6 +227,36 @@ const breadcrumbs = {
             <slot name="methodology" />
           </div>
         </div>
+
+        <!-- Related tools: internal links to the closest siblings. -->
+        {related.length > 0 && (
+          <section class="mt-14 pt-8 border-t border-border" aria-labelledby="related-tools-heading">
+            <div class="flex flex-wrap items-baseline justify-between gap-3 mb-5">
+              <h2 id="related-tools-heading" class="font-display text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">Related tools</h2>
+              {hasHub && catMeta && (
+                <a href={categoryHubUrl(data.category)} class="text-xs font-mono text-text-secondary hover:text-accent transition-colors">
+                  All {catMeta.label} tools &rarr;
+                </a>
+              )}
+            </div>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="list">
+              {related.map(r => (
+                <li>
+                  <a
+                    href={`/apps/${r.id}/`}
+                    class="group flex items-start gap-3 h-full p-4 rounded-xl border border-border-subtle bg-bg-surface hover:border-accent transition-colors"
+                  >
+                    <AppIcon slug={r.id} fallback={r.data.icon} size={18} class="shrink-0 mt-0.5 text-accent" />
+                    <span class="min-w-0">
+                      <span class="block text-sm font-semibold text-text-primary group-hover:text-accent transition-colors">{r.data.title}</span>
+                      <span class="block mt-1 text-xs text-text-secondary leading-relaxed line-clamp-2">{r.data.job}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <!-- Disclaimer -->
         <p class="mt-12 text-[10px] font-mono text-text-muted leading-relaxed">
