@@ -7,7 +7,7 @@ aiSummary: "A client-side LLM API response parser that auto-detects provider for
 personalUse: "When debugging an agent pipeline, I'm constantly pasting raw API responses into jq or Python to fish out the content and token counts. This does it in one click."
 status: "active"
 publishedAt: "2026-04-24"
-lastVerified: "2026-04-24"
+lastVerified: "2026-10-02"
 companionPostSlug: ""
 license: "MIT"
 icon: "📦"

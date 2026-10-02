@@ -1,5 +1,5 @@
 ---
-title: "Password & Passphrase Generator"
+title: "Password Generator"
 category: "dev"
 job: "Generate cryptographically random passwords and human-readable passphrases"
 description: "Generate secure passwords or xkcd-style passphrases using window.crypto.getRandomValues - the same entropy source used by password managers. Choose character sets, length, symbols, and exclusion lists. Passphrase mode uses the EFF word list for natural language output. Nothing is stored or transmitted."

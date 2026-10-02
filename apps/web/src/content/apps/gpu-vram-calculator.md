@@ -7,7 +7,7 @@ aiSummary: "A client-side GPU VRAM estimator for LLM inference and LoRA fine-tun
 personalUse: "Before I commit to spinning up an A100 hour or buying yet another consumer GPU, I want to know if the model I'm targeting will actually fit. This is the calculation that should happen before the cloud bill."
 status: "active"
 publishedAt: "2026-04-20"
-lastVerified: "2026-08-28"
+lastVerified: "2026-10-02"
 companionPostSlug: ""
 license: "MIT"
 icon: "🎮"

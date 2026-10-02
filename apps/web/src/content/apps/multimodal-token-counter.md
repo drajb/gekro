@@ -1,5 +1,5 @@
 ---
-title: "Multi-modal Token Counter"
+title: "Image Token Calculator"
 category: "ai"
 job: "Drop an image → see how many vision tokens each model charges (GPT-5, Claude 4, Gemini 2.5/3 Pro) and the cost at your usage volume."
 description: "Free browser-based image-token calculator for vision-capable LLMs. Drop a PNG/JPG/WebP, or enter dimensions manually → tool applies each provider's published vision-token formula (OpenAI tiled resize + 170 tokens/tile, Anthropic w×h/750 capped at 1600, Google Gemini 258/tile at 768²) and shows the per-image cost across 8 models side-by-side. Includes a cost-at-scale view (per-day / per-month) for your image volume."
@@ -7,6 +7,7 @@ aiSummary: "Client-side vision-token cost calculator. Image dimensions read loca
 personalUse: "I built this because vision pricing is opaque. The 'cost' field in the docs is per-1M-tokens, but how many tokens IS my screenshot? It depends on the provider AND the dimensions. This makes the math obvious."
 status: "active"
 publishedAt: "2026-05-13"
+lastVerified: "2026-10-02"
 icon: "🖼️"
 license: "MIT"
 ---

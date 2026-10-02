@@ -1,5 +1,5 @@
 ---
-title: "Options P&L Calculator"
+title: "Options Profit Calculator"
 category: "trading"
 job: "Visualize profit/loss at expiry across a price range for calls, puts, and spreads"
 description: "Calculate maximum profit, maximum loss, and breakeven for long/short calls, puts, covered calls, and vertical spreads. Shows P&L at every price interval with estimated Greeks. No API calls, all math runs in your browser."

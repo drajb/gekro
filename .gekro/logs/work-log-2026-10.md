@@ -54,3 +54,5 @@ Update the status column the moment a step finishes. Newest notes at the bottom.
 
 ## Ambigram spec (for a resumed build)
 Rotational ambigram from typed text (Word A, optional Word B). Each slot glyph = union(strokes(A[i]), rotate180(strokes(B[n-1-i]))) on a segment-font grid; per-slot legibility score = stroke overlap; optimiser picks upper/lower/alternate forms per slot; small hand-tuned overrides. UI: case mode, stroke weight, spacing, sharp/rounded, token colour; Flip button (CSS 180 deg, reduced-motion instant); per-slot score table; SVG/PNG download, copy SVG; presets; first paint renders a sample. AppShell contract (init guard, after-swap, one AbortController, app:copy/reset/export), tokens only, labelled + clamped inputs, no em-dashes, 375px safe. Register in `pages/apps/[slug].astro`, add `content/apps/ambigram-maker.md` from `_template.md`.
+
+- 2026-10-02: Rohit approved renames + lastVerified bumps and asked to push everything to main. Applied 32 titles + 13 dates (40 md files); vitest 164/164; build clean; titles, dateModified and sitemap lastmod verified in dist. Shipping via PR merges (gekro-apps#1 first, then gekro#58).

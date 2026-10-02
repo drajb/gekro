@@ -1,5 +1,5 @@
 ---
-title: "Drawdown & Sharpe Calculator"
+title: "Max Drawdown Calculator"
 category: "trading"
 job: "Paste a return series and get Sharpe, Sortino, max drawdown, Calmar, and equity curve"
 description: "Analyze any return series with professional risk metrics. Input daily, weekly, or monthly returns and get Sharpe ratio, Sortino ratio, maximum drawdown, Calmar ratio, win rate, and a visual equity curve - all in your browser with no data uploaded anywhere."

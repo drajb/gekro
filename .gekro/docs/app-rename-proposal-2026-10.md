@@ -1,4 +1,6 @@
-# App rename proposal (2026-10-02) - awaiting Rohit's approval
+# App rename proposal (2026-10-02) - APPLIED 2026-10-02
+
+> Rohit approved on 2026-10-02 ("Renames are ok. Update the verification dates."). All 32 titles and all 13 lastVerified bumps below were applied exactly as listed. NOT applied (not part of the approval): the optional GB to GiB wording pass in the guide bodies, and old names quoted in blog prose (e.g. token-economics.md; its links use the unchanged slugs, so nothing breaks).
 
 Rohit asked for simple, popular names over mechanical ones because they drive more search traffic. **Titles only; slugs stay unchanged** so every indexed URL, backlink and share link keeps working (a slug change would need redirects and resets ranking).
 

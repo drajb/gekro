@@ -1,5 +1,5 @@
 ---
-title: "Position Sizer"
+title: "Position Size Calculator"
 category: "trading"
 job: "Calculate optimal trade size with Kelly criterion and fixed-risk models"
 description: "Input your account size, risk tolerance, win rate, and reward/risk ratio - get position size recommendations from the Kelly criterion, fractional Kelly, and fixed-percent-risk models side by side. No login, client-side math only."

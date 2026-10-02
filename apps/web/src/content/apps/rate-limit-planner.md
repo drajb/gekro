@@ -1,5 +1,5 @@
 ---
-title: "LLM Rate-Limit Planner"
+title: "LLM Rate Limit Calculator"
 category: "ai"
 job: "Find out whether your workload fits a provider's RPM/TPM limits, which limit binds first, and how long a burst will take to drain"
 description: "Enter your provider tier (or your real RPM/TPM numbers) and your workload - tokens per request and target throughput - and this planner tells you which limit binds first, the maximum sustainable request rate, whether your target fits, how long a burst of N requests takes to clear, and the minimum tier that would unblock you. Everything is editable and recalculates live."

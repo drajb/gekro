@@ -1,5 +1,5 @@
 ---
-title: "Text Formatter & Case Converter"
+title: "Case Converter"
 category: "dev"
 job: "Convert case and run the line operations you always need - trim, dedupe, sort, number, wrap - in one pass"
 description: "Ten case conversions (sentence, title, camelCase, snake_case, kebab-case, CONSTANT_CASE and more) plus the line operations that usually mean opening an editor: trim each line, remove blanks, remove duplicates, sort, reverse, number, and hard-wrap at a column. Operations apply in a fixed, documented order so the result is predictable. Runs entirely in your browser."

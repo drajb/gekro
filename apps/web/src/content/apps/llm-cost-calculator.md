@@ -8,7 +8,7 @@ aiSummary: "A client-side calculator comparing cloud LLM API costs (Claude, GPT,
 personalUse: "I run a Pi 5 cluster and regularly debate whether to use Haiku or run Llama locally. I built this to settle that argument with actual numbers, not vibes."
 status: "active"
 publishedAt: "2026-04-19"
-lastVerified: "2026-04-19"
+lastVerified: "2026-10-02"
 companionPostSlug: ""
 license: "MIT"
 icon: "💰"

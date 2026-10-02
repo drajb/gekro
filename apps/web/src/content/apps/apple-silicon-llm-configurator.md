@@ -7,7 +7,7 @@ aiSummary: "A client-side Apple Silicon buy-decision tool for local LLM inferenc
 personalUse: "I ran a 64 GB M4 Pro Mac mini for a long stretch, and it handled Llama 3 70B at q4_K_M through Ollama perfectly well, so when Apple announced a Mac Studio that takes 512 GB I wanted to know whether that was aimed at me or just at my wallet. The answer turned out to depend entirely on one thing nobody's calculator asks about: whether the model is dense or mixture-of-experts. Capacity and bandwidth are different purchases, and only one of them makes tokens come out faster."
 status: "active"
 publishedAt: "2026-08-28"
-lastVerified: "2026-08-28"
+lastVerified: "2026-10-02"
 companionPostSlug: ""
 license: "MIT"
 icon: "🍎"

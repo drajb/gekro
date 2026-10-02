@@ -1,5 +1,5 @@
 ---
-title: "Translator (EN · ES · HI)"
+title: "Offline Translator"
 category: "ai"
 job: "Translate English, Spanish, and Hindi in any direction - live, in your browser, fully offline after the model loads once"
 description: "A Google-Translate-style translator for English, Spanish, and Hindi that runs a real neural translation model (Meta's M2M-100) entirely in your browser via transformers.js. Translation happens live as you type, in any of the six directions - including Spanish to Hindi directly, with no English pivot. The model downloads once (~250 MB), caches locally, and from then on every translation runs offline. No text ever leaves your device because there is no server."

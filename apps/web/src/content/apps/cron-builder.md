@@ -1,5 +1,5 @@
 ---
-title: "Cron Expression Builder"
+title: "Cron Expression Generator"
 category: "dev"
 job: "Write, validate, and understand cron expressions with next-run previews"
 description: "Build and decode cron expressions interactively. Get a plain-English description of any schedule, see the next 10 run times, and choose from 15 common presets. Zero dependencies, runs entirely in your browser."

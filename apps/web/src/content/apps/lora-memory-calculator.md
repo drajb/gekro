@@ -1,5 +1,5 @@
 ---
-title: "LoRA / QLoRA Memory Calculator"
+title: "LoRA Memory Calculator"
 category: "ai"
 job: "Pick a base model + training mode → see peak fine-tuning VRAM and which GPUs can fit the job."
 description: "Free browser-based VRAM estimator for LoRA / QLoRA / full fine-tuning. Pick from 11 popular open-weights models (Llama 3.3 70B, Llama 4 Maverick/Scout, Mistral Large 3, Qwen 3, Gemma 2, Phi-4, GPT-OSS 120B) or enter custom params/hidden/layers. Adjust LoRA rank, target modules, batch × sequence length, gradient checkpointing, Flash Attention 2 - tool computes peak VRAM with breakdown across weights / optimizer / gradients / activations, plus a GPU-fit table covering Pi 5 16GB to B200 192GB."
@@ -7,6 +7,7 @@ aiSummary: "Client-side fine-tuning VRAM estimator covering full fine-tune, LoRA
 personalUse: "I built this so I could stop the recurring 'will this fit on a 4090?' Slack thread. Picked the LoRA rank, hit Run, OOM at hour 3. Now I check here first."
 status: "active"
 publishedAt: "2026-05-13"
+lastVerified: "2026-10-02"
 icon: "🧮"
 license: "MIT"
 ---

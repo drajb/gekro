@@ -1,5 +1,5 @@
 ---
-title: "Device & Browser Info"
+title: "What Is My Browser"
 category: "infra"
 job: "Inspect your browser, OS, hardware, network, and public IP - all displayed locally"
 description: "Reads navigator, screen, and hardware APIs to display detailed browser and device information. Fetches your public IP via Cloudflare's trace endpoint (displayed only - not stored anywhere). Includes timezone, GPU, connection type, screen specs, and more. Zero data retention."

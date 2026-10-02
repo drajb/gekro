@@ -1,5 +1,5 @@
 ---
-title: "Code Snippet to PNG"
+title: "Code to Image"
 category: "dev"
 job: "Turn code into beautiful shareable images with syntax highlighting and gradient backgrounds"
 description: "Paste code, choose a language and theme, pick a background gradient, and export a high-resolution PNG. Syntax highlighting is powered by Shiki. The image is rendered client-side using html-to-image and exported at 2x pixel density for crisp displays. Nothing is uploaded."

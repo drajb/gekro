@@ -7,7 +7,7 @@ aiSummary: "A client-side estimator for multi-step LLM agent loops. It simulates
 personalUse: "I kept being surprised by agent bills until I realized the cost isn't N calls - it's the whole conversation re-sent N times, so a 20-step loop pays for the early turns twenty times over. I built this to sanity-check a loop before I run it a thousand times, and to show, concretely, why prompt caching is the single biggest lever on agent cost."
 status: "active"
 publishedAt: "2026-06-19"
-lastVerified: "2026-06-19"
+lastVerified: "2026-10-02"
 companionPostSlug: ""
 license: "MIT"
 icon: "🔁"

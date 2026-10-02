@@ -1,5 +1,5 @@
 ---
-title: "Old vs New Tax Regime Comparator"
+title: "Old vs New Tax Regime Calculator"
 category: "finance"
 job: "See which Indian tax regime costs you less, and the exact deduction level at which the answer flips"
 description: "Compares India's old and new income tax regimes side by side for tax year 2026-27, then solves for the breakeven: the total deductions at which the two cost exactly the same. If your realistic deductions sit below that line, the decision is already made. Models surcharge and 87A marginal relief, which most comparators skip. Runs entirely in your browser."

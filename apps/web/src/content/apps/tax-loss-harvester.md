@@ -1,5 +1,5 @@
 ---
-title: "Tax-Loss Harvest Optimizer"
+title: "Tax-Loss Harvesting Calculator"
 category: "finance"
 job: "Paste lot-level positions, see which to sell for max harvested losses while the wash-sale rule keeps the deductions valid. Federal-only. Produces a plan - never places trades."
 description: "Free in-browser tax-loss harvesting planner. Paste a CSV of your tax lots (one row per purchase), set your federal tax brackets and harvest target, and the app produces a per-lot HARVEST / WASH / HOLD / GAIN plan. Wash-sale aware: flags lots where another buy of the same ticker within 30 days before or after would disallow the loss. Splits Short-Term vs Long-Term losses, estimates federal tax saved, surfaces what carries forward past the $3,000/yr ordinary-income cap. Lists common ETF replacement pairings (SPY → VOO, AGG → BND, etc.) for keeping market exposure without triggering wash-sale. Download the plan as CSV. Federal-only by design. Never places trades."
