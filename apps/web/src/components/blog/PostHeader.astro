@@ -23,6 +23,8 @@
  */
 
 import { topicToSlug } from '../../lib/utils/slugify';
+import { getLanguage } from '../../lib/languages';
+import { t } from '../../lib/i18n';
 
 interface Props {
   title: string;
@@ -31,10 +33,12 @@ interface Props {
   tldr: string;
   readingTime?: number;
   mainImage?: string;
+  lang?: string;
 }
 
-const { title, publishedAt, topics, readingTime: readingTimeProp } = Astro.props;
-const formattedDate = new Date(publishedAt).toLocaleDateString('en-US', {
+const { title, publishedAt, topics, readingTime: readingTimeProp, lang = 'en' } = Astro.props;
+const dateLocale = getLanguage(lang)?.dateLocale ?? 'en-US';
+const formattedDate = new Date(publishedAt).toLocaleDateString(dateLocale, {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
@@ -62,7 +66,7 @@ const readingTime = readingTimeProp ?? 5;
   <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-text-muted border-t border-border-subtle pt-5">
     <time datetime={publishedAt} class="text-text-secondary">{formattedDate}</time>
     <span class="text-border-subtle" aria-hidden="true">·</span>
-    <span>{readingTime} min read</span>
+    <span>{t(lang, 'minRead', { n: readingTime })}</span>
     {topics.length > 1 && (
       <>
         <span class="text-border-subtle" aria-hidden="true">·</span>

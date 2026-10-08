@@ -36,6 +36,8 @@ import Footer from '../components/layout/Footer.astro';
 import LabTerminal from '../components/LabTerminal.astro';
 import CursorFollower from '../components/ui/CursorFollower.astro';
 import SearchModal from '../components/ui/SearchModal.astro';
+import { getLanguage } from '../lib/languages';
+import { t } from '../lib/i18n';
 import '../styles/global.css';
 
 interface Props {
@@ -49,6 +51,11 @@ interface Props {
   section?: string;
   tags?: string[];
   noindex?: boolean;
+  // Translated blog pages only: language code ('hi', 'ar', ...) and the full
+  // hreflang set. Omitted on every English page, which then renders exactly as
+  // it did before multilingual support existed.
+  lang?: string;
+  alternates?: { hreflang: string; href: string }[];
 }
 
 const {
@@ -62,7 +69,10 @@ const {
   section,
   tags,
   noindex,
+  lang,
+  alternates,
 } = Astro.props;
+const language = lang ? getLanguage(lang) : undefined;
 // GA4 — hardcoded override (same pattern as GTM, decision 2026-05-25).
 // The env-var path was silently failing in CF Pages because PUBLIC_GA_MEASUREMENT_ID
 // was never set in the dashboard, causing the entire GA4 snippet to be omitted.
@@ -73,7 +83,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || GA4_MEASUREMENT_ID;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={language?.bcp47 ?? 'en'} dir={language?.dir}>
   <head>
     <!-- SEOHead MUST come first: it emits <meta charset>, which the HTML spec
          requires within the first 1,024 bytes - the analytics snippets below
@@ -90,6 +100,8 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || GA4_MEASUREMENT_ID;
       section={section}
       tags={tags}
       noindex={noindex}
+      lang={lang}
+      alternates={alternates}
     />
 
     <!-- ─── Google Analytics 4 ──────────────────────────────────────────────── -->
@@ -126,7 +138,7 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || GA4_MEASUREMENT_ID;
   <body class="bg-bg-base text-text-primary selection:bg-accent selection:text-bg-base antialiased">
     <!-- Skip link — first focusable element; jumps keyboard users past the
          fixed header straight to the page content (WCAG 2.4.1) -->
-    <a href="#swup" class="skip-link">Skip to content</a>
+    <a href="#swup" class="skip-link">{t(lang, 'skipToContent')}</a>
 
     <!-- GTM noscript fallback (required for GTM compliance) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MBGML7FV"

@@ -1,0 +1,99 @@
+---
+/**
+ * blog/[lang]/[slug].astro - Translated blog post (/blog/<lang>/<slug>/)
+ *
+ * One page per entry in the `translations` collection. Reuses BlogLayout so a
+ * translated post looks and behaves exactly like the English one, with the
+ * language passed down for UI strings, <html lang/dir>, hreflang and JSON-LD.
+ *
+ * Fields come from the translation's own frontmatter (translated title,
+ * description, tldr, aiSummary; copied dates, topics, difficulty). The hero
+ * image comes from the English post because translations carry no mainImage.
+ *
+ * Not built at all while src/translations/ has no entries.
+ */
+
+import { getCollection, render } from 'astro:content';
+import BlogLayout from '../../../layouts/BlogLayout.astro';
+import TLDR from '../../../components/blog/TLDR.astro';
+import { consolidateTopics } from '../../../lib/utils/posts';
+import { getAllTranslations, getTranslationsForSlug } from '../../../lib/utils/translations';
+import { t } from '../../../lib/i18n';
+
+export async function getStaticPaths() {
+  const refs = await getAllTranslations();
+  const english = new Map((await getCollection('blog')).map((p) => [p.id, p]));
+  return refs
+    // An orphan (no English original) is a verify-i18n failure; never route it.
+    .filter((r) => english.has(r.slug))
+    .map((r) => ({
+      params: { lang: r.lang.code, slug: r.slug },
+      props: { entry: r.entry, lang: r.lang.code, source: english.get(r.slug)! },
+    }));
+}
+
+const { entry, lang, source } = Astro.props;
+const { slug } = Astro.params;
+
+const { Content, headings } = await render(entry);
+const alternateCodes = (await getTranslationsForSlug(slug as string)).map((r) => r.lang.code);
+
+const d = entry.data;
+const displayPost = {
+  ...d,
+  title: d.title,
+  publishedAt: d.publishedAt,
+  topics: consolidateTopics(d.topics),
+  difficulty: d.difficulty,
+  description: d.description,
+  readingTime: d.readingTime,
+  tldr: d.tldr || d.description || d.summary || '',
+  mainImage: source.data.mainImage,
+  slug: { current: slug as string },
+};
+---
+
+<BlogLayout post={displayPost} headings={headings} lang={lang} alternateCodes={alternateCodes}>
+  <div class="space-y-12">
+    <div class="space-y-4">
+      <TLDR title={t(lang, 'tldr')}>
+        {displayPost.tldr}
+      </TLDR>
+    </div>
+
+    <div class="prose prose-invert max-w-none space-y-12 prose-headings:font-heading prose-headings:font-medium prose-h2:text-3xl prose-h2:border-b prose-h2:border-border prose-h2:pb-4 prose-p:text-lg prose-p:leading-relaxed prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-pre:relative prose-pre:group prose-code:text-accent/90">
+      <Content />
+    </div>
+  </div>
+</BlogLayout>
+
+<script>
+  /**
+   * Copy buttons on code blocks. Same behaviour as the English post page; the
+   * label stays "Copy" (a universal UI affordance) so no per-language strings
+   * are needed inside this script.
+   */
+  function addCopyButtons() {
+    document.querySelectorAll('pre').forEach((block) => {
+      if (block.querySelector('button')) return;
+      const button = document.createElement('button');
+      button.innerText = 'Copy';
+      button.setAttribute('dir', 'ltr');
+      button.className = 'absolute right-4 top-4 p-2 text-[10px] uppercase tracking-widest font-mono text-text-muted bg-bg-surface border border-border rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:text-accent hover:border-accent z-20';
+      block.appendChild(button);
+      button.addEventListener('click', async () => {
+        const code = block.querySelector('code');
+        if (!code) return;
+        await navigator.clipboard.writeText(code.innerText);
+        button.innerText = 'Copied!';
+        button.classList.add('text-emerald-400', 'border-emerald-400');
+        setTimeout(() => {
+          button.innerText = 'Copy';
+          button.classList.remove('text-emerald-400', 'border-emerald-400');
+        }, 2000);
+      });
+    });
+  }
+  addCopyButtons();
+  document.addEventListener('astro:after-swap', addCopyButtons);
+</script>

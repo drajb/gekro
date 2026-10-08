@@ -83,6 +83,42 @@ scanCollection(join(__dirname, 'src/content/stack'), '/stack/', ['lastVerified',
 // most for a daily feed.
 scanCollection(join(__dirname, 'src/content/news'), '/news/', ['publishedAt']);
 
+// ── Translated blog editions (src/translations/<lang>/<slug>.md) ───────────
+// Each translation gets its own lastmod, and every post that has translations
+// gets an hreflang cluster (`links`) on all of its URLs. Astro's built-in
+// sitemap i18n option expects /<lang>/ at the site root, which does not fit
+// /blog/<lang>/<slug>/, so the cluster is attached in serialize() instead.
+// Language codes are read from the registry file's source to avoid importing
+// TypeScript here.
+const registrySrc = readFileSync(join(__dirname, 'src/lib/languages.ts'), 'utf8');
+const LANG_BCP47 = new Map(
+  [...registrySrc.matchAll(/code: '([a-z]{2})'[^}]*?bcp47: '([A-Za-z-]+)'/g)].map((m) => [m[1], m[2]])
+);
+// slug -> [{ lang (bcp47), url }]
+const translationsBySlug = new Map();
+// every URL that belongs to a cluster -> its slug
+const clusterUrlToSlug = new Map();
+try {
+  for (const langDir of readdirSync(join(__dirname, 'src/translations'))) {
+    if (!LANG_BCP47.has(langDir)) continue;
+    const dir = join(__dirname, 'src/translations', langDir);
+    for (const entry of readdirSync(dir)) {
+      if (entry.startsWith('_') || !entry.endsWith('.md')) continue;
+      const slug = entry.replace(/\.md$/, '');
+      const url = `https://gekro.com/blog/${langDir}/${slug}/`;
+      const raw = readFileSync(join(dir, entry), 'utf8').replace(/\r\n/g, '\n');
+      const date = extractFrontmatterField(raw, 'translatedAt') || extractFrontmatterField(raw, 'updatedAt') || extractFrontmatterField(raw, 'publishedAt');
+      if (date) lastmodMap.set(url, date);
+      if (!translationsBySlug.has(slug)) translationsBySlug.set(slug, []);
+      translationsBySlug.get(slug).push({ lang: LANG_BCP47.get(langDir), url });
+    }
+  }
+} catch { /* no translations folder yet */ }
+for (const [slug, list] of translationsBySlug) {
+  clusterUrlToSlug.set(`https://gekro.com/blog/${slug}/`, slug);
+  for (const t of list) clusterUrlToSlug.set(t.url, slug);
+}
+
 // Sanity integration is conditional — site works local-only without it
 const sanityIntegration = [];
 if (process.env.PUBLIC_SANITY_PROJECT_ID) {
@@ -116,6 +152,18 @@ export default defineConfig({
       serialize(item) {
         const mapped = lastmodMap.get(item.url);
         if (mapped) item.lastmod = mapped;
+
+        // hreflang cluster for posts that have translations (English page and
+        // every translated page list the same set, plus x-default = English).
+        const clusterSlug = clusterUrlToSlug.get(item.url);
+        if (clusterSlug) {
+          const english = `https://gekro.com/blog/${clusterSlug}/`;
+          item.links = [
+            { url: english, lang: 'en' },
+            ...translationsBySlug.get(clusterSlug).map((t) => ({ url: t.url, lang: t.lang })),
+            { url: english, lang: 'x-default' },
+          ];
+        }
 
         if (item.url === 'https://gekro.com/') {
           item.priority = 1.0;

@@ -47,13 +47,14 @@ gekro/
 │   │       │   ├── stack/        → StackHeader, StackCard, StackVerdict, StackPros/Cons, StackMeta, StackReferralFooter, ComparisonTable, SimpleBarChart
 │   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 93 Calculator components; see §8, NOT a git submodule)
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
-│   │       ├── content.config.ts → Zod schemas — 5 collections (blog, experiments, apps, stack, news)
+│   │       ├── content.config.ts → Zod schemas — 6 collections (blog, experiments, apps, stack, news, translations)
 │   │       ├── content/
 │   │       │   ├── blog/         → 14 markdown posts + _template.md
 │   │       │   ├── experiments/  → 3 markdown experiments + _template.md
 │   │       │   ├── apps/         → 93 app methodology markdown files + _template.md
 │   │       │   ├── stack/        → tool-review markdown files
 │   │       │   └── news/         → daily AI-briefing markdown files
+│   │       ├── translations/     → ⭐ machine-translated blog editions, <lang>/<slug>.md (outside content/ on purpose; see .gekro/docs/i18n-standard.md)
 │   │       ├── layouts/          → BaseLayout, BlogLayout, ExperimentLayout, AppLayout, StackLayout
 │   │       ├── lib/
 │   │       │   ├── sanity/       → client.ts (stub-on-missing), queries.ts (GROQ)
@@ -95,7 +96,8 @@ gekro/
 - **Topic chips** → `getTopicCounts()` in the same file.
 - **Sanity access** → `client` in [apps/web/src/lib/sanity/client.ts](apps/web/src/lib/sanity/client.ts) returns a stub rejecting-fetch if `PUBLIC_SANITY_PROJECT_ID` is missing. All callers must wrap in try/catch.
 - **Page → layout chain** → `BaseLayout.astro` wraps everything (View Transitions, GTM deferred 3.5s, Cloudflare beacon, `LabTerminal`, post-swap GSAP fade). `BlogLayout` and `ExperimentLayout` extend it.
-- **Content schemas** → `apps/web/src/content.config.ts` (Zod, single source of truth for markdown frontmatter; 5 collections: blog, experiments, apps, stack, news). Sanity schemas in `apps/studio/schemas/` are the headless mirror.
+- **Content schemas** → `apps/web/src/content.config.ts` (Zod, single source of truth for markdown frontmatter; 6 collections: blog, experiments, apps, stack, news, translations). Sanity schemas in `apps/studio/schemas/` are the headless mirror.
+- **Translated blog editions** → `lib/utils/translations.ts` (never `getAllPosts()`, which stays English-only), language registry `lib/languages.ts`, UI strings `lib/i18n.ts`, routes `pages/blog/[lang]/`. Files in `src/translations/` must pass `node scripts/verify-i18n.mjs` (runs in `postbuild`). Rules and contract: [.gekro/docs/i18n-standard.md](.gekro/docs/i18n-standard.md).
 - **SEO** → `SEOHead.astro` is mandatory on every page; `JsonLD.astro` on every post/experiment; `aiSummary` field is optimised for AI citation (GEO).
 
 ## 5. Commands
@@ -129,7 +131,7 @@ The project uses a formal **decision log + issue tracker** workflow. These files
 3. **Override protocol:** If a user request contradicts an existing decision, STOP, cite the conflicting decision's date, reason through trade-offs, and wait for the user to say literally **"Override"** before proceeding.
 4. **Proactive verification:** If a proposed change might break an existing decision or recreate a known issue, warn the user before implementing.
 
-Current decision count: **~60+ decisions** (latest: 2026-10-02; override count 1).
+Current decision count: **~60+ decisions** (latest: 2026-10-07; override count 1).
 Current issue count: **~60+ logged** (latest: 2026-10-02 full app review; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
 
 ## 6a. Content Protection Protocol (hard rule — no exceptions)
@@ -162,6 +164,7 @@ Depth lives in [.gekro/context/](.gekro/context/) — load one of these when the
 - [.gekro/context/components.md](.gekro/context/components.md) — every component, what it does, where it's used
 - [.gekro/context/pages.md](.gekro/context/pages.md) — every route + its data sources + layout chain
 - [.gekro/context/conventions.md](.gekro/context/conventions.md) — distilled code/style/content rules from `.cursorrules` + `.agents/rules/`
+- [.gekro/docs/i18n-standard.md](.gekro/docs/i18n-standard.md) — blog translation contract: file format, `sourceHash`, what a translation may change, checks, typography/RTL, SEO
 - [.gekro/context/history.md](.gekro/context/history.md) — condensed timeline of major decisions + hard-won lessons
 
 Original spec (aspirational — **not** authoritative any more, parts have been superseded): [.artifacts/gekro-blueprint.md](.artifacts/gekro-blueprint.md).

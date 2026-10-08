@@ -34,6 +34,7 @@ import RelatedPosts from '../../components/blog/RelatedPosts.astro';
 import { client } from '../../lib/sanity/client';
 import { ALL_POSTS_QUERY } from '../../lib/sanity/queries';
 import { getAllPosts, consolidateTopics } from '../../lib/utils/posts';
+import { getTranslationsForSlug } from '../../lib/utils/translations';
 
 export async function getStaticPaths() {
   // Build paths from local markdown files
@@ -102,9 +103,15 @@ if (isLocal) {
 
 // getAllPosts() for related posts (second build-time fetch; acceptable for SSG)
 const allPostsForRelated = await getAllPosts();
+
+// Languages this post has been translated into (empty today = no switcher,
+// no hreflang, page output unchanged).
+const alternateCodes = isLocal
+  ? (await getTranslationsForSlug(post.id)).map((r) => r.lang.code)
+  : [];
 ---
 
-<BlogLayout post={displayPost} headings={headings}>
+<BlogLayout post={displayPost} headings={headings} alternateCodes={alternateCodes}>
   <div class="space-y-12">
 
     <!-- ── Post meta bar: difficulty badge (publish date lives in PostHeader's byline) ── -->

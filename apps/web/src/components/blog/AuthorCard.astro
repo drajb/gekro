@@ -13,7 +13,14 @@
  */
 
 import { Image } from 'astro:assets';
+import { t } from '../../lib/i18n';
 import avatar from '../../assets/about/rohit-burani.jpg';
+
+interface Props {
+  lang?: string;
+}
+
+const { lang = 'en' } = Astro.props;
 ---
 
 <div class="flex items-center gap-5 py-8 border-t border-border-subtle mt-4">
@@ -36,7 +43,7 @@ import avatar from '../../assets/about/rohit-burani.jpg';
 
   <!-- Name + bio -->
   <div class="space-y-0.5 min-w-0">
-    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">Written by</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest text-text-muted">{t(lang, 'writtenBy')}</p>
     <a
       href="https://www.linkedin.com/in/rohitburani/"
       target="_blank"
@@ -46,7 +53,7 @@ import avatar from '../../assets/about/rohit-burani.jpg';
       Rohit Burani
     </a>
     <p class="text-sm text-text-secondary leading-snug">
-      AI engineer building local-first systems, self-hosted infrastructure, and autonomous tools from the lab.
+      {t(lang, 'authorBio')}
     </p>
   </div>
 </div>

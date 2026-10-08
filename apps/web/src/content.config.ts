@@ -10,6 +10,7 @@
  *  experiments — experiment case studies
  *  apps        — gekro-built stateless tools
  *  news        — daily AI industry briefings (auto-generated + human-reviewed)
+ *  translations — machine-translated blog editions (src/translations/<lang>/<slug>.md)
  *  stack       — third-party tool reviews ("Verified by an AI engineer").
  *                See .gekro/docs/stack-standard.md for the methodology. Note that
  *                the `badAt` field has .min(1) — that is intentional and is the
@@ -257,4 +258,36 @@ const news = defineCollection({
   ),
 });
 
-export const collections = { blog, experiments, apps, stack, news };
+// Translated editions of blog posts. Deliberately a SEPARATE collection that
+// lives OUTSIDE src/content/ (see CLAUDE.md 6a: hand-written article markdown
+// is protected; machine translations are produced and promoted by tooling).
+// Entry id is "<lang>/<slug>" where <slug> is the English post's id. Only the
+// translatable fields are free text; everything else is copied verbatim from
+// the English frontmatter and checked by scripts/verify-i18n.mjs.
+// There is no mainImage here: translated pages reuse the English post's image.
+const translations = defineCollection({
+  loader: glob({ pattern: ['**/*.md', '!**/_*'], base: './src/translations' }),
+  schema: z.object({
+    // Translated
+    title: z.string(),
+    description: z.string(),
+    summary: z.string().optional(),
+    tldr: z.string().optional(),
+    aiSummary: z.string().optional(),
+    // Copied from the English post (verified identical at build)
+    publishedAt: z.string(),
+    updatedAt: z.string().optional(),
+    difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']).default('Beginner'),
+    topics: z.array(z.string()),
+    readingTime: z.number().optional().default(5),
+    // Provenance. sourceHash = sha256 of the English title + description + body
+    // at translation time (scripts/i18n/source-hash.mjs). A mismatch means the
+    // English post changed after this translation was made.
+    sourceHash: z.string().regex(/^[0-9a-f]{64}$/),
+    translatedAt: z.string(),
+    translator: z.string(),
+    reviewed: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog, experiments, apps, stack, news, translations };

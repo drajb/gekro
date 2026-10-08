@@ -603,3 +603,85 @@ body {
     opacity: 1;
   }
 }
+
+/* ── Multilingual blog (translated pages only) ───────────────────────────
+   Applies only when <html lang> is a translation language, so English pages
+   are untouched. Script fonts are loaded per language by SEOHead.astro.
+   Rules of the road (see .gekro/docs/i18n-standard.md):
+   - Swap the three font tokens, never individual components.
+   - Letter-spacing breaks Arabic joining and Indic conjuncts: off everywhere.
+   - Synthetic italics look broken in these scripts: off, emphasis uses weight.
+   - Indic scripts and Arabic need more line height than Latin.
+   - RTL: code and the English-only site chrome stay left-to-right. */
+html:lang(hi), html:lang(mr) {
+  --font-body: "Noto Sans Devanagari", "Inter", sans-serif;
+  --font-display: "Noto Sans Devanagari", "Syne", sans-serif;
+  --font-heading: "Noto Sans Devanagari", "Cabinet Grotesk", sans-serif;
+}
+html:lang(bn) {
+  --font-body: "Noto Sans Bengali", "Inter", sans-serif;
+  --font-display: "Noto Sans Bengali", "Syne", sans-serif;
+  --font-heading: "Noto Sans Bengali", "Cabinet Grotesk", sans-serif;
+}
+html:lang(te) {
+  --font-body: "Noto Sans Telugu", "Inter", sans-serif;
+  --font-display: "Noto Sans Telugu", "Syne", sans-serif;
+  --font-heading: "Noto Sans Telugu", "Cabinet Grotesk", sans-serif;
+}
+html:lang(ta) {
+  --font-body: "Noto Sans Tamil", "Inter", sans-serif;
+  --font-display: "Noto Sans Tamil", "Syne", sans-serif;
+  --font-heading: "Noto Sans Tamil", "Cabinet Grotesk", sans-serif;
+}
+html:lang(zh-Hans) {
+  --font-body: "Noto Sans SC", "Inter", sans-serif;
+  --font-display: "Noto Sans SC", "Syne", sans-serif;
+  --font-heading: "Noto Sans SC", "Cabinet Grotesk", sans-serif;
+}
+html:lang(ar) {
+  --font-body: "Noto Sans Arabic", "Inter", sans-serif;
+  --font-display: "Noto Sans Arabic", "Syne", sans-serif;
+  --font-heading: "Noto Sans Arabic", "Cabinet Grotesk", sans-serif;
+}
+
+html:lang(hi) *, html:lang(mr) *, html:lang(bn) *, html:lang(te) *,
+html:lang(ta) *, html:lang(zh-Hans) *, html:lang(ar) * {
+  letter-spacing: normal !important;
+}
+html:lang(hi) em, html:lang(mr) em, html:lang(bn) em, html:lang(te) em,
+html:lang(ta) em, html:lang(zh-Hans) em, html:lang(ar) em,
+html:lang(hi) .prose-tldr, html:lang(mr) .prose-tldr, html:lang(bn) .prose-tldr,
+html:lang(te) .prose-tldr, html:lang(ta) .prose-tldr, html:lang(zh-Hans) .prose-tldr,
+html:lang(ar) .prose-tldr {
+  font-style: normal;
+}
+html:lang(hi) em, html:lang(mr) em, html:lang(bn) em, html:lang(te) em,
+html:lang(ta) em, html:lang(zh-Hans) em, html:lang(ar) em {
+  font-weight: 600;
+}
+html:lang(hi) article :where(p, li), html:lang(mr) article :where(p, li),
+html:lang(bn) article :where(p, li), html:lang(te) article :where(p, li),
+html:lang(ta) article :where(p, li) {
+  line-height: 1.9;
+}
+html:lang(ar) article :where(p, li) { line-height: 2; }
+html:lang(zh-Hans) article :where(p, li) { line-height: 1.95; }
+
+html[dir="rtl"] body > :not(#swup) { direction: ltr; }
+/* The skip link is parked 9999px off-screen to the left; in an RTL document
+   leftward overflow is scrollable and added a 10,000px horizontal scrollbar. */
+html[dir="rtl"] .skip-link { left: auto; right: -9999px; border-radius: 0 0 0 0.75rem; }
+html[dir="rtl"] .skip-link:focus { left: auto; right: 0; }
+html[dir="rtl"] pre,
+html[dir="rtl"] pre code,
+html[dir="rtl"] .mermaid {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+html[dir="rtl"] article aside {
+  border-left-width: 0;
+  border-right-width: 1px;
+  padding-left: 0;
+  padding-right: 3rem;
+}

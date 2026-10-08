@@ -40,6 +40,8 @@
  *  infinite redirect loop previously.
  */
 
+import { getLanguage, fontHref, ENGLISH } from '../../lib/languages';
+
 interface Props {
   title: string;
   description?: string;
@@ -53,6 +55,10 @@ interface Props {
   tags?: string[];
   twitterCreator?: string;
   noindex?: boolean;
+  // Translated pages: language code and the hreflang alternate set (absolute
+  // hrefs, including x-default). English pages omit both.
+  lang?: string;
+  alternates?: { hreflang: string; href: string }[];
 }
 
 const {
@@ -68,7 +74,14 @@ const {
   tags,
   twitterCreator = '@rohitburani',
   noindex = false,
+  lang,
+  alternates,
 } = Astro.props;
+
+const language = lang ? getLanguage(lang) : undefined;
+const ogLocale = language?.ogLocale ?? ENGLISH.ogLocale;
+// Script font for non-Latin languages, loaded only on pages in that language.
+const scriptFontHref = fontHref(language);
 
 const SITE_ORIGIN = 'https://gekro.com';
 // Canonical = natural trailing-slash form served by CF Pages.
@@ -117,9 +130,14 @@ const bingToken = import.meta.env.PUBLIC_BING_VERIFICATION;
 <noscript>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </noscript>
+{scriptFontHref && <link href={scriptFontHref} rel="stylesheet" media="print" onload="this.media='all'" />}
+{scriptFontHref && <noscript><link href={scriptFontHref} rel="stylesheet" /></noscript>}
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
+{alternates && alternates.map((alt) => (
+  <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+))}
 
 <!-- Primary Meta Tags -->
 <title>{siteTitle}</title>
@@ -129,7 +147,7 @@ const bingToken = import.meta.env.PUBLIC_BING_VERIFICATION;
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content={ogType} />
 <meta property="og:site_name" content="gekro" />
-<meta property="og:locale" content="en_US" />
+<meta property="og:locale" content={ogLocale} />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={siteTitle} />
 <meta property="og:description" content={description} />

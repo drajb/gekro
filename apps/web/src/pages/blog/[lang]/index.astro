@@ -1,0 +1,91 @@
+---
+/**
+ * blog/[lang]/index.astro - Translated blog archive (/blog/<lang>/)
+ *
+ * Lists the posts that exist in one language, newest first, using the same
+ * PostCard as the English archive. Built only for languages that have at
+ * least one translation, so an empty language never gets a dead page.
+ */
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostCard from '../../../components/blog/PostCard.astro';
+import JsonLD from '../../../components/seo/JsonLD.astro';
+import { getActiveLanguages, getTranslationsForLang, translationPath } from '../../../lib/utils/translations';
+import { getLanguage } from '../../../lib/languages';
+import { consolidateTopics } from '../../../lib/utils/posts';
+import { t } from '../../../lib/i18n';
+
+export async function getStaticPaths() {
+  return (await getActiveLanguages()).map((l) => ({ params: { lang: l.code } }));
+}
+
+const { lang } = Astro.params;
+const language = getLanguage(lang as string)!;
+const refs = await getTranslationsForLang(lang as string);
+
+const pageURL = `https://gekro.com/blog/${lang}/`;
+const collectionSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "inLanguage": language.bcp47,
+  "@id": pageURL,
+  "name": t(lang, 'archiveTitle'),
+  "description": t(lang, 'archiveIntro'),
+  "url": pageURL,
+  "isPartOf": { "@id": "https://gekro.com/#website" },
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": refs.length,
+    "itemListElement": refs.map((r, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "url": `https://gekro.com${translationPath(lang as string, r.slug)}`,
+      "name": r.entry.data.title,
+    })),
+  },
+};
+const breadcrumbs = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
+    { "@type": "ListItem", "position": 2, "name": t(lang, 'archiveEyebrow'), "item": pageURL },
+  ],
+};
+---
+
+<BaseLayout title={`${t(lang, 'archiveTitle')} | gekro`} description={t(lang, 'archiveIntro')} lang={lang}>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+  <main class="max-w-6xl mx-auto px-6 pt-28 sm:pt-32 pb-24 space-y-14">
+    <header class="max-w-2xl">
+      <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent mb-4">{t(lang, 'archiveEyebrow')}</p>
+      <h1 class="font-display text-4xl sm:text-5xl font-semibold text-text-primary tracking-tight mb-4">{t(lang, 'archiveTitle')}</h1>
+      <p class="text-base sm:text-lg text-text-secondary leading-relaxed">{t(lang, 'archiveIntro')}</p>
+      <p class="mt-6 text-sm text-text-muted leading-relaxed">
+        {t(lang, 'translatedNotice')}
+        {' '}
+        <a href="/blog/" hreflang="en" lang="en" class="text-accent hover:underline">{t(lang, 'readOriginal')}</a>
+      </p>
+    </header>
+
+    <div class="max-w-3xl space-y-12">
+      {refs.map((r) => (
+        <PostCard
+          lang={lang}
+          href={translationPath(lang as string, r.slug)}
+          post={{
+            title: r.entry.data.title,
+            description: r.entry.data.description,
+            slug: { current: r.slug },
+            tldr: r.entry.data.tldr,
+            publishedAt: r.entry.data.publishedAt,
+            topics: consolidateTopics(r.entry.data.topics),
+            difficulty: r.entry.data.difficulty,
+            readingTime: r.entry.data.readingTime,
+          }}
+        />
+      ))}
+    </div>
+  </main>
+</BaseLayout>

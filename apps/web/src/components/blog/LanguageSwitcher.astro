@@ -1,0 +1,66 @@
+---
+/**
+ * LanguageSwitcher.astro - "Read in" strip for a blog post
+ *
+ * Shown above a post's body only when at least one translation exists. Lists
+ * English plus every available translation by its endonym (the language's own
+ * name), no flags. The current language is a non-link.
+ *
+ * Props:
+ *  current - 'en' or a language code
+ *  slug    - the English post slug
+ *  codes   - language codes that have a translation of this post
+ *
+ * Rendering nothing when `codes` is empty keeps English pages byte-identical
+ * until the first translation lands.
+ */
+import { LANGUAGES, ENGLISH, getLanguage } from '../../lib/languages';
+import { t } from '../../lib/i18n';
+import { translationPath } from '../../lib/utils/translations';
+
+interface Props {
+  current: string;
+  slug: string;
+  codes: string[];
+}
+
+const { current, slug, codes } = Astro.props;
+
+const items = [
+  { code: 'en', label: ENGLISH.endonym, href: `/blog/${slug}/`, bcp47: 'en' },
+  ...LANGUAGES.filter((l) => codes.includes(l.code)).map((l) => ({
+    code: l.code,
+    label: l.endonym,
+    href: translationPath(l.code, slug),
+    bcp47: l.bcp47,
+  })),
+];
+const label = t(current, 'readIn');
+const dir = getLanguage(current)?.dir ?? 'ltr';
+---
+
+{codes.length > 0 && (
+  <nav aria-label={label} dir={dir} class="lang-switcher flex flex-wrap items-center gap-2 mt-8">
+    <span class="text-[11px] font-mono uppercase tracking-[0.2em] text-text-muted me-1">{label}</span>
+    {items.map((item) =>
+      item.code === current ? (
+        <span
+          lang={item.bcp47}
+          aria-current="true"
+          class="px-3 py-1 text-[13px] rounded-full border border-accent text-accent bg-accent/5"
+        >
+          {item.label}
+        </span>
+      ) : (
+        <a
+          href={item.href}
+          lang={item.bcp47}
+          hreflang={item.bcp47}
+          class="px-3 py-1 text-[13px] rounded-full border border-border text-text-secondary hover:border-accent hover:text-accent transition-colors"
+        >
+          {item.label}
+        </a>
+      )
+    )}
+  </nav>
+)}

@@ -32,7 +32,11 @@ import GiscusComments from '../components/blog/GiscusComments.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
 import AuthorCard from '../components/blog/AuthorCard.astro';
+import LanguageSwitcher from '../components/blog/LanguageSwitcher.astro';
 import type { FormattedPost } from '../lib/utils/posts';
+import { LANGUAGES, getLanguage } from '../lib/languages';
+import { t, arrows } from '../lib/i18n';
+import { translationPath, languageArchivePath } from '../lib/utils/translations';
 import { WORDS_PER_MINUTE } from '../lib/utils/reading-time';
 
 /**
@@ -51,9 +55,17 @@ interface Heading {
 interface Props {
   post: FormattedPost;
   headings: Heading[];
+  // Translated pages pass their language code. `alternateCodes` lists every
+  // language that has a translation of this post (used by the switcher and
+  // hreflang) and is also passed from the English page once translations
+  // exist. Both default to "English, no translations" = unchanged output.
+  lang?: string;
+  alternateCodes?: string[];
 }
 
-const { post, headings } = Astro.props;
+const { post, headings, lang = 'en', alternateCodes = [] } = Astro.props;
+const language = lang !== 'en' ? getLanguage(lang) : undefined;
+const arrow = arrows(language?.dir ?? 'ltr');
 
 // Meta/OG description: the short human-written description — aiSummary can run
 // 400+ chars and was truncating mid-clause in SERP snippets and OG cards.
@@ -74,7 +86,23 @@ const ogImage =
     ? post.mainImage
     : postSlug ? `/og/blog/${postSlug}.png` : '/og/default.png';
 
-const pageURL = `https://gekro.com/blog/${postSlug}/`;
+const pageURL = language
+  ? `https://gekro.com${translationPath(lang, postSlug as string)}`
+  : `https://gekro.com/blog/${postSlug}/`;
+const englishURL = `https://gekro.com/blog/${postSlug}/`;
+
+// hreflang set: English + every translation + x-default (English). Emitted only
+// once at least one translation exists, so untranslated English pages stay as-is.
+const alternates = alternateCodes.length
+  ? [
+      { hreflang: 'en', href: englishURL },
+      ...LANGUAGES.filter((l) => alternateCodes.includes(l.code)).map((l) => ({
+        hreflang: l.bcp47,
+        href: `https://gekro.com${translationPath(l.code, postSlug as string)}`,
+      })),
+      { hreflang: 'x-default', href: englishURL },
+    ]
+  : undefined;
 // Primary topic becomes the OG article:section — used by LinkedIn / FB / some
 // feed readers for content categorisation.
 const primaryTopic = post.topics?.[0];
@@ -89,7 +117,7 @@ const wordCount = post.readingTime ? post.readingTime * WORDS_PER_MINUTE : undef
 const schema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "inLanguage": "en-US",
+  "inLanguage": language ? language.bcp47 : "en-US",
   "headline": post.title,
   "description": aiDescription,
   "image": [absoluteOgImage],
@@ -123,9 +151,18 @@ const schema = {
     "@type": "WebPage",
     "@id": pageURL
   },
-  ...(wordCount ? { "wordCount": wordCount } : {}),
+  // wordCount is derived from the English reading time; meaningless for
+  // other scripts, so translated pages omit it.
+  ...(wordCount && !language ? { "wordCount": wordCount } : {}),
   ...(post.topics?.length ? { "keywords": post.topics.join(', ') } : {}),
   ...(primaryTopic ? { "articleSection": primaryTopic } : {}),
+  ...(language ? {
+    "translationOfWork": {
+      "@type": "BlogPosting",
+      "url": englishURL,
+      "inLanguage": "en-US",
+    },
+  } : {}),
 };
 
 // BreadcrumbList: Home → Blog → <post title>
@@ -134,7 +171,9 @@ const breadcrumbs = {
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gekro.com/" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://gekro.com/blog/" },
+    language
+      ? { "@type": "ListItem", "position": 2, "name": t(lang, 'archiveEyebrow'), "item": `https://gekro.com${languageArchivePath(lang)}` }
+      : { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://gekro.com/blog/" },
     { "@type": "ListItem", "position": 3, "name": post.title, "item": pageURL },
   ],
 };
@@ -183,6 +222,8 @@ const howtoSchema = post.howto ? {
   author="Rohit Burani"
   section={primaryTopic}
   tags={post.topics}
+  lang={language ? lang : undefined}
+  alternates={alternates}
 >
   <!-- Structured data injected into <head> via a <script type="application/ld+json"> -->
   <JsonLD data={schema} />
@@ -211,7 +252,19 @@ const howtoSchema = post.howto ? {
       topics={post.topics || []}
       tldr={post.tldr}
       readingTime={post.readingTime}
+      lang={lang}
     />
+
+    {/* "Read in" strip: renders nothing until a translation exists */}
+    <LanguageSwitcher current={lang} slug={postSlug as string} codes={alternateCodes} />
+
+    {language && (
+      <p class="mt-4 max-w-3xl text-sm text-text-muted leading-relaxed">
+        {t(lang, 'translatedNotice')}
+        {' '}
+        <a href={`/blog/${postSlug}/`} hreflang="en" lang="en" class="text-accent hover:underline">{t(lang, 'readOriginal')}</a>
+      </p>
+    )}
 
     {/* Hero image. mainImage previously fed only the OG social preview, and
         PostHeader declared a mainImage prop it never rendered, so no post on
@@ -220,7 +273,7 @@ const howtoSchema = post.howto ? {
       <figure class="mt-10 mb-2">
         <img
           src={post.mainImage}
-          alt={`Key metrics for ${post.title}`}
+          alt={t(lang, 'heroAlt', { title: post.title })}
           loading="eager"
           decoding="async"
           class="w-full rounded-xl border border-border-subtle shadow-2xl shadow-black/30"
@@ -239,11 +292,11 @@ const howtoSchema = post.howto ? {
       <aside class="hidden lg:block lg:col-span-1 border-l border-border-subtle pl-12 h-fit">
         <div class="sticky top-32 space-y-12">
           <!-- Auto-generated table of contents from H2/H3 headings -->
-          <PostTOC headings={headings} />
+          <PostTOC headings={headings} lang={lang} />
 
           <!-- Share section -->
           <div class="space-y-6">
-            <h4 class="text-[10px] uppercase font-mono tracking-[0.2em] text-text-muted">Share Post</h4>
+            <h4 class="text-[10px] uppercase font-mono tracking-[0.2em] text-text-muted">{t(lang, 'sharePost')}</h4>
             <div class="flex flex-col gap-4">
               <!-- LinkedIn share link — uses the current page URL via encodeURIComponent -->
               <a
@@ -260,8 +313,9 @@ const howtoSchema = post.howto ? {
                 id="copy-link"
                 class="text-xs font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-2 group text-left"
                 aria-label="Copy link to post"
+                data-copied-label={language ? t(lang, 'copied') : undefined}
               >
-                <span class="opacity-40 group-hover:opacity-100 transition-opacity">#</span> Copy Link
+                <span class="opacity-40 group-hover:opacity-100 transition-opacity">#</span> {t(lang, 'copyLink')}
               </button>
             </div>
           </div>
@@ -270,23 +324,24 @@ const howtoSchema = post.howto ? {
     </div>
 
     <!-- Author card — "Written by Rohit Burani" with LinkedIn link -->
-    <AuthorCard />
+    <AuthorCard lang={lang} />
 
+    {/* Newsletter and comments are English-only surfaces: not rendered on translations */}
     <!-- Newsletter signup (Beehiiv embed or fallback form) -->
-    <NewsletterEmbed />
+    {!language && <NewsletterEmbed />}
 
     <!-- GitHub Discussions comments embed -->
-    <GiscusComments />
+    {!language && <GiscusComments />}
 
     <!-- Post footer — thanks message + back-to-blog link -->
     <footer class="mt-8 py-6 border-t border-border-subtle">
       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="space-y-1">
-          <h4 class="text-base font-heading text-text-primary">Thanks for reading.</h4>
-          <p class="text-sm text-text-secondary">If you enjoyed this, consider sharing it with your network.</p>
+          <h4 class="text-base font-heading text-text-primary">{t(lang, 'thanksTitle')}</h4>
+          <p class="text-sm text-text-secondary">{t(lang, 'thanksBody')}</p>
         </div>
-        <a href="/blog/" class="px-5 py-2 border border-border rounded-full hover:border-accent text-sm font-mono transition-all">
-          ← Back to Blog
+        <a href={language ? languageArchivePath(lang) : '/blog/'} class="px-5 py-2 border border-border rounded-full hover:border-accent text-sm font-mono transition-all">
+          {arrow.back} {t(lang, 'backToBlog')}
         </a>
       </div>
     </footer>
@@ -308,7 +363,8 @@ const howtoSchema = post.howto ? {
         try {
           await navigator.clipboard.writeText(window.location.href);
           const originalHTML = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<span class="text-accent-success">✓</span> Copied!';
+          const copiedLabel = copyBtn.dataset.copiedLabel || 'Copied!';
+          copyBtn.innerHTML = `<span class="text-accent-success">✓</span> ${copiedLabel}`;
           setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
         } catch (err) {
           console.error('Failed to copy link:', err);
