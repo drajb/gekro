@@ -8,6 +8,7 @@ Decision record: `.gekro/logs/decision-log.md` rows dated 2026-10-06 and 2026-10
 - Eight languages beside English: `hi bn mr te ta zh es ar`. Registry: `apps/web/src/lib/languages.ts` (the only list of languages; adding one means one entry there, one in `lib/i18n.ts`, one font rule in `styles/global.css`).
 - English stays at `/blog/<slug>/` and is never routed through translation. Translations live at `/blog/<lang>/<slug>/`, and each language with at least one translation has an archive at `/blog/<lang>/`.
 - Translations are files: `apps/web/src/translations/<lang>/<slug>.md`, where `<slug>` is the English file name under `src/content/blog/`. They sit outside `src/content/` on purpose, so CLAUDE.md section 6a (protection of hand-written article markdown) is not triggered by tooling that writes or refreshes them. English article markdown stays protected as before.
+- Discovery: the English `/blog/` header carries an "Also in" strip linking each language archive, each `/blog/<lang>/` archive carries the same "Read in" strip as a post (English plus every language that has an archive), and `/llms.txt` lists the translated archives with a note that English is authoritative. All three are generated from the translations collection and disappear if it is empty.
 - `getAllPosts()` is untouched and English-only. Translations never reach the archive, topic hubs, related posts, RSS, the posts API, `llms-full.txt` or the OG image generator. All language-aware code goes through `lib/utils/translations.ts`.
 
 ## Translation file contract

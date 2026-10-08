@@ -45,6 +45,10 @@ const extractFrontmatterField = (raw, field) => {
   // Frontmatter lives between the first two `---` lines. Match `field: value`
   // with optional quotes. Dates are YYYY-MM-DD; we don't need to handle every
   // YAML edge case — just the two fields we care about.
+  // A leading UTF-8 BOM (api-sovereignty, linux-edge have one) would defeat the
+  // `^---` anchor and silently fall back to file mtime, which on a fresh CI
+  // checkout is the clone time.
+  raw = raw.replace(/^﻿/, '').replace(/\r\n/g, '\n');
   const fm = raw.match(/^---\n([\s\S]*?)\n---/);
   if (!fm) return null;
   const line = fm[1].split('\n').find(l => l.trim().startsWith(`${field}:`));

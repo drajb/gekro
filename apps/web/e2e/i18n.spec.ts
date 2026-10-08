@@ -104,3 +104,28 @@ test('English pages without translations have no switcher and no hreflang', asyn
   await expect(page.locator('nav.lang-switcher')).toHaveCount(0);
   await expect(page.locator('link[rel="alternate"][hreflang]')).toHaveCount(0);
 });
+
+// Discovery: the English archive links every language archive, and every
+// archive links English plus the other languages. Without these the editions
+// are reachable only from a post or from search.
+const archiveLangs = [...new Set(translations.map((t) => t.lang))];
+
+test('English /blog/ links to every language archive', async ({ page }) => {
+  test.skip(archiveLangs.length === 0, 'no translations');
+  await page.goto('/blog/', { waitUntil: 'domcontentloaded' });
+  for (const lang of archiveLangs) {
+    await expect(page.locator(`main header a[href="/blog/${lang}/"]`)).toHaveCount(1);
+  }
+});
+
+for (const lang of archiveLangs) {
+  test(`/blog/${lang}/ archive links English and the other languages`, async ({ page }) => {
+    await page.goto(`/blog/${lang}/`, { waitUntil: 'domcontentloaded' });
+    const nav = page.locator('main header nav[aria-label]');
+    await expect(nav.locator('a[href="/blog/"]')).toHaveCount(1);
+    for (const other of archiveLangs.filter((l) => l !== lang)) {
+      await expect(nav.locator(`a[href="/blog/${other}/"]`)).toHaveCount(1);
+    }
+    await expect(nav.locator('[aria-current="true"]')).toHaveCount(1);
+  });
+}

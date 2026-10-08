@@ -16,7 +16,7 @@ reviewed: false
   La interfaz gráfica es una mentira diseñada para descubrir, no para ir rápido. En el desarrollo de IA, la terminal es la única interfaz que sigue el ritmo del pensamiento. Este artículo detalla las funciones de Zsh y las configuraciones de WSL2 concretas que uso para canalizar las salidas del sistema directamente a los LLM sin tocar nunca el ratón.
 </TLDR>
 
-En un laboratorio de IA moderno, tu rendimiento está limitado por el coste de cambiar de contexto. Si te pasas el día cambiando con alt-tab a un navegador para pegar logs de error o mensajes de commit, estás desangrando tu concentración. Yo lo ejecuto todo desde una instancia de WSL2 muy personalizada, porque la terminal es la interfaz nativa de la "capa de inteligencia". Al canalizar el sistema operativo directamente a un LLM, he reducido mi "trabajo de idiota" (formatear, redactar commits, cazar logs) casi a cero.
+En un laboratorio de IA moderno, tu rendimiento está limitado por el coste de cambiar de contexto. Si te pasas el día cambiando con alt-tab a un navegador para pegar logs de error o mensajes de commit, estás desangrando tu concentración. Yo lo ejecuto todo desde una instancia de WSL2 muy personalizada, porque la terminal es la interfaz nativa de la "capa de inteligencia". Al canalizar el sistema operativo directamente a un LLM, he reducido mi "trabajo tonto" (formatear, redactar commits, cazar logs) casi a cero.
 
 El cambio no fue ideológico. Mi IDE fallaba una y otra vez con los comandos de PowerShell y Bash, y la terminal sencillamente hacía el trabajo. Esa fue toda la conversión.
 

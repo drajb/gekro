@@ -13,7 +13,7 @@ reviewed: false
 ---
 
 <TLDR>
-  No malgastes una estación de trabajo de 2.000 dólares en tareas cron y en un broker MQTT. Uso una Raspberry Pi 5 con un SSD NVMe como "asistente de laboratorio": un nodo siempre encendido que se encarga de las tareas repetitivas y de poco cómputo que mantienen estable el pulso del laboratorio. Este artículo cubre la configuración del hardware y la pila de utilidades en Docker que conecta mi mundo físico (Tesla y casa) con mis agentes de IA.
+  No malgastes una estación de trabajo de 2,000 dólares en tareas cron y en un broker MQTT. Uso una Raspberry Pi 5 con un SSD NVMe como "asistente de laboratorio": un nodo siempre encendido que se encarga de las tareas repetitivas y de poco cómputo que mantienen estable el pulso del laboratorio. Este artículo cubre la configuración del hardware y la pila de utilidades en Docker que conecta mi mundo físico (Tesla y casa) con mis agentes de IA.
 </TLDR>
 
 En un mundo de centros de datos de miles de millones de dólares, el ordenador de 80 dólares es mi empleado más fiable. Cuando empecé Gekro en DFW, me di cuenta de que necesitaba un nodo de "Ground Truth": algo que siguiera vivo incluso cuando mi Mac Mini principal se estaba reiniciando o mi estación de trabajo estaba saturada por un render 3D. La Raspberry Pi es el ancla. No hace el "pensamiento" pesado, pero garantiza que los datos que el Cerebro necesita (como el estado de carga de mi Tesla o la temperatura de la oficina) estén siempre disponibles e indexados.
@@ -46,7 +46,7 @@ graph LR
 
 ## La construcción
 
-Una Pi de producción tiene que ser "Immutability-First". No instalo nada en el sistema operativo base salvo Docker y Tailscale.
+Una Pi de producción tiene que ser "inmutable primero". No instalo nada en el sistema operativo base salvo Docker y Tailscale.
 
 ### 1. La ventaja del NVMe
 
@@ -101,7 +101,7 @@ lab() {
 
 El mayor punto débil de la Pi es la **saturación de cómputo**. Una vez intenté ejecutar una base de datos vectorial local (ChromaDB) en la Pi junto con otros cuatro agentes. Los tiempos de espera de E/S se dispararon y mi puente MQTT empezó a perder mensajes de mi Tesla. Hay que ser un "carroñero de recursos". He aprendido a limitar la Pi estrictamente a **tareas limitadas por E/S** (obtener datos de APIs, enrutar mensajes) y a delegar en el Mac Mini todas las **tareas limitadas por CPU/GPU**.
 
-Además, **la alimentación importa**. Un cargador de móvil USB-C "estándar" hará que la Pi 5 reduzca su rendimiento bajo carga. Tuve que pasar a la fuente de alimentación PD oficial de 27W para mantener el disco NVMe y el enfriador activo a plena capacidad durante las olas de calor del verano en Texas.
+Además, **la alimentación importa**. Un cargador de móvil USB-C "estándar" hará que la Pi 5 reduzca su rendimiento bajo carga. Tuve que pasar a la fuente de alimentación PD oficial de 27W para mantener el disco NVMe y el disipador activo a plena capacidad durante las olas de calor del verano en Texas.
 
 ## Hacia dónde va esto
 

@@ -13,7 +13,7 @@ reviewed: false
 ---
 
 <TLDR>
-  Dejar fijo un único proveedor de IA es negligencia arquitectónica. Construí un cliente de LLM unificado que da prioridad a Together AI, pero conmuta automáticamente a instancias locales de Ollama cuando la nube se apaga. Este artículo desglosa el patrón GekroLLMClient que mantiene mi laboratorio funcionando 24/7 sin intervención manual.
+  Fijar en el código un único proveedor de IA es negligencia arquitectónica. Construí un cliente de LLM unificado que da prioridad a Together AI, pero conmuta automáticamente a instancias locales de Ollama cuando la nube se apaga. Este artículo desglosa el patrón GekroLLMClient que mantiene mi laboratorio funcionando 24/7 sin intervención manual.
 </TLDR>
 
 Son las 2 de la madrugada en Dallas. Una tarea cron rutinaria lanza un agente para resumir los logs de mi servidor. La API de Together AI devuelve un 503. En una configuración estándar, la canalización muere, una notificación me despierta y pierdo una hora de sueño arreglando una dependencia que no controlo. En mi laboratorio, ese fallo es invisible. El sistema detecta el tiempo de espera agotado, captura la excepción y redirige la petición a una instancia de Llama 3 que corre en una de mis Raspberry Pi. La resiliencia no es una característica; es un requisito para la soberanía.

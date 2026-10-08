@@ -5,7 +5,7 @@ publishedAt: "2026-03-28"
 difficulty: "Intermediate"
 topics: ["AI Engineering", "Architecture", "Productivity"]
 readingTime: 5
-aiSummary: "Las herramientas de programación con IA actúan como motores sin estado que se degradan sin restricciones arquitectónicas. Este artículo detalla la estrategia exacta de plantillas y base de conocimiento que evita que las inconsistencias en cascada conviertan una prueba de concepto que funciona en un código de producción imposible de arreglar."
+aiSummary: "Las herramientas de programación con IA actúan como motores sin estado que se degradan sin restricciones arquitectónicas. Este artículo detalla la estrategia exacta de plantillas y base de conocimiento que evita que las inconsistencias en cascada conviertan una prueba de concepto que funciona en una base de código de producción imposible de arreglar."
 sourceHash: "83f8dd1a268736a94ef519833ac6c8e84a5443aa96e19c1f392d140a5ecbad1f"
 translatedAt: "2026-10-08"
 translator: "claude-sonnet-5-5"
@@ -114,9 +114,9 @@ Por ejemplo, trazar explícitamente adónde debe dirigir la lógica el agente ga
 
 Antes de escribir una sola línea de código de aplicación para un proyecto complejo, mi flujo de trabajo habitual es lanzar un artículo de investigación profunda sobre el tema. Sintetizo esa investigación arquitectónica y luego empiezo a esbozar mi estrategia de prompts, guardando esos hallazgos como archivos Markdown en una carpeta aislada de artefactos. Una estrategia de prompts bien planificada y muy investigada, que haga referencia a artefactos explícitos, es infinitamente mejor que reaccionar a los fallos de un solo intento y dar vueltas intentando arreglarlos.
 
-Además, construir así desbloquea un enorme control de costes. Esta estrategia funciona mejor cuando ya tienes una configuración con varios proveedores, algo que la capa de abstracción hace trivial. Tu plano y tu síntesis estructural deberían generarse con el modelo de frontera más capaz disponible, como Gemini Pro o Claude Opus. Una vez trazados los límites arquitectónicos rígidos, deja que un modelo más rápido y barato, como Flash, ejecute el plano documentado. Cuando termine la generación local de código, haz que el modelo de gama superior revise la solicitud de cambios para garantizar una consistencia estricta con la plantilla base. A la larga, esto ahorra muchísimo dinero.
+Además, construir así desbloquea un enorme control de costes. Esta estrategia funciona mejor cuando ya tienes una configuración con varios proveedores, algo que la capa de abstracción hace trivial. Tu plano y tu síntesis estructural deberían generarse con el modelo de frontera más capaz disponible, como Gemini Pro o Claude Opus. Una vez trazados los límites arquitectónicos rígidos, deja que un modelo más rápido y barato, como Flash, ejecute el plano documentado. Cuando termine la generación local de código, haz que el modelo de gama superior revise la pull request para garantizar una consistencia estricta con la plantilla base. A la larga, esto ahorra muchísimo dinero.
 
-Por último, exige siempre que el agente genere un conjunto de pruebas para cada función nueva. Asegúrate de que las instrucciones para ello vivan de forma explícita en las reglas del espacio de trabajo o en el README, para que las pruebas sean obligatorias en cada ciclo de prompts importante y no una ocurrencia tardía.
+Por último, exige siempre que el agente genere un conjunto de pruebas para cada función nueva. Asegúrate de que las instrucciones para ello vivan de forma explícita en las reglas del espacio de trabajo o en el README, para que las pruebas sean obligatorias en cada ciclo de prompts importante y no un añadido de última hora.
 
 ```text
 # Agent Prompt: Test Suite Mandate
@@ -125,7 +125,7 @@ Por último, exige siempre que el agente genere un conjunto de pruebas para cada
 
 ## Las contrapartidas
 
-La tensión está por completo entre el coste inicial de construir una plantilla y la velocidad engañosa de los prompts en bruto. Mantener plantillas reutilizables consume horas de fin de semana que preferiría dedicar a construir funciones. Además, cuando sale una nueva versión mayor de un framework subyacente, la plantilla se rompe de raíz. Cada generación posterior de la IA basada en ella requiere una dirección manual intensa hasta que se parchea la base.
+La tensión está por completo entre el coste inicial de construir una plantilla y la velocidad engañosa de los prompts en bruto. Mantener plantillas reutilizables consume horas de fin de semana que preferiría dedicar a construir funciones. Además, cuando sale una nueva versión mayor de un framework subyacente, la plantilla se rompe de raíz. Cada generación posterior de la IA basada en ella requiere mucha intervención manual hasta que se parchea la base.
 
 Hay una segunda contrapartida que no he resuelto, y no estoy seguro de que alguien lo haya hecho. La memoria sigue siendo el punto débil. Incluso con una buena capa de memoria, una configuración sensata de habilidades y varios agentes coordinándose, un proyecto grande sigue olvidando en silencio cosas que una persona que lo conociera nunca olvidaría. Así que te repites. Esa es la parte de este flujo de trabajo que me resulta genuinamente irritante, y ninguna cantidad de plantillas la arregla.
 

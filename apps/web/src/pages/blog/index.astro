@@ -26,9 +26,12 @@ import Tag from '../../components/ui/Tag.astro';
 import SearchWidget from '../../components/ui/SearchWidget.astro';
 import JsonLD from '../../components/seo/JsonLD.astro';
 import { getAllPosts, getTopicCounts } from '../../lib/utils/posts';
+import { getActiveLanguages, languageArchivePath } from '../../lib/utils/translations';
 
 // Merge local + Sanity posts, sorted newest-first
 const posts = await getAllPosts();
+// Languages that have at least one translated post; empty until the first lands
+const translatedLanguages = await getActiveLanguages();
 // Derive topic counts for sidebar chips (all topics, no slice limit on archive)
 const topics = getTopicCounts(posts);
 
@@ -77,6 +80,21 @@ const breadcrumbs = {
       <p class="text-base sm:text-lg text-text-secondary leading-relaxed">
         Deep dives, tutorials, and field notes from the lab - building agentic AI, local-first LLM infrastructure, and self-hosted systems in production.
       </p>
+      {translatedLanguages.length > 0 && (
+        <nav aria-label="Read the blog in another language" class="flex flex-wrap items-center gap-2 mt-6">
+          <span class="text-[11px] font-mono uppercase tracking-[0.2em] text-text-muted me-1">Also in</span>
+          {translatedLanguages.map((l) => (
+            <a
+              href={languageArchivePath(l.code)}
+              lang={l.bcp47}
+              hreflang={l.bcp47}
+              class="px-3 py-1 text-[13px] rounded-full border border-border text-text-secondary hover:border-accent hover:text-accent transition-colors"
+            >
+              {l.endonym}
+            </a>
+          ))}
+        </nav>
+      )}
     </header>
 
     <!-- Pagefind client-side search bar (index built at postbuild; no-op in dev) -->

@@ -16,7 +16,7 @@ reviewed: false
   Los monolitos son una trampa de deuda para los desarrolladores de IA. Dividí Gekro en un "cerebro" con Python para el razonamiento asíncrono y un "cuerpo" basado en Astro para una entrega de alto rendimiento. Este artículo desglosa la pila de hardware, desde los Mac Mini hasta los clústeres de Pi, y el sistema nervioso de FastAPI que los conecta.
 </TLDR>
 
-La mayoría de los desarrolladores tratan a un LLM como una consulta a base de datos glorificada: un ciclo síncrono de petición y respuesta gestionado dentro de un único servidor de Next.js o Node. Eso aguanta justo hasta que el trabajo tarda de verdad. Cuando ejecutas flujos agénticos complejos que pueden tardar 30 segundos en "pensar" y otros 10 en validar, no puedes bloquear el hilo de tu interfaz. En mi laboratorio me he decantado por una **arquitectura de cerebro dividido**. El "cerebro" (la inteligencia) vive en entornos Python especializados repartidos por un clúster de hardware distribuido, mientras que el "cuerpo" (la interfaz) es una máquina Astro ligera y ágil que prioriza la velocidad y el SEO.
+La mayoría de los desarrolladores tratan a un LLM como una glorificada consulta a una base de datos: un ciclo síncrono de petición y respuesta gestionado dentro de un único servidor de Next.js o Node. Eso aguanta justo hasta que el trabajo tarda de verdad. Cuando ejecutas flujos agénticos complejos que pueden tardar 30 segundos en "pensar" y otros 10 en validar, no puedes bloquear el hilo de tu interfaz. En mi laboratorio me he decantado por una **arquitectura de cerebro dividido**. El "cerebro" (la inteligencia) vive en entornos Python especializados repartidos por un clúster de hardware distribuido, mientras que el "cuerpo" (la interfaz) es una máquina Astro ligera y ágil que prioriza la velocidad y el SEO.
 
 ## La arquitectura
 
@@ -104,7 +104,7 @@ const initialStatus = await fetch('http://brain-gateway/status').then(res => res
 
 ### Nota sobre WSL2
 
-Cuando uno estas capas en una máquina Windows, ejecuto Redis y el "cerebro" de FastAPI dentro de WSL2, pero uso el servidor de desarrollo de Astro nativo de Windows para el "cuerpo". Así puedo usar el depurador de Chrome de Windows para el trabajo de interfaz mientras el código Python, muy optimizado para Linux, se ejecuta en su entorno natural.
+Cuando conecto estas capas en una máquina Windows, ejecuto Redis y el "cerebro" de FastAPI dentro de WSL2, pero uso el servidor de desarrollo de Astro nativo de Windows para el "cuerpo". Así puedo usar el depurador de Chrome de Windows para el trabajo de interfaz mientras el código Python, muy optimizado para Linux, se ejecuta en su entorno natural.
 
 ## Las contrapartidas
 

@@ -1,6 +1,6 @@
 ---
 title: "Raspberry Pi: مساعد مختبرك على مدار الساعة"
-description: "لماذا لا يقتصر دور جهاز Pi لديّ على مشاريع الهواة، بل يعمل جسر خدمات وإنترنت أشياء (IoT) دائم التشغيل لمختبر Gekro."
+description: "لماذا لا يقتصر دور جهاز Pi لديّ على مشاريع الهواة، بل يعمل كجسر خدمات وإنترنت أشياء (IoT) دائم التشغيل لمختبر Gekro."
 publishedAt: "2026-02-15"
 difficulty: "Beginner"
 topics: ["Hardware", "Raspberry Pi", "AI Agents"]
@@ -46,7 +46,7 @@ graph LR
 
 ## البناء
 
-يجب أن يكون جهاز Pi في بيئة الإنتاج "Immutability-First". لا أثبّت شيئًا على نظام التشغيل الأساسي سوى Docker وTailscale.
+يجب أن يكون جهاز Pi في بيئة الإنتاج "الثبات أولًا" (Immutability-First). لا أثبّت شيئًا على نظام التشغيل الأساسي سوى Docker وTailscale.
 
 ### 1. ميزة NVMe
 

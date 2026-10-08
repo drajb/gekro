@@ -57,9 +57,9 @@ Añade esta variable de entorno al archivo del servicio para permitir llamadas e
 Environment="OLLAMA_HOST=0.0.0.0"
 ```
 
-### 2. El código base de la abstracción
+### 2. El código repetitivo de la abstracción
 
-No uses la API sin procesar de Ollama directamente en tus experimentos. Usa un cliente consciente del respaldo. Esta es una versión simplificada de la lógica que uso en todo el laboratorio.
+No uses la API sin procesar de Ollama directamente en tus experimentos. Usa un cliente que contemple el respaldo. Esta es una versión simplificada de la lógica que uso en todo el laboratorio.
 
 ```python
 import ollama
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
 ### La placa te dice que está funcionando
 
-Se puede oír pensar a una Pi. La mía se calentaba, el ventilador arrancaba y, sentado a su lado, podía saber que estaba a mitad de un prompt sin mirar la terminal. A esta escala, el estrangulamiento térmico no es una línea abstracta en una hoja de especificaciones: es un ruido en tu escritorio. Planifica el flujo de aire antes que cualquier otra cosa.
+Se puede oír pensar a una Pi. La mía se calentaba, el ventilador arrancaba y, sentado a su lado, podía saber que estaba a mitad de un prompt sin mirar la terminal. A esta escala, el throttling térmico no es una línea abstracta en una hoja de especificaciones: es un ruido en tu escritorio. Planifica el flujo de aire antes que cualquier otra cosa.
 
 ### Nota sobre WSL2
 
@@ -99,7 +99,7 @@ Si lo pruebas en WSL2 sobre Windows, Ollama ya tiene un instalador nativo para W
 
 La Raspberry Pi no es una H100. Si intentas ejecutar un modelo Llama 3-70B en una Pi, no solo será lento; el OOM killer terminará el proceso. Si tienes el swap activado en una tarjeta SD barata, el propio vaivén puede corromper tu sistema de archivos.
 
-El mayor fallo que tuve fue el **estrangulamiento por calor**. Durante un trabajo pesado de procesamiento por lotes, la temperatura de la Pi 5 llegó a 85°C y la velocidad de inferencia cayó a 0.5 tokens por segundo. En un laboratorio, la refrigeración activa (un saludo a la caja Argon ONE) no es opcional para los LLM locales; es obligatoria.
+El mayor fallo que tuve fue el **throttling por calor**. Durante un trabajo pesado de procesamiento por lotes, la temperatura de la Pi 5 llegó a 85°C y la velocidad de inferencia cayó a 0.5 tokens por segundo. En un laboratorio, la refrigeración activa (un saludo a la caja Argon ONE) no es opcional para los LLM locales; es obligatoria.
 
 Además, no esperes "creatividad" al nivel de la nube. Los modelos locales cuantizados son excelentes para la extracción, el resumen y la lógica básica. Son malos para los matices o la planificación estratégica de alto nivel.
 

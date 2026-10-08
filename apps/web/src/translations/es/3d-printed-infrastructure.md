@@ -35,7 +35,7 @@ En la construcción tradicional, cada curva es un centro de costes. Los encofrad
 
 Esto nos permite aprovechar la **optimización topológica**. Podemos imprimir muros con núcleos huecos internos que actúan como aislamiento natural o como canales de servicio para cableado y fontanería, integrados directamente durante el proceso de extrusión. Y, lo que es más importante, permite usar **geopolímeros verdes**. Al emplear subproductos industriales como la ceniza volante o la escoria como aglutinantes en lugar del cemento Portland tradicional, podemos reducir drásticamente la huella de carbono del "cuerpo" de un edificio antes incluso de colocar el tejado.
 
-## El cómo: del laminado a la extrusión
+## El cómo: del slicing a la extrusión
 
 El puente entre el "cerebro" (el diseño digital) y el "cuerpo" (la estructura física) sigue un proceso predecible, pero rígido. Es una orquestación de alto riesgo entre ciencia de materiales y robótica.
 

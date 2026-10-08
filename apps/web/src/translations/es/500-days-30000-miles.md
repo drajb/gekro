@@ -18,7 +18,7 @@ reviewed: false
 
 El domingo pasado por la mañana, a las 10:22, con el cuentakilómetros marcando 40,397.8, una Raspberry Pi de mi casa registró la milla treinta mil de mi conducción. Quinientos días de recopilación, exactos.
 
-Nada lo señaló, porque nada se construyó para ello. Una fila aterrizó en una tabla de Postgres exactamente igual que los diez millones anteriores, que es el mayor elogio que puedo hacerle a una pieza de infraestructura.
+Nada lo señaló, porque nada se construyó para ello. Una fila entró en una tabla de Postgres exactamente igual que los diez millones anteriores, que es el mayor elogio que puedo hacerle a una pieza de infraestructura.
 
 Diez millones no es una figura retórica. La base de datos contiene **10,356,022 filas de posición** y otras 243,380 filas de detalle de carga. Eso son unas 20,700 filas nuevas al día, todos los días, durante quinientos días, desde un único nodo dedicado al que se ha dejado a su aire para hacer exactamente esto y nada más.
 
@@ -38,7 +38,7 @@ Por cada cuatro dólares de electricidad que compro, unos tres mueven realmente 
 
 ## Lo que nadie te cuenta
 
-Seguí entrando por SSH a la Pi, y casi nunca porque necesitara arreglo. Me conectaba porque quería ver llegar los datos, ver aterrizar un trayecto en la tabla mientras el coche aún estaba caliente en la entrada, comprobar que la curva de carga de la noche anterior parecía una curva de carga. Al principio lo hacía porque aún no me fiaba de ella. Más tarde lo hacía porque había empezado a entender el esquema, y entender un esquema es el punto en el que una base de datos deja de ser una caja negra y empieza a ser un lugar al que puedes ir a mirar.
+Seguí entrando por SSH a la Pi, y casi nunca porque necesitara arreglo. Me conectaba porque quería ver llegar los datos, ver entrar un trayecto en la tabla mientras el coche aún estaba caliente en la entrada, comprobar que la curva de carga de la noche anterior parecía una curva de carga. Al principio lo hacía porque aún no me fiaba de ella. Más tarde lo hacía porque había empezado a entender el esquema, y entender un esquema es el punto en el que una base de datos deja de ser una caja negra y empieza a ser un lugar al que puedes ir a mirar.
 
 Es una educación más lenta de lo que suena. Aprendes que una fila de `drives` aparece en el instante en que el coche cambia de estado, que un proceso de carga y una muestra de carga son objetos distintos con vidas distintas, que el cuentakilómetros es el único campo que nunca miente. Aprendes lo que significan tus propios datos, que no es lo mismo que tenerlos.
 
@@ -48,9 +48,9 @@ Nada de eso requirió IA, y quiero ser preciso con la cronología: hacía esto m
 
 Lo que cambió es que dejé de escribir SQL y empecé a hacer preguntas.
 
-Apuntar un LLM a un esquema que ya entendía convirtió una consulta de cinco minutos en una de diez segundos. No porque conozca mis datos, sino porque los conozco yo, y puedo darme cuenta de inmediato cuando la respuesta que me da no tiene sentido. Esa combinación es la útil. Quien nunca ha abierto las tablas recibe respuestas erróneas con total seguridad y no tiene forma de detectarlas. Quien conoce el esquema y ahora puede preguntar en español se salta directamente a la parte interesante.
+Apuntar un LLM a un esquema que ya entendía convirtió una consulta de cinco minutos en una de diez segundos. No porque conozca mis datos, sino porque los conozco yo, y puedo darme cuenta de inmediato cuando la respuesta que me da no tiene sentido. Esa combinación es la útil. Quien nunca ha abierto las tablas recibe respuestas erróneas con total seguridad y no tiene forma de detectarlas. Quien conoce el esquema y ahora puede preguntar en inglés se salta directamente a la parte interesante.
 
-Lo interesante es que las preguntas mejoran. Cuando consultar es caro, solo preguntas lo que ya sospechas. Cuando es barato, empiezas a preguntar cosas sobre las que no tienes hipótesis, y ahí es donde viven las sorpresas. Cómo cambia la duración media de los viajes a lo largo de las estaciones. En qué momento del día se mueve realmente el coche. Cómo es una sesión de carga en la noche más calurosa del año comparada con la más templada.
+Lo interesante es que las preguntas mejoran. Cuando consultar es caro, solo preguntas lo que ya sospechas. Cuando es barato, empiezas a preguntar cosas sobre las que no tienes hipótesis, y ahí es donde viven las sorpresas. Cómo cambia la duración media de los trayectos a lo largo de las estaciones. En qué momento del día se mueve realmente el coche. Cómo es una sesión de carga en la noche más calurosa del año comparada con la más templada.
 
 La aplicación de Tesla no puede responder nada de eso. Nunca se construyó para ello. Te muestra un resumen, y un resumen solo puede responder las preguntas que alguien anticipó cuando lo diseñó.
 

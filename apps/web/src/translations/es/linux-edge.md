@@ -22,9 +22,9 @@ Lo que lo decidió fue ver cómo el PowerShell generado por IA fallaba, reintent
 
 ## La arquitectura
 
-El "Edge" de mi laboratorio se refiere al acceso directo y sin intermediarios al hardware. Windows añade una capa de ruido del "Desktop Window Manager" (DWM) entre tu código y tu GPU. Linux permite un **paso directo de hardware** que se siente como metal puro.
+El "Edge" de mi laboratorio se refiere al acceso directo y sin intermediarios al hardware. Windows añade una capa de ruido del "Desktop Window Manager" (DWM) entre tu código y tu GPU. Linux permite un **paso directo de hardware** que se siente como bare metal.
 
-| Característica | Windows (nativo) | WSL2 (Ubuntu 22.04+) | Ubuntu Server (metal puro) |
+| Característica | Windows (nativo) | WSL2 (Ubuntu 22.04+) | Ubuntu Server (bare metal) |
 | :--- | :--- | :--- | :--- |
 | **Acceso a la GPU** | DirectX / CUDA (pesado) | Paso directo de CUDA (casi nativo) | CUDA directo (el más rápido) |
 | **Rendimiento de E/S** | Rápido (NTFS) | Rápido (dentro de VHDX) | Extremo (ext4/zfs) |

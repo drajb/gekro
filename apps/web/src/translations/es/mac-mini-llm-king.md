@@ -20,12 +20,12 @@ Si montas un laboratorio en un suburbio de DFW, aprendes enseguida que el consum
 
 ## La arquitectura
 
-La "magia" de Apple Silicon no es la velocidad de la CPU, sino la **arquitectura de memoria unificada (UMA)**. En un PC tradicional, la RAM de la CPU y la RAM de la GPU (VRAM) están separadas. Si quieres ejecutar un modelo de 40GB, necesitas una GPU de 1.600 dólares. En un Mac, la RAM del sistema *es* la VRAM.
+La "magia" de Apple Silicon no es la velocidad de la CPU, sino la **arquitectura de memoria unificada (UMA)**. En un PC tradicional, la RAM de la CPU y la RAM de la GPU (VRAM) están separadas. Si quieres ejecutar un modelo de 40GB, necesitas una GPU de 1,600 dólares. En un Mac, la RAM del sistema *es* la VRAM.
 
 | Característica | PC de sobremesa (RTX 4090) | Mac Mini (M4 Pro 64GB) |
 | :--- | :--- | :--- |
 | **Capacidad de VRAM** | Límite duro de 24GB | Hasta 64GB (flexible) |
-| **Ancho de banda de memoria** | 1.000 GB/s (GDDR6X) | 273 GB/s (unificada) |
+| **Ancho de banda de memoria** | 1,000 GB/s (GDDR6X) | 273 GB/s (unificada) |
 | **Consumo eléctrico** | 450W - 600W | 20W - 50W |
 | **Acústica** | Mucho ruido de ventiladores | Casi silencioso |
 | **Tamaño de modelo ideal** | 8B - 34B | 8B - 70B (cuantizado) |
@@ -69,11 +69,11 @@ Para un Mac de 64GB, **Q4_K_M** es la cuantización "justa" para Llama 3-70B. Ca
 
 ## Las contrapartidas
 
-El Mac Mini no es perfecto. El mayor "impuesto" es la **falta de CUDA**. Si haces *entrenamiento* o ajuste fino de modelos, el Mac es un pisapapeles comparado con un equipo NVIDIA. La mayoría del código de investigación nuevo se escribe primero para CUDA, y el "soporte de Metal" suele ser una ocurrencia tardía que llega meses después.
+El Mac Mini no es perfecto. El mayor "impuesto" es la **falta de CUDA**. Si haces *entrenamiento* o ajuste fino de modelos, el Mac es un pisapapeles comparado con un equipo NVIDIA. La mayoría del código de investigación nuevo se escribe primero para CUDA, y el "soporte de Metal" suele ser un añadido de última hora que llega meses después.
 
 Siendo justo, nunca llegué a chocar con ese muro. Todo lo que ejecuto en este laboratorio es inferencia, y la inferencia en Metal ha ido bien. Lo señalo porque me afectaría el día que intentara afinar algo en Apple silicon, no porque me haya afectado alguna vez.
 
-También tuve un problema serio de **calentamiento acumulado**. Durante un procesamiento por lotes de 4 horas de 1.000 registros de telemetría de Tesla, el ventilador interno del Mac Mini por fin se activó y la velocidad de inferencia bajó de 8 TPS a 5 TPS. Incluso la eficiencia de Apple tiene límites cuando se lleva al 100% de utilización durante horas. Acabé imprimiendo en 3D un soporte a medida con un ventilador de 120mm para mantener fría la base del chasis durante las inferencias largas.
+También tuve un problema serio de **calentamiento acumulado**. Durante un procesamiento por lotes de 4 horas de 1,000 registros de telemetría de Tesla, el ventilador interno del Mac Mini por fin se activó y la velocidad de inferencia bajó de 8 TPS a 5 TPS. Incluso la eficiencia de Apple tiene límites cuando se lleva al 100% de utilización durante horas. Acabé imprimiendo en 3D un soporte a medida con un ventilador de 120mm para mantener fría la base del chasis durante las inferencias largas.
 
 ## Hacia dónde va esto
 

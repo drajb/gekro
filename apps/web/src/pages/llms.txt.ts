@@ -27,6 +27,7 @@ import { getCollection } from 'astro:content';
 import { topicToSlug } from '../lib/utils/slugify';
 import { getAllPosts } from '../lib/utils/posts';
 import { eligibleNewsHubTopics } from '../lib/utils/news-topics';
+import { getActiveLanguages, getTranslationsForLang } from '../lib/utils/translations';
 
 const SITE = 'https://gekro.com';
 
@@ -79,6 +80,17 @@ export const GET: APIRoute = async () => {
   posts.forEach((p) => p.topics?.forEach((t: string) => hubSlugs.add(topicToSlug(t))));
   eligibleNewsHubTopics(briefings).forEach((t) => hubSlugs.add(topicToSlug(t)));
   const topicLines = [...hubSlugs].filter(Boolean).sort().map((s) => `- ${SITE}/topics/${s}/`).join('\n');
+
+  // Machine-translated blog editions. Empty (and the section omitted) until the
+  // first translation exists. The English post stays the authoritative source.
+  const translatedLangs = await getActiveLanguages();
+  const translatedLines = (await Promise.all(translatedLangs.map(async (l) => {
+    const n = (await getTranslationsForLang(l.code)).length;
+    return `- ${SITE}/blog/${l.code}/   ${l.english} (${l.endonym}), ${n} posts`;
+  }))).join('\n');
+  const translatedSection = translatedLangs.length
+    ? `\n## Translated editions of the blog\nMachine translations of the English posts, each labelled as such on the page and linking to the original. The English post is the authoritative version; cite it. Every translated URL is /blog/<lang>/<slug>/ and carries hreflang alternates.\n\n${translatedLines}\n`
+    : '';
 
   const counts = {
     apps: apps.length,
@@ -137,7 +149,7 @@ ${appSections}
 Hubs are derived from post and briefing frontmatter, so each one below is live:
 
 ${topicLines}
-`;
+${translatedSection}`;
 
   return new Response(body, {
     headers: {

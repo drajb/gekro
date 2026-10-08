@@ -1,11 +1,11 @@
 ---
-title: "Presentamos Gekro News: un boletín de IA que se cura a mi medida"
+title: "Presentamos Gekro News: un boletín de IA que se arma a mi medida"
 description: "Un boletín diario público de IA que lee un perfil de mis intereses destilado de mi propia base de conocimiento, elige la señal real del día, cita sus fuentes y se publica solo cada mañana."
 publishedAt: "2026-06-22"
 difficulty: "Intermediate"
 topics: ["Automation", "LLMs", "AI Engineering"]
 readingTime: 6
-aiSummary: "Gekro News es un boletín diario público de IA en gekro.com/news que se cura a sí mismo en torno a un perfil de intereses destilado automáticamente de la base de conocimiento del autor. Rastrea fuentes verificadas, selecciona las noticias más relevantes del día con un resumen neutral y con citas, valida su propia salida y publica automáticamente cada mañana una entrada y un feed RSS, que luego se lee en voz alta en el coche cuando se pide."
+aiSummary: "Gekro News es un boletín diario público de IA en gekro.com/news que selecciona sus propias noticias en torno a un perfil de intereses destilado automáticamente de la base de conocimiento del autor. Rastrea fuentes verificadas, selecciona las noticias más relevantes del día con un resumen neutral y con citas, valida su propia salida y publica automáticamente cada mañana una entrada y un feed RSS, que luego se lee en voz alta en el coche cuando se pide."
 sourceHash: "49ef62b347d67c884f49b6f131646c5d83d372abb2dfab7449cf06d93bdcc174"
 translatedAt: "2026-10-08"
 translator: "claude-sonnet-5-5"
@@ -13,12 +13,12 @@ reviewed: false
 ---
 
 <TLDR>
-  Gekro News es un boletín público de IA que se cura a sí mismo en torno a un perfil de lo que realmente me importa, destilado automáticamente de mi propia base de conocimiento. Saca la señal real del día entre el ruido, cita sus fuentes y se publica solo cada mañana, sin una persona en el circuito. Hago que mi coche me lo lea en el trayecto de ida.
+  Gekro News es un boletín público de IA que selecciona sus propias noticias en torno a un perfil de lo que realmente me importa, destilado automáticamente de mi propia base de conocimiento. Saca la señal real del día entre el ruido, cita sus fuentes y se publica solo cada mañana, sin intervención humana. Hago que mi coche me lo lea en el trayecto de ida.
 </TLDR>
 
 <!-- The Hook (No Heading) -->
 
-Cada mañana, antes de que yo me despierte, un pequeño programa lee las noticias de IA del día, descarta las nueve décimas partes que no tienen nada que ver con mi trabajo y me deja el resto. Aprende qué cuenta como mi trabajo leyendo mis propias notas, y sigue aprendiendo a medida que esas notas cambian. No lo compré ni lo instalé. Nada en el mercado cura las noticias en torno a un solo lector, así que construí lo que lo haría.
+Cada mañana, antes de que yo me despierte, un pequeño programa lee las noticias de IA del día, descarta las nueve décimas partes que no tienen nada que ver con mi trabajo y me deja el resto. Aprende qué cuenta como mi trabajo leyendo mis propias notas, y sigue aprendiendo a medida que esas notas cambian. No lo compré ni lo instalé. Nada en el mercado selecciona las noticias en torno a un solo lector, así que construí algo que lo hiciera.
 
 ## La arquitectura
 
@@ -27,7 +27,7 @@ La razón por la que esto no es otro lector de feeds es que el filtro no es est�
 | | Qué hace | Dónde vive |
 |---|---|---|
 | El gusto | Destila mi base de conocimiento en un perfil público de intereses, cada semana | Un flujo de [n8n](/stack/n8n/) (en la nube) |
-| La agencia de noticias | Rastrea fuentes verificadas, cura con ese perfil, valida y publica | Una tarea diaria (en la nube, sin supervisión) |
+| La agencia de noticias | Rastrea fuentes verificadas, selecciona con ese perfil, valida y publica | Una tarea diaria (en la nube, sin supervisión) |
 | La entrega | Me lee el boletín, con las manos libres, cuando lo pido | RSS más una consulta de voz bajo demanda en el coche |
 
 Las tres partes están desacopladas a propósito, de modo que un fallo en una nunca tumba a las demás.
@@ -68,13 +68,13 @@ Esa columna vertebral estática es la misma todos los días. Lo que cambia es un
 
 También tiene memoria. Antes de escribir, el editor ve los titulares que ya publicó en los últimos días, de modo que una noticia de varios días no se vuelve a contar cada mañana. Pasa a otra cosa salvo que haya ocurrido algo realmente nuevo, y esa es la diferencia entre un feed y un bucle.
 
-**El gusto que se actualiza solo.** Esta es la parte que más me importa. Un flujo de [n8n](/stack/n8n/) se ejecuta de forma programada, lee mi base de conocimiento y la destila en los temas públicos de IA y software con los que realmente he estado construyendo y sobre los que he escrito. Escribe el resultado en un pequeño perfil que la tarea diaria lee en su siguiente ejecución. Dos reglas lo hacen seguro para ejecutarse sin supervisión contra un sitio público. Primero, el perfil vive en un repositorio público, así que es legible por todo el mundo por construcción, lo que significa que solo pueden vivir allí temas publicables. Segundo, la escritura está protegida por una comprobación de que el perfil no contiene nada personal, nada sobre para quién trabajo, nada identificativo, y falla cerrando: si no puede certificar que el perfil está limpio, no escribe nada y se queda el último perfil limpio. Anticuado pero limpio gana a reciente pero sin verificar, siempre.
+**El gusto que se actualiza solo.** Esta es la parte que más me importa. Un flujo de [n8n](/stack/n8n/) se ejecuta de forma programada, lee mi base de conocimiento y la destila en los temas públicos de IA y software con los que realmente he estado construyendo y sobre los que he escrito. Escribe el resultado en un pequeño perfil que la tarea diaria lee en su siguiente ejecución. Dos reglas lo hacen seguro para ejecutarse sin supervisión contra un sitio público. Primero, el perfil vive en un repositorio público, así que es legible por todo el mundo por construcción, lo que significa que solo pueden vivir allí temas publicables. Segundo, la escritura está protegida por una comprobación de que el perfil no contiene nada personal, nada sobre para quién trabajo, nada identificativo, y falla en modo seguro: si no puede certificar que el perfil está limpio, no escribe nada y se queda el último perfil limpio. Anticuado pero limpio gana a reciente pero sin verificar, siempre.
 
-**Publicación y entrega.** Un boletín mal formado nunca se publica: el generador valida su propia salida (tono neutral, fuentes alineadas, límites de longitud) y aborta ante cualquier cosa rota antes de que una compilación la vea. Uno limpio se confirma solo y se despliega, y aparece en [gekro.com/news](/news/) y en un feed RSS. Todo se ejecuta en rutinas programadas en la nube, así que mantenerlo vivo no me cuesta nada y nunca necesita mi máquina encendida. Para la entrega, configuré una instrucción personalizada en el asistente de mi coche: pido mis noticias, recupera el último boletín y me lo lee durante el trayecto de ida. Sin aplicación, sin pantalla.
+**Publicación y entrega.** Un boletín mal formado nunca se publica: el generador valida su propia salida (tono neutral, fuentes alineadas, límites de longitud) y aborta ante cualquier cosa rota antes de que una compilación la vea. Uno limpio hace su propio commit y se despliega, y aparece en [gekro.com/news](/news/) y en un feed RSS. Todo se ejecuta en rutinas programadas en la nube, así que mantenerlo vivo no me cuesta nada y nunca necesita mi máquina encendida. Para la entrega, configuré una instrucción personalizada en el asistente de mi coche: pido mis noticias, recupera el último boletín y me lo lee durante el trayecto de ida. Sin aplicación, sin pantalla.
 
 ## Las contrapartidas
 
-Un filtro que se cura a sí mismo es un único punto de gusto. El boletín solo es tan relevante como el perfil que lo respalda, y ese perfil soy yo. Ese es todo el valor cuando quiero una agencia de noticias que siga mi trabajo, y un lastre en cuanto lo confundo con algo objetivo. Me refleja a propósito, y procuro no olvidarlo.
+Un filtro que se ajusta solo es un único punto de gusto. El boletín solo es tan relevante como el perfil que lo respalda, y ese perfil soy yo. Ese es todo el valor cuando quiero una agencia de noticias que siga mi trabajo, y un lastre en cuanto lo confundo con algo objetivo. Me refleja a propósito, y procuro no olvidarlo.
 
 La línea más difícil es la que separa lo público de lo privado. Este es un sitio público, así que la personalización tiene que hacer las noticias más relevantes para mí sin convertir nunca la página en un diario. La disciplina cabe en una frase: personaliza lo que se selecciona, nunca a quién se dirige. El boletín se mantiene neutral y en tercera persona. En ningún lugar hay un "para ti, Rohit", porque al otro lado hay un lector real que merece un boletín, no un vistazo a mi cuaderno. La mitad personal vive solo en el coche, donde el público es uno.
 

@@ -24,13 +24,13 @@ Tres mecanismos distintos reciben el nombre de marca de agua. Casi no tienen nad
 
 | Mecanismo | Dónde vive la señal | Se elimina con | Detectable por terceros |
 |---|---|---|---|
-| Unicode oculto | Caracteres de ancho cero, bloque Tag (U+E0000-E007F) | Cualquier buscar y reemplazar | Sí, trivialmente |
+| Unicode oculto | Caracteres de ancho cero, bloque Tag (U+E0000-E007F) | Cualquier búsqueda y reemplazo | Sí, trivialmente |
 | Metadatos C2PA | Manifiesto firmado en el contenedor del archivo | Captura de pantalla, volver a guardar, conversión de formato | Sí, la presencia se puede comprobar |
 | Marca de agua estadística | Las elecciones de tokens del modelo | Paráfrasis intensa o traducción | No, necesita la clave del proveedor |
 
-Anthropic incorpora dos de ellas. Los archivos reciben metadatos de procedencia firmados C2PA, el mismo estándar de Content Credentials que usa la industria de la imagen, en `.svg`, `.png` y `.jpg`. El texto recibe la tercera fila. La documentación de Anthropic la describe como "una marca de agua imperceptible directamente en el propio texto", una que "no cambia el significado, la calidad ni la legibilidad de la respuesta de Claude".
+Anthropic aplica dos de ellas. Los archivos reciben metadatos de procedencia firmados C2PA, el mismo estándar de Content Credentials que usa la industria de la imagen, en `.svg`, `.png` y `.jpg`. El texto recibe la tercera fila. La documentación de Anthropic la describe como "una marca de agua imperceptible directamente en el propio texto", una que "no cambia el significado, la calidad ni la legibilidad de la respuesta de Claude".
 
-El despliegue es más estrecho de lo que sugerían los titulares. Según Anthropic, "los modelos de Claude lanzados a partir del 2 de agosto de 2026 admitirán el marcado legible por máquina desde su lanzamiento", y el soporte para los modelos existentes se describe como en curso. El corte es por modelo, no por país. La misma página dice que el marcado se aplica a la salida de los modelos compatibles dondequiera que se ofrezca Claude, en todo el mundo. El motor es el Código de buenas prácticas sobre transparencia de los contenidos generados por IA del artículo 50(2) de la Ley de IA de la UE, que Anthropic firmó como proveedor de modelos y como proveedor de sistemas de IA generativa. Así que llega modelo por modelo, y cuando un modelo lo tiene, lo tienen todos.
+El despliegue es más acotado de lo que sugerían los titulares. Según Anthropic, "los modelos de Claude lanzados a partir del 2 de agosto de 2026 admitirán el marcado legible por máquina desde su lanzamiento", y el soporte para los modelos existentes se describe como en curso. El corte es por modelo, no por país. La misma página dice que el marcado se aplica a la salida de los modelos compatibles dondequiera que se ofrezca Claude, en todo el mundo. El detonante es el Código de buenas prácticas sobre transparencia de los contenidos generados por IA del artículo 50(2) de la Ley de IA de la UE, que Anthropic firmó como proveedor de modelos y como proveedor de sistemas de IA generativa. Así que llega modelo por modelo, y cuando un modelo lo tiene, todos sus usuarios lo reciben.
 
 Google lleva tiempo ejecutando SynthID-Text en Gemini, y el método está publicado en Nature. Solo cambia el paso de muestreo. En cada token inicializa una función pseudoaleatoria con los k tokens anteriores, reparte el vocabulario en un cuadro de torneo con m capas, y aumenta la probabilidad de muestreo de los tokens que siguen ganando sus enfrentamientos. Extiéndelo sobre suficientes capas y suficientes tokens y obtienes un sesgo estadístico medible, sin que ninguna palabra individual le parezca rara a un lector.
 
@@ -48,7 +48,7 @@ Claude watermark    NO                           Keyed detector, method unpublis
 SynthID-Text        NO                           Keyed detector, Google-side API
 ```
 
-La página de ayuda de Anthropic es directa al respecto. Dicen que están "trabajando para permitir que los usuarios y otros terceros detecten las marcas de agua y los metadatos de procedencia incrustados de Claude" y que "compartirán detalles sobre los mecanismos de detección en la documentación técnica que se publicará". Lo que se publicará significa que todavía no existe. Hasta que exista, nadie fuera de Anthropic puede comprobar la marca de agua del texto. Cualquier herramienta que diga hacerlo ejecuta un clasificador genérico de texto de IA con otro nombre, y esos tienen un perfil de errores mucho peor, sobre todo con quien escribe en una segunda lengua.
+La página de ayuda de Anthropic es directa al respecto. Dicen que están "trabajando para permitir que los usuarios y otros terceros detecten las marcas de agua y los metadatos de procedencia incrustados de Claude" y que "compartirán detalles sobre los mecanismos de detección en la documentación técnica que se publicará". Un "se publicará" significa que todavía no existe. Hasta que exista, nadie fuera de Anthropic puede comprobar la marca de agua del texto. Cualquier herramienta que diga hacerlo ejecuta un clasificador genérico de texto de IA con otro nombre, y esos tienen un perfil de errores mucho peor, sobre todo con quien escribe en una segunda lengua.
 
 ## Construir el inspector
 
@@ -84,7 +84,7 @@ const scanC2PA = (buf: ArrayBuffer) => {
 };
 ```
 
-Eso encuentra un manifiesto. No lo verifica. Validar significa comprobar una cadena de certificados y una firma criptográfica, y no voy a programar eso a mano en una pestaña del navegador y presentarlo como autorizado. La herramienta lo dice y remite al verificador oficial.
+Eso encuentra un manifiesto. No lo verifica. Validar significa comprobar una cadena de certificados y una firma criptográfica, y no voy a programar eso a mano en una pestaña del navegador y presentarlo como definitivo. La herramienta lo dice y remite al verificador oficial.
 
 El escaneo tiene un modo de fallo que debo nombrar en vez de enterrar. Buscar un marcador de cuatro caracteres en bytes en bruto puede dar un falso positivo, ya que nada impide que los bytes `c2pa` aparezcan dentro de datos de imagen comprimidos. Lo dejé así de todos modos. Analizar bien la estructura de los contenedores en tres formatos es mucho trabajo para una herramienta cuya única afirmación es "aquí hay algo, ve a verificarlo en otro sitio". Es un detector de humo, y la etiqueta lo dice. Si algún día deja de ser suficiente, la solución es analizar las cajas de verdad.
 
@@ -129,11 +129,11 @@ Divide uno entre otro y todo se cancela en un único número:
 z_whole / z_span = sqrt(W/T) = sqrt(f)
 ```
 
-Puntuar el documento entero conserva solo la raíz cuadrada de la fracción escrita por máquina de su potencia de detección. Con `f = 0.1` eso es el 32%. Tomando `γ = 0.5` y una subida de la tasa de verdes de `ε = 0.25` como valores ilustrativos, un pasaje de 300 tokens escrito por máquina puntúa `z = 8.66` por sí solo y se marcaría con una confianza enorme. Meta ese mismo pasaje en un documento de 3,000 tokens y la puntuación del documento completo cae a `z = 2.74`, por debajo de cualquier umbral razonable. La marca de agua no cambió. El detector midió la unidad equivocada.
+Puntuar el documento entero conserva solo la raíz cuadrada de la fracción escrita por máquina de su potencia de detección. Con `f = 0.1` eso es el 32%. Tomando `γ = 0.5` y una subida de la tasa de verdes de `ε = 0.25` como valores ilustrativos, un pasaje de 300 tokens escrito por máquina puntúa `z = 8.66` por sí solo y se marcaría con una confianza enorme. Mete ese mismo pasaje en un documento de 3,000 tokens y la puntuación del documento completo cae a `z = 2.74`, por debajo de cualquier umbral razonable. La marca de agua no cambió. El detector midió la unidad equivocada.
 
 Así que mezclar modelos no ataca la marca de agua. Ataca la elección de ventana del detector.
 
-La solución es deslizar una ventana por el texto y tomar la puntuación máxima, más o menos la idea WinMax del artículo de SynthID-Text. Funciona, y cuesta algo. Puntuar cientos de ventanas solapadas supone ejecutar cientos de contrastes de hipótesis sobre un mismo documento, así que hace falta corrección por comparaciones múltiples, lo que sube el umbral, lo que devuelve los tramos cortos por debajo. Se cambia un problema de dilución por un problema de falsos positivos, y ningún ajuste de ese mando evita ambos.
+La solución es deslizar una ventana por el texto y tomar la puntuación máxima, más o menos la idea WinMax del artículo de SynthID-Text. Funciona, y cuesta algo. Puntuar cientos de ventanas solapadas supone ejecutar cientos de contrastes de hipótesis sobre un mismo documento, así que hace falta corrección por comparaciones múltiples, lo que sube el umbral, lo que vuelve a dejar los tramos cortos por debajo. Se cambia un problema de dilución por un problema de falsos positivos, y ningún ajuste de ese mando evita ambos.
 
 Además, el enventanado solo localiza la marca de un proveedor, porque cada proveedor usa su propia función pseudoaleatoria con clave:
 

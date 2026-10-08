@@ -16,7 +16,7 @@ reviewed: false
   Un script sigue una lista de instrucciones; un agente persigue un objetivo. Construí mi primer bucle autónomo para vigilar el nivel de batería de mi Tesla y disparar automáticamente una notificación de "Deep Discharge" cuando llegaba a un umbral concreto. Este artículo cubre el cambio de arquitectura, del código lineal a un bucle Sense-Think-Act que funciona 24/7 en mi clúster de Pi.
 </TLDR>
 
-El paso de "escribir código" a "dirigir inteligencia" ocurre en un único instante. Para mí fue a las 11 de la noche de un martes en Dallas. Tenía un agente ejecutándose en bucle, vigilando los logs de mi servidor en busca de errores 404. En lugar de limitarse a avisarme, el agente identificó por su cuenta un enlace interno roto, generó un comando `sed` para arreglarlo y confirmó el cambio en Git. Fue la primera vez que sentí el inquietante poder de un sistema capaz de "mejorarse" a sí mismo sin que yo tocara el teclado. Este es el bucle **Sense-Think-Act**, y es el átomo fundacional del Gekro Lab.
+El paso de "escribir código" a "dirigir inteligencia" ocurre en un único instante. Para mí fue a las 11 de la noche de un martes en Dallas. Tenía un agente ejecutándose en bucle, vigilando los logs de mi servidor en busca de errores 404. En lugar de limitarse a avisarme, el agente identificó por su cuenta un enlace interno roto, generó un comando `sed` para arreglarlo y hizo commit del cambio en Git. Fue la primera vez que sentí el inquietante poder de un sistema capaz de "mejorarse" a sí mismo sin que yo tocara el teclado. Este es el bucle **Sense-Think-Act**, y es el átomo fundacional del Gekro Lab.
 
 ## La arquitectura
 

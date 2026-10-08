@@ -11,7 +11,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import PostCard from '../../../components/blog/PostCard.astro';
 import JsonLD from '../../../components/seo/JsonLD.astro';
 import { getActiveLanguages, getTranslationsForLang, translationPath } from '../../../lib/utils/translations';
-import { getLanguage } from '../../../lib/languages';
+import { getLanguage, ENGLISH } from '../../../lib/languages';
 import { consolidateTopics } from '../../../lib/utils/posts';
 import { t } from '../../../lib/i18n';
 
@@ -22,6 +22,11 @@ export async function getStaticPaths() {
 const { lang } = Astro.params;
 const language = getLanguage(lang as string)!;
 const refs = await getTranslationsForLang(lang as string);
+// Same "Read in" strip as a post: English plus every language that has an archive
+const switchItems = [
+  { code: 'en', label: ENGLISH.endonym, href: '/blog/', bcp47: 'en' },
+  ...(await getActiveLanguages()).map((l) => ({ code: l.code, label: l.endonym, href: `/blog/${l.code}/`, bcp47: l.bcp47 })),
+];
 
 const pageURL = `https://gekro.com/blog/${lang}/`;
 const collectionSchema = {
@@ -67,6 +72,16 @@ const breadcrumbs = {
         {' '}
         <a href="/blog/" hreflang="en" lang="en" class="text-accent hover:underline">{t(lang, 'readOriginal')}</a>
       </p>
+      <nav aria-label={t(lang, 'readIn')} dir={language.dir} class="flex flex-wrap items-center gap-2 mt-6">
+        <span class="text-[11px] font-mono uppercase tracking-[0.2em] text-text-muted me-1">{t(lang, 'readIn')}</span>
+        {switchItems.map((item) =>
+          item.code === lang ? (
+            <span lang={item.bcp47} aria-current="true" class="px-3 py-1 text-[13px] rounded-full border border-accent text-accent bg-accent/5">{item.label}</span>
+          ) : (
+            <a href={item.href} lang={item.bcp47} hreflang={item.bcp47} class="px-3 py-1 text-[13px] rounded-full border border-border text-text-secondary hover:border-accent hover:text-accent transition-colors">{item.label}</a>
+          )
+        )}
+      </nav>
     </header>
 
     <div class="max-w-3xl space-y-12">

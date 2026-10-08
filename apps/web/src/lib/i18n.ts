@@ -85,9 +85,9 @@ const hi: Strings = {
 };
 
 const bn: Strings = {
-  translatedNotice: 'এটি ইংরেজি মূল লেখাটির যান্ত্রিক অনুবাদ। কিছু সূক্ষ্মতা হারিয়ে যেতে পারে, তাই ইংরেজি সংস্করণই মূল রেফারেন্স।',
+  translatedNotice: 'এটি ইংরেজি মূল লেখাটির মেশিন অনুবাদ। কিছু সূক্ষ্মতা হারিয়ে যেতে পারে, তাই ইংরেজি সংস্করণই মূল রেফারেন্স।',
   readOriginal: 'মূল ইংরেজি লেখাটি পড়ুন',
-  minRead: '{n} মিনিটের পাঠ',
+  minRead: '{n} মিনিটে পড়া যায়',
   inThisPost: 'এই লেখায়',
   sharePost: 'লেখাটি শেয়ার করুন',
   copyLink: 'লিংক কপি করুন',
@@ -100,7 +100,7 @@ const bn: Strings = {
   tldr: 'সংক্ষেপে',
   skipToContent: 'মূল বিষয়বস্তুতে যান',
   readIn: 'এই ভাষায় পড়ুন',
-  heroAlt: '{title}-এর প্রধান সংখ্যাগুলি',
+  heroAlt: '{title}-এর মূল পরিসংখ্যান',
   archiveEyebrow: 'ব্লগ',
   archiveTitle: 'AI ইঞ্জিনিয়ারিং ব্লগ',
   archiveIntro: 'ল্যাব থেকে গভীর বিশ্লেষণ, টিউটোরিয়াল ও ফিল্ড নোট। প্রোডাকশনে এজেন্টিক AI, লোকাল-ফার্স্ট LLM অবকাঠামো ও সেলফ-হোস্টেড সিস্টেম তৈরির কাজ।',
@@ -208,7 +208,7 @@ const es: Strings = {
   copyLink: 'Copiar enlace',
   copied: '¡Copiado!',
   thanksTitle: 'Gracias por leer.',
-  thanksBody: 'Si te ha gustado, considera compartirlo con tu red.',
+  thanksBody: 'Si te ha gustado, compártelo con tu red.',
   backToBlog: 'Volver al blog',
   writtenBy: 'Escrito por',
   authorBio: 'Ingeniería de IA: sistemas local-first, infraestructura autoalojada y herramientas autónomas desde el laboratorio.',
@@ -234,14 +234,14 @@ const ar: Strings = {
   thanksBody: 'إن أعجبك المقال، فشاركه مع شبكتك.',
   backToBlog: 'العودة إلى المدونة',
   writtenBy: 'بقلم',
-  authorBio: 'هندسة الذكاء الاصطناعي: بناء أنظمة محلية أولًا وبنية تحتية مستضافة ذاتيًا وأدوات مستقلة من المختبر.',
+  authorBio: 'مهندس ذكاء اصطناعي يبني أنظمة محلية أولًا وبنية تحتية مستضافة ذاتيًا وأدوات مستقلة من المختبر.',
   tldr: 'باختصار',
   skipToContent: 'انتقل إلى المحتوى',
   readIn: 'اقرأ بلغة',
   heroAlt: 'أهم المؤشرات في {title}',
   archiveEyebrow: 'المدونة',
   archiveTitle: 'مدونة هندسة الذكاء الاصطناعي',
-  archiveIntro: 'تحليلات معمّقة ودروس وملاحظات ميدانية من المختبر، عن الذكاء الاصطناعي الوكيل والبنية التحتية المحلية لنماذج اللغة والأنظمة المستضافة ذاتيًا في الإنتاج.',
+  archiveIntro: 'تحليلات معمّقة ودروس وملاحظات ميدانية من المختبر، عن وكلاء الذكاء الاصطناعي والبنية التحتية المحلية لنماذج اللغة والأنظمة المستضافة ذاتيًا في الإنتاج.',
   read: 'اقرأ',
 };
 
