@@ -33,3 +33,6 @@ apps/web/.playwright/
 # Local Claude Code config (machine-specific — not shared)
 .claude/settings.local.json
 .claude/launch.json
+
+# Agent workflow scaffold (local only, not part of the site)
+.ai/
