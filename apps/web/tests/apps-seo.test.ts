@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { CATEGORY_META, TITLE_MAX, appPageTitle, relatedApps, type RelatableApp } from '../src/lib/utils/apps-seo';
+import { CATEGORY_META, TITLE_MAX, SCHEMA_CATEGORY_OVERRIDE, appPageTitle, relatedApps, type RelatableApp } from '../src/lib/utils/apps-seo';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const contentDir = join(here, '..', 'src/content/apps');
@@ -78,5 +78,15 @@ describe('relatedApps', () => {
     if (!llm) return;
     const r = relatedApps(llm, apps, 4);
     expect(r.every(x => x.data.category === 'ai')).toBe(true);
+  });
+});
+
+describe('schema.org category overrides', () => {
+  const VALID = ['MultimediaApplication', 'UtilitiesApplication', 'DeveloperApplication', 'BusinessApplication', 'FinanceApplication', 'EntertainmentApplication', 'HealthApplication', 'WebApplication'];
+  it('only name apps that exist, with a real schema.org type', () => {
+    for (const [slug, type] of Object.entries(SCHEMA_CATEGORY_OVERRIDE)) {
+      expect(apps.some(a => a.id === slug), `${slug} is not an app`).toBe(true);
+      expect(VALID, `${type} is not a known applicationCategory`).toContain(type);
+    }
   });
 });

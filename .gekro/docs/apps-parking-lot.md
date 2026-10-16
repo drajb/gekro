@@ -8,6 +8,13 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 
 ---
 
+## Wave 8 - SHIPPED 2026-10-15 (queue empty)
+
+- `passport-photo-maker` (dev) - "Passport Photo Maker", app #94. Free passport/visa photo editor, fully client-side: crop under live guidelines (chin line, permitted head band, centre line), 11 official standards plus a custom size, download at the exact pixel size with the dpi stamped in, an online-upload version where an authority publishes limits, and a print sheet as JPG or true-size PDF. Headline promises: **no photo retention** and **unlimited free use**. Crop and layout only: no retouching, no background replacement, no cloud AI, never claims acceptance. Standards verified from official pages 2026-10-15 (see decision-log 2026-10-15).
+- Rohit also asked for 6-7 new /apps categories and a dropdown menu in the same message, then **withdrew it the same turn**. Not building it; the /apps page and category system stay unchanged.
+
+---
+
 ## Wave 7 - SHIPPED 2026-10-02
 
 - `ambigram-maker` (fun) - "Ambigram Generator", rotational stroke-union engine with per-slot legibility scores. Queue empty again.

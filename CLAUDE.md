@@ -45,13 +45,13 @@ gekro/
 │   │       │   ├── ui/           → BrandLogo, ContactForm, LabGallery, NewsletterEmbed, SearchWidget, Tag, ThemeToggle
 │   │       │   ├── apps/         → AppShell, AppCard, AttributionFooter, shared/ (PUBLIC — stays here; apps/index.astro holds the inline filter UI)
 │   │       │   ├── stack/        → StackHeader, StackCard, StackVerdict, StackPros/Cons, StackMeta, StackReferralFooter, ComparisonTable, SimpleBarChart
-│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 93 Calculator components; see §8, NOT a git submodule)
+│   │       │   ├── apps-private/ → ⭐ gitignored, cloned at build time from drajb/gekro-apps (PRIVATE — 94 Calculator components; see §8, NOT a git submodule)
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
 │   │       ├── content.config.ts → Zod schemas — 6 collections (blog, experiments, apps, stack, news, translations)
 │   │       ├── content/
 │   │       │   ├── blog/         → 14 markdown posts + _template.md
 │   │       │   ├── experiments/  → 3 markdown experiments + _template.md
-│   │       │   ├── apps/         → 93 app methodology markdown files + _template.md
+│   │       │   ├── apps/         → 94 app methodology markdown files + _template.md
 │   │       │   ├── stack/        → tool-review markdown files
 │   │       │   └── news/         → daily AI-briefing markdown files
 │   │       ├── translations/     → ⭐ machine-translated blog editions, <lang>/<slug>.md (outside content/ on purpose; see .gekro/docs/i18n-standard.md)
@@ -176,7 +176,7 @@ The `/apps` section of gekro.com uses a **two-repo model** (established 2026-05-
 | What | Repo | Visibility |
 |---|---|---|
 | App shell, routing, content, shared UI | `drajb/gekro` (this repo) | Public |
-| All 93 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
+| All 94 Calculator implementations (the IP) | `drajb/gekro-apps` | **Private** |
 
 `apps-private/` is **NOT a git submodule** — it is **gitignored** and cloned fresh at build time by each build system. This was necessary because CF Pages v3 hard-codes submodule auth before the build command runs, with no injection point for credentials.
 

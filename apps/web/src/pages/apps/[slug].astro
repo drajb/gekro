@@ -124,6 +124,8 @@ import UnitConverter from '../../components/apps-private/unit-converter/Calculat
 
 // Wave 10 - rotational ambigram generator (stroke-union glyph engine).
 import AmbigramMaker from '../../components/apps-private/ambigram-maker/Calculator.astro';
+// Wave 8 - passport photo editor: crop + guides + print sheet, fully client-side.
+import PassportPhotoMaker from '../../components/apps-private/passport-photo-maker/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -219,6 +221,7 @@ const CALCULATOR_MAP: Record<string, any> = {
   'apple-silicon-llm-configurator': AppleSiliconLlmConfigurator,
   'unit-converter': UnitConverter,
   'ambigram-maker': AmbigramMaker,
+  'passport-photo-maker': PassportPhotoMaker,
 };
 
 export async function getStaticPaths() {

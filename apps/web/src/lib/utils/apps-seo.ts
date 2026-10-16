@@ -112,6 +112,15 @@ export const CATEGORY_META: Record<AppCategory, CategoryMeta> = {
 export const categoryHubUrl = (cat: string) => `/apps/category/${cat}/`;
 
 /**
+ * schema.org applicationCategory for apps whose category label describes them
+ * poorly. `dev` is where the file and image tools live, but a passport photo
+ * editor is not a developer application, so it says what it is.
+ */
+export const SCHEMA_CATEGORY_OVERRIDE: Record<string, string> = {
+  'passport-photo-maker': 'MultimediaApplication',
+};
+
+/**
  * <title> for an app page. Tool searches ("json formatter", "llm cost
  * calculator") reward titles that confirm the tool is free and online, so the
  * modifier is added whenever it fits Google's ~60-character display width,

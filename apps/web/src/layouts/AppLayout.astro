@@ -3,7 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import JsonLD from '../components/seo/JsonLD.astro';
 import AppIcon from '../components/apps/AppIcon.astro';
 import { getCollection } from 'astro:content';
-import { CATEGORY_META, MIN_APPS_FOR_HUB, appPageTitle, categoryHubUrl, relatedApps } from '../lib/utils/apps-seo';
+import { CATEGORY_META, MIN_APPS_FOR_HUB, SCHEMA_CATEGORY_OVERRIDE, appPageTitle, categoryHubUrl, relatedApps } from '../lib/utils/apps-seo';
 import type { AppCategory } from '../lib/utils/apps-seo';
 import type { CollectionEntry } from 'astro:content';
 
@@ -69,7 +69,7 @@ const schema = {
   description: aiDescription,
   url: pageURL,
   image: `https://gekro.com${ogImage}`,
-  applicationCategory: catMeta?.schemaCategory ?? 'WebApplication',
+  applicationCategory: SCHEMA_CATEGORY_OVERRIDE[app.id] ?? catMeta?.schemaCategory ?? 'WebApplication',
   applicationSubCategory: catMeta?.label,
   operatingSystem: 'Any (runs in a web browser)',
   browserRequirements: 'Requires JavaScript. Runs entirely in the browser; no data is uploaded.',

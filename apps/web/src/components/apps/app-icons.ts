@@ -72,6 +72,7 @@ export const ICON_FOR_SLUG: Record<string, string> = {
   'jwt-decoder': 'key-round',
   'markdown-table-generator': 'table',
   'markdown-visualizer': 'file-text',
+  'passport-photo-maker': 'scan-face',
   'password-generator': 'lock',
   'pdf-merger': 'file-stack',
   'punctuation-fixer': 'pilcrow',
