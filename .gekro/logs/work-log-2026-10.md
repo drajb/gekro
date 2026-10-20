@@ -58,3 +58,21 @@ Rotational ambigram from typed text (Word A, optional Word B). Each slot glyph =
 - 2026-10-02: Rohit approved renames + lastVerified bumps and asked to push everything to main. Applied 32 titles + 13 dates (40 md files); vitest 164/164; build clean; titles, dateModified and sitemap lastmod verified in dist. Shipping via PR merges (gekro-apps#1 first, then gekro#58).
 
 - 2026-10-02: SHIPPED. Everything from this push is live. Open for Rohit only: pick apps from the awesome-llm-apps shortlist; optional GB to GiB wording pass in guide bodies; optional `cross sync content backup` to refresh .content-backup/ with the 40 renamed/re-dated app md files.
+
+## 2026-10-07 to 2026-10-15 - multilingual blog, app #94
+
+**Shipped and live**
+- Multilingual blog: 8 languages (`hi bn mr te ta zh es ar`) x 16 posts = 128 machine translations under `src/translations/`, routes `/blog/<lang>/<slug>/`, hreflang in `<head>` and the sitemap, per-script fonts and RTL, `verify-i18n` as a postbuild gate. Contract: `.gekro/docs/i18n-standard.md`. Commits 5e61afc, c330a53.
+- One independent AI proofread per language fixed real errors (wrong-sense words, garbled clauses, invented "ask in <language>" claims, a gendered "kid"). Still `reviewed: false`: no native speaker has read them.
+- Discovery: "Also in" strip on `/blog/`, "Read in" strip on each language archive, translated archives in `/llms.txt`. Sitemap lastmod no longer falls back to file mtime for BOM/CRLF posts.
+- `passport-photo-maker` (app #94, category dev): free client-side passport photo editor, 11 official standards + custom, print sheet JPG/PDF. No upload, no retention, no limit. Private code `gekro-apps@f5eb8f4`, public `af4d235`. Standards verified from official pages 2026-10-15.
+- Cleanup: unslop skill tracked, `.ai/` ignored, scaffold files removed (2971f35); `ambigram-maker` aria-pressed type errors fixed (`gekro-apps@b775137`).
+
+**Withdrawn by Rohit, not built:** 6-7 new /apps categories + dropdown menu.
+
+**Open for Rohit**
+- A native-speaker read of the translations and of the UI strings in `lib/i18n.ts`.
+- 48 translated titles are over the per-script length limit (cosmetic; search results truncate them).
+- `blog-drafts/2026-10-06-translating-the-blog-locally.md` plan is out of date (translations were written in-session, not by the local service).
+- English source typo: `sonic-phoenix` says "six iterations" for scripts 04A to 04I (nine). Protected article, so untouched.
+- Passport standards re-check about every six months (`LAST_VERIFIED` in `apps-private/passport-photo-maker/data.ts`).

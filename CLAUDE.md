@@ -49,7 +49,7 @@ gekro/
 │   │       │   └── LabTerminal.astro (global, mounted in BaseLayout)
 │   │       ├── content.config.ts → Zod schemas — 6 collections (blog, experiments, apps, stack, news, translations)
 │   │       ├── content/
-│   │       │   ├── blog/         → 14 markdown posts + _template.md
+│   │       │   ├── blog/         → 16 markdown posts + _template.md
 │   │       │   ├── experiments/  → 3 markdown experiments + _template.md
 │   │       │   ├── apps/         → 94 app methodology markdown files + _template.md
 │   │       │   ├── stack/        → tool-review markdown files
@@ -131,8 +131,8 @@ The project uses a formal **decision log + issue tracker** workflow. These files
 3. **Override protocol:** If a user request contradicts an existing decision, STOP, cite the conflicting decision's date, reason through trade-offs, and wait for the user to say literally **"Override"** before proceeding.
 4. **Proactive verification:** If a proposed change might break an existing decision or recreate a known issue, warn the user before implementing.
 
-Current decision count: **~60+ decisions** (latest: 2026-10-07; override count 1).
-Current issue count: **~60+ logged** (latest: 2026-10-02 full app review; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
+Current decision count: **~60+ decisions** (latest: 2026-10-15; override count 1).
+Current issue count: **~60+ logged** (latest: 2026-10-15 passport photo maker build; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
 
 ## 6a. Content Protection Protocol (hard rule — no exceptions)
 
@@ -235,4 +235,4 @@ Defined in `.agents/skills/`:
 
 ---
 
-*Last updated: 2026-07-06. Update this file when the monorepo structure, stack, or governance flow meaningfully changes.*
+*Last updated: 2026-10-19. Update this file when the monorepo structure, stack, or governance flow meaningfully changes.*
