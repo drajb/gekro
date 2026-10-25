@@ -76,3 +76,37 @@ Rotational ambigram from typed text (Word A, optional Word B). Each slot glyph =
 - `blog-drafts/2026-10-06-translating-the-blog-locally.md` plan is out of date (translations were written in-session, not by the local service).
 - English source typo: `sonic-phoenix` says "six iterations" for scripts 04A to 04I (nine). Protected article, so untouched.
 - Passport standards re-check about every six months (`LAST_VERIFIED` in `apps-private/passport-photo-maker/data.ts`).
+
+## 2026-10-22 to 2026-10-23 - browser games batch (Wave 9) - LOCAL ONLY, NOT COMMITTED
+
+Rohit's order: build licence-free browser games under `/apps` (category `fun`) for more attention, "do not commit and push until I tell you". Nothing below is committed or pushed in either repo. Everything is working-tree changes in `G:\Git\gekro` plus new untracked folders in `G:\Git\gekro-apps`.
+
+**Status: 24 games, all registered, built and verified.** First wave: sudoku, merge-tiles, snake, tic-tac-toe, four-in-a-row, match-pairs, mines, hangman, solitaire. Extras: sliding-puzzle, light-grid, tower-of-hanoi, reversi, reaction-time, peg-solitaire, checkers, dots-and-boxes, gomoku, typing-test, aim-trainer, nonogram, code-breaker, nim, word-guess (added 2026-10-25 after Rohit approved the ENABLE word-list download; accepted guesses are the 8,636 five-letter ENABLE words, answers a curated list of 1,295). The /apps count goes from 94 to 118.
+
+**How each one is guarded:** every game has its own `tests/games-<slug>.test.ts` (engine tests; perft counts for Reversi and Checkers, exhaustive 3x3 state-space for Sliding Puzzle, solver-vs-brute-force for Light Grid, optimal-play proofs for Tower of Hanoi and Tic Tac Toe) plus the generic e2e suites (smoke, a11y, output-sanity, interactions) which pick up every slug automatically, plus `e2e/apps.games.spec.ts` (no off-device requests, layout guard, and real play-throughs: Unbeatable Tic Tac Toe never loses, Hanoi auto-solve is exactly 2^n-1 moves, Light Grid's shown solution clears the board, sliding puzzle solved by hints, and one move-and-reply check for each of the other games).
+
+**Verification run (final pass 2026-10-23 01:25 CDT, 23 games):** vitest 1703/1703 (31 files), `astro check` 0 errors, production build clean (verify-i18n 0 errors), Playwright 159 checks on the game slugs (smoke, a11y, output-sanity, interactions, plus `e2e/apps.games.spec.ts`) and 23 random-input stress runs (`e2e/apps.games-monkey.spec.ts`, 250 clicks, keys and select changes each, no errors). Screenshots at 375 px and 1280 px reviewed for every game. Three independent read-only reviewers then fact-checked every content page against its code and tests; roughly 60 overstatements and unverifiable claims were corrected (examples: claims about what other sites do, "files you can read" for private code, "always"/"guaranteed" beyond what a test proves, a Knuth year and average the repo could not confirm).
+
+**Real bug found by looking, not by the suites:** Match Pairs collapsed into one tall column after load. Root cause was a shared-shell issue (`AppShell.astro` `clearProps: "all"` wiping inline CSS variables), fixed in the shell and guarded by a new test. Logged in issue-tracker and decision-log 2026-10-23.
+
+**Shell and site changes (also uncommitted):**
+- `AppShell.astro`: entrance tween clears only what it sets.
+- `lib/utils/apps-seo.ts`: `fun` hub title "Free Browser Games & Fun Tools, No Ads | gekro", description and intro rewritten; every game gets `GameApplication` in `SCHEMA_CATEGORY_OVERRIDE`.
+- `tests/apps-seo.test.ts`: `GameApplication` allowed.
+- `pages/apps/[slug].astro` and `components/apps/app-icons.ts`: imports, `CALCULATOR_MAP` entries, icons for each game.
+- Content: one markdown file per game in `src/content/apps/` (all new, none edit existing articles).
+
+**Names and licensing:** names are generic and original (Merge Tiles not 2048, Four in a Row not Connect 4, Match Pairs not Memory, Mines not Minesweeper, Light Grid not Lights Out, Reversi not Othello, Code Breaker not Mastermind, Nonogram not Picross). "Klondike" is used on the Solitaire page as the traditional name of the variant. The number 2048 appears on Merge Tiles as the tile you reach, not as a product name. All art is plain CSS. Rules and mechanics are not copyrightable; this is not legal advice and the earlier licensing report with sources is in the session transcript.
+
+**Open for Rohit**
+1. Say when to commit and push. It needs two commits/PRs: `gekro-apps` first (23 new folders), then `gekro` (content, tests, registration, shell fix). CI and Cloudflare clone the private repo at build time, so the private repo must be pushed first or the public build fails on missing imports.
+2. The five-letter word game is still blocked on your OK to download the public-domain ENABLE word list.
+3. Pick which extras to keep if you want fewer games; each is independent (delete its folder, content md, test, import, map entry, icon line, schema override).
+4. `CLAUDE.md` still says 94 apps (and 94 Calculators); update to 117 in the same commit when you approve the ship.
+5. Nobody has played these on a real phone or with a screen reader; automated suites and screenshots only.
+6. Best scores use localStorage (plain numbers only, `gk:game:<slug>`); this is a decision logged 2026-10-22.
+7. Timing-sensitive games (Reaction Time, Aim Trainer, Typing Test, Snake) are verified for logic and errors, not for how they feel on a real phone.
+8. The e2e suites run against `astro preview`; the dev server shows a harmless dev-toolbar 504 and cannot be used for them.
+9. Dropping any game later is cheap (see item 3); dropping the shell fix is not advised, it protects every app.
+
+**2026-10-25 - Rohit said ship all.** Audience wording: the games are for his kids to play and learn, others welcome, ad-free; every game page and the Fun hub intro now say exactly that. Last full run before shipping: vitest 1823/1823, astro check 0 errors, build clean, Playwright 190/190 on the 24 game slugs including the random-input stress run. Bug caught by screenshot on the last game: in Word Guess, pressing Enter after clicking a mode button pressed that button again (restarting the word) instead of submitting the guess; fixed by releasing focus after a mouse press, regression test added.

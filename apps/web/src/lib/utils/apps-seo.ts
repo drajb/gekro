@@ -91,12 +91,12 @@ export const CATEGORY_META: Record<AppCategory, CategoryMeta> = {
   },
   fun: {
     label: 'Fun',
-    heading: 'Fun browser tools',
-    title: 'Fun Browser Tools - Dice, Coin Flip & World Clock | gekro',
+    heading: 'Free browser games and fun tools',
+    title: 'Free Browser Games & Fun Tools, No Ads | gekro',
     description:
-      'Small fun tools that run in your browser: a fair dice roller, a coin flipper using the Web Crypto API, a multi-timezone world clock and an ambigram maker.',
+      'Free browser games and small fun tools: Sudoku, Solitaire, Reversi, Mines, Snake and more, plus a dice roller, coin flipper and world clock. No ads, no signup.',
     intro:
-      'Small tools that do one thing well. Randomness comes from the browser crypto API rather than Math.random, and nothing is tracked.',
+      'I built the games here for my kids to play and learn, and anyone is welcome to use them. They run entirely in your browser: nothing to install, no account, no ads, and nothing uploaded. Random draws use the browser crypto API rather than Math.random, and daily puzzles are built from the date so everyone gets the same one.',
     schemaCategory: 'EntertainmentApplication',
   },
   health: {
@@ -118,6 +118,31 @@ export const categoryHubUrl = (cat: string) => `/apps/category/${cat}/`;
  */
 export const SCHEMA_CATEGORY_OVERRIDE: Record<string, string> = {
   'passport-photo-maker': 'MultimediaApplication',
+  // Games are in the `fun` category with the dice roller and world clock, so they name themselves.
+  'sudoku': 'GameApplication',
+  'merge-tiles': 'GameApplication',
+  'snake': 'GameApplication',
+  'tic-tac-toe': 'GameApplication',
+  'four-in-a-row': 'GameApplication',
+  'match-pairs': 'GameApplication',
+  'mines': 'GameApplication',
+  'hangman': 'GameApplication',
+  'solitaire': 'GameApplication',
+  'sliding-puzzle': 'GameApplication',
+  'light-grid': 'GameApplication',
+  'tower-of-hanoi': 'GameApplication',
+  'reversi': 'GameApplication',
+  'reaction-time': 'GameApplication',
+  'peg-solitaire': 'GameApplication',
+  'checkers': 'GameApplication',
+  'dots-and-boxes': 'GameApplication',
+  'gomoku': 'GameApplication',
+  'code-breaker': 'GameApplication',
+  'nim': 'GameApplication',
+  'aim-trainer': 'GameApplication',
+  'typing-test': 'GameApplication',
+  'nonogram': 'GameApplication',
+  'word-guess': 'GameApplication',
 };
 
 /**

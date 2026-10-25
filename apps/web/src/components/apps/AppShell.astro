@@ -130,7 +130,10 @@ const categoryLabels: Record<string, string> = {
           stagger: 0.02,
           ease: "power2.out",
           duration: 0.4,
-          clearProps: "all"
+          // Only what this tween sets. "all" also wiped inline styles an app puts on
+          // these elements (CSS variables for grid sizes, tile positions), which
+          // silently broke layouts after the entrance animation finished.
+          clearProps: "opacity,transform,translate,rotate,scale"
         });
       }
     } catch (e) {

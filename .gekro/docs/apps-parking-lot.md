@@ -8,6 +8,16 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 
 ---
 
+## Wave 9 - BUILT LOCALLY, 23 games, NOT committed until Rohit says so (approved 2026-10-22)
+
+- Rohit wants a set of popular browser games in `/apps` "for more attention": 10 very popular games that run comfortably in the browser and do not strain the system. Asked me for the list first. Shortlist and recommendations are in the reply of 2026-10-22; once he picks, record the chosen slugs here BEFORE building.
+- Chosen and being built (category fun, all client-only, own art, licence-clean names): `sudoku`, `merge-tiles`, `snake`, `tic-tac-toe`, `four-in-a-row`, `match-pairs`, `mines`, `hangman`, `solitaire`. The five-letter word game was unblocked 2026-10-25 (Rohit approved the ENABLE download). Extras under consideration: lights-out, sliding-puzzle, tower-of-hanoi, reversi, peg-solitaire, game-of-life, reaction-time, typing-test.
+- Extras built overnight 2026-10-22/23 (Rohit: "think of additional games that are licence free"), all registered locally: `sliding-puzzle`, `light-grid` (never called Lights Out), `tower-of-hanoi`, `reversi` (never called Othello). Second extras batch built 2026-10-23 (all verified): `peg-solitaire`, `checkers` (traditional draughts, English rules), `gomoku`, `dots-and-boxes`, `reaction-time`. Third batch built 2026-10-23 (all verified): `typing-test` (own sentences), `aim-trainer`, `nonogram` (never "Picross", a Nintendo mark), `code-breaker` (never "Mastermind"), `nim`. Built 2026-10-25 after Rohit said ok to the ENABLE download (item 2 of his ship message): `word-guess` (five-letter word game, never called Wordle; accepted guesses are the 8,636 five-letter ENABLE words, answers a curated list). Skipped on purpose: game-of-life (the board game "The Game of LIFE" is a Hasbro mark), Pong/Breakout/Asteroids/Space Invaders/Simon/Wordle/Tetris (marks).
+- Decisions made (see decision-log 2026-10-22): Override applied; localStorage best scores allowed as self-managed state; fun hub copy to update before shipping.
+- (old) Open decisions raised: it stretches platform-standard non-negotiable #1 ("personally useful first") and the "free tools I built for myself" positioning, so it needs his explicit go-ahead; trademark-safe names; whether best scores may use localStorage; `fun` hub copy would need updating.
+
+---
+
 ## Wave 8 - SHIPPED 2026-10-15 (queue empty)
 
 - `passport-photo-maker` (dev) - "Passport Photo Maker", app #94. Free passport/visa photo editor, fully client-side: crop under live guidelines (chin line, permitted head band, centre line), 11 official standards plus a custom size, download at the exact pixel size with the dpi stamped in, an online-upload version where an authority publishes limits, and a print sheet as JPG or true-size PDF. Headline promises: **no photo retention** and **unlimited free use**. Crop and layout only: no retouching, no background replacement, no cloud AI, never claims acceptance. Standards verified from official pages 2026-10-15 (see decision-log 2026-10-15).
