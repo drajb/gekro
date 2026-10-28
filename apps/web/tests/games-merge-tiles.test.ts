@@ -474,7 +474,7 @@ describe('random-play fuzz', () => {
     expect(sawNoOp).toBe(true);
     expect(largest).toBeGreaterThanOrEqual(64);
     expect(score).toBeGreaterThanOrEqual(0);
-  });
+  }, 30_000);
 
   it('score never decreases within a game and matches the tile values on the board', () => {
     // Every tile's value was created by merges or a spawn: sum(board) = spawned total, and

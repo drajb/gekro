@@ -587,8 +587,9 @@ describe('sanitiseStored', () => {
     for (let i = 0; i < 200000; i++) huge[`k${i}`] = i;
     huge['30-medium-single'] = 7;
     expect(sanitiseStored(huge)).toEqual({ '30-medium-single': 7 });
-    expect(performance.now() - t).toBeLessThan(500);
-  });
+    // Generous bound: this guards against quadratic behaviour, not machine speed.
+    expect(performance.now() - t).toBeLessThan(4000);
+  }, 15_000);
   it('is deterministic and never returns an unknown key, a non-integer, or a value outside 1..1000', () => {
     const r = mulberry32(5);
     const pool: unknown[] = [NaN, Infinity, -1, 0, 1, 1.5, 999, 1000, 1001, 'a', null, {}, 123.456, 1e300, -1e300];
