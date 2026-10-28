@@ -82,7 +82,7 @@ describe('relatedApps', () => {
 });
 
 describe('schema.org category overrides', () => {
-  const VALID = ['MultimediaApplication', 'UtilitiesApplication', 'DeveloperApplication', 'BusinessApplication', 'FinanceApplication', 'EntertainmentApplication', 'HealthApplication', 'WebApplication'];
+  const VALID = ['MultimediaApplication', 'UtilitiesApplication', 'DeveloperApplication', 'BusinessApplication', 'FinanceApplication', 'EntertainmentApplication', 'GameApplication', 'HealthApplication', 'WebApplication'];
   it('only name apps that exist, with a real schema.org type', () => {
     for (const [slug, type] of Object.entries(SCHEMA_CATEGORY_OVERRIDE)) {
       expect(apps.some(a => a.id === slug), `${slug} is not an app`).toBe(true);

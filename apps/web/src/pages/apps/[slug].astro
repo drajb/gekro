@@ -126,6 +126,31 @@ import UnitConverter from '../../components/apps-private/unit-converter/Calculat
 import AmbigramMaker from '../../components/apps-private/ambigram-maker/Calculator.astro';
 // Wave 8 - passport photo editor: crop + guides + print sheet, fully client-side.
 import PassportPhotoMaker from '../../components/apps-private/passport-photo-maker/Calculator.astro';
+// Wave 9 - games (category fun).
+import Sudoku from '../../components/apps-private/sudoku/Calculator.astro';
+import Snake from '../../components/apps-private/snake/Calculator.astro';
+import TicTacToe from '../../components/apps-private/tic-tac-toe/Calculator.astro';
+import MatchPairs from '../../components/apps-private/match-pairs/Calculator.astro';
+import MergeTiles from '../../components/apps-private/merge-tiles/Calculator.astro';
+import SlidingPuzzle from '../../components/apps-private/sliding-puzzle/Calculator.astro';
+import Mines from '../../components/apps-private/mines/Calculator.astro';
+import LightGrid from '../../components/apps-private/light-grid/Calculator.astro';
+import TowerOfHanoi from '../../components/apps-private/tower-of-hanoi/Calculator.astro';
+import Hangman from '../../components/apps-private/hangman/Calculator.astro';
+import FourInARow from '../../components/apps-private/four-in-a-row/Calculator.astro';
+import Reversi from '../../components/apps-private/reversi/Calculator.astro';
+import Solitaire from '../../components/apps-private/solitaire/Calculator.astro';
+import ReactionTime from '../../components/apps-private/reaction-time/Calculator.astro';
+import PegSolitaire from '../../components/apps-private/peg-solitaire/Calculator.astro';
+import Checkers from '../../components/apps-private/checkers/Calculator.astro';
+import DotsAndBoxes from '../../components/apps-private/dots-and-boxes/Calculator.astro';
+import Gomoku from '../../components/apps-private/gomoku/Calculator.astro';
+import CodeBreaker from '../../components/apps-private/code-breaker/Calculator.astro';
+import Nim from '../../components/apps-private/nim/Calculator.astro';
+import AimTrainer from '../../components/apps-private/aim-trainer/Calculator.astro';
+import TypingTest from '../../components/apps-private/typing-test/Calculator.astro';
+import Nonogram from '../../components/apps-private/nonogram/Calculator.astro';
+import WordGuess from '../../components/apps-private/word-guess/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -222,6 +247,30 @@ const CALCULATOR_MAP: Record<string, any> = {
   'unit-converter': UnitConverter,
   'ambigram-maker': AmbigramMaker,
   'passport-photo-maker': PassportPhotoMaker,
+  'sudoku': Sudoku,
+  'snake': Snake,
+  'tic-tac-toe': TicTacToe,
+  'match-pairs': MatchPairs,
+  'merge-tiles': MergeTiles,
+  'sliding-puzzle': SlidingPuzzle,
+  'mines': Mines,
+  'light-grid': LightGrid,
+  'tower-of-hanoi': TowerOfHanoi,
+  'hangman': Hangman,
+  'four-in-a-row': FourInARow,
+  'reversi': Reversi,
+  'solitaire': Solitaire,
+  'reaction-time': ReactionTime,
+  'peg-solitaire': PegSolitaire,
+  'checkers': Checkers,
+  'dots-and-boxes': DotsAndBoxes,
+  'gomoku': Gomoku,
+  'code-breaker': CodeBreaker,
+  'nim': Nim,
+  'aim-trainer': AimTrainer,
+  'typing-test': TypingTest,
+  'nonogram': Nonogram,
+  'word-guess': WordGuess,
 };
 
 export async function getStaticPaths() {
