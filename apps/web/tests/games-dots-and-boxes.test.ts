@@ -18,6 +18,10 @@ import {
   safeLines, giveAway, findChains, controlValue, doubleDealLine, openingLine, scoreMoves, bestMove, replay, undoKeep,
   winKey, cleanWins, type State, type Level, type Player,
 } from '../src/components/apps-private/dots-and-boxes/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), name), 'utf8');
 
 // ── helpers local to the tests ──────────────────────────────────────────────
 
@@ -966,5 +970,18 @@ describe('saved wins', () => {
   });
   it('accepts numbers saved as strings', () => {
     expect(cleanWins({ '4-easy': '3' })).toEqual({ '4-easy': 3 });
+  });
+});
+
+describe('page behaviour and content page', () => {
+  it('sends focus to New game after Play again, because the result panel closes', () => {
+    const src = page('src/components/apps-private/dots-and-boxes/Calculator.astro');
+    expect(src).toContain("againBtn.addEventListener('click', () => { newGameNow(); g('db-new').focus(); });");
+  });
+  it('describes the saved wins as small whole numbers in a small JSON object', () => {
+    expect(page('src/components/apps-private/dots-and-boxes/Calculator.astro')).not.toContain('plain numbers');
+    const md = page('src/content/apps/dots-and-boxes.md');
+    expect(md).not.toContain('plain numbers');
+    expect(md).toContain('small JSON object');
   });
 });

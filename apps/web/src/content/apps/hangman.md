@@ -3,7 +3,7 @@ title: "Hangman"
 category: "fun"
 job: "Play free Hangman with over 800 words in six categories and three difficulties. A hint is available, and it costs a guess."
 description: "Free online Hangman with over 800 words, six categories, three difficulties, a hint that costs a guess and a win streak. No ads, no signup."
-aiSummary: "A free browser Hangman. Words come from a fixed list of more than 800 common words, mostly nouns in six categories (animals, food, places, science, technology, home and everyday objects), four to eleven letters long. Easy uses 4 to 5 letters, Medium 6 to 7 and Hard 8 or more. The player gets six wrong guesses, with a gallows drawn in SVG, an on-screen A to Z keyboard and full physical keyboard support. A hint reveals one hidden letter and counts as a wrong guess; it is never offered when it would end the game or finish the word. The last 20 words are not repeated within a session. Win streak and best streak are kept in the browser's local storage as two numbers; nothing is uploaded."
+aiSummary: "A free browser Hangman. Words come from a fixed list of more than 800 common words, mostly nouns in six categories (animals, food, places, science, technology, home and everyday objects), four to eleven letters long. Easy uses 4 to 5 letters, Medium 6 to 7 and Hard 8 or more. The player gets six wrong guesses, with a gallows drawn in SVG, an on-screen A to Z keyboard and full physical keyboard support. A hint reveals one hidden letter and counts as a wrong guess; it is never offered when it would end the game or finish the word. The last 20 words are not repeated within a session. Win streak and best streak are kept in the browser's local storage as two small numbers; nothing is uploaded."
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A word list, a few pure functions and a gallows, with the rules written down and tested."
 status: "active"
 publishedAt: "2026-10-22"
@@ -14,7 +14,7 @@ icon: "🪢"
 
 ## How to play
 
-Guess the hidden word one letter at a time. Tap a letter on the on-screen keyboard or type it on your own keyboard. A correct letter fills in every place it appears. A wrong letter draws one more part of the figure on the gallows, and the sixth wrong guess ends the game. Solve the word before that and you win.
+Guess the hidden word one letter at a time. Tap a letter on the on-screen keyboard or type it on your own keyboard. Typed letters count while focus is on the game or on the page itself, not while it is on a link, menu or other control elsewhere on the page, so reading or navigating the site never uses up a guess. A correct letter fills in every place it appears. A wrong letter draws one more part of the figure on the gallows, and the sixth wrong guess ends the game. Solve the word before that and you win.
 
 Pick a **Category** (or leave it on Any) and a **Difficulty**:
 
@@ -41,7 +41,7 @@ The engine is a handful of pure functions that never touch the page, so every ru
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your current streak and best streak are saved in your browser's local storage as two plain numbers under one key. The word you are playing, your guesses and your recent-word list are not saved. The address of the page holds only the category and difficulty, never the word. Clearing site data removes the streak.
+Nothing is uploaded and there is no account. Your current streak and best streak are saved in your browser's local storage as two small numbers inside a small JSON object, under one key. The word you are playing, your guesses and your recent-word list are not saved. The address of the page holds only the category and difficulty, never the word. Clearing site data removes the streak.
 
 ## Limits
 

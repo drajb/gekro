@@ -13,6 +13,7 @@ import {
   lineClue, blocksOf, cluesFromGrid, checkSatisfied, completion, clueTotal, filledCount, rowCells, colCells,
   solveLine, lineSolve, isLogicallySolvable, generate, staircase, dailySeed, hashString, mulberry32,
   hintFor, firstDeduction, formatTime, gridToString, parseGrid, avgClueCount, MIN_AVG_CLUES, SIZES,
+  sanitiseBest, localIsoDate, MAX_BEST_SECONDS,
 } from '../src/components/apps-private/nonogram/helpers';
 
 // A hand-built 5 x 5 reference picture (a heart). It is not taken from a published book.
@@ -420,6 +421,28 @@ describe('completion by clues', () => {
       expect(completion(off, n, cl).complete).toBe(false);
       expect(completion(new Array(n * n).fill(0), n, cl).complete).toBe(false);
     }
+  });
+});
+
+describe('saved best times', () => {
+  it('keeps whole positive seconds for the three sizes and drops everything else', () => {
+    expect(sanitiseBest({ 5: 40, 10: 300, 15: 1500 })).toEqual({ 5: 40, 10: 300, 15: 1500 });
+    expect(sanitiseBest({ 5: '40', 7: 12 })).toEqual({ 5: 40 });
+    expect(sanitiseBest({ 5: 0, 10: -3, 15: 1.5 })).toEqual({});
+    expect(sanitiseBest({ 5: NaN, 10: Infinity, 15: 1e300 })).toEqual({});
+    expect(sanitiseBest({ 5: MAX_BEST_SECONDS })).toEqual({ 5: MAX_BEST_SECONDS });
+    expect(sanitiseBest({ 5: MAX_BEST_SECONDS + 1 })).toEqual({});
+  });
+  it('survives storage that is not an object', () => {
+    for (const raw of [null, undefined, 5, 'text', true, [1, 2, 3]]) expect(sanitiseBest(raw)).toEqual({});
+  });
+});
+
+describe('local date', () => {
+  it('formats a date as YYYY-MM-DD from its local parts, padded', () => {
+    expect(localIsoDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+    expect(localIsoDate(new Date(2026, 11, 31, 0, 1))).toBe('2026-12-31');
+    expect(localIsoDate()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
 

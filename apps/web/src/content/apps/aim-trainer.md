@@ -36,7 +36,7 @@ The interesting part is deciding where the next target goes. The engine keeps a 
 
 1. **Always fully inside.** The target plus a 6 px margin must fit inside the play area. If the area is too small to hold the target at all, the target shrinks to fit rather than spilling out.
 2. **Never on top of another.** A new target's centre must be at least two radii from every target on screen and from where the one you just hit was, so consecutive targets are never at the same spot. The Start target is avoided too, using its own larger radius.
-3. **Uniform otherwise.** Inside those limits every spot is equally likely. The draw comes from the browser's secure random number generator; in the tests a seeded generator makes every sequence repeatable.
+3. **Uniform otherwise.** Inside those limits every spot is equally likely. The draw comes from the browser's secure random number generator (if a browser has none, a small generator seeded from the clock is used instead); in the tests a seeded generator makes every sequence repeatable.
 
 If random tries all fail in a crowded area, a coarse scan picks the roomiest spot instead of looping. It is still inside the area.
 
@@ -48,7 +48,7 @@ If random tries all fail in a crowded area, a coarse scan picks the roomiest spo
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your personal best for each setup is saved in your browser's local storage as a plain whole number: the most hits in one finished run, for each of the 12 combinations of duration, size and mode. Whatever is read back is checked first: only those 12 known keys are accepted, and only whole numbers from 1 to 1000. **Clear saved bests** removes it all.
+Nothing is uploaded and there is no account. Your personal best for each setup is saved in your browser's local storage as a small whole number inside a small JSON object: the most hits in one finished run, for each of the 12 combinations of duration, size and mode. Whatever is read back is checked first: only those 12 known keys are accepted, and only whole numbers from 1 to 1000. **Clear saved bests** removes it all.
 
 A run that you cancel, that you restart by changing a setting, or that is interrupted by switching to another tab is thrown away and never saved. Only a run that lasts its full duration can set a personal best.
 

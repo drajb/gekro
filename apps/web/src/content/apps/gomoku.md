@@ -17,7 +17,7 @@ icon: "⚫"
 Players take turns placing one stone on an empty point. Solid stones move first and ring stones move second, so the two sides are told apart by shape as well as colour. The first player to make an unbroken line of five or more of their own stones, across, down or on either diagonal, wins. If the board fills up with no such line, the game is a draw.
 
 These are the freestyle rules: a line of six or more also wins, and the first player has no extra restrictions.
-- **Board size:** 9 x 9, 13 x 13 (the default, so the points stay comfortable to tap on a phone) or 15 x 15.
+- **Board size:** 9 x 9, 13 x 13 (the default, a middle size whose points are larger than on 15 x 15) or 15 x 15.
 - **Opponent:** the computer, or two players on the same screen.
 - **Difficulty:** Easy, Medium or Hard, used when you play the computer.
 - **You play:** first (solid stones) or second (ring stones). Choosing second gives the computer the opening move.
@@ -38,18 +38,18 @@ The engine is a plain module with no page code in it, so the tests can play thou
 
 **Every level** first takes a win if one is on the board, then blocks the opponent's win. Easy otherwise plays a random empty point next to an existing stone.
 
-**How strong are they?** The test suite plays seeded games and these are the results it recorded on a normal machine; Hard stops on a time limit, so a very slow machine could differ. On 13 x 13, alternating who moves first, Hard beat Easy in all 16 games, and Hard beat Medium in 8 of 16 with 3 losses and 5 draws. Medium beat Easy in at least 9 of 10.
+**How strong are they?** The test suite plays seeded games with Hard's one-second time limit lifted, so these results repeat exactly. On the page Hard keeps the limit, so on a slow device it may stop at a shallower search than in these games. On 13 x 13, alternating who moves first, Hard beat Easy in all 16 games, and Hard beat Medium in 8 of 16 with 3 losses and 5 draws. Medium beat Easy in at least 9 of 10.
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. After a win against the computer, the page saves your number of wins and your fewest moves in a win for that difficulty and board size, in your browser's local storage under one key, as plain numbers. Only games against the computer where you did not use Undo count. The session tally lives in memory and resets when you leave the page, and the board size, opponent, difficulty and side are kept in the page address. Clearing site data removes the saved records.
+Nothing is uploaded and there is no account. After a win against the computer, the page saves your number of wins and your fewest moves in a win for that difficulty and board size, in your browser's local storage under one key, as small whole numbers inside a small JSON object. Only games against the computer where you did not use Undo count. The session tally lives in memory and resets when you leave the page, and the board size, opponent, difficulty and side are kept in the page address. Clearing site data removes the saved records.
 
 ## Limits
 
 - **Hard is a heuristic search, not an unbeatable player.** It looks three moves ahead with scores from a fixed table, and the forced-win search only follows runs of fours, so it can miss longer combinations and be caught by plans that take more than a few moves to develop. A careful player can beat it, and in the test games it did not win every game against Medium.
 - Freestyle rules only: no Renju restrictions on the first player, no exact-five rule and no opening-swap rules.
 - Two players share one screen. There is no online play.
-- On a narrow phone the points on a 15 x 15 board are small. 13 x 13 is the default for that reason.
+- On a narrow phone the points are small, most of all on 15 x 15; 9 x 9 has the largest points. 13 x 13 is the default as a middle size.
 - Records are per browser and per board size and difficulty, and are not shared between devices.
 
 Everything runs locally in your browser.

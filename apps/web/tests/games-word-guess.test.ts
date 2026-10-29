@@ -14,7 +14,7 @@ import { resolve } from 'node:path';
 import {
   ENABLE5, ANSWERS, WORD_LENGTH, MAX_GUESSES, LETTERS, KEY_ROWS, MARK_CHAR, MAX_COUNT,
   mulberry32, hashString, shuffled, isLetter, isValidWord, scoreGuess, isWin, keyStates, checkHardMode, evaluateGuess, markSummary,
-  randomAnswer, pushRecent, localIsoDate, dayNumber, isoToNumber, numberToIso, dailyOrder, dailyAnswer,
+  ENTER_OWNERS, enterBelongsTo, randomAnswer, pushRecent, localIsoDate, dayNumber, isoToNumber, numberToIso, dailyOrder, dailyAnswer,
   emptyStats, encodeWord, decodeWord, sanitiseStats, updateStats, recordDailyProgress, currentStreak, winPercent, shareText,
   type Mark, type Row, type Stats,
 } from '../src/components/apps-private/word-guess/helpers';
@@ -781,6 +781,40 @@ describe('sanitising stored statistics', () => {
   });
 });
 
+describe('Enter belongs to interactive elements', () => {
+  const make = (html: string, selector: string): Element => {
+    document.body.innerHTML = html;
+    return document.querySelector(selector) as Element;
+  };
+  it('a button, a summary, a link, a select, an input and a textarea keep their own Enter', () => {
+    expect(enterBelongsTo(make('<button id="x">Go</button>', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<details><summary id="x">How it works</summary><p>text</p></details>', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<a id="x" href="/somewhere">link</a>', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<select id="x"><option>a</option></select>', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<input id="x">', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<textarea id="x"></textarea>', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<div id="x" role="button" tabindex="0">fake button</div>', '#x'))).toBe(true);
+  });
+  it('a child of a button or summary counts as that control', () => {
+    expect(enterBelongsTo(make('<button><span id="x">K</span></button>', '#x'))).toBe(true);
+    expect(enterBelongsTo(make('<details><summary><b id="x">How</b></summary></details>', '#x'))).toBe(true);
+  });
+  it('the page itself, plain text and a missing target do not, so Enter still submits there', () => {
+    expect(enterBelongsTo(make('<div id="x">board</div>', '#x'))).toBe(false);
+    expect(enterBelongsTo(make('<div><p id="x">help text</p></div>', '#x'))).toBe(false);
+    expect(enterBelongsTo(document.body)).toBe(false);
+    expect(enterBelongsTo(document.documentElement)).toBe(false);
+    expect(enterBelongsTo(null)).toBe(false);
+    expect(enterBelongsTo({})).toBe(false);
+  });
+  it('the page uses it for Enter and no longer tests the tag name', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/word-guess/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/if \(enterBelongsTo\(t\)\) return;/);
+    expect(text).not.toMatch(/tagName === 'BUTTON'/);
+    expect(ENTER_OWNERS).toContain('summary');
+  });
+});
+
 describe('share text', () => {
   const won = [row('crane', 'about'), row('crane', 'trace'), row('crane', 'crane')];
   it('uses the documented format for a win', () => {
@@ -800,6 +834,11 @@ describe('share text', () => {
     const t = shareText('random', lost, false);
     expect(t.split('\n')[0]).toBe('Word Guess random X/6');
     expect(t.split('\n')).toHaveLength(7);
+  });
+  it('the grid lines contain no letters, and the md says so truthfully', () => {
+    const md = readFileSync(resolve(process.cwd(), 'src/content/apps/word-guess.md'), 'utf8');
+    expect(md).toContain('The grid lines contain no letters');
+    expect(md).not.toContain('The result contains no letters');
   });
   it('never contains a letter from a guess or the answer, only the first line has any', () => {
     const t = shareText('random', won, true);

@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   press, pressAll, flipsOf, emptyBoard, isSolved, litCount, solvable, solve, hintPress, nullity, nullSpaceBasis,
-  log2SolvableBoards, generate, generateUniform, makeBoard, scramblePresses, mulberry32, shuffled, formatTime,
+  log2SolvableBoards, generate, generateUniform, makeBoard, scramblePresses, mulberry32, shuffled, formatTime, pressMessage,
   SIZES, MAX_SIZE, DIFFICULTIES,
   type Board,
 } from '../src/components/apps-private/light-grid/helpers';
@@ -352,6 +352,34 @@ describe('generator', () => {
     expect(generate(3, NaN, mulberry32(1)).length).toBe(9);
     expect(isSolved(generate(3, 999, mulberry32(1)))).toBe(false);
   });
+  it('generate falls back to a single press when every attempt cancels to a cleared board', () => {
+    // Where a null-space pattern exists (4 x 4 and 5 x 5), an rng that always shuffles that pattern to the front
+    // makes every attempt press a set that changes nothing, so all 50 attempts come back cleared.
+    const rngFor = (order: number[]): (() => number) => {
+      const a = order.map((_, i) => i);
+      const calls: number[] = [];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = a.indexOf(order[i]);
+        calls.push((j + 0.5) / (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      let k = 0;
+      return () => calls[k++ % calls.length];
+    };
+    for (const n of [4, 5]) {
+      const quiet = nullSpaceBasis(n)[0];
+      const rest = Array.from({ length: n * n }, (_, i) => i).filter((i) => !quiet.includes(i));
+      const all = Array.from({ length: n * n }, (_, i) => i);
+      const order = [...quiet, ...rest];
+      // The premise: this rng really does put the quiet pattern first, and pressing it clears nothing.
+      expect(shuffled(all, rngFor(order))).toEqual(order);
+      expect(isSolved(pressAll(emptyBoard(n), n, quiet))).toBe(true);
+      const b = generate(n, quiet.length, rngFor(order));
+      expect(isSolved(b)).toBe(false);
+      expect(b).toEqual(press(emptyBoard(n), n, 0));
+      expect(solvable(b, n)).toBe(true);
+    }
+  });
   it('falls back to a non-cleared board even if the rng is degenerate', () => {
     expect(isSolved(generate(3, 3, () => 0))).toBe(false);
     expect(isSolved(generateUniform(3, () => 0.9))).toBe(false); // never presses anything by chance
@@ -363,6 +391,13 @@ describe('generator', () => {
     for (let t = 0; t < 2000; t++) seen.add(maskOf(generateUniform(4, rng)));
     // 4 x 4 has 2^12 = 4096 solvable boards; 2000 draws should land on well over 1000 distinct ones.
     expect(seen.size).toBeGreaterThan(1000);
+  });
+});
+
+describe('press announcement', () => {
+  it('names the cell pressed and how many lamps are lit, with the right singular', () => {
+    expect(pressMessage(press(emptyBoard(3), 3, idx(3, 0, 0)), 3, idx(3, 0, 0))).toBe('Pressed row 1, column 1. 3 lamps are lit.');
+    expect(pressMessage([0, 0, 0, 0, 1, 0, 0, 0, 0], 3, idx(3, 2, 1))).toBe('Pressed row 3, column 2. 1 lamp is lit.');
   });
 });
 

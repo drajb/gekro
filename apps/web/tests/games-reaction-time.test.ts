@@ -8,6 +8,8 @@
  * content page quotes is asserted here.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   RUN_LENGTH, MIN_DELAY_MS, MAX_DELAY_MS, MIN_VALID_MS, MAX_VALID_MS, HISTORY_LIMIT, QUICK_BELOW, SLOW_ABOVE,
   mulberry32, randomDelay, pickTimestamp, initialState, reduce, toValidTime, stats, band, BAND_LABEL, BAND_NOTE,
@@ -20,7 +22,7 @@ const rng = mulberry32(2026);
 /** Run one counted attempt from idle/result/early: press, GO appears at `goAt`, press `ms` later. */
 const attempt = (s: RunState, ms: number, goAt = 10_000): RunState => {
   let x = reduce(s, { type: 'press', at: goAt - 3000 }, rng);
-  x = reduce(x, { type: 'go', at: goAt });
+  x = reduce(x, { type: 'go', at: goAt }, rng);
   return reduce(x, { type: 'press', at: goAt + ms }, rng);
 };
 
@@ -109,10 +111,10 @@ describe('state machine: a normal attempt', () => {
     expect(s1.phase).toBe('waiting');
     expect(s1.delay).toBeGreaterThanOrEqual(1500);
     expect(s1.delay).toBeLessThanOrEqual(5000);
-    const s2 = reduce(s1, { type: 'go', at: 3000 });
+    const s2 = reduce(s1, { type: 'go', at: 3000 }, rng);
     expect(s2.phase).toBe('go');
     expect(s2.goAt).toBe(3000);
-    const s3 = reduce(s2, { type: 'press', at: 3243.4 });
+    const s3 = reduce(s2, { type: 'press', at: 3243.4 }, rng);
     expect(s3.phase).toBe('result');
     expect(s3.last).toBe(243); // rounded to a whole millisecond
     expect(s3.times).toEqual([243]);
@@ -123,9 +125,9 @@ describe('state machine: a normal attempt', () => {
     const frozen = JSON.stringify(s0);
     const s1 = reduce(s0, { type: 'press', at: 1 }, rng);
     expect(JSON.stringify(s0)).toBe(frozen);
-    const s2 = reduce(s1, { type: 'go', at: 2000 });
+    const s2 = reduce(s1, { type: 'go', at: 2000 }, rng);
     const before = JSON.stringify(s2);
-    reduce(s2, { type: 'press', at: 2200 });
+    reduce(s2, { type: 'press', at: 2200 }, rng);
     expect(JSON.stringify(s2)).toBe(before);
   });
   it('is deterministic given the same rng seed and clock', () => {
@@ -135,8 +137,8 @@ describe('state machine: a normal attempt', () => {
       const log: RunState[] = [];
       for (let i = 0; i < 5; i++) {
         s = reduce(s, { type: 'press', at: i * 10000 }, r);
-        s = reduce(s, { type: 'go', at: i * 10000 + s.delay });
-        s = reduce(s, { type: 'press', at: i * 10000 + s.delay + 250 + i });
+        s = reduce(s, { type: 'go', at: i * 10000 + s.delay }, rng);
+        s = reduce(s, { type: 'press', at: i * 10000 + s.delay + 250 + i }, rng);
         log.push(s);
       }
       return JSON.stringify(log);
@@ -155,7 +157,7 @@ describe('state machine: a normal attempt', () => {
 describe('state machine: early presses are discarded and never counted', () => {
   it('pressing while waiting gives early, counts nothing, and counts the discard', () => {
     let s = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    s = reduce(s, { type: 'press', at: 400 });
+    s = reduce(s, { type: 'press', at: 400 }, rng);
     expect(s.phase).toBe('early');
     expect(s.reason).toBe('early');
     expect(s.times).toEqual([]);
@@ -166,7 +168,7 @@ describe('state machine: early presses are discarded and never counted', () => {
     let s = attempt(initialState(), 230);
     s = attempt(s, 260);
     s = reduce(s, { type: 'press', at: 50_000 }, rng); // waiting
-    s = reduce(s, { type: 'press', at: 50_100 }); // too soon
+    s = reduce(s, { type: 'press', at: 50_100 }, rng); // too soon
     expect(s.phase).toBe('early');
     expect(s.times).toEqual([230, 260]);
     s = reduce(s, { type: 'press', at: 51_000 }, rng);
@@ -177,8 +179,8 @@ describe('state machine: early presses are discarded and never counted', () => {
   });
   it('a stale GO action after an early press is ignored', () => {
     let s = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    s = reduce(s, { type: 'press', at: 10 });
-    const after = reduce(s, { type: 'go', at: 99 });
+    s = reduce(s, { type: 'press', at: 10 }, rng);
+    const after = reduce(s, { type: 'go', at: 99 }, rng);
     expect(after).toBe(s);
     expect(after.phase).toBe('early');
   });
@@ -186,22 +188,22 @@ describe('state machine: early presses are discarded and never counted', () => {
     let s = initialState();
     for (let i = 0; i < 4; i++) s = attempt(s, 250);
     s = reduce(s, { type: 'press', at: 1e5 }, rng);
-    s = reduce(s, { type: 'press', at: 1e5 + 5 });
+    s = reduce(s, { type: 'press', at: 1e5 + 5 }, rng);
     expect(s.phase).toBe('early');
     expect(s.times).toHaveLength(4);
   });
   it('a time under 50 ms (anticipation) is treated as too soon and not counted', () => {
     let s = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    s = reduce(s, { type: 'go', at: 5000 });
-    s = reduce(s, { type: 'press', at: 5030 });
+    s = reduce(s, { type: 'go', at: 5000 }, rng);
+    s = reduce(s, { type: 'press', at: 5030 }, rng);
     expect(s.phase).toBe('early');
     expect(s.reason).toBe('early');
     expect(s.times).toEqual([]);
   });
   it('a press stamped before GO appeared is too soon', () => {
     let s = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    s = reduce(s, { type: 'go', at: 5000 });
-    s = reduce(s, { type: 'press', at: 4990 });
+    s = reduce(s, { type: 'go', at: 5000 }, rng);
+    s = reduce(s, { type: 'press', at: 4990 }, rng);
     expect(s.reason).toBe('early');
     expect(s.times).toEqual([]);
   });
@@ -220,15 +222,15 @@ describe('state machine: early presses are discarded and never counted', () => {
   });
   it('a non-finite press time is invalid and not counted', () => {
     let s = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    s = reduce(s, { type: 'go', at: 5000 });
-    s = reduce(s, { type: 'press', at: NaN });
+    s = reduce(s, { type: 'go', at: 5000 }, rng);
+    s = reduce(s, { type: 'press', at: NaN }, rng);
     expect(s.reason).toBe('invalid');
     expect(s.times).toEqual([]);
   });
   it('a GO with a bad timestamp is ignored', () => {
     const w = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    expect(reduce(w, { type: 'go', at: NaN })).toBe(w);
-    expect(reduce(w, { type: 'go', at: Infinity })).toBe(w);
+    expect(reduce(w, { type: 'go', at: NaN }, rng)).toBe(w);
+    expect(reduce(w, { type: 'go', at: Infinity }, rng)).toBe(w);
   });
 });
 
@@ -248,7 +250,7 @@ describe('state machine: a run is exactly five counted tries', () => {
     for (let i = 0; i < 3; i++) {
       s = attempt(s, 240);
       s = reduce(s, { type: 'press', at: 1000 + i }, rng); // waiting
-      s = reduce(s, { type: 'press', at: 1001 + i }); // too soon
+      s = reduce(s, { type: 'press', at: 1001 + i }, rng); // too soon
     }
     expect(s.times).toHaveLength(3);
     expect(s.discarded).toBe(3);
@@ -263,14 +265,14 @@ describe('state machine: a run is exactly five counted tries', () => {
     const again = reduce(s, { type: 'press', at: 9e6 }, rng);
     expect(again).toBe(s);
     expect(again.times).toHaveLength(5);
-    for (const t of ['go', 'stamp'] as const) expect(reduce(s, { type: t, at: 9e6 })).toBe(s);
+    for (const t of ['go', 'stamp'] as const) expect(reduce(s, { type: t, at: 9e6 }, rng)).toBe(s);
   });
   it('reset gives a fresh run from any phase', () => {
     let s = attempt(initialState(), 240);
     s = reduce(s, { type: 'press', at: 1 }, rng);
-    expect(reduce(s, { type: 'reset' })).toEqual(initialState());
-    for (let i = 0; i < 5; i++) s = attempt(reduce(s, { type: 'reset' }), 250);
-    expect(reduce(s, { type: 'reset' })).toEqual(initialState());
+    expect(reduce(s, { type: 'reset' }, rng)).toEqual(initialState());
+    for (let i = 0; i < 5; i++) s = attempt(reduce(s, { type: 'reset' }, rng), 250);
+    expect(reduce(s, { type: 'reset' }, rng)).toEqual(initialState());
   });
   it('survives a random sequence of actions without a bad state, a bad time or a sixth entry', () => {
     const r = mulberry32(31337);
@@ -292,27 +294,27 @@ describe('state machine: a run is exactly five counted tries', () => {
 describe('state machine: stamp and cancel', () => {
   it('stamp moves the GO time to a later frame only, and only while in go', () => {
     let s = reduce(initialState(), { type: 'press', at: 0 }, rng);
-    expect(reduce(s, { type: 'stamp', at: 50 })).toBe(s);
-    s = reduce(s, { type: 'go', at: 1000 });
-    expect(reduce(s, { type: 'stamp', at: 990 })).toBe(s);
-    expect(reduce(s, { type: 'stamp', at: 1000 })).toBe(s);
-    expect(reduce(s, { type: 'stamp', at: NaN })).toBe(s);
-    const s2 = reduce(s, { type: 'stamp', at: 1016.7 });
+    expect(reduce(s, { type: 'stamp', at: 50 }, rng)).toBe(s);
+    s = reduce(s, { type: 'go', at: 1000 }, rng);
+    expect(reduce(s, { type: 'stamp', at: 990 }, rng)).toBe(s);
+    expect(reduce(s, { type: 'stamp', at: 1000 }, rng)).toBe(s);
+    expect(reduce(s, { type: 'stamp', at: NaN }, rng)).toBe(s);
+    const s2 = reduce(s, { type: 'stamp', at: 1016.7 }, rng);
     expect(s2.goAt).toBe(1016.7);
-    expect(reduce(s2, { type: 'press', at: 1266.7 }).last).toBe(250);
+    expect(reduce(s2, { type: 'press', at: 1266.7 }, rng).last).toBe(250);
   });
   it('cancel in waiting or go goes back to ready, keeps counted times, and is a no-op elsewhere', () => {
     let s = attempt(initialState(), 240);
     const w = reduce(s, { type: 'press', at: 1 }, rng);
-    const c = reduce(w, { type: 'cancel' });
+    const c = reduce(w, { type: 'cancel' }, rng);
     expect(c.phase).toBe('idle');
     expect(c.reason).toBe('hidden');
     expect(c.times).toEqual([240]);
     expect(c.goAt).toBeNull();
-    const g = reduce(w, { type: 'go', at: 5 });
-    expect(reduce(g, { type: 'cancel' }).phase).toBe('idle');
-    expect(reduce(s, { type: 'cancel' })).toBe(s); // result
-    expect(reduce(initialState(), { type: 'cancel' }).phase).toBe('idle');
+    const g = reduce(w, { type: 'go', at: 5 }, rng);
+    expect(reduce(g, { type: 'cancel' }, rng).phase).toBe('idle');
+    expect(reduce(s, { type: 'cancel' }, rng)).toBe(s); // result
+    expect(reduce(initialState(), { type: 'cancel' }, rng).phase).toBe('idle');
     // after a cancel the next press starts waiting again
     expect(reduce(c, { type: 'press', at: 2 }, rng).phase).toBe('waiting');
     expect(reduce(c, { type: 'press', at: 2 }, rng).reason).toBeNull();
@@ -584,9 +586,9 @@ describe('a whole run end to end', () => {
     const plan = [240, 'early', 260, 220, 'early', 300, 280] as const;
     for (const step of plan) {
       s = reduce(s, { type: 'press', at: 0 }, r);
-      if (step === 'early') { s = reduce(s, { type: 'press', at: 1 }); continue; }
-      s = reduce(s, { type: 'go', at: 4000 });
-      s = reduce(s, { type: 'press', at: 4000 + step });
+      if (step === 'early') { s = reduce(s, { type: 'press', at: 1 }, rng); continue; }
+      s = reduce(s, { type: 'go', at: 4000 }, rng);
+      s = reduce(s, { type: 'press', at: 4000 + step }, rng);
       saved = recordAttempt(saved, s.last as number).saved;
     }
     expect(s.phase).toBe('done');
@@ -597,6 +599,31 @@ describe('a whole run end to end', () => {
     const st = stats(s.times);
     expect(st).toMatchObject({ mean: 260, median: 260, best: 220, worst: 300 });
     expect(band(Math.round(st.mean as number))).toBe('typical');
+  });
+});
+
+describe('the random source is always supplied by the caller', () => {
+  it('the wait comes from the rng that is passed in, at both ends of its range', () => {
+    expect(reduce(initialState(), { type: 'press', at: 0 }, () => 0).delay).toBe(1500);
+    expect(reduce(initialState(), { type: 'press', at: 0 }, () => 0.5).delay).toBe(3250);
+    expect(reduce(initialState(), { type: 'press', at: 0 }, () => 1).delay).toBe(5000);
+  });
+  it('only a press that starts a wait draws from the rng', () => {
+    let draws = 0;
+    const counting = (): number => { draws += 1; return 0.25; };
+    let s = reduce(initialState(), { type: 'press', at: 0 }, counting);
+    expect(draws).toBe(1);
+    s = reduce(s, { type: 'press', at: 10 }, counting); // too soon
+    s = reduce(s, { type: 'cancel' }, counting);
+    s = reduce(s, { type: 'reset' }, counting);
+    expect(draws).toBe(1);
+    expect(s.phase).toBe('idle');
+  });
+  it('the helpers and the page never call Math.random', () => {
+    for (const f of ['helpers.ts', 'Calculator.astro']) {
+      const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/reaction-time', f), 'utf8');
+      expect(text.includes('Math' + '.random'), f).toBe(false);
+    }
   });
 });
 

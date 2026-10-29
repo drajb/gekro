@@ -21,6 +21,10 @@ import {
   DARK, LIGHT, DARK_MAN, LIGHT_MAN, DARK_KING, LIGHT_KING,
   type Board, type Side, type Move, type Level, type GameState,
 } from '../src/components/apps-private/checkers/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), name), 'utf8');
 
 const rc = (r: number, c: number): number => r * 8 + c;
 const EMPTY_ROW = '........';
@@ -78,7 +82,7 @@ describe('initial position', () => {
     expect(b[rc(7, 0)]).toBe(DARK_MAN);
     expect(b[rc(0, 1)]).toBe(LIGHT_MAN);
   });
-  it('gives Dark exactly 7 legal moves, all simple steps from row 6 to row 5', () => {
+  it('gives Solid exactly 7 legal moves, all simple steps from row 6 to row 5', () => {
     const ms = legalMoves(b, DARK);
     expect(ms).toHaveLength(7);
     expect(ms.every((m) => m.captured.length === 0 && !m.crown && rowOf(m.from) === 5 && rowOf(m.to) === 4)).toBe(true);
@@ -86,7 +90,7 @@ describe('initial position', () => {
       P([5, 0], [4, 1]), P([5, 2], [4, 1]), P([5, 2], [4, 3]), P([5, 4], [4, 3]), P([5, 4], [4, 5]), P([5, 6], [4, 5]), P([5, 6], [4, 7]),
     ));
   });
-  it('gives Light 7 replies too, and the game is not over', () => {
+  it('gives Ring 7 replies too, and the game is not over', () => {
     expect(legalMoves(b, LIGHT)).toHaveLength(7);
     expect(result(b, DARK, 0)).toEqual({ over: false, winner: null, reason: 'none' });
   });
@@ -94,7 +98,7 @@ describe('initial position', () => {
     expect(parseBoard(boardToString(b))).toEqual(b);
     expect(boardToString(b)).toHaveLength(64);
   });
-  it('starts with Dark to move and a fresh counter', () => {
+  it('starts with Solid to move and a fresh counter', () => {
     const s = initialState();
     expect(s.toMove).toBe(DARK);
     expect(s.quiet).toBe(0);
@@ -312,8 +316,8 @@ describe('the end of the game', () => {
   it('describes results for two players and for a player against the computer', () => {
     const blocked = { over: true, winner: DARK as Side, reason: 'blocked' as const };
     const none = { over: true, winner: LIGHT as Side, reason: 'no-pieces' as const };
-    expect(describeOutcome(blocked, null)).toBe('Dark (solid) wins: Light (ring) has no legal move.');
-    expect(describeOutcome(none, null)).toBe('Light (ring) wins: Dark (solid) has no pieces left.');
+    expect(describeOutcome(blocked, null)).toBe('Solid wins: Ring has no legal move.');
+    expect(describeOutcome(none, null)).toBe('Ring wins: Solid has no pieces left.');
     expect(describeOutcome(blocked, DARK)).toBe('You win: the computer has no legal move.');
     expect(describeOutcome(blocked, LIGHT)).toBe('The computer wins: you have no legal move.');
     expect(describeOutcome(none, DARK)).toBe('The computer wins: you have no pieces left.');
@@ -412,11 +416,12 @@ describe('undo bookkeeping', () => {
 describe('describeMove', () => {
   it('says what moved, what was taken and whether it was crowned', () => {
     const simple = legalMoves(initialBoard(), DARK).find((m) => m.from === rc(5, 0)) as Move;
-    expect(describeMove(simple, DARK)).toBe('Dark (solid) moved from row 6, column 1 to row 5, column 2.');
+    expect(describeMove(simple, DARK)).toBe('Solid moved from row 6, column 1 to row 5, column 2.');
     const b = parseBoard(EMPTY_ROW + '..o.....' + '.x......' + EMPTY_ROW.repeat(5));
     const crown = legalMoves(b, DARK)[0];
-    expect(describeMove(crown, DARK)).toBe('Dark (solid) moved from row 3, column 2 to row 1, column 4 and captured 1 piece and was crowned.');
-    expect(nameOf(LIGHT)).toBe('Light (ring)');
+    expect(describeMove(crown, DARK)).toBe('Solid moved from row 3, column 2 to row 1, column 4 and captured 1 piece and was crowned.');
+    expect(nameOf(LIGHT)).toBe('Ring');
+    expect(nameOf(DARK)).toBe('Solid');
     expect(opponent(DARK)).toBe(LIGHT);
   });
 });
@@ -708,5 +713,35 @@ describe('evaluation', () => {
   it('the sign flips with the side', () => {
     const one = parseBoard(EMPTY_ROW.repeat(7) + 'x.......');
     expect(evaluate(one, DARK)).toBe(-evaluate(one, LIGHT));
+  });
+});
+
+describe('search depth and page behaviour', () => {
+  const dir = 'src/components/apps-private/checkers/';
+  it('a depth that is not a finite number is treated as depth 1 instead of searching forever', () => {
+    const s0 = initialState();
+    for (const d of [NaN, Infinity, -Infinity, 0, -2]) {
+      const t = performance.now();
+      const info = search(s0.board, s0.toMove, { depth: d }, mulberry32(3));
+      expect(info.depth).toBe(1);
+      expect(findMove(s0.board, s0.toMove, info.move!.path)).not.toBeNull();
+      expect(performance.now() - t).toBeLessThan(1500);
+    }
+  });
+  it('makes the board inert while the game-over panel is up and restores it for a new game and for undo', () => {
+    const src = page(dir + 'Calculator.astro');
+    expect(src).toContain("boardEl.toggleAttribute('inert', true);");
+    expect(src.split("boardEl.removeAttribute('inert');")).toHaveLength(3); // newGame and undo
+    expect(src).toContain("g('ck-again').addEventListener('click', () => { newGame(); g('ck-new').focus(); });");
+  });
+  it('uses Solid and Ring in the page and the content page, never Dark or Light', () => {
+    const src = page(dir + 'Calculator.astro');
+    const md = page('src/content/apps/checkers.md');
+    for (const text of [src.replace(/DARK|LIGHT/g, ''), md]) {
+      expect(text).not.toMatch(/Dark|Light/);
+      expect(text).not.toContain('plain numbers');
+    }
+    expect(src).toContain('Solid, moves first');
+    expect(md).toContain('Solid moves first');
   });
 });

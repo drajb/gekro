@@ -35,16 +35,16 @@ Every symbol has a digit, a shape and a colour: 1 circle, 2 square, 3 triangle, 
 
 **The solver.** After a game ends, **Solver plays** replays a Knuth-style minimax strategy on your same secret, one guess every 600 milliseconds (instantly if your system asks for reduced motion). It opens with 1 1 2 2. After that, it scores every possible guess against every code still possible, finds the guess whose worst-case outcome leaves the fewest codes, and plays it, preferring a guess that could itself be the answer. The test suite runs it against all 1296 codes of the default game: it cracks every one in at most **5 guesses**, and it averages **4.476 guesses** (5801 guesses in total; 1 code takes 1 guess, 6 take 2, 62 take 3, 533 take 4 and 694 take 5). In the 4-peg, 6-symbol game with no repeats it also cracks all 360 codes in at most 5 guesses.
 
-Trying every guess against every remaining code is too slow for the larger games (the biggest has 32768 codes). There the solver caps its work per step: it compares only an evenly spaced sample of the codes that are still possible. A step stays well under half a second, but this is not Knuth's full guarantee, so the solver's guess count on the 5-peg games is not pinned the way the default game is.
+Trying every guess against every remaining code is too slow for the larger games (the biggest has 32768 codes). There the solver caps its work per step at 450,000 scored pairs: it compares only an evenly spaced sample of the codes that are still possible. On the computer I timed it on, the slowest step I saw (25 random secrets in each of the eight setups) took under 100 milliseconds, and a phone will be slower. This is not Knuth's full guarantee, so the solver's guess count on the larger games is not pinned the way the default game is.
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best guess count for each setup and your total of games won without a hint are saved in your browser's local storage, as plain numbers, under one key. Clearing site data removes them. The secret is chosen with your browser's secure random number generator and exists only in the page.
+Nothing is uploaded and there is no account. Your best guess count for each setup and your total of games won without a hint are saved in your browser's local storage, as small whole numbers inside a small JSON object, under one key. Clearing site data removes them. The secret is chosen with your browser's secure random number generator and exists only in the page.
 
 ## Limits
 
 - The at-most-5-guesses result is for the default game and the 4-peg, 6-symbol no-repeat game only. The solver is not proven to be optimal in the other setups.
-- Only games won without a hint count toward your best and your wins. A game restarted with the same secret after a hint still counts as hinted.
+- Only games won without a hint count toward your best and your wins. A game restarted with the same secret (the Reset button) never counts, with or without a hint, because by then you have seen the scores or the answer. Start a new game for a fresh secret that counts.
 - The game is always played against the computer, one secret at a time. There is no daily code and no two-player mode.
 - Best results are per browser and per setup. Changing browser or clearing site data starts them over.
 

@@ -12,9 +12,13 @@ import { describe, it, expect } from 'vitest';
 import {
   LINES, emptyBoard, other, mulberry32, winningLine, winnerOf, isFull, gameState, isOver, turnOf, legalMoves, play,
   winningMoves, positionValue, moveScores, bestMoves, outcomeUnderPerfectPlay, chooseEasy, chooseMedium, chooseUnbeatable,
-  chooseMove, resultFor, nextStreak, parseBest, cellLabel, squareName,
+  chooseMove, resultFor, nextStreak, parseBest, cellLabel, squareName, openingMessage, computerMoveMessage,
   type Board, type Cell, type Mark, type Level,
 } from '../src/components/apps-private/tic-tac-toe/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), 'src/components/apps-private/tic-tac-toe', name), 'utf8');
 
 /** Build a board from a 9-character string: X, O or any other character for empty. */
 const b = (s: string): Cell[] => Array.from(s).map((ch) => (ch === 'X' || ch === 'O' ? ch : ''));
@@ -469,5 +473,32 @@ describe('labels', () => {
 
   it('no label or name contains the em-dash character', () => {
     for (let i = 0; i < 9; i++) expect(cellLabel(i, 'X', true) + squareName(i)).not.toContain(String.fromCharCode(0x2014));
+  });
+});
+
+describe('status messages', () => {
+  it('only says "Your move" at the start when the person really moves first', () => {
+    expect(openingMessage(true, 'X')).toBe('Your move. Pick a square or press 1 to 9.');
+    expect(openingMessage(true, 'O')).not.toContain('Your move');
+    expect(openingMessage(true, 'O')).toContain('computer moves first');
+    expect(openingMessage(false, 'O')).toBe('Two players: X goes first.');
+  });
+
+  it('keeps the result message when the computer move ends the game', () => {
+    const before = b('XX-OO----');
+    const won = play(before, 2) as Cell[];
+    expect(gameState(won)).toBe('X');
+    expect(computerMoveMessage(2, won)).toBeNull();
+    const drawn = b('XOXXOOOXX');
+    expect(computerMoveMessage(8, drawn)).toBeNull();
+    const ongoing = play(emptyBoard(), 4) as Cell[];
+    expect(computerMoveMessage(4, ongoing)).toBe('The computer played row 2, column 2.');
+  });
+
+  it('the page help text describes the tally the way the code counts it', () => {
+    const src = page('Calculator.astro');
+    expect(src).toContain('X and O wins in two-player mode');
+    expect(src).not.toContain('tally and unbeaten streak count only');
+    expect(src).not.toContain('as plain numbers');
   });
 });

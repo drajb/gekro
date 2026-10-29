@@ -52,7 +52,7 @@ Computer moves are spaced about 350 ms apart so a chain of boxes can be followed
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. The number of games you have won against the computer, for each board size and level, is saved in your browser's local storage as plain numbers under one key. Only a finished win against the computer counts, and only if you did not use undo in that game. Ties, losses and two-player games are not saved. The session tally and the current game are kept in memory only, so they reset when you leave the page. The address records only the board size, opponent, level and seat. Clearing site data removes the saved wins.
+Nothing is uploaded and there is no account. The number of games you have won against the computer, for each board size and level, is saved in your browser's local storage as small whole numbers inside a small JSON object under one key. Only a finished win against the computer counts, and only if you did not use undo in that game. Ties, losses and two-player games are not saved. The session tally and the current game are kept in memory only, so they reset when you leave the page. The address records only the board size, opponent, level and seat. Clearing site data removes the saved wins.
 
 ## Limits
 

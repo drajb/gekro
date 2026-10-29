@@ -46,7 +46,7 @@ Games that used Auto-solve are marked as such and do not count toward your best 
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best move count and best time for each disc count are saved in your browser's local storage, as plain numbers, under one key, and only for games you solved yourself. Clearing site data removes them. The page address holds the number of discs, so you can link to a particular size.
+Nothing is uploaded and there is no account. Your best move count and best time for each disc count are saved in your browser's local storage as small whole numbers inside a small JSON object, under one key, and only for games you solved yourself. Clearing site data removes them. The page address holds the number of discs, so you can link to a particular size.
 
 ## Limits
 

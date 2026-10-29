@@ -3,7 +3,7 @@ title: "Reaction Time Test"
 category: "fun"
 job: "Test your reaction time in the browser: wait for the panel to change, press as fast as you can, and get the average, median, best and worst of five tries."
 description: "Free reaction time test. Five tries, a random 1.5 to 5 second wait, and an honest note on what the number includes. No ads, no signup, runs in your browser."
-aiSummary: "A free browser reaction time test. A panel waits a random 1.5 to 5 seconds (drawn from the browser's secure random generator), then changes to GO; you press as fast as you can. A run is five counted tries. Pressing early throws that try away and it is never counted. The result shows the average, median, best and worst, with a rough plain-words band on the average (under 200 ms Quick, 200 to 300 ms Typical range, over 300 ms Slow side). The time is measured from the screen frame after the panel changes to the browser's timestamp on your press, so it includes display and input delay and is not a laboratory measurement. Best times are kept in local storage as plain numbers; nothing is uploaded."
+aiSummary: "A free browser reaction time test. A panel waits a random 1.5 to 5 seconds (drawn from the browser's secure random generator), then changes to GO; you press as fast as you can. A run is five counted tries. Pressing early throws that try away and it is never counted. The result shows the average, median, best and worst, with a rough plain-words band on the average (under 200 ms Quick, 200 to 300 ms Typical range, over 300 ms Slow side). The time is measured from the screen frame after the panel changes to the browser's timestamp on your press, so it includes display and input delay and is not a laboratory measurement. Best times are kept in local storage as small numbers inside a small JSON object; nothing is uploaded."
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A reaction test that says what the clock starts on, what it stops on and what it cannot account for, and throws away early presses instead of letting them score."
 status: "active"
 publishedAt: "2026-10-23"
@@ -46,7 +46,7 @@ If you switch to another tab while a try is waiting, the try is cancelled and th
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Three things are saved in your browser's local storage, as plain numbers under one key: your fastest single time, your lowest five-try average, and your last 20 counted times. Only counted times are saved; early presses and discarded tries are not. Whatever is read back from storage is checked first: anything that is not a number is dropped, values are clamped to 50 to 5000 ms, and the history is capped at 20. **Clear saved results** removes it, as does clearing site data.
+Nothing is uploaded and there is no account. Three things are saved in your browser's local storage, as small numbers inside a small JSON object under one key: your fastest single time, your lowest five-try average, and your last 20 counted times. Only counted times are saved; early presses and discarded tries are not. Whatever is read back from storage is checked first: anything that is not a number is dropped, values are clamped to 50 to 5000 ms, and the history is capped at 20. **Clear saved results** removes it, as does clearing site data.
 
 ## Limits
 

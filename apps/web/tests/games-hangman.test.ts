@@ -12,7 +12,7 @@ import {
   WORD_LIST, CATEGORIES, CATEGORY_LABEL, DIFFICULTIES, DIFFICULTY_RANGE, DIFFICULTY_LABEL, LETTERS, MAX_WRONG, RECENT_LIMIT,
   mulberry32, pickWord, pushRecent, matchesFilters, newGame, applyGuess, applyHint, canHint, maskWord, describeWord,
   status, wrongCount, guessesLeft, misses, hiddenLetters, letterState, isLetter, knownLetters,
-  sanitizeStreak, recordResult, streakAfterAbandon, shareSummary, hasStarted,
+  sanitizeStreak, recordResult, streakAfterAbandon, shareSummary, hasStarted, letterKeyApplies,
   type Entry, type Game, type Filters,
 } from '../src/components/apps-private/hangman/helpers';
 
@@ -276,11 +276,14 @@ describe('hints', () => {
     }
   });
   it('can never turn a game into a win or a loss on its own', () => {
-    for (const e of WORD_LIST.slice(0, 120)) {
+    // Every word in every category, not a sample: no run of hints may win or lose a game.
+    expect(new Set(WORD_LIST.map((e) => e.category)).size).toBe(CATEGORIES.length);
+    for (const e of WORD_LIST) {
       let g = newGame(e);
       for (let i = 0; i < 12; i++) g = applyHint(g, mulberry32(i + 1));
       expect(status(g), e.word).toBe('playing');
-      expect(wrongCount(g)).toBeLessThanOrEqual(MAX_WRONG - 1);
+      expect(wrongCount(g), e.word).toBeLessThanOrEqual(MAX_WRONG - 1);
+      expect(hiddenLetters(g).length, e.word).toBeGreaterThanOrEqual(1);
     }
   });
 });
@@ -443,6 +446,16 @@ describe('streaks', () => {
     const s = { current: 4, best: 6 };
     expect(streakAfterAbandon(play('apple', 'aple'), s)).toBe(s);
     expect(streakAfterAbandon(play('apple', 'bcdfgh'), s)).toBe(s);
+  });
+});
+
+describe('keyboard scope', () => {
+  it('counts a letter typed on the page body or inside the game', () => {
+    expect(letterKeyApplies(true, false)).toBe(true);
+    expect(letterKeyApplies(false, true)).toBe(true);
+  });
+  it('ignores a letter typed while focus is on some other control on the page', () => {
+    expect(letterKeyApplies(false, false)).toBe(false);
   });
 });
 

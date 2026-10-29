@@ -16,7 +16,7 @@ icon: "🧩"
 
 Put the tiles in order, 1 up to the last number, with the empty gap in the bottom-right corner. Click or tap a tile to slide it into the gap. A tile that shares a row or column with the gap slides the whole run of tiles between them in one go, and that counts as a single move.
 
-With the keyboard, Tab to a tile and press Enter or Space, or use the arrow keys. Each arrow is the direction a tile travels: Left slides the tile on the right side of the gap one step left, Up slides the tile below the gap one step up, and so on. Tiles are labelled for screen readers with their row, column and whether they can move.
+With the keyboard, Tab to a tile and press Enter or Space, or use the arrow keys. Each arrow is the direction a tile travels: Left slides the tile on the right side of the gap one step left, Up slides the tile below the gap one step up, and so on. Tiles are labelled for screen readers with their row, column and whether they can move, and each slide is announced with where the tile landed and how many tiles are in place.
 
 Pick a frame size: 3x3 has 8 tiles, 4x4 has 15 and 5x5 has 24. **New puzzle** shuffles again, **Restart** puts the current puzzle back to where it began. The timer starts at your first move and pauses while the tab is hidden. The page address carries the size and a seed, so sending the link sends the exact same puzzle. Tiles that are already home are drawn in the accent colour, and the "In place" counter tracks them.
 
@@ -57,13 +57,12 @@ After you solve a puzzle without using a hint, the page records your fewest move
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best results are saved in your browser's local storage as plain numbers, under one key, for each size. Clearing site data removes them. The page address holds the frame size and puzzle seed so a link reproduces the puzzle.
+Nothing is uploaded and there is no account. Your best results are saved in your browser's local storage as small whole numbers inside a small JSON object, under one key, for each size. Clearing site data removes them. The page address holds the frame size and puzzle seed so a link reproduces the puzzle.
 
 ## Limits
 
 - Hints work on 3x3 only. 4x4 and 5x5 hold far too many arrangements to search in a browser, and a hint there would need a heuristic that cannot promise the shortest route.
-- The move counter counts clicks, so sliding a run of three tiles is one move. Other implementations may count each tile separately and show larger numbers.
-- The timer starts at your first move and counts whole seconds, so a result does not include thinking time before you move.
+- The move counter counts clicks, so sliding a run of three tiles is one move.- The timer starts at your first move and counts whole seconds, so a result does not include thinking time before you move.
 - Tiles show numbers only; there is no picture mode.
 - Best results belong to one browser on one device. They do not sync.
 - For 4x4 and 5x5 the claim that every passing board is solvable rests on the classical theorem, with the invariant checked by tests rather than proved by search.

@@ -55,7 +55,7 @@ Difficulty comes from size, not from a setting. There is no difficulty grading b
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best time per size is saved in your browser's local storage, as plain numbers, under one key. Only unaided solves count: using a hint on a puzzle means it will not set a best time. Clearing site data removes the times.
+Nothing is uploaded and there is no account. Your best time per size is saved in your browser's local storage as a whole number of seconds, inside a small JSON object under one key. Only unaided solves count: using a hint on a puzzle means it will not set a best time. Clearing site data removes the times.
 
 ## Limits
 
