@@ -7,10 +7,12 @@
  * in the largest setup. The figures quoted on the content page are asserted here.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   score, allCodes, consistent, filterByFeedback, partitionCounts, forcedPositions, hintText, nextGuessMinimax, openingGuess,
   solverGuess, solveSecret, randomSecret, mulberry32, isValidCode, hasRepeat, symbolLabel, symbolName, codeWords, feedbackText,
-  feedbackShort, bestKey, sanitiseResults, SYMBOLS, LENGTHS, SYMBOL_COUNTS, GUESS_LIMITS, DEFAULTS,
+  feedbackShort, bestKey, sanitiseResults, recordWin, freshRowIndex, DEFAULT_BUDGET, SYMBOLS, LENGTHS, SYMBOL_COUNTS, GUESS_LIMITS, DEFAULTS,
   type Code, type Guess, type Setup,
 } from '../src/components/apps-private/code-breaker/helpers';
 
@@ -335,6 +337,35 @@ describe('random secrets', () => {
   });
 });
 
+describe('solver step budget', () => {
+  it('caps the pairs scored per step at 450,000, which the content page quotes', () => {
+    expect(DEFAULT_BUDGET).toBe(450_000);
+  });
+  it('the default game never needs to sample: its biggest step is 1296 guesses x 256 candidates, under the budget', () => {
+    expect(1296 * 256).toBeLessThanOrEqual(DEFAULT_BUDGET);
+  });
+  it('every step of a whole solve in each setup stays well under a second', () => {
+    const rng = mulberry32(21);
+    for (const [length, symbols, repeats] of [[5, 8, true], [5, 6, true], [4, 8, true], [5, 8, false]] as [number, number, boolean][]) {
+      const setup: Setup = { length, symbols, repeats };
+      const pool = allCodes(length, symbols, repeats);
+      for (let i = 0; i < 3; i++) {
+        const secret = pool[Math.floor(rng() * pool.length)];
+        let cands: readonly Code[] = pool;
+        for (let k = 0; k < 12; k++) {
+          const t = performance.now();
+          const guess = solverGuess(setup, pool, cands, k);
+          expect(performance.now() - t, `${length}p ${symbols}s step ${k}`).toBeLessThan(1000);
+          const f = score(secret, guess);
+          cands = filterByFeedback(cands, guess, f.place, f.symbol);
+          if (f.place === length) break;
+        }
+        expect(cands.length).toBe(1);
+      }
+    }
+  }, 60_000);
+});
+
 describe('largest setup (5 pegs, 8 symbols, 32768 codes)', () => {
   const setup: Setup = { length: 5, symbols: 8, repeats: true };
   const pool = allCodes(5, 8, true);
@@ -347,7 +378,7 @@ describe('largest setup (5 pegs, 8 symbols, 32768 codes)', () => {
       const t = performance.now();
       const pick = nextGuessMinimax(cands, pool);
       const ms = performance.now() - t;
-      expect(ms, `${cands.length} candidates`).toBeLessThan(4000);
+      expect(ms, `${cands.length} candidates`).toBeLessThan(1000);
       expect(isValidCode(pick, setup)).toBe(true);
     }
   });
@@ -400,14 +431,86 @@ describe('symbols and labels', () => {
   });
 });
 
+describe('filing a win', () => {
+  const key = '4-6-r';
+  const fresh = { aided: false, replay: false };
+  it('a plain first win counts, sets the best and adds one win', () => {
+    const r = recordWin({}, key, 6, fresh);
+    expect(r).toEqual({ results: { [key]: 6, wins: 1 }, counted: true, record: true });
+  });
+  it('a better win beats the best; an equal or worse one only adds a win', () => {
+    const base = { [key]: 5, wins: 3 };
+    expect(recordWin(base, key, 4, fresh)).toEqual({ results: { [key]: 4, wins: 4 }, counted: true, record: true });
+    expect(recordWin(base, key, 5, fresh)).toEqual({ results: { [key]: 5, wins: 4 }, counted: true, record: false });
+    expect(recordWin(base, key, 9, fresh)).toEqual({ results: { [key]: 5, wins: 4 }, counted: true, record: false });
+  });
+  it('a hint means nothing counts', () => {
+    const base = { [key]: 5, wins: 3 };
+    const r = recordWin(base, key, 1, { aided: true, replay: false });
+    expect(r).toEqual({ results: base, counted: false, record: false });
+    expect(r.results).toBe(base);
+  });
+  it('a replay of the same secret never counts, so replaying a revealed code in one guess cannot set a best or add a win', () => {
+    const base = { [key]: 5, wins: 3 };
+    for (const aided of [false, true]) {
+      const r = recordWin(base, key, 1, { aided, replay: true });
+      expect(r.counted).toBe(false);
+      expect(r.record).toBe(false);
+      expect(r.results).toBe(base);
+    }
+    expect(recordWin({}, key, 1, { aided: false, replay: true }).results).toEqual({});
+  });
+  it('an impossible guess count never counts and the input is never changed', () => {
+    const base = { [key]: 5, wins: 3 };
+    const frozen = JSON.stringify(base);
+    for (const n of [0, -1, 13, 2.5, NaN, Infinity]) expect(recordWin(base, key, n, fresh).counted, String(n)).toBe(false);
+    recordWin(base, key, 2, fresh);
+    expect(JSON.stringify(base)).toBe(frozen);
+  });
+  it('the win total stops at its cap', () => {
+    expect(recordWin({ wins: 1_000_000 }, key, 3, fresh).results.wins).toBe(1_000_000);
+  });
+  it('the page restarts as a replay, resets it for a new game and files wins through recordWin', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/code-breaker/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/replay = true;\s*resetRun\(\);/);
+    expect(text).toMatch(/aided = false;\s*replay = false;/);
+    expect(text).toMatch(/recordWin\(results, key, n, \{ aided, replay \}\)/);
+  });
+});
+
+describe('animating only a newly added row', () => {
+  it('only the last row of a list that grew is new', () => {
+    expect(freshRowIndex(0, 1)).toBe(0);
+    expect(freshRowIndex(3, 4)).toBe(3);
+    expect(freshRowIndex(3, 3)).toBe(-1);
+    expect(freshRowIndex(4, 3)).toBe(-1);
+    expect(freshRowIndex(0, 0)).toBe(-1);
+  });
+  it('the style sheet animates a marked row, not whichever row happens to be last', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/code-breaker/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/\.cb-rows > li\.cb-new \{ animation: cb-in/);
+    expect(text).not.toMatch(/li:last-child \{ animation/);
+  });
+});
+
 describe('saved results', () => {
   it('builds a key per setup', () => {
     expect(bestKey(4, 6, true)).toBe('4-6-r');
     expect(bestKey(5, 8, false)).toBe('5-8-n');
   });
   it('keeps sane numbers for known keys and drops everything else', () => {
-    const out = sanitiseResults({ '4-6-r': 5, '5-8-n': '7', '4-8-r': 0, '5-6-r': 13, '4-6-n': 2.5, '9-9-r': 3, wins: 12, junk: 'x' });
+    const out = sanitiseResults({ '4-6-r': 5, '5-8-n': 7, '4-8-r': 0, '5-6-r': 13, '4-6-n': 2.5, '9-9-r': 3, wins: 12, junk: 'x' });
     expect(out).toEqual({ '4-6-r': 5, '5-8-n': 7, wins: 12 });
+  });
+  it('accepts only real numbers: text, booleans, arrays and objects are dropped, even when they would coerce to a valid number', () => {
+    const bad: unknown[] = ['7', ' 7 ', '0x7', true, [7], { valueOf: () => 7 }, 7n, null, undefined, NaN, Infinity];
+    for (const v of bad) {
+      expect(sanitiseResults({ '4-6-r': v, '5-8-n': v, wins: v }), String(v)).toEqual({});
+    }
+    expect(sanitiseResults({ wins: 0 })).toEqual({ wins: 0 });
+    expect(sanitiseResults({ wins: 1_000_000 })).toEqual({ wins: 1_000_000 });
+    expect(sanitiseResults({ wins: 1_000_001 })).toEqual({});
+    expect(sanitiseResults(['4-6-r'])).toEqual({});
   });
   it('survives bad input of any shape', () => {
     expect(sanitiseResults(null)).toEqual({});

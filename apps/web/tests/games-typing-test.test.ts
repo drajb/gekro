@@ -11,6 +11,8 @@
  * quotes is asserted here.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   CHARS_PER_WORD, DURATIONS, DEFAULT_DURATION, MIN_ELAPSED_MS, INITIAL_SENTENCES, EXTEND_SENTENCES, EXTEND_MARGIN,
   MAX_TYPED, MAX_TARGET, MAX_BURST, MIN_LEGIT_CHARS, MAX_WPM, MAX_TESTS,
@@ -136,6 +138,33 @@ describe('pickSentences and buildPassage', () => {
       const out = pickSentences(mulberry32(seed), 8, avoid);
       for (const s of out) expect(avoid).not.toContain(s);
     }
+  });
+  it('extending a passage with every sentence already used as the avoid list never repeats one until the bank is used up', () => {
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const r = mulberry32(seed);
+      let used = pickSentences(r, INITIAL_SENTENCES);
+      while (used.length + EXTEND_SENTENCES <= PASSAGES.length) {
+        used = [...used, ...pickSentences(r, EXTEND_SENTENCES, used)];
+        expect(new Set(used).size, `seed ${seed} at ${used.length}`).toBe(used.length);
+      }
+      // Fill the last few places, which also uses every remaining sentence exactly once.
+      const rest = PASSAGES.length - used.length;
+      if (rest > 0) used = [...used, ...pickSentences(r, rest, used)];
+      expect(new Set(used).size).toBe(PASSAGES.length);
+    }
+  });
+  it('once the whole bank has been used, extending starts a fresh pass of valid sentences', () => {
+    const r = mulberry32(9);
+    const used = pickSentences(r, PASSAGES.length);
+    const more = pickSentences(r, EXTEND_SENTENCES, used);
+    expect(more).toHaveLength(EXTEND_SENTENCES);
+    expect(new Set(more).size).toBe(EXTEND_SENTENCES);
+    for (const s of more) expect(PASSAGES).toContain(s);
+  });
+  it('the page asks for new text with every used sentence, not just the last few', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/typing-test/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/pickSentences\(rng, EXTEND_SENTENCES, sentences\)/);
+    expect(text.includes('Math' + '.random')).toBe(false);
   });
   it('treats a bad count as zero and caps a huge one', () => {
     for (const bad of [0, -3, NaN, Infinity, -Infinity, 0.9]) expect(pickSentences(mulberry32(1), bad as number)).toEqual([]);
@@ -915,12 +944,19 @@ describe('recordResult', () => {
     ];
     for (const [name, r, d] of bad) {
       const out = recordResult(base, d, r);
-      expect(out.kind, name).toBe('uncounted');
+      expect(out.kind, name).toBe(name === 'impossibly fast' ? 'too-fast' : 'uncounted');
       expect(out.saved, name).toBe(base);
       expect(isLegitimate(r, d), name).toBe(false);
     }
     expect(isLegitimate(res(), 60)).toBe(true);
     expect(isLegitimate(res({ typedChars: MIN_LEGIT_CHARS }), 60)).toBe(true);
+  });
+  it('exactly MAX_WPM gross is still saved; one more is "too-fast" and saves nothing', () => {
+    expect(recordResult(emptySaved(), 60, res({ grossWpm: MAX_WPM, netWpm: 400 })).kind).toBe('first');
+    const base = emptySaved();
+    const out = recordResult(base, 60, res({ grossWpm: MAX_WPM + 0.5, netWpm: 400 }));
+    expect(out.kind).toBe('too-fast');
+    expect(out.saved).toBe(base);
   });
   it('does not mutate the saved object it was given', () => {
     const base = Object.freeze({ best: Object.freeze({ 30: null, 60: 50, 120: null }), tests: Object.freeze({ 30: 0, 60: 4, 120: 0 }) }) as ReturnType<typeof emptySaved>;
@@ -954,9 +990,13 @@ describe('bestNotice', () => {
     expect(bestNotice(zero, 60, { ...r, netWpm: 0 })).toBe('No personal best saved for 60 s yet.');
     const unc = recordResult(emptySaved(), 60, { ...r, typedChars: 1 });
     expect(bestNotice(unc, 60, r)).toMatch(/Too little was typed/);
+    const fast = recordResult(emptySaved(), 60, { ...r, grossWpm: MAX_WPM + 1 });
+    expect(fast.kind).toBe('too-fast');
+    expect(bestNotice(fast, 60, r)).toBe('Gross speed above 500 WPM is not saved, because that is faster than hand typing, so nothing was saved.');
+    expect(bestNotice(fast, 60, r)).not.toMatch(/Too little/);
   });
   it('never contains a broken value or an em-dash', () => {
-    for (const rec of [recordResult(emptySaved(), 60, r), recordResult(emptySaved(), 60, { ...r, typedChars: 0 })]) {
+    for (const rec of [recordResult(emptySaved(), 60, r), recordResult(emptySaved(), 60, { ...r, typedChars: 0 }), recordResult(emptySaved(), 60, { ...r, grossWpm: 900 })]) {
       const t = bestNotice(rec, 60, r);
       expect(t).not.toMatch(/NaN|undefined|null|Infinity/);
       expect(t.includes(EM_DASH)).toBe(false);

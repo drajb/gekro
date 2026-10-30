@@ -3,7 +3,7 @@ title: "Match Pairs"
 category: "fun"
 job: "Play a free card-matching game in four grid sizes, from 12 to 36 cards. Your fewest moves and best time are saved per size, in your browser only."
 description: "Free Match Pairs card game in four sizes, 12 to 36 cards. Saves fewest moves and best time per size. Keyboard playable. No ads, no signup, runs in your browser."
-aiSummary: "A free browser pairs game. Cards lie face down in a grid of 12, 16, 20 or 36 cards; you flip two per turn, a match stays face up and a mismatch turns back after 900 ms. The deck is shuffled with an unbiased Fisher-Yates shuffle driven by the browser's crypto random generator, and the engine is a small immutable state machine (idle, one open, resolving) that ignores illegal flips. One move is two flips, the fewest possible is one move per pair, and fewest moves and best time are stored separately per size in local storage as plain numbers. Cards use 18 text symbols with a colour as a second cue, and the whole grid works from the keyboard."
+aiSummary: "A free browser pairs game. Cards lie face down in a grid of 12, 16, 20 or 36 cards; you flip two per turn, a match stays face up and a mismatch turns back after 900 ms. The deck is shuffled with an unbiased Fisher-Yates shuffle driven by the browser's crypto random generator, and the engine is a small immutable state machine (idle, one open, resolving) that ignores illegal flips. One move is two flips, the fewest possible is one move per pair, and fewest moves and best time are stored separately per size in local storage as small numbers inside a small JSON object. Cards use 18 text symbols with a colour as a second cue, and the whole grid works from the keyboard."
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A shuffle, a three-state machine and a grid, with no account, and your game data stays on your device."
 status: "active"
 publishedAt: "2026-10-22"
@@ -49,7 +49,7 @@ The tests also play whole games: a player who knows the deck finishes in exactly
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your fewest moves and your best time for each size are saved in your browser's local storage under one key, as plain numbers. They are updated only when you win a game, and only if the result beats the old one. Clearing site data removes them.
+Nothing is uploaded and there is no account. Your fewest moves and your best time for each size are saved in your browser's local storage under one key, as small numbers inside a small JSON object. The time is kept in whole seconds, rounded down the same way the clock on the page counts, so the saved time matches what the clock showed. They are updated only when you win a game, and only if the result beats the old one. Clearing site data removes them.
 
 ## Limits
 

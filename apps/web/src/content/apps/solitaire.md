@@ -23,7 +23,7 @@ Move every card onto the four foundations at the top right, one per suit, from A
 
 There are three ways to move, and you can mix them:
 
-1. **Drag and drop** a card or a run onto a column or a foundation. Piles where the move is legal are outlined while you drag.
+1. **Drag and drop** a card or a run onto a column or a foundation. Piles where the move is legal are outlined while you drag. Letting go on the pile the cards came from, or anywhere that is not a legal pile, puts them back; if the table changed while you were dragging (for example you pressed U), the drop is cancelled.
 2. **Click, then click.** Click a card (the selected card or run gets an outline), then click where it should go. Selecting the same card again sends it to its foundation if it fits, otherwise it deselects.
 3. **Keyboard.** Arrow keys move a cursor between piles; Up and Down also step through the face-up cards of a column to choose how long a run to pick up. **Enter** picks up the card or run under the cursor, and on the next pile you move to, Enter drops it. **F** sends the top card to its foundation, **U** undoes, **Escape** cancels. Enter on the stock turns cards over.
 
@@ -43,7 +43,7 @@ The test suite also covers the deal layout (28 cards in the columns, 24 in the s
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best winning time and your win count, for each draw mode, are saved in your browser's local storage as plain numbers under one key. Only wins are counted. Clearing site data removes them. The only other state is the page address.
+Nothing is uploaded and there is no account. Your best winning time and your win count, for each draw mode, are saved in your browser's local storage as small numbers inside a small JSON object, under one key. Only wins are counted. Clearing site data removes them. The only other state is the page address.
 
 ## Limits
 

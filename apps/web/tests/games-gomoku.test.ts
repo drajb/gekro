@@ -17,6 +17,10 @@ import {
   PATTERN_STATES, HARD_DEPTH, HARD_BREADTH, FORCING_FOURS,
   type Board, type Side, type Level, type Game,
 } from '../src/components/apps-private/gomoku/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), name), 'utf8');
 
 const rc = (n: number) => (r: number, c: number): number => r * n + c;
 const asc = (a: number[]): number[] => a.slice().sort((x, y) => x - y);
@@ -961,12 +965,15 @@ describe('self-play fuzz', () => {
 });
 
 describe('levels are ordered by strength', () => {
+  // Hard's search stops on a wall-clock cap in the page. These series lift it (a cap no game can reach) so a slow or busy
+  // machine cannot change which iterations finish, and the pinned results below are the same on every run.
+  const NO_CAP_MS = 600000;
   const wins = (a: Level, b: Level, games: number, n: number, base: number): { a: number; b: number; draws: number } => {
     const out = { a: 0, b: 0, draws: 0 };
     for (let g = 0; g < games; g++) {
       const rng = mulberry32(base + g);
       const aSolid = g % 2 === 0;
-      const game = playOut(n, (board, side) => bestMove(board, side, (side === SOLID) === aSolid ? a : b, rng, 1000));
+      const game = playOut(n, (board, side) => bestMove(board, side, (side === SOLID) === aSolid ? a : b, rng, NO_CAP_MS));
       if (game.status === 'draw') out.draws++;
       else if ((game.winner === SOLID) === aSolid) out.a++;
       else out.b++;
@@ -983,8 +990,25 @@ describe('levels are ordered by strength', () => {
     expect(r).toEqual({ a: 16, b: 0, draws: 0 });
   }, 120000);
   it('Hard beats Medium over 16 seeded games on 13 x 13 (alternating who moves first): 8 wins, 3 losses, 5 draws', () => {
-    // These games are deterministic. The page and the content page quote this result, so it is pinned exactly.
+    // With the time cap lifted these games are deterministic. The content page quotes this result, so it is pinned exactly.
     const r = wins('hard', 'medium', 16, 13, 300);
     expect(r).toEqual({ a: 8, b: 3, draws: 5 });
   }, 150000);
+});
+
+describe('page behaviour and content page', () => {
+  const dir = 'src/components/apps-private/gomoku/';
+  it('sends focus to New game after Play again, and does not import what it does not use', () => {
+    const src = page(dir + 'Calculator.astro');
+    expect(src).toContain("g('gm-again').addEventListener('click', () => { newGame(); g('gm-new').focus(); });");
+    expect(src).not.toMatch(/\bopponent\b/);
+  });
+  it('the content page makes no claim about tapping that depends on the phone, and no clock-dependent claim', () => {
+    const md = page('src/content/apps/gomoku.md');
+    expect(md).not.toContain('comfortable to tap');
+    expect(md).toContain('time limit lifted');
+    expect(md).not.toContain('a very slow machine could differ');
+    expect(md).not.toContain('plain numbers');
+    expect(page(dir + 'Calculator.astro')).not.toContain('plain numbers');
+  });
 });

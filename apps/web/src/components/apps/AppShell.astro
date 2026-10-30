@@ -127,7 +127,9 @@ const categoryLabels: Record<string, string> = {
         gsap.from(targets, {
           y: 20,
           opacity: 0,
-          stagger: 0.02,
+          // 0.02 s per element, but never more than 0.6 s in total: a 169-cell or
+          // 480-cell game board otherwise stays invisible for several seconds.
+          stagger: Math.min(0.02, 0.6 / targets.length),
           ease: "power2.out",
           duration: 0.4,
           // Only what this tween sets. "all" also wiped inline styles an app puts on

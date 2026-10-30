@@ -49,13 +49,13 @@ The tests run a few hundred random and food-seeking games on several board sizes
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best scores are saved in your browser's local storage under one key, as plain numbers, one per speed and wall combination. The page address holds your speed and wall setting so you can share it. Clearing site data removes the scores.
+Nothing is uploaded and there is no account. Your best scores are saved in your browser's local storage under one key, as small numbers inside a small JSON object, one per speed and wall combination. The page address holds your speed and wall setting so you can share it. Clearing site data removes the scores.
 
 ## Limits
 
 - There is one board size, 20 x 20, and one starting length.
 - There is no obstacle mode, power-ups or multiplayer.
 - Changing speed or walls, or pressing Restart, ends the game in progress. If its score beat your best for those settings, the best is kept.
-- Keyboard arrows are only captured while the game is running or the board has focus, so the page scrolls normally otherwise.
+- The game keys (arrows, WASD, Space, P) are only captured while focus is inside the game, or while a game is running or paused wherever focus is, so the page scrolls normally otherwise. Space still presses a focused button or opens the focused "How the rules work" section instead of pausing.
 
 Everything runs locally in your browser.

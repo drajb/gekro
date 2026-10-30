@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest';
 import {
   SIZES, solvedBoard, isSolved, gapIndex, tilesHome, mulberry32, gapNeighbours, runLength, canMove, applyMove, arrowTarget,
   inversions, isSolvable, shuffle, distancesFromSolved, optimalLength3, hint3, formatTime, rowOf, colOf,
+  sanitiseBest, plural, slideMessage, MAX_BEST_MOVES, MAX_BEST_SECONDS,
   type Board,
 } from '../src/components/apps-private/sliding-puzzle/helpers';
 
@@ -403,6 +404,41 @@ describe('3x3 hints', () => {
       const next = optimalLength3(applyMove(b, 3, idx) as Board) as number;
       expect(Math.abs(next - here)).toBe(1);
     }
+  });
+});
+
+describe('saved best results', () => {
+  it('keeps whole positive numbers under the six known keys and drops everything else', () => {
+    expect(sanitiseBest({ m3: 20, t3: 45, m4: 80, t4: 300, m5: 200, t5: 900 })).toEqual({ m3: 20, t3: 45, m4: 80, t4: 300, m5: 200, t5: 900 });
+    expect(sanitiseBest({ m3: '20', m6: 5, x: 1 })).toEqual({ m3: 20 });
+    expect(sanitiseBest({ m3: 0, t3: -3, m4: 1.5, t4: NaN, m5: Infinity, t5: 'x' })).toEqual({});
+  });
+  it('caps moves and seconds at sane limits', () => {
+    expect(sanitiseBest({ m4: MAX_BEST_MOVES, t4: MAX_BEST_SECONDS })).toEqual({ m4: MAX_BEST_MOVES, t4: MAX_BEST_SECONDS });
+    expect(sanitiseBest({ m4: MAX_BEST_MOVES + 1, t4: MAX_BEST_SECONDS + 1 })).toEqual({});
+    expect(sanitiseBest({ m4: 1e300 })).toEqual({});
+  });
+  it('survives storage that is not an object', () => {
+    for (const raw of [null, undefined, 5, 'text', true, [1, 2, 3]]) expect(sanitiseBest(raw)).toEqual({});
+  });
+});
+
+describe('result text', () => {
+  it('plural says "1 move" and "2 moves"', () => {
+    expect(plural(1, 'move')).toBe('1 move');
+    expect(plural(0, 'move')).toBe('0 moves');
+    expect(plural(2, 'move')).toBe('2 moves');
+    expect(plural(1, 'hint')).toBe('1 hint');
+  });
+  it('slideMessage names where a single tile landed and how many tiles are in place', () => {
+    const before: Board = [1, 2, 3, 4, 5, 6, 7, 0, 8];
+    const after = applyMove(before, 3, 6) as Board; // tile 7 slides right
+    expect(slideMessage(after, 3, 7, 1)).toBe('Tile 7 slid to row 3, column 2. 6 of 8 in place.');
+  });
+  it('slideMessage reports a whole run and reads the tile position from the board after the move', () => {
+    const before: Board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    const after = applyMove(before, 3, 2) as Board; // tiles 1 and 2 slide left
+    expect(slideMessage(after, 3, 2, runLength(before, 3, 2))).toBe('2 tiles slid, tile 2 is now at row 1, column 2. 2 of 8 in place.');
   });
 });
 

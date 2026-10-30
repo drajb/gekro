@@ -14,15 +14,15 @@ icon: "⚫"
 
 ## How to play
 
-Two colours of disc share an 8 x 8 board. Dark moves first. On your turn you place a disc on an empty square so that at least one straight line of the other colour sits between the new disc and one of your own. Every disc in those lines flips to your colour. Lines can run along a row, a column or either diagonal, and one move can flip several lines at once. Small dots mark the squares where you can play. If you have no legal move you pass, and the page tells you when that happens. The game ends when neither player can move, and the player with more discs on the board wins.
+Two colours of disc share an 8 x 8 board. Solid moves first. On your turn you place a disc on an empty square so that at least one straight line of the other colour sits between the new disc and one of your own. Every disc in those lines flips to your colour. Lines can run along a row, a column or either diagonal, and one move can flip several lines at once. Small dots mark the squares where you can play. If you have no legal move you pass, and the page tells you when that happens. The game ends when neither player can move, and the player with more discs on the board wins.
 
-The colours are not the only cue: Dark discs are solid and Light discs have a ring in the middle. The last move has a tinted square, and the discs it flipped are briefly highlighted (as a static outline if your system asks for reduced motion).
+The two sides are called Solid and Ring, and the colours are not the only cue: Solid discs are plain and Ring discs have a ring in the middle. The last move has a tinted square, and the discs it flipped are briefly highlighted (as a static outline if your system asks for reduced motion).
 
 Controls:
 
 - **Opponent:** the computer or two players on the same screen.
 - **Difficulty:** Easy, Medium or Hard. It applies when you play the computer.
-- **You play:** Dark goes first, or Light goes second and the computer opens.
+- **You play:** Solid goes first, or Ring goes second and the computer opens.
 - **Undo:** takes back your last move and the reply. Against a person it takes back one move.
 - **New game:** starts again with the current settings. Changing the opponent starts a new game, and against the computer so does changing the difficulty or side.
 
@@ -53,7 +53,7 @@ The search is checked against a plain minimax with no pruning, which gives the s
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Against the computer, your best winning margin and your win count for each difficulty are saved in your browser's local storage, as plain numbers, under one key. Clearing site data removes them. The session tally (your wins, the computer's, draws) lives only on the page and resets when you leave it.
+Nothing is uploaded and there is no account. Against the computer, your best winning margin and your win count for each difficulty are saved in your browser's local storage, as small whole numbers inside a small JSON object, under one key. Clearing site data removes them. The session tally (your wins, the computer's, draws) lives only on the page and resets when you leave it.
 
 Only finished games count. A game in which you used Undo is not counted against the computer, so the saved figures are not inflated.
 

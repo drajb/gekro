@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest';
 import {
   parseGrid, gridToString, solve, conflicts, isSolved, makePuzzle, dailySeed, hashString, mulberry32, shuffled,
   candidates, digitsOf, nextHint, countGivens, formatTime, TARGET_GIVENS, PEERS, UNITS, randomSolved,
+  peersWithNote, sanitiseBest, localIsoDate, MAX_BEST_SECONDS,
 } from '../src/components/apps-private/sudoku/helpers';
 
 const WIKI = '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
@@ -62,7 +63,7 @@ describe('conflicts and completion', () => {
 describe('candidates', () => {
   it('lists exactly the digits not used by peers', () => {
     const g = parseGrid(WIKI);
-    // Cell r1c3 in the published puzzle can only be 4.
+    // Cell r1c3 in the published puzzle has three candidates, 1, 2 and 4 (the published answer is 4).
     expect(digitsOf(candidates(g, 2))).toEqual([1, 2, 4]);
     expect(candidates(g, 0)).toBe(0); // a given has no candidates
   });
@@ -147,6 +148,55 @@ describe('hints', () => {
   it('names a naked single on the published puzzle', () => {
     const h = nextHint(parseGrid(WIKI), parseGrid(WIKI_SOLVED))!;
     expect(h.technique === 'naked single' || h.technique === 'hidden single').toBe(true);
+  });
+});
+
+describe('pencil notes follow a placed digit', () => {
+  it('peersWithNote lists exactly the peers that carry the digit in their notes', () => {
+    const notes = new Array(81).fill(0);
+    notes[1] |= 1 << 5; // same row as cell 0
+    notes[9] |= 1 << 5; // same column
+    notes[10] |= 1 << 5; // same box
+    notes[4] |= 1 << 5; // same row, different box
+    notes[40] |= 1 << 5; // not a peer of cell 0
+    notes[0] |= 1 << 5; // the cell itself is never its own peer
+    notes[2] |= 1 << 6; // a peer but a different digit
+    expect(peersWithNote(notes, 0, 5)).toEqual([1, 4, 9, 10]);
+    expect(peersWithNote(notes, 0, 6)).toEqual([2]);
+    expect(peersWithNote(notes, 0, 7)).toEqual([]);
+  });
+  it('clearing those peers after a hint leaves no note for the hinted digit in its row, column or box', () => {
+    const p = makePuzzle(31, 'hard');
+    const g = p.puzzle.slice();
+    const notes = new Array(81).fill(0);
+    for (let i = 0; i < 81; i++) if (!g[i]) notes[i] = digitsOf(candidates(g, i)).reduce((m, d) => m | (1 << d), 0);
+    const h = nextHint(g, p.solution)!;
+    g[h.cell] = h.digit;
+    notes[h.cell] = 0;
+    for (const q of peersWithNote(notes, h.cell, h.digit)) notes[q] &= ~(1 << h.digit);
+    for (const q of PEERS[h.cell]) expect(notes[q] & (1 << h.digit), `peer ${q}`).toBe(0);
+  });
+});
+
+describe('saved best times', () => {
+  it('keeps whole positive seconds for the three levels and drops everything else', () => {
+    expect(sanitiseBest({ easy: 95, medium: 400, hard: 1200 })).toEqual({ easy: 95, medium: 400, hard: 1200 });
+    expect(sanitiseBest({ easy: '95', extra: 5 })).toEqual({ easy: 95 });
+    expect(sanitiseBest({ easy: 0, medium: -3, hard: 1.5 })).toEqual({});
+    expect(sanitiseBest({ easy: NaN, medium: Infinity, hard: 1e300 })).toEqual({});
+    expect(sanitiseBest({ easy: MAX_BEST_SECONDS })).toEqual({ easy: MAX_BEST_SECONDS });
+    expect(sanitiseBest({ easy: MAX_BEST_SECONDS + 1 })).toEqual({});
+  });
+  it('survives storage that is not an object', () => {
+    for (const raw of [null, undefined, 5, 'text', true, [1, 2, 3]]) expect(sanitiseBest(raw)).toEqual({});
+  });
+});
+
+describe('local date', () => {
+  it('formats a date as YYYY-MM-DD from its local parts, padded', () => {
+    expect(localIsoDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+    expect(localIsoDate(new Date(2026, 11, 31, 0, 1))).toBe('2026-12-31');
+    expect(localIsoDate()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
 

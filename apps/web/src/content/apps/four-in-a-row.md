@@ -20,7 +20,7 @@ Pick an **Opponent**: the computer, or **Two players** on the same screen. Again
 
 - **Mouse or touch:** press a column button above the board, or tap the board itself. The column buttons say how many spaces are free and switch off when a column is full.
 - **Keyboard:** left and right arrows move between columns, Enter or Space drops a disc, and the keys **1** to **7** drop straight into a column.
-- **Undo** takes back your last move and the computer's reply, so it is your turn again. With two players it takes back one move. Once a game is over, undo is off. Using undo does not change your win streak or best.
+- **Undo** takes back your last move and the computer's reply, so it is your turn again. With two players it takes back one move. Once a game is over, undo is off. A game in which you used Undo against the computer is not counted: it leaves the session tally, your win streak and your saved best as they were.
 - **Copy result** copies a short summary of your session tally and the page address.
 
 Each disc carries a mark as well as a colour, a solid dot for the first player and a ring for the second, so the two sides can be told apart without relying on colour. The winning four is outlined with a solid frame, and the result is also written out in words below the board.
@@ -52,13 +52,13 @@ The search runs on the page itself, after a short pause that lets "The computer 
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best win streak for each level is saved in your browser's local storage, as plain numbers, under one key. The session tally and the current game are kept in memory only, so they reset when you leave the page. The address records only your opponent, level and seat. Clearing site data removes the saved streaks.
+Nothing is uploaded and there is no account. Your best win streak for each level is saved in your browser's local storage, as small whole numbers inside a small JSON object, under one key. The session tally and the current game are kept in memory only, so they reset when you leave the page. The address records only your opponent, level and seat. Clearing site data removes the saved streaks.
 
 ## Limits
 
 - Hard looks seven moves ahead, not to the end of the game, so a long plan can still beat it. It is a good opponent, not a perfect one.
 - Easy is meant to be beatable: it looks one move ahead and sometimes plays a random column.
-- A win streak counts only finished games against the computer. A draw leaves it unchanged, a loss resets it, and a game you abandon is not counted.
+- A win streak counts only finished games against the computer in which you did not use Undo. A draw leaves it unchanged, a loss resets it, and a game you abandon is not counted.
 - With two players there is no clock, no names and no saved games.
 - The tally and the current game are not saved if you reload the page.
 

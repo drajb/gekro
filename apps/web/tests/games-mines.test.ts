@@ -12,8 +12,10 @@ import { describe, it, expect } from 'vitest';
 import {
   LEVELS, getLevel, mulberry32, neighbours, placeMines, adjacencyCounts, newBoard, boardFromLayout, reveal, toggleFlag, chord,
   statusOf, minesLeft, adjacentFlags, cellKind, describeCell, formatTime, formatCount, HIDDEN, OPEN, FLAG,
+  sanitizeBest, isValidBestSeconds, rovingTabIndexes, MAX_BEST_SECONDS,
   type Board,
 } from '../src/components/apps-private/mines/helpers';
+import calculatorSource from '../src/components/apps-private/mines/Calculator.astro?raw';
 
 // ── Independent references (deliberately not using the engine's own helpers) ──
 
@@ -447,7 +449,7 @@ describe('win and loss', () => {
     expect(cellKind(b, 1)).toBe('hidden');
     expect(changed.slice().sort((a, c) => a - c)).toEqual([0, 2, 7]);
   });
-  it('ignores reveals and chords after the game ends', () => {
+  it('ignores reveals after the game ends', () => {
     const lost = boardFromLayout(5, 1, [1]);
     reveal(lost, 1, mulberry32(1));
     expect(reveal(lost, 3, mulberry32(1))).toEqual([]);
@@ -456,6 +458,30 @@ describe('win and loss', () => {
     reveal(won, 2, mulberry32(1));
     expect(statusOf(won)).toBe('won');
     expect(reveal(won, 1, mulberry32(1))).toEqual([]);
+  });
+  it('ignores a chord on a satisfied number after a loss, and after a win', () => {
+    // 3x3, mines at corners 0 and 8; the centre opens as a "2". Two wrong flags satisfy it, then a mine is opened.
+    const lost = boardFromLayout(3, 3, [0, 8]);
+    reveal(lost, 4, mulberry32(1));
+    toggleFlag(lost, 1); toggleFlag(lost, 2);
+    expect(adjacentFlags(lost, 4)).toBe(2);
+    reveal(lost, 0, mulberry32(1));
+    expect(statusOf(lost)).toBe('lost');
+    const stateBefore = Array.from(lost.state);
+    const openedBefore = lost.opened;
+    expect(chord(lost, 4)).toEqual([]);
+    expect(Array.from(lost.state)).toEqual(stateBefore);
+    expect(lost.opened).toBe(openedBefore);
+    expect(lost.exploded).toBe(0);
+
+    const won = boardFromLayout(3, 3, [0, 8]);
+    reveal(won, 4, mulberry32(1));
+    toggleFlag(won, 0); toggleFlag(won, 8);
+    chord(won, 4);
+    expect(statusOf(won)).toBe('won');
+    const wonState = Array.from(won.state);
+    expect(chord(won, 4)).toEqual([]);
+    expect(Array.from(won.state)).toEqual(wonState);
   });
   it('does not reopen an open cell', () => {
     const b = boardFromLayout(5, 1, [1]);
@@ -515,6 +541,52 @@ describe('cell descriptions', () => {
     expect(describeCell(b, 29)).toBe('Row 1, column 30, hidden');
     expect(describeCell(b, 30)).toBe('Row 2, column 1, hidden');
     expect(describeCell(b, 479)).toBe('Row 16, column 30, hidden');
+  });
+});
+
+describe('stored best times', () => {
+  it('keeps whole seconds from 1 up to the cap, for the three known levels only', () => {
+    expect(sanitizeBest({ beginner: 45, intermediate: 300, expert: MAX_BEST_SECONDS })).toEqual({ beginner: 45, intermediate: 300, expert: MAX_BEST_SECONDS });
+    expect(sanitizeBest({ beginner: 45, giant: 9 })).toEqual({ beginner: 45 });
+  });
+  it('drops fractions, zero, negatives, non-finite values, text, booleans and values over the cap', () => {
+    const bad = [0.5, 0, -3, NaN, Infinity, '12', true, null, [5], MAX_BEST_SECONDS + 1, 1e300];
+    for (const v of bad) {
+      expect(sanitizeBest({ beginner: v }), String(v)).toEqual({});
+      expect(isValidBestSeconds(v), String(v)).toBe(false);
+    }
+  });
+  it('survives non-objects and ignores inherited keys', () => {
+    for (const bad of [null, undefined, 7, 'x', [], [1, 2]]) expect(sanitizeBest(bad)).toEqual({});
+    expect(sanitizeBest(Object.create({ beginner: 5 }))).toEqual({});
+  });
+});
+
+describe('keyboard stop and layout hooks', () => {
+  it('exactly one cell is a tab stop, whichever cell the cursor was on', () => {
+    for (const cur of [0, 1, 40, 79, 80]) {
+      const t = rovingTabIndexes(81, cur);
+      expect(t).toHaveLength(81);
+      expect(t.filter((x) => x === 0)).toHaveLength(1);
+      expect(t[cur]).toBe(0);
+    }
+  });
+  it('falls back to the first cell for a bad cursor', () => {
+    for (const bad of [-1, 81, 1.5, NaN]) expect(rovingTabIndexes(81, bad).indexOf(0), String(bad)).toBe(0);
+    expect(rovingTabIndexes(0, 0)).toEqual([]);
+  });
+  it('the board takes its column count from CSS keyed on the level, not from an inline style', () => {
+    const src = calculatorSource;
+    expect(src).not.toMatch(/style=\{`--mn-cols/);
+    expect(src).not.toMatch(/setProperty\('--mn-cols'/);
+    expect(src).toMatch(/\.mn-board \{\s*--mn-cols: 9;/); // fallback when no data-level matches
+    for (const l of LEVELS) {
+      if (l.id === 'beginner') continue;
+      const m = src.match(new RegExp(`\\.mn-board\\[data-level="${l.id}"\\] \\{ --mn-cols: (\\d+);`));
+      expect(m, l.id).not.toBeNull();
+      expect(Number(m![1]), l.id).toBe(l.width);
+    }
+    expect(LEVELS[0].width).toBe(9);
   });
 });
 

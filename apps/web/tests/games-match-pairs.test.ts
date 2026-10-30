@@ -13,6 +13,7 @@ import {
   formatTime, toSeconds, sanitizeBest, recordResult,
   type GameState,
 } from '../src/components/apps-private/match-pairs/helpers';
+import calculatorSource from '../src/components/apps-private/match-pairs/Calculator.astro?raw';
 
 /** Build a state from a literal deck, e.g. deckOf('AABB'). */
 const deckOf = (s: string): number[] => Array.from(s).map((ch) => ch.charCodeAt(0) - 65);
@@ -96,7 +97,15 @@ describe('shuffle', () => {
     expect(shuffled([], mulberry32(1))).toEqual([]);
     expect(shuffled([7], mulberry32(1))).toEqual([7]);
   });
-  it('never calls the rng for a one-element array and never reads out of range', () => {
+  it('never calls the rng for an empty or one-element array', () => {
+    const boom = () => { throw new Error('rng must not be called'); };
+    expect(shuffled([], boom)).toEqual([]);
+    expect(shuffled([7], boom)).toEqual([7]);
+  });
+  it('calls the rng exactly n - 1 times for n elements and never reads out of range', () => {
+    let calls = 0;
+    shuffled([1, 2, 3, 4, 5], () => { calls++; return 0.5; });
+    expect(calls).toBe(4);
     // An rng that returns the largest legal value must still give an in-range index.
     const top = () => 1 - Number.EPSILON;
     const out = shuffled([1, 2, 3, 4, 5], top);
@@ -486,6 +495,20 @@ describe('keyboard navigation', () => {
   });
 });
 
+describe('grid layout hooks', () => {
+  it('takes the column count from CSS keyed on data-cols, not from an inline style', () => {
+    expect(calculatorSource).not.toMatch(/style=\{`--mp-cols/);
+    expect(calculatorSource).not.toMatch(/setProperty\('--mp-cols'/);
+    expect(calculatorSource).toMatch(/\.mp-wrap \{ --mp-cols: 4;/); // fallback
+    const widths = new Set(SIZE_KEYS.map((k) => SIZES[k].cols));
+    expect(widths.has(4)).toBe(true);
+    for (const cols of widths) {
+      if (cols === 4) continue;
+      expect(calculatorSource, `${cols} columns`).toContain(`.mp-wrap[data-cols="${cols}"] { --mp-cols: ${cols}; }`);
+    }
+  });
+});
+
 describe('time', () => {
   it('formats minutes and seconds and survives bad input', () => {
     expect(formatTime(0)).toBe('0:00');
@@ -495,11 +518,14 @@ describe('time', () => {
     expect(formatTime(-5)).toBe('0:00');
     expect(formatTime(Infinity)).toBe('0:00');
   });
-  it('toSeconds rounds milliseconds and is never zero', () => {
+  it('toSeconds rounds down like the live clock and is never zero', () => {
     expect(toSeconds(0)).toBe(1);
     expect(toSeconds(300)).toBe(1);
     expect(toSeconds(1499)).toBe(1);
-    expect(toSeconds(1500)).toBe(2);
+    expect(toSeconds(1500)).toBe(1);
+    expect(toSeconds(1999)).toBe(1);
+    expect(toSeconds(2000)).toBe(2);
+    expect(toSeconds(7600)).toBe(7);
     expect(toSeconds(61000)).toBe(61);
     expect(toSeconds(NaN)).toBe(1);
     expect(toSeconds(-10)).toBe(1);

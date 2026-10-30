@@ -11,9 +11,13 @@ import { describe, it, expect } from 'vitest';
 import {
   initialBoard, parseBoard, boardToString, legalMoves, applyMove, flippedBy, canPlay, hasMoves, countMoves, isGameOver, advance,
   result, describeResult, perft, evaluate, terminalScore, negamax, randomMove, greedyMove, bestMove, chooseMove, countDiscs,
-  mulberry32, shuffled, opponent, cellName, rowOf, colOf, RAYS, DIRS, CORNERS, EMPTY, DARK, LIGHT,
+  mulberry32, shuffled, opponent, cellName, rowOf, colOf, RAYS, DIRS, CORNERS, EMPTY, DARK, LIGHT, nameOf, HARD_DEPTH, thinkingMessage,
   type Board, type Player, type Level,
 } from '../src/components/apps-private/reversi/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), name), 'utf8');
 
 const rc = (r: number, c: number): number => r * 8 + c;
 const sorted = (a: number[]): number[] => a.slice().sort((x, y) => x - y);
@@ -231,7 +235,7 @@ describe('edges and corners', () => {
       ........
       ........
       ........`);
-    // Light disc at (1,7); dark above it at (0,7). A dark disc at (2,7) flips it.
+    // Ring disc at (1,7); solid above it at (0,7). A solid disc at (2,7) flips it.
     expect(applyMove(b, rc(2, 7), DARK)!.flipped).toEqual([rc(1, 7)]);
     // But no move can flip the dark disc on row 0 vertically: nothing lies beyond the board.
     expect(applyMove(b, rc(0, 6), LIGHT)).toBeNull();
@@ -280,7 +284,7 @@ describe('passing and the end of the game', () => {
   });
   it('describes results for two players and for a player against the computer', () => {
     const win = result(parseBoard('x'.repeat(40) + 'o'.repeat(24)));
-    expect(describeResult(win, null)).toBe('Dark wins 40 to 24.');
+    expect(describeResult(win, null)).toBe('Solid wins 40 to 24.');
     expect(describeResult(win, DARK)).toBe('You win 40 to 24.');
     expect(describeResult(win, LIGHT)).toBe('The computer wins 40 to 24.');
     expect(describeResult(result(parseBoard('x'.repeat(32) + 'o'.repeat(32))), null)).toBe('Draw, 32 discs each.');
@@ -337,7 +341,7 @@ describe('perft from the starting position', () => {
     expect(perft(initialBoard(), DARK, 0)).toBe(1);
     expect(perft(parseBoard('x'.repeat(64)), DARK, 3)).toBe(1);
   });
-  it('is symmetric: Light moving first gives the same counts on the mirrored position', () => {
+  it('is symmetric: Ring moving first gives the same counts on the mirrored position', () => {
     const b = initialBoard();
     for (let d = 1; d <= 4; d++) expect(perft(b, LIGHT, d)).toBe(perft(b, DARK, d));
   });
@@ -430,7 +434,7 @@ describe('computer players', () => {
       ........
       ........
       ........`);
-    // Dark at (0,0) flips one disc; dark at (4,1) flips three.
+    // Solid at (0,0) flips one disc; solid at (4,1) flips three.
     expect(applyMove(b, rc(0, 0), DARK)!.flipped).toHaveLength(1);
     expect(applyMove(b, rc(4, 1), DARK)!.flipped).toHaveLength(3);
     for (let s = 1; s <= 10; s++) expect(greedyMove(b, DARK, mulberry32(s))).toBe(rc(0, 0));
@@ -604,7 +608,7 @@ describe('self-play fuzz', () => {
     const levels: Level[] = ['easy', 'medium', 'hard'];
     for (let seed = 1; seed <= 12; seed++) {
       const rng = mulberry32(seed + 500);
-      const g = playOut((b, p, ply) => {
+      const g = playOut((b, p) => {
         const level = levels[(seed + (p === DARK ? 0 : 1)) % 3];
         return level === 'hard' ? bestMove(b, p, 2, rng) : chooseMove(b, p, level, rng);
       });
@@ -632,5 +636,54 @@ describe('evaluation sanity', () => {
   });
   it('a board constant EMPTY is zero', () => {
     expect(EMPTY).toBe(0);
+  });
+});
+
+describe('side names and Hard depth', () => {
+  it('names the sides by shape, not by colour', () => {
+    expect(nameOf(DARK)).toBe('Solid');
+    expect(nameOf(LIGHT)).toBe('Ring');
+    expect(describeResult(result(parseBoard('o'.repeat(40) + 'x'.repeat(24))), null)).toBe('Ring wins 40 to 24.');
+  });
+  it('Hard searches HARD_DEPTH plies and Easy and Medium do not search', () => {
+    expect(HARD_DEPTH).toBe(5);
+    const b = initialBoard();
+    for (let s = 1; s <= 5; s++) {
+      expect(chooseMove(b, DARK, 'hard', mulberry32(s))).toBe(bestMove(b, DARK, HARD_DEPTH, mulberry32(s)));
+    }
+  });
+  it('a depth that is not a finite number is treated as depth 1 instead of searching forever', () => {
+    const b = initialBoard();
+    const legal = legalMoves(b, DARK);
+    for (const d of [NaN, Infinity, -Infinity, 0, -3]) {
+      const t = performance.now();
+      expect(legal).toContain(bestMove(b, DARK, d, mulberry32(3)));
+      expect(performance.now() - t).toBeLessThan(1500);
+    }
+  });
+});
+
+describe('page behaviour', () => {
+  const dir = 'src/components/apps-private/reversi/';
+  it('keeps a pass notice in the status line while the computer thinks', () => {
+    expect(thinkingMessage('')).toBe('Computer is thinking...');
+    expect(thinkingMessage('Solid has no legal move and passes. Ring moves again.')).toBe('Solid has no legal move and passes. Ring moves again. Computer is thinking...');
+    expect(page(dir + 'Calculator.astro')).toContain('say(thinkingMessage(note));');
+  });
+  it('makes the board inert while the game-over panel is up and restores it for a new game and for undo', () => {
+    const src = page(dir + 'Calculator.astro');
+    expect(src).toContain("boardEl.toggleAttribute('inert', true);");
+    expect(src.split("boardEl.removeAttribute('inert');")).toHaveLength(3); // newGame and undo
+    expect(src).toContain("g('rv-again').addEventListener('click', () => { newGame(); g('rv-new').focus(); });");
+  });
+  it('uses Solid and Ring in the page and the content page, never Dark or Light', () => {
+    const src = page(dir + 'Calculator.astro');
+    const md = page('src/content/apps/reversi.md');
+    for (const text of [src.replace(/DARK|LIGHT/g, ''), md]) {
+      expect(text).not.toMatch(/Dark|Light/);
+      expect(text).not.toContain('plain numbers');
+    }
+    expect(src).toContain('Solid goes first');
+    expect(md).toContain('Solid moves first');
   });
 });

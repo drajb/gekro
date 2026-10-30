@@ -14,7 +14,7 @@ icon: "🔴"
 
 ## How to play
 
-Each side starts with 12 pieces on the darker squares of an 8 x 8 board. Dark moves first. A man moves one square diagonally forward; a king (a man that has reached the far row) moves one square diagonally in any direction. Capturing works by jumping an adjacent enemy piece into the empty square directly beyond it, and the jumped piece is removed.
+Each side starts with 12 pieces on the darker squares of an 8 x 8 board. Solid moves first. A man moves one square diagonally forward; a king (a man that has reached the far row) moves one square diagonally in any direction. Capturing works by jumping an adjacent enemy piece into the empty square directly beyond it, and the jumped piece is removed.
 
 The rules that decide most games:
 
@@ -25,13 +25,13 @@ The rules that decide most games:
 - **No legal move means a loss.** You lose if you have no pieces left or every piece you have is blocked.
 - **Draw rule.** The game is drawn after 40 moves in a row, counting both sides together, with no capture and no man moved. The page shows this count.
 
-The two sides are called Dark (solid) and Light (ring), and they are not told apart by colour alone: Dark pieces are solid discs, Light pieces have a ring inside, and a king carries a crown mark. Click a piece to select it. Pieces that can legally move have a dashed outline, and if a capture is mandatory only the pieces that can capture are marked and the page says "Capture available - you must capture". The legal landing squares show a dot, and the last move is tinted. On the keyboard, arrow keys move around the board (Home and End jump to the ends of a row), Enter or Space selects a piece or moves it, and Escape deselects. Every square is announced with its row, column, contents and whether it can move or is a legal destination.
+The two sides are called Solid and Ring, and they are not told apart by colour alone: Solid pieces are plain discs, Ring pieces have a ring inside, and a king carries a crown mark. Click a piece to select it. Pieces that can legally move have a dashed outline, and if a capture is mandatory only the pieces that can capture are marked and the page says "Capture available - you must capture". The legal landing squares show a dot, and the last move is tinted. On the keyboard, arrow keys move around the board (Home and End jump to the ends of a row), Enter or Space selects a piece or moves it, and Escape deselects. Every square is announced with its row, column, contents and whether it can move or is a legal destination.
 
 Controls:
 
 - **Opponent:** the computer or two players on the same screen.
 - **Difficulty:** Easy, Medium or Hard. It applies when you play the computer.
-- **You play:** Dark (solid), which moves first, or Light (ring), which moves second so the computer opens. Dark starts at the bottom of the board and Light at the top.
+- **You play:** Solid, which moves first, or Ring, which moves second so the computer opens. Solid starts at the bottom of the board and Ring at the top.
 - **Undo:** takes back your last move and the reply. Against a person it takes back one move.
 - **New game:** starts again with the current settings. Changing the opponent starts a new game, and against the computer so does changing the difficulty or side.
 
@@ -43,7 +43,7 @@ The engine is a few hundred lines with no dependencies. For every square it prec
 
 The test suite pins the rules and the engine in several ways:
 
-- **Opening:** each side has 12 men, and Dark has exactly 7 legal first moves.
+- **Opening:** each side has 12 men, and Solid has exactly 7 legal first moves.
 - **Node counts:** the number of possible move sequences from the starting position is 7, 49, 302, 1469, 7361, 36768 and 179740 for depths 1 to 7, matching the published figures for English draughts. A multi-jump counts as one move.
 - **Captures:** a capture hides every simple move, a choice between captures is offered, a shorter capture is as legal as a longer one, men cannot capture backwards, and kings can.
 - **Multi-jumps:** a double jump has no legal stopping point after the first jump, a jump with two continuations offers both, and a king's four-piece loop is found in both directions.
@@ -63,7 +63,7 @@ The alpha-beta search is checked against a plain minimax with no pruning, which 
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Against the computer, your win count for each difficulty is saved in your browser's local storage, as plain numbers, under one key. Clearing site data removes it. The session tally (your wins, the computer's, draws) lives only on the page and resets when you leave it. Two-player games are not saved.
+Nothing is uploaded and there is no account. Against the computer, your win count for each difficulty is saved in your browser's local storage, as small whole numbers inside a small JSON object, under one key. Clearing site data removes it. The session tally (your wins, the computer's, draws) lives only on the page and resets when you leave it. Two-player games are not saved.
 
 Only finished games count. A game in which you used Undo is not counted against the computer, so the saved figures are not inflated.
 
@@ -72,7 +72,7 @@ Only finished games count. A game in which you used Undo is not counted against 
 - Hard is a fixed search of at most 7 moves with no learning and no opening book.
 - The evaluation is a simple hand-made one. It has no special knowledge of endgames, so Hard may not convert every won ending with kings before the 40-move rule draws the game.
 - Draws only come from the 40-move rule. There is no draw by agreement and no repetition rule.
-- Dark is always at the bottom of the board. If you play Light, your pieces start at the top and move down; the board is not turned around.
+- Solid is always at the bottom of the board. If you play Ring, your pieces start at the top and move down; the board is not turned around.
 - Kings move one square at a time (the English rules), not the length of the diagonal as in some other variants.
 - Two-player mode is for one screen only; there is no online play.
 - Difficulty and side are only used against the computer.

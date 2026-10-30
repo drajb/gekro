@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   initialState, step, placeFood, queueDirection, nextDirection, keyToDir, swipeDirection, advance, stepMs,
-  bestKey, parseBests, recordBest, endMessage, shareText, isReversal, mulberry32,
+  bestKey, parseBests, recordBest, endMessage, shareText, isReversal, mulberry32, capturesKeys, spaceIsNative,
   COLS, ROWS, START_LENGTH, MAX_QUEUE, MAX_SCORE, SPEEDS, DIRS, OPPOSITE, SPEED_KEYS, WALLS_KEYS,
   type Dir, type GameState, type Point,
 } from '../src/components/apps-private/snake/helpers';
@@ -375,6 +375,25 @@ describe('input mapping', () => {
     expect(swipeDirection(3, -40, 22)).toBe('up');
     expect(swipeDirection(10, 10, 22)).toBeNull();
     expect(swipeDirection(NaN, 50, 22)).toBeNull();
+  });
+});
+
+describe('key capture scope', () => {
+  it('always acts when focus is inside the game', () => {
+    for (const p of ['ready', 'running', 'paused', 'over'] as const) expect(capturesKeys(p, true), p).toBe(true);
+  });
+  it('acts outside the game while running and while paused, so a pause can always be resumed', () => {
+    expect(capturesKeys('running', false)).toBe(true);
+    expect(capturesKeys('paused', false)).toBe(true);
+  });
+  it('leaves the page alone when focus is elsewhere and no game is in progress', () => {
+    expect(capturesKeys('ready', false)).toBe(false);
+    expect(capturesKeys('over', false)).toBe(false);
+  });
+  it('lets buttons and summaries keep their own Space action', () => {
+    expect(spaceIsNative('BUTTON')).toBe(true);
+    expect(spaceIsNative('SUMMARY')).toBe(true);
+    for (const tag of ['DIV', 'BODY', 'A', 'CANVAS']) expect(spaceIsNative(tag), tag).toBe(false);
   });
 });
 

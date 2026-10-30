@@ -10,9 +10,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   slideLine, slide, move, spawn, newBoard, canMove, isGameOver, emptyCells, emptyBoard, mulberry32,
-  tileCount, sumTiles, maxTile, hasWon, isValidBoard, keyToDir, dirFromSwipe, describeBoard, where,
+  tileCount, sumTiles, maxTile, hasWon, isValidBoard, keyToDir, dirFromSwipe, describeBoard, where, sanitizeBest,
   DIRS, CELLS, SIZE, WIN_TILE, FOUR_CHANCE, SWIPE_PX,
-  type Board, type Dir,
+  type Board,
 } from '../src/components/apps-private/merge-tiles/helpers';
 
 const boom = () => { throw new Error('rng must not be called'); };
@@ -524,6 +524,18 @@ describe('input mapping', () => {
   it('survives non-finite input', () => {
     expect(dirFromSwipe(NaN, 50)).toBeNull();
     expect(dirFromSwipe(Infinity, 0)).toBeNull();
+  });
+});
+
+describe('stored best score', () => {
+  it('keeps only a positive whole score and ignores a best-tile field left by older versions', () => {
+    expect(sanitizeBest({ score: 1240, tile: 128 })).toEqual({ score: 1240 });
+    expect(sanitizeBest({ tile: 512 })).toEqual({ score: 0 });
+  });
+  it('turns anything odd into zero', () => {
+    for (const bad of [null, undefined, 5, 'x', [], [3], {}, { score: -4 }, { score: 2.5 }, { score: NaN }, { score: 'abc' }, { score: '12' }, { score: true }, { score: Infinity }]) {
+      expect(sanitizeBest(bad), JSON.stringify(bad)).toEqual({ score: 0 });
+    }
   });
 });
 

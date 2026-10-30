@@ -12,8 +12,12 @@ import { describe, it, expect } from 'vitest';
 import {
   COLS, ROWS, CELLS, WINDOWS, LEVELS, idx, rowOf, colOf, other, emptyBoard, boardFromRows, boardToRows, countDiscs,
   freeInColumn, playerToMove, winner, describeLine, isDraw, legalColumns, drop, scoreMoves, bestMove, chooseMove,
-  applyResult, mulberry32, type Board, type Player,
+  applyResult, scoreResult, nearestOpenColumn, UNDO_NOTE, mulberry32, type Board, type Player,
 } from '../src/components/apps-private/four-in-a-row/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), 'src/components/apps-private/four-in-a-row', name), 'utf8');
 
 // ── helpers local to the tests ──────────────────────────────────────────────
 
@@ -642,5 +646,60 @@ describe('streaks', () => {
     expect(applyResult(-3, 'draw')).toBe(0);
     expect(applyResult(Infinity, 'win')).toBe(1);
     expect(applyResult(2.7, 'win')).toBe(3);
+  });
+});
+
+describe('a game that used Undo is not counted', () => {
+  it('leaves the streak and the best alone, whatever the result', () => {
+    expect(scoreResult(3, 5, 'win', true)).toEqual({ streak: 3, best: 5, counted: false });
+    expect(scoreResult(3, 5, 'loss', true)).toEqual({ streak: 3, best: 5, counted: false });
+    expect(scoreResult(4, 4, 'win', true)).toEqual({ streak: 4, best: 4, counted: false });
+    expect(UNDO_NOTE).toBe('You used Undo, so this game is not counted.');
+  });
+  it('counts an ordinary game: a win extends both streaks, a loss resets the streak but keeps the best, a draw changes nothing', () => {
+    expect(scoreResult(4, 4, 'win', false)).toEqual({ streak: 5, best: 5, counted: true });
+    expect(scoreResult(2, 7, 'win', false)).toEqual({ streak: 3, best: 7, counted: true });
+    expect(scoreResult(6, 7, 'loss', false)).toEqual({ streak: 0, best: 7, counted: true });
+    expect(scoreResult(2, 7, 'draw', false)).toEqual({ streak: 2, best: 7, counted: true });
+  });
+  it('survives bad numbers', () => {
+    expect(scoreResult(NaN, NaN, 'win', false)).toEqual({ streak: 1, best: 1, counted: true });
+    expect(scoreResult(-2, -9, 'win', true)).toEqual({ streak: 0, best: 0, counted: false });
+  });
+  it('the page tracks Undo per game and the content page says so', () => {
+    const src = page('Calculator.astro');
+    expect(src).toContain("if (mode === 'cpu') usedUndo = true;");
+    expect(src).toContain('usedUndo = false;');
+    expect(src).toContain('scoreResult(streaks[diff]');
+    const md = readFileSync(join(process.cwd(), 'src/content/apps/four-in-a-row.md'), 'utf8');
+    expect(md).not.toContain('Using undo does not change your win streak');
+    expect(md).toContain('is not counted');
+  });
+});
+
+describe('focus and page text', () => {
+  it('finds the nearest column with room, preferring the left on a tie', () => {
+    const b = emptyBoard();
+    expect(nearestOpenColumn(b, 3)).toBe(3);
+    const full = (cols: number[]): Board => {
+      const x = emptyBoard(); // only the free-cell count matters here, so the fill need not be a legal game
+      for (const c of cols) for (let r = 0; r < ROWS; r++) x[idx(r, c)] = 1;
+      return x;
+    };
+    expect(nearestOpenColumn(full([3]), 3)).toBe(2);
+    expect(nearestOpenColumn(full([2, 3]), 3)).toBe(4);
+    expect(nearestOpenColumn(full([0, 1, 2, 3]), 1)).toBe(4);
+    expect(nearestOpenColumn(full([0, 1, 2, 3, 4, 5]), 0)).toBe(6);
+    expect(nearestOpenColumn(full([0, 1, 2, 3, 4, 5, 6]), 3)).toBe(-1);
+    expect(nearestOpenColumn(b, 99)).toBe(6);
+  });
+  it('the page does not refocus the hovered column, sends focus to New game after Play again, and uses tokens for colour', () => {
+    const src = page('Calculator.astro');
+    expect(src).not.toContain('heads[cursor].focus()');
+    expect(src).toContain("g('fr-again').addEventListener('click', () => { newGame(); g('fr-new').focus(); });");
+    expect(src).not.toContain('rgba(');
+    expect(src).not.toContain('rgb(');
+    expect(/#[0-9a-fA-F]{6}/.test(src)).toBe(false);
+    expect(src).not.toContain('as plain numbers');
   });
 });

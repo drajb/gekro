@@ -9,6 +9,8 @@
  * localStorage is sanitised before the page sees it.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   DURATIONS, SIZES, SIZE_KEYS, MODES, MODE_KEYS, MARGIN_PX, MAX_BEST_HITS, DEFAULT_CONFIG, ALL_COMBOS,
   parseConfig, comboKey, isComboKey, configLabel, mulberry32, targetDiameter,
@@ -665,6 +667,24 @@ describe('recordBest', () => {
   });
   it('a result above the cap is stored at the cap', () => {
     expect(recordBest({}, key, 5000).bests[key]).toBe(1000);
+  });
+});
+
+describe('source hygiene', () => {
+  it('neither the helpers nor the page call Math.random', () => {
+    for (const f of ['helpers.ts', 'Calculator.astro']) {
+      const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/aim-trainer', f), 'utf8');
+      expect(text.includes('Math' + '.random'), f).toBe(false);
+    }
+  });
+  it('the seeded generator the page falls back on stays in [0, 1) for clock-sized seeds', () => {
+    for (const seed of [0, 1, Date.now() >>> 0, 4294967295, 2 ** 32 + 5]) {
+      const r = mulberry32(seed);
+      for (let i = 0; i < 200; i++) {
+        const x = r();
+        expect(x >= 0 && x < 1).toBe(true);
+      }
+    }
   });
 });
 

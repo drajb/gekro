@@ -37,7 +37,7 @@ What the tests prove about Unbeatable: they walk every possible sequence of oppo
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your session tally (wins, draws, losses, or X wins, draws and O wins in two-player mode) lives only in the open page and disappears when you leave it. The only thing saved is your best unbeaten streak per difficulty, as plain numbers in your browser's local storage under one key. Clearing site data removes it. The page address records your settings (opponent, difficulty, side) so you can bookmark them, and nothing else.
+Nothing is uploaded and there is no account. Your session tally (wins, draws, losses, or X wins, draws and O wins in two-player mode) lives only in the open page and disappears when you leave it. The only thing saved is your best unbeaten streak per difficulty, as small whole numbers inside a small JSON object in your browser's local storage under one key. Clearing site data removes it. The page address records your settings (opponent, difficulty, side) so you can bookmark them, and nothing else.
 
 ## Limits
 

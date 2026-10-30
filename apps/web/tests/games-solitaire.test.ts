@@ -11,8 +11,10 @@ import {
   deal, emptyState, cardId, cardName, cardLabel, rankOf, suitOf, isRed, isRun, cardsAt, canMoveToTableau, canMoveToFoundation,
   applyMove, autoToFoundation, drawFromStock, legalMoves, isWon, canAutoComplete, autoCompleteStep, autoCompleteAll, validateState,
   foundationCount, mulberry32, shuffled, deckFor, formatTime, SUIT_CHARS, RANK_LABELS, COLUMNS,
+  sameCardRun, dealAnnouncement, dropPile,
   type Card, type GameState, type Move, type Source, type Draw,
 } from '../src/components/apps-private/solitaire/helpers';
+import calculatorSource from '../src/components/apps-private/solitaire/Calculator.astro?raw';
 
 // ── helpers for building positions ──────────────────────────────────────────
 
@@ -679,6 +681,72 @@ describe('fuzz', () => {
     }
     expect(rejected).toBeGreaterThan(300);
     expect(snapshot(s)).toBe(before);
+  });
+});
+
+// ── page hooks: deal announcement, drop recheck, column height ──────────────
+
+describe('deal announcement', () => {
+  it('always counts the 24 stock cards of the new deal, whatever game it replaces', () => {
+    for (const draw of [1, 3] as const) {
+      for (const seed of [1, 777, 999999]) {
+        const text = dealAnnouncement(seed, draw);
+        expect(text).toBe(`Deal #${seed}, Draw ${draw}. Seven columns dealt, 24 cards in the stock.`);
+      }
+    }
+  });
+  it('reads the stock from the deal itself, not from a played-down game', () => {
+    const played = drawFromStock(deal(5))!; // stock is now 23
+    expect(played.stock).toHaveLength(23);
+    expect(dealAnnouncement(played.seed, played.draw)).toContain('24 cards');
+  });
+});
+
+describe('sameCardRun (drop recheck)', () => {
+  it('matches the same cards in the same order only', () => {
+    const run = cs('KS', 'QH', 'JS');
+    expect(sameCardRun(run, cs('KS', 'QH', 'JS'))).toBe(true);
+    expect(sameCardRun(run, cs('KS', 'QH'))).toBe(false);
+    expect(sameCardRun(run, cs('KS', 'QD', 'JS'))).toBe(false);
+    expect(sameCardRun(run, cs('JS', 'QH', 'KS'))).toBe(false);
+  });
+  it('never matches when a side is missing', () => {
+    expect(sameCardRun(null, null)).toBe(false);
+    expect(sameCardRun(cs('KS'), null)).toBe(false);
+    expect(sameCardRun(null, cs('KS'))).toBe(false);
+  });
+  it('catches a table that changed after pickup', () => {
+    const s = emptyState();
+    s.tableau[0] = [c('9C', false), ...cs('7H', '6S')];
+    s.tableau[1] = cs('8S');
+    const lifted = cardsAt(s, tab(0, 1))!.slice();
+    expect(sameCardRun(cardsAt(s, tab(0, 1)), lifted)).toBe(true);
+    const after = applyMove(s, { from: tab(0, 1), to: toTab(1) })!; // the run moved away meanwhile
+    expect(sameCardRun(cardsAt(after, tab(0, 1)), lifted)).toBe(false);
+  });
+});
+
+describe('dropPile (where a drop counts)', () => {
+  it('treats a drop on the pile the cards came from as no drop at all', () => {
+    expect(dropPile('t3', 't3')).toBeNull();
+    expect(dropPile('waste', 'waste')).toBeNull();
+    expect(dropPile('f2', 'f2')).toBeNull();
+  });
+  it('passes any other pile through, and nothing when released over no pile', () => {
+    expect(dropPile('t3', 't4')).toBe('t4');
+    expect(dropPile('waste', 'f1')).toBe('f1');
+    expect(dropPile('t3', null)).toBeNull();
+  });
+});
+
+describe('column height does not depend on inline styles', () => {
+  it('sets no inline min-height and keys the height on counts that cover every possible column', () => {
+    expect(calculatorSource).not.toMatch(/style\.minHeight/);
+    expect(calculatorSource).toMatch(/\.sl-pile \{[^}]*min-height: var\(--ch\)/); // one-card fallback
+    expect(calculatorSource).toMatch(/\.sl-pile\[data-pile\^="t"\] \{ min-height: calc\(var\(--ch\)/);
+    // A column has at most 6 face-down cards and a face-up run of at most 13.
+    for (let d = 1; d <= 6; d++) expect(calculatorSource, `down ${d}`).toContain(`[data-down="${d}"] { --sl-d: ${d}; }`);
+    for (let u = 2; u <= 13; u++) expect(calculatorSource, `up ${u}`).toContain(`[data-up="${u}"] { --sl-u: ${u - 1}; }`);
   });
 });
 
