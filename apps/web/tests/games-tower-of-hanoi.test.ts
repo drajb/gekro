@@ -13,7 +13,7 @@ import {
   initialState, applyMove, applyAll, moveOf, moveProblem, isLegalMove, explainProblem, isSolved, legalMoves, reverseMove,
   optimalMoves, optimalSolution, trailingZeros, solveFrom, autoPlan, keyOf, stateFromKey, bfsDistances, describePeg,
   verdict, clampDiscs, formatTime, topDisc, ENGINE_MAX, MIN_DISCS, MAX_DISCS,
-  moveText, sanitiseBest, MAX_BEST_MOVES, MAX_BEST_SECONDS,
+  moveText, plural, sanitiseBest, MAX_BEST_MOVES, MAX_BEST_SECONDS,
   type State,
 } from '../src/components/apps-private/tower-of-hanoi/helpers';
 
@@ -290,9 +290,16 @@ describe('move text and saved results', () => {
     const m = moveOf(initialState(3), 0, 1)!;
     expect(moveText(m)).toBe('Disc 1 moved from peg 1 to peg 2.');
   });
+  it('plural says 1 move and 2 moves', () => {
+    expect(plural(1, 'move')).toBe('1 move');
+    expect(plural(0, 'move')).toBe('0 moves');
+    expect(plural(255, 'move')).toBe('255 moves');
+    expect(plural(1, 'disc')).toBe('1 disc');
+  });
   it('sanitiseBest keeps whole positive numbers under m3..m8 and t3..t8 and drops everything else', () => {
     expect(sanitiseBest({ m3: 7, t3: 20, m8: 255, t8: 900 })).toEqual({ m3: 7, t3: 20, m8: 255, t8: 900 });
-    expect(sanitiseBest({ m3: '7', m9: 5, m2: 5, x: 1 })).toEqual({ m3: 7 });
+    expect(sanitiseBest({ m3: 7, m9: 5, m2: 5, x: 1 })).toEqual({ m3: 7 });
+    expect(sanitiseBest({ m3: '7', t3: true, m4: [7], t4: null })).toEqual({});
     expect(sanitiseBest({ m3: 0, t3: -3, m4: 1.5, t4: NaN, m5: Infinity, t5: 'x' })).toEqual({});
   });
   it('sanitiseBest caps moves and seconds at sane limits', () => {

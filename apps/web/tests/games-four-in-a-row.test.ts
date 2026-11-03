@@ -668,9 +668,17 @@ describe('a game that used Undo is not counted', () => {
   });
   it('the page tracks Undo per game and the content page says so', () => {
     const src = page('Calculator.astro');
-    expect(src).toContain("if (mode === 'cpu') usedUndo = true;");
-    expect(src).toContain('usedUndo = false;');
-    expect(src).toContain('scoreResult(streaks[diff]');
+    const between = (from: string, to: string): string => {
+      const i = src.indexOf(from);
+      const j = src.indexOf(to, i);
+      expect(i).toBeGreaterThan(0);
+      expect(j).toBeGreaterThan(i);
+      return src.slice(i, j);
+    };
+    // Set by Undo in a game against the computer, cleared only when a new game starts, and read when the result is scored.
+    expect(between('const undo = ', 'const settingsChanged')).toContain("if (mode === 'cpu') usedUndo = true;");
+    expect(between('const newGame = ', 'const undo = ')).toContain('usedUndo = false;');
+    expect(between('const record = ', 'const resultText')).toContain('scoreResult(streaks[diff], best[diff] || 0, res, usedUndo)');
     const md = readFileSync(join(process.cwd(), 'src/content/apps/four-in-a-row.md'), 'utf8');
     expect(md).not.toContain('Using undo does not change your win streak');
     expect(md).toContain('is not counted');
@@ -701,5 +709,11 @@ describe('focus and page text', () => {
     expect(src).not.toContain('rgb(');
     expect(/#[0-9a-fA-F]{6}/.test(src)).toBe(false);
     expect(src).not.toContain('as plain numbers');
+  });
+});
+
+describe('rules summary tap target', () => {
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page('Calculator.astro')).toContain('.fr-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
   });
 });

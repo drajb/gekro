@@ -43,7 +43,7 @@ The test suite also covers the deal layout (28 cards in the columns, 24 in the s
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best winning time and your win count, for each draw mode, are saved in your browser's local storage as small numbers inside a small JSON object, under one key. Only wins are counted. Clearing site data removes them. The only other state is the page address.
+Nothing is uploaded and there is no account. Your best winning time and your win count, for each draw mode, are saved in your browser's local storage as small numbers inside a small JSON object, under one key. Only wins are counted. Stored values that are not whole numbers (times up to 99 hours 59 minutes 59 seconds, win counts up to one million) are ignored when read. Clearing site data removes them. The only other state is the page address.
 
 ## Limits
 

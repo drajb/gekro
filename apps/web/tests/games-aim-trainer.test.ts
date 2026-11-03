@@ -541,16 +541,13 @@ describe('formatting', () => {
 });
 
 describe('cleanHits', () => {
-  it('accepts whole numbers from 1 to the cap, floors fractions and caps the top', () => {
+  it('accepts only whole numbers from 1 to the cap', () => {
     expect(cleanHits(1)).toBe(1);
     expect(cleanHits(42)).toBe(42);
-    expect(cleanHits(42.9)).toBe(42);
     expect(cleanHits(1000)).toBe(1000);
-    expect(cleanHits(1001)).toBe(1000);
-    expect(cleanHits(1e300)).toBe(1000);
   });
-  it('rejects zero, negatives, fractions below one and anything that is not a finite number', () => {
-    for (const bad of [0, 0.9, -1, -1e9, NaN, Infinity, -Infinity, '12', null, undefined, {}, [], [12], true, 10n]) expect(cleanHits(bad)).toBeNull();
+  it('rejects fractions, zero, negatives, anything above the cap and anything that is not a number', () => {
+    for (const bad of [42.9, 1.5, 0, 0.9, -1, -1e9, 1001, 1e300, NaN, Infinity, -Infinity, '12', null, undefined, {}, [], [12], true, 10n]) expect(cleanHits(bad), String(bad)).toBeNull();
   });
 });
 
@@ -579,9 +576,9 @@ describe('sanitiseStored', () => {
     });
     expect(s).toEqual({ '60-medium-single': 12 });
   });
-  it('floors fractions, clamps a huge value to the cap and drops zero or negative values', () => {
-    const s = sanitiseStored({ '30-small-single': 12.9, '30-small-triple': 1e9, '30-medium-single': 0, '30-medium-triple': -5, '30-large-single': 0.5 });
-    expect(s).toEqual({ '30-small-single': 12, '30-small-triple': 1000 });
+  it('drops fractions, values above the cap, zero and negative values, and keeps the cap itself', () => {
+    const s = sanitiseStored({ '30-small-single': 12.9, '30-small-triple': 1e9, '30-medium-single': 0, '30-medium-triple': -5, '30-large-single': 0.5, '60-small-single': 1000, '60-large-single': 1001 });
+    expect(s).toEqual({ '60-small-single': 1000 });
   });
   it('handles a very large hostile object quickly and keeps only known keys', () => {
     const t = performance.now();
@@ -665,8 +662,13 @@ describe('recordBest', () => {
       expect(r.bests).toBe(base);
     }
   });
-  it('a result above the cap is stored at the cap', () => {
-    expect(recordBest({}, key, 5000).bests[key]).toBe(1000);
+  it('a result above the cap, or a fraction, is not saved', () => {
+    for (const bad of [5000, 1001, 40.5]) {
+      const r = recordBest({}, key, bad);
+      expect(r.saved).toBe(false);
+      expect(r.bests).toEqual({});
+    }
+    expect(recordBest({}, key, 1000).bests[key]).toBe(1000);
   });
 });
 
@@ -720,5 +722,12 @@ describe('a whole run end to end', () => {
     expect(worse.bests).toBe(bests);
     bests = recordBest(bests, comboKey(cfg), 44).bests;
     expect(sanitiseStored(JSON.stringify(toStorable(bests)))).toEqual({ '30-medium-single': 44 });
+  });
+});
+
+describe('layout guards', () => {
+  it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/aim-trainer/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/#at-app \.at-how > summary \{[^}]*min-height: 2rem;/);
   });
 });

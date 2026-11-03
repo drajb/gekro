@@ -410,7 +410,8 @@ describe('3x3 hints', () => {
 describe('saved best results', () => {
   it('keeps whole positive numbers under the six known keys and drops everything else', () => {
     expect(sanitiseBest({ m3: 20, t3: 45, m4: 80, t4: 300, m5: 200, t5: 900 })).toEqual({ m3: 20, t3: 45, m4: 80, t4: 300, m5: 200, t5: 900 });
-    expect(sanitiseBest({ m3: '20', m6: 5, x: 1 })).toEqual({ m3: 20 });
+    expect(sanitiseBest({ m3: 20, m6: 5, x: 1 })).toEqual({ m3: 20 });
+    expect(sanitiseBest({ m3: '20', t3: true, m4: [20], t4: null })).toEqual({});
     expect(sanitiseBest({ m3: 0, t3: -3, m4: 1.5, t4: NaN, m5: Infinity, t5: 'x' })).toEqual({});
   });
   it('caps moves and seconds at sane limits', () => {

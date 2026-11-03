@@ -12,7 +12,7 @@ import { resolve } from 'node:path';
 import {
   score, allCodes, consistent, filterByFeedback, partitionCounts, forcedPositions, hintText, nextGuessMinimax, openingGuess,
   solverGuess, solveSecret, randomSecret, mulberry32, isValidCode, hasRepeat, symbolLabel, symbolName, codeWords, feedbackText,
-  feedbackShort, bestKey, sanitiseResults, recordWin, freshRowIndex, DEFAULT_BUDGET, SYMBOLS, LENGTHS, SYMBOL_COUNTS, GUESS_LIMITS, DEFAULTS,
+  feedbackShort, bestKey, sanitiseResults, recordWin, freshRowIndex, nextReplay, DEFAULT_BUDGET, SYMBOLS, LENGTHS, SYMBOL_COUNTS, GUESS_LIMITS, DEFAULTS,
   type Code, type Guess, type Setup,
 } from '../src/components/apps-private/code-breaker/helpers';
 
@@ -344,6 +344,8 @@ describe('solver step budget', () => {
   it('the default game never needs to sample: its biggest step is 1296 guesses x 256 candidates, under the budget', () => {
     expect(1296 * 256).toBeLessThanOrEqual(DEFAULT_BUDGET);
   });
+  // This does NOT guard the budget (a larger budget would still pass): the literal budget test above does.
+  // It only checks that a step stays well under a second in every setup and that the solver still cracks the code.
   it('every step of a whole solve in each setup stays well under a second', () => {
     const rng = mulberry32(21);
     for (const [length, symbols, repeats] of [[5, 8, true], [5, 6, true], [4, 8, true], [5, 8, false]] as [number, number, boolean][]) {
@@ -472,9 +474,45 @@ describe('filing a win', () => {
   });
   it('the page restarts as a replay, resets it for a new game and files wins through recordWin', () => {
     const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/code-breaker/Calculator.astro'), 'utf8');
-    expect(text).toMatch(/replay = true;\s*resetRun\(\);/);
+    expect(text).toMatch(/replay = nextReplay\(replay, \{ guesses: rows\.length, aided, over \}\);\s*resetRun\(\);/);
+    expect(text).not.toMatch(/replay = true;/);
     expect(text).toMatch(/aided = false;\s*replay = false;/);
     expect(text).toMatch(/recordWin\(results, key, n, \{ aided, replay \}\)/);
+  });
+});
+
+describe('which restarts count as a replay', () => {
+  it('Reset before anything was done leaves the game counting', () => {
+    expect(nextReplay(false, { guesses: 0, aided: false, over: false })).toBe(false);
+  });
+  it('a restart after a scored guess, a hint or a finished game (which includes the solver) is a replay', () => {
+    expect(nextReplay(false, { guesses: 1, aided: false, over: false })).toBe(true);
+    expect(nextReplay(false, { guesses: 0, aided: true, over: false })).toBe(true);
+    expect(nextReplay(false, { guesses: 0, aided: false, over: true })).toBe(true);
+    expect(nextReplay(false, { guesses: 7, aided: true, over: true })).toBe(true);
+  });
+  it('once a replay, always a replay for that secret, even after an untouched restart', () => {
+    expect(nextReplay(true, { guesses: 0, aided: false, over: false })).toBe(true);
+  });
+  it('a game that is only restarted before any move still files its win', () => {
+    const replay = nextReplay(false, { guesses: 0, aided: false, over: false });
+    expect(recordWin({}, '4-6-r', 5, { aided: false, replay }).counted).toBe(true);
+  });
+});
+
+describe('palette tap size', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/components/apps-private/code-breaker/Calculator.astro'), 'utf8');
+  it('palette columns are sized by --cb-pick, which is never below 2.25rem (36 px)', () => {
+    expect(css).toMatch(/--cb-pick: clamp\(2\.25rem, 10\.5cqw, 2\.75rem\)/);
+    expect(css).toMatch(/\.cb-pal \{[^}]*repeat\(8, minmax\(0, var\(--cb-pick\)\)\)/);
+    expect(css).toMatch(/\.cb-pal\[data-n="6"\] \{[^}]*repeat\(6, minmax\(0, var\(--cb-pick\)\)\)/);
+  });
+  it('at a 343 px page 10.5cqw is 36 px, and eight of them with their gaps fit', () => {
+    expect(0.105 * 343).toBeGreaterThanOrEqual(36);
+    expect(8 * 36 + 7 * 0.3 * 16).toBeLessThanOrEqual(343);
+  });
+  it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
+    expect(css).toMatch(/#cb-app \.cb-how > summary \{[^}]*min-height: 2rem;/);
   });
 });
 

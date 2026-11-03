@@ -728,11 +728,32 @@ describe('search depth and page behaviour', () => {
       expect(performance.now() - t).toBeLessThan(1500);
     }
   });
-  it('makes the board inert while the game-over panel is up and restores it for a new game and for undo', () => {
+  it('makes the board inert when the game ends, and only a new game makes it playable again', () => {
     const src = page(dir + 'Calculator.astro');
-    expect(src).toContain("boardEl.toggleAttribute('inert', true);");
-    expect(src.split("boardEl.removeAttribute('inert');")).toHaveLength(3); // newGame and undo
+    const between = (from: string, to: string): string => {
+      const i = src.indexOf(from);
+      const j = src.indexOf(to, i);
+      expect(i).toBeGreaterThan(0);
+      expect(j).toBeGreaterThan(i);
+      return src.slice(i, j);
+    };
+    expect(between('const finish = ', 'const settle = ')).toContain("boardEl.toggleAttribute('inert', true);");
+    expect(between('const newGame = ', 'const undoPlies = ')).toContain("boardEl.removeAttribute('inert');");
+    expect(src.split("removeAttribute('inert')")).toHaveLength(2); // nowhere else, so a finished game cannot be reopened
+    expect(between('const undo = ', 'const summary = ')).not.toContain('inert');
     expect(src).toContain("g('ck-again').addEventListener('click', () => { newGame(); g('ck-new').focus(); });");
+  });
+  it('Undo does nothing once the game is over, and its button says so', () => {
+    const src = page(dir + 'Calculator.astro');
+    const undo = src.slice(src.indexOf('const undo = '), src.indexOf('const summary = '));
+    expect(undo.indexOf('if (over) {')).toBeGreaterThan(0);
+    expect(undo.indexOf('if (over) {')).toBeLessThan(undo.indexOf('history = '));
+    expect(undo).not.toContain('over = false');
+    expect(src).toContain("g('ck-undo').setAttribute('aria-disabled', String(over || undoPlies() === 0));");
+    expect(page('src/content/apps/checkers.md')).toContain('Once a game is over, undo is off.');
+  });
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page(dir + 'Calculator.astro')).toContain('.ck-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
   });
   it('uses Solid and Ring in the page and the content page, never Dark or Light', () => {
     const src = page(dir + 'Calculator.astro');

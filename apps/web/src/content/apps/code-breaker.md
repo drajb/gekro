@@ -44,7 +44,7 @@ Nothing is uploaded and there is no account. Your best guess count for each setu
 ## Limits
 
 - The at-most-5-guesses result is for the default game and the 4-peg, 6-symbol no-repeat game only. The solver is not proven to be optimal in the other setups.
-- Only games won without a hint count toward your best and your wins. A game restarted with the same secret (the Reset button) never counts, with or without a hint, because by then you have seen the scores or the answer. Start a new game for a fresh secret that counts.
+- Only games won without a hint count toward your best and your wins. A game restarted with the same secret (the Reset button) after you made a guess, used a hint or finished the game never counts, because by then you have seen scores or the answer. Pressing Reset before you have done anything leaves the game counting. Start a new game for a fresh secret.
 - The game is always played against the computer, one secret at a time. There is no daily code and no two-player mode.
 - Best results are per browser and per setup. Changing browser or clearing site data starts them over.
 

@@ -14,7 +14,7 @@ import { resolve } from 'node:path';
 import {
   ENABLE5, ANSWERS, WORD_LENGTH, MAX_GUESSES, LETTERS, KEY_ROWS, MARK_CHAR, MAX_COUNT,
   mulberry32, hashString, shuffled, isLetter, isValidWord, scoreGuess, isWin, keyStates, checkHardMode, evaluateGuess, markSummary,
-  ENTER_OWNERS, enterBelongsTo, randomAnswer, pushRecent, localIsoDate, dayNumber, isoToNumber, numberToIso, dailyOrder, dailyAnswer,
+  ENTER_OWNERS, enterBelongsTo, resetShake, randomAnswer, pushRecent, localIsoDate, dayNumber, isoToNumber, numberToIso, dailyOrder, dailyAnswer,
   emptyStats, encodeWord, decodeWord, sanitiseStats, updateStats, recordDailyProgress, currentStreak, winPercent, shareText,
   type Mark, type Row, type Stats,
 } from '../src/components/apps-private/word-guess/helpers';
@@ -871,5 +871,25 @@ describe('source hygiene', () => {
   it('the component writes no innerHTML', () => {
     const text = readFileSync(resolve(root, 'src/components/apps-private/word-guess/Calculator.astro'), 'utf8');
     expect(text).not.toMatch(/innerHTML|outerHTML|insertAdjacentHTML|document\.write/);
+  });
+});
+
+describe('shake marker', () => {
+  it('resetShake puts every row back to false, including rows that were left on true', () => {
+    document.body.innerHTML = '<div class="r" data-shake="true"></div><div class="r" data-shake="false"></div><div class="r"></div>';
+    const rows = [...document.querySelectorAll<HTMLElement>('.r')];
+    resetShake(rows);
+    expect(rows.map((r) => r.dataset.shake)).toEqual(['false', 'false', 'false']);
+  });
+  it('the page calls it from resetBoard, right after the timers are cancelled', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/word-guess/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/clearTimers\(\);\s*resetShake\(rowEls\);/);
+  });
+});
+
+describe('layout guards', () => {
+  it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/word-guess/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/#wg-app \.wg-how > summary \{[^}]*min-height: 2rem;/);
   });
 });

@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   press, pressAll, flipsOf, emptyBoard, isSolved, litCount, solvable, solve, hintPress, nullity, nullSpaceBasis,
-  log2SolvableBoards, generate, generateUniform, makeBoard, scramblePresses, mulberry32, shuffled, formatTime, pressMessage,
+  log2SolvableBoards, generate, generateUniform, makeBoard, scramblePresses, mulberry32, shuffled, formatTime, pressMessage, sanitiseBest, bestKey, MAX_BEST_PRESSES,
   SIZES, MAX_SIZE, DIFFICULTIES,
   type Board,
 } from '../src/components/apps-private/light-grid/helpers';
@@ -391,6 +391,27 @@ describe('generator', () => {
     for (let t = 0; t < 2000; t++) seen.add(maskOf(generateUniform(4, rng)));
     // 4 x 4 has 2^12 = 4096 solvable boards; 2000 draws should land on well over 1000 distinct ones.
     expect(seen.size).toBeGreaterThan(1000);
+  });
+});
+
+describe('saved best press counts', () => {
+  it('keys are size and difficulty', () => {
+    expect(bestKey(5, 'normal')).toBe('5-normal');
+  });
+  it('keeps whole positive press counts for known sizes and difficulties and drops everything else', () => {
+    expect(sanitiseBest({ '5-normal': 12, '3-easy': 4, '7-hard': 40 })).toEqual({ '5-normal': 12, '3-easy': 4, '7-hard': 40 });
+    expect(sanitiseBest({ '5-normal': 12, '8-easy': 3, '5-wild': 3, x: 1 })).toEqual({ '5-normal': 12 });
+    expect(sanitiseBest({ '5-normal': 0, '3-easy': -3, '4-easy': 1.5, '4-hard': NaN, '6-easy': Infinity })).toEqual({});
+  });
+  it('rejects numeric strings, booleans, arrays and null', () => {
+    expect(sanitiseBest({ '5-normal': '12', '3-easy': true, '4-easy': [12], '4-hard': null })).toEqual({});
+  });
+  it('caps the count at a sane limit', () => {
+    expect(sanitiseBest({ '5-normal': MAX_BEST_PRESSES })).toEqual({ '5-normal': MAX_BEST_PRESSES });
+    expect(sanitiseBest({ '5-normal': MAX_BEST_PRESSES + 1, '3-easy': 1e300 })).toEqual({});
+  });
+  it('survives storage that is not an object', () => {
+    for (const raw of [null, undefined, 5, 'text', true, [1, 2, 3]]) expect(sanitiseBest(raw)).toEqual({});
   });
 });
 

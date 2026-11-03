@@ -16,7 +16,7 @@ import { resolve } from 'node:path';
 import {
   CHARS_PER_WORD, DURATIONS, DEFAULT_DURATION, MIN_ELAPSED_MS, INITIAL_SENTENCES, EXTEND_SENTENCES, EXTEND_MARGIN,
   MAX_TYPED, MAX_TARGET, MAX_BURST, MIN_LEGIT_CHARS, MAX_WPM, MAX_TESTS,
-  mulberry32, shuffled, pickSentences, buildPassage, needsMore,
+  mulberry32, shuffled, pickSentences, moreSentences, buildPassage, needsMore,
   toChars, compare, compareChars, diffTyped, countNewMistakes, PENDING, CORRECT, WRONG,
   accuracy, stats, cleanDuration, initialState, reduce, resultOf,
   formatTime, formatWpm, formatPercent, resultSummary,
@@ -161,9 +161,32 @@ describe('pickSentences and buildPassage', () => {
     expect(new Set(more).size).toBe(EXTEND_SENTENCES);
     for (const s of more) expect(PASSAGES).toContain(s);
   });
+  it('moreSentences, called the way the page calls it (accumulating across extensions), never repeats a sentence until the bank is used up', () => {
+    for (const seed of Array.from({ length: 20 }, (_, i) => i + 1)) {
+      const r = mulberry32(seed);
+      let sentences = pickSentences(r, INITIAL_SENTENCES);
+      while (sentences.length + EXTEND_SENTENCES <= PASSAGES.length) {
+        sentences = [...sentences, ...moreSentences(r, sentences, EXTEND_SENTENCES)];
+        expect(new Set(sentences).size, `seed ${seed} at ${sentences.length}`).toBe(sentences.length);
+      }
+    }
+  });
+  it('the earlier pattern, avoiding only the last 12 sentences, does repeat, so the test above can tell the two apart', () => {
+    let repeated = 0;
+    for (const seed of Array.from({ length: 20 }, (_, i) => i + 1)) {
+      const r = mulberry32(seed);
+      let sentences = pickSentences(r, INITIAL_SENTENCES);
+      while (sentences.length + EXTEND_SENTENCES <= PASSAGES.length) {
+        sentences = [...sentences, ...pickSentences(r, EXTEND_SENTENCES, sentences.slice(-12))];
+      }
+      if (new Set(sentences).size !== sentences.length) repeated++;
+    }
+    expect(repeated).toBeGreaterThan(10);
+  });
   it('the page asks for new text with every used sentence, not just the last few', () => {
     const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/typing-test/Calculator.astro'), 'utf8');
-    expect(text).toMatch(/pickSentences\(rng, EXTEND_SENTENCES, sentences\)/);
+    expect(text).toMatch(/moreSentences\(rng, sentences, EXTEND_SENTENCES\)/);
+    expect(text).not.toMatch(/slice\(-12\)/);
     expect(text.includes('Math' + '.random')).toBe(false);
   });
   it('treats a bad count as zero and caps a huge one', () => {
@@ -1010,5 +1033,12 @@ describe('copy hygiene', () => {
       ...PASSAGES, buildPassage(mulberry32(1), 8), formatTime(65), formatWpm(NaN), formatPercent(NaN),
     ];
     for (const t of texts) expect(t.includes(EM_DASH)).toBe(false);
+  });
+});
+
+describe('layout guards', () => {
+  it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/typing-test/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/#ty-app \.ty-how > summary \{[^}]*min-height: 2rem;/);
   });
 });

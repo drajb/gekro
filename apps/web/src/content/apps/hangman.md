@@ -14,7 +14,7 @@ icon: "🪢"
 
 ## How to play
 
-Guess the hidden word one letter at a time. Tap a letter on the on-screen keyboard or type it on your own keyboard. Typed letters count while focus is on the game or on the page itself, not while it is on a link, menu or other control elsewhere on the page, so reading or navigating the site never uses up a guess. A correct letter fills in every place it appears. A wrong letter draws one more part of the figure on the gallows, and the sixth wrong guess ends the game. Solve the word before that and you win.
+Guess the hidden word one letter at a time. Tap a letter on the on-screen keyboard or type it on your own keyboard. Typed letters count while focus is on the game, on the page itself or on any button (a letter key does not press a button, so the toolbar buttons do not eat your guesses). They do not count in a text field, in a menu or on a link elsewhere on the page, so reading or navigating the site never uses up a guess. A correct letter fills in every place it appears. A wrong letter draws one more part of the figure on the gallows, and the sixth wrong guess ends the game. Solve the word before that and you win.
 
 Pick a **Category** (or leave it on Any) and a **Difficulty**:
 

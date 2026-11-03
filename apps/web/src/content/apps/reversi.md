@@ -23,7 +23,7 @@ Controls:
 - **Opponent:** the computer or two players on the same screen.
 - **Difficulty:** Easy, Medium or Hard. It applies when you play the computer.
 - **You play:** Solid goes first, or Ring goes second and the computer opens.
-- **Undo:** takes back your last move and the reply. Against a person it takes back one move.
+- **Undo:** takes back your last move and the reply. Against a person it takes back one move. Once a game is over, undo is off.
 - **New game:** starts again with the current settings. Changing the opponent starts a new game, and against the computer so does changing the difficulty or side.
 
 On the keyboard, arrow keys move around the board (Home and End jump to the ends of a row) and Enter or Space places a disc. Each square is announced with its row, column, contents and whether it is a legal move.

@@ -11,7 +11,7 @@ import {
   deal, emptyState, cardId, cardName, cardLabel, rankOf, suitOf, isRed, isRun, cardsAt, canMoveToTableau, canMoveToFoundation,
   applyMove, autoToFoundation, drawFromStock, legalMoves, isWon, canAutoComplete, autoCompleteStep, autoCompleteAll, validateState,
   foundationCount, mulberry32, shuffled, deckFor, formatTime, SUIT_CHARS, RANK_LABELS, COLUMNS,
-  sameCardRun, dealAnnouncement, dropPile,
+  sameCardRun, dealAnnouncement, dropPile, plural, sanitizeStore, recordWin, MAX_TIME_SECONDS, MAX_WINS,
   type Card, type GameState, type Move, type Source, type Draw,
 } from '../src/components/apps-private/solitaire/helpers';
 import calculatorSource from '../src/components/apps-private/solitaire/Calculator.astro?raw';
@@ -702,6 +702,98 @@ describe('deal announcement', () => {
   });
 });
 
+describe('page wiring', () => {
+  it('announces a new deal from the deal itself, and the drop path uses the guards', () => {
+    expect(calculatorSource).toContain('load(seed, state.draw, dealAnnouncement(seed, state.draw));');
+    expect(calculatorSource).not.toMatch(/\$\{state\.stock\.length\} cards in the stock/);
+    expect(calculatorSource).toContain('dropPile(pid, target)');
+    expect(calculatorSource).toContain('sameCardRun(cardsAt(state, src), liftedRun)');
+  });
+  it('reads and writes stored results through the tested helpers', () => {
+    expect(calculatorSource).toContain('sanitizeStore(JSON.parse(');
+    expect(calculatorSource).toContain('recordWin(store, state.draw, seconds)');
+    expect(calculatorSource).not.toMatch(/Math\.floor\(Number\(raw\[k\]\)\)/);
+  });
+  it('writes every count of moves through plural, so one move reads "1 move"', () => {
+    expect(calculatorSource).not.toMatch(/\$\{state\.moves\} moves/);
+    expect(calculatorSource).toContain("plural(state.moves, 'move')");
+  });
+});
+
+describe('plural', () => {
+  it('uses the singular only for exactly one', () => {
+    expect(plural(1, 'move')).toBe('1 move');
+    expect(plural(0, 'move')).toBe('0 moves');
+    expect(plural(2, 'move')).toBe('2 moves');
+    expect(plural(24, 'card')).toBe('24 cards');
+  });
+});
+
+describe('stored results (sanitizeStore)', () => {
+  const EMPTY = { b1: 0, b3: 0, w1: 0, w3: 0 };
+  it('keeps clean whole numbers for the four known keys', () => {
+    expect(sanitizeStore({ b1: 95, b3: 210, w1: 4, w3: 1 })).toEqual({ b1: 95, b3: 210, w1: 4, w3: 1 });
+    expect(sanitizeStore({ b1: MAX_TIME_SECONDS, w3: MAX_WINS })).toEqual({ ...EMPTY, b1: MAX_TIME_SECONDS, w3: MAX_WINS });
+  });
+  it('drops booleans, arrays, numeric strings, fractions, zero, negatives, non-finite and huge values', () => {
+    for (const bad of [true, false, [7], '12', '1e3', 0.5, 7.5, 0, -3, NaN, Infinity, 1e21, 1e300, null, {}]) {
+      expect(sanitizeStore({ b1: bad, w1: bad }), String(JSON.stringify(bad))).toEqual(EMPTY);
+    }
+  });
+  it('caps times at 99:59:59 and wins at one million', () => {
+    expect(sanitizeStore({ b1: MAX_TIME_SECONDS + 1 })).toEqual(EMPTY);
+    expect(sanitizeStore({ w1: MAX_WINS + 1 })).toEqual(EMPTY);
+  });
+  it('ignores unknown and inherited keys, and survives non-objects', () => {
+    expect(sanitizeStore({ extra: 5, b2: 9 })).toEqual(EMPTY);
+    expect(sanitizeStore(Object.create({ b1: 5 }))).toEqual(EMPTY);
+    for (const bad of [null, undefined, 3, 'x', [], [1, 2]]) expect(sanitizeStore(bad)).toEqual(EMPTY);
+  });
+  it('a value that would have printed in exponent form can no longer reach the page', () => {
+    const s = sanitizeStore({ b1: 1e300, w1: 1e300 });
+    expect(formatTime(s.b1)).toBe('0:00');
+    expect(String(s.w1)).toBe('0');
+  });
+});
+
+describe('recordWin', () => {
+  it('counts the win for the draw mode played and sets a first best time', () => {
+    const r = recordWin(sanitizeStore(null), 1, 120);
+    expect(r.record).toBe(true);
+    expect(r.store).toEqual({ b1: 120, b3: 0, w1: 1, w3: 0 });
+  });
+  it('keeps Draw 1 and Draw 3 apart', () => {
+    const r = recordWin({ b1: 100, b3: 0, w1: 2, w3: 0 }, 3, 300);
+    expect(r.store).toEqual({ b1: 100, b3: 300, w1: 2, w3: 1 });
+  });
+  it('a slower or equal time adds the win but keeps the best', () => {
+    for (const secs of [100, 101, 500]) {
+      const r = recordWin({ b1: 100, b3: 0, w1: 1, w3: 0 }, 1, secs);
+      expect(r.record, String(secs)).toBe(false);
+      expect(r.store).toEqual({ b1: 100, b3: 0, w1: 2, w3: 0 });
+    }
+  });
+  it('a faster time replaces the best', () => {
+    const r = recordWin({ b1: 100, b3: 0, w1: 1, w3: 0 }, 1, 99);
+    expect(r.record).toBe(true);
+    expect(r.store.b1).toBe(99);
+  });
+  it('never records an invalid time, and never lets the win count pass its cap', () => {
+    for (const bad of [0, -1, 1.5, NaN, Infinity, MAX_TIME_SECONDS + 1]) {
+      const r = recordWin({ b1: 0, b3: 0, w1: 1, w3: 0 }, 1, bad);
+      expect(r.record, String(bad)).toBe(false);
+      expect(r.store.b1).toBe(0);
+      expect(r.store.w1).toBe(2);
+    }
+    expect(recordWin({ b1: 0, b3: 0, w1: MAX_WINS, w3: 0 }, 1, 5).store.w1).toBe(MAX_WINS);
+  });
+  it('does not change the store it was given', () => {
+    const before = { b1: 50, b3: 0, w1: 1, w3: 0 };
+    recordWin(before, 1, 40);
+    expect(before).toEqual({ b1: 50, b3: 0, w1: 1, w3: 0 });
+  });
+});
+
 describe('sameCardRun (drop recheck)', () => {
   it('matches the same cards in the same order only', () => {
     const run = cs('KS', 'QH', 'JS');
@@ -763,5 +855,19 @@ describe('time formatting', () => {
   });
   it('the table has seven columns', () => {
     expect(COLUMNS).toBe(7);
+  });
+});
+
+describe('how-it-works heading', () => {
+  it('is a 32 px tap target and keeps the native disclosure marker', () => {
+    const rule = calculatorSource.match(/\.sl-how > summary \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toContain('min-height: 2rem');
+    expect(rule![1]).toContain('padding-block: 0.375rem');
+    expect(rule![1]).toContain('box-sizing: border-box');
+    // Nothing that would hide the native marker or replace it with a drawn arrow.
+    expect(rule![1]).not.toMatch(/display:|list-style/);
+    expect(calculatorSource).not.toContain('.sl-how > summary::');
+    expect(calculatorSource).not.toContain('.sl-how[open] > summary::');
   });
 });

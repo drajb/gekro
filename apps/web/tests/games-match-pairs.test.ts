@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import {
   SIZES, SIZE_KEYS, DEFAULT_SIZE, SYMBOLS, MAX_PAIRS, MISMATCH_MS, sizeLabel, isSizeKey, symbolName, glyphOf,
   mulberry32, shuffled, makeDeck, createState, flip, resolve, isWon, cardState, cardLabel, moveFocus,
-  formatTime, toSeconds, sanitizeBest, recordResult,
+  formatTime, toSeconds, plural, sanitizeBest, recordResult,
   type GameState,
 } from '../src/components/apps-private/match-pairs/helpers';
 import calculatorSource from '../src/components/apps-private/match-pairs/Calculator.astro?raw';
@@ -495,6 +495,18 @@ describe('keyboard navigation', () => {
   });
 });
 
+describe('move counts in copy', () => {
+  it('plural says "1 move" for one and "N moves" otherwise', () => {
+    expect(plural(1, 'move')).toBe('1 move');
+    expect(plural(0, 'move')).toBe('0 moves');
+    expect(plural(9, 'move')).toBe('9 moves');
+  });
+  it('the win text, the status line and the copied result all go through plural', () => {
+    expect(calculatorSource).not.toMatch(/\$\{state\.moves\} moves/);
+    expect(calculatorSource.match(/plural\(state\.moves, 'move'\)/g)).toHaveLength(3);
+  });
+});
+
 describe('grid layout hooks', () => {
   it('takes the column count from CSS keyed on data-cols, not from an inline style', () => {
     expect(calculatorSource).not.toMatch(/style=\{`--mp-cols/);
@@ -585,5 +597,19 @@ describe('best results', () => {
   it('a sanitized, serialised and re-read record round-trips exactly', () => {
     const r = recordResult(recordResult({}, 'small', 9, 31).best, 'huge', 40, 300).best;
     expect(sanitizeBest(JSON.parse(JSON.stringify(r)))).toEqual(r);
+  });
+});
+
+describe('how-it-works heading', () => {
+  it('is a 32 px tap target and keeps the native disclosure marker', () => {
+    const rule = calculatorSource.match(/\.mp-how > summary \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toContain('min-height: 2rem');
+    expect(rule![1]).toContain('padding-block: 0.375rem');
+    expect(rule![1]).toContain('box-sizing: border-box');
+    // Nothing that would hide the native marker or replace it with a drawn arrow.
+    expect(rule![1]).not.toMatch(/display:|list-style/);
+    expect(calculatorSource).not.toContain('.mp-how > summary::');
+    expect(calculatorSource).not.toContain('.mp-how[open] > summary::');
   });
 });

@@ -48,7 +48,7 @@ Some positions you can check by hand with the Explain table on the page:
 
 Nothing is uploaded and there is no account. Your saved wins, counted separately for each rule set and level, are stored in your browser's local storage as small whole numbers inside a small JSON object under one key. The current setup (rules, heaps, opponent, level and which seat you play) is kept in the page address so you can link to it. Clearing site data removes the saved wins.
 
-Only games against the computer add to the saved wins, and only when you used neither the winning-move hint nor Undo. The "This session" tally beside the board counts the same unaided games against the computer, losses as well as wins, and keeps a separate tally for two-player games. It resets when you leave the page.
+Only games against the computer add to the saved wins, and only when you used neither the winning-move hint nor Undo. The "This session" tally beside the board counts the same unaided games against the computer, losses as well as wins. It is kept separately for each rule set and level, so after you change the rules or the level it shows that setting's own count (and Copy result reports that setting's count); two-player games have their own tally for each rule set. The tallies reset when you leave the page.
 
 ## Limits
 

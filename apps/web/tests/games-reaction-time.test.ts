@@ -633,3 +633,24 @@ describe('copy hygiene', () => {
     for (const t of texts) expect(t.includes(String.fromCharCode(0x2014))).toBe(false);
   });
 });
+
+describe('layout guards', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/components/apps-private/reaction-time/Calculator.astro'), 'utf8');
+  it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
+    expect(css).toMatch(/#rt-app \.rt-how > summary \{[^}]*min-height: 2rem;/);
+  });
+  it('a time in a slot can wrap and shrinks at narrow widths instead of overflowing', () => {
+    const rule = css.split('\n').find((l) => l.includes('.rt-slot .rt-v {')) ?? '';
+    expect(rule).not.toMatch(/white-space:\s*nowrap/);
+    expect(rule).toMatch(/overflow-wrap:\s*anywhere/);
+    expect(css).toMatch(/@container \(max-width: 400px\) \{ #rt-app \.rt-slot \.rt-v \{ font-size: 0\.7rem; \} \}/);
+  });
+  it('even a 7-character time fits a slot at 320 px when it wraps, and a typical 6-character one fits on one line at the small size', () => {
+    // 320 px phone: 288 px of page width, five columns, four 6 px gaps, 3.2 px padding and 1.5 px border each side.
+    const column = (288 - 4 * 6) / 5;
+    const inner = column - 2 * 3.2 - 2 * 1.5;
+    const advance = 0.6 * 0.7 * 16; // a monospace advance of about 0.6em at 0.7rem
+    expect(6 * advance).toBeLessThan(inner);
+    expect(4 * advance).toBeLessThan(inner); // the digits of "5000" on their own line
+  });
+});

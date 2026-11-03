@@ -44,7 +44,7 @@ Nothing is uploaded and there is no account. Your session tally (wins, draws, lo
 - Only finished games against the computer count toward the streak. A win or a draw extends it and a loss ends it. Restarting a game you have already moved in also ends the streak, so walking away from a lost game does not protect it.
 - The unbeaten streak counts draws, which is why it is the number worth watching on Unbeatable: you cannot win there, so a draw is the best result.
 - Two-player mode shares one device and has no streak or saved score.
-- Difficulty and "You play" apply only to the computer. They are remembered in the page address in two-player mode but do nothing there.
+- Difficulty and "You play" apply only to the computer. In two-player mode both menus are switched off, so changing a game in progress is not possible; they keep their last values, which stay in the page address for when you play the computer.
 - It plays the standard 3 x 3 game only: no bigger boards, no online play, no undo.
 
 Everything runs locally in your browser.

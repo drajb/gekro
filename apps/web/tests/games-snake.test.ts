@@ -11,10 +11,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   initialState, step, placeFood, queueDirection, nextDirection, keyToDir, swipeDirection, advance, stepMs,
-  bestKey, parseBests, recordBest, endMessage, shareText, isReversal, mulberry32, capturesKeys, spaceIsNative,
+  bestKey, parseBests, recordBest, endMessage, shareText, isReversal, mulberry32, keyScope, spaceIsNative,
   COLS, ROWS, START_LENGTH, MAX_QUEUE, MAX_SCORE, SPEEDS, DIRS, OPPOSITE, SPEED_KEYS, WALLS_KEYS,
   type Dir, type GameState, type Point,
 } from '../src/components/apps-private/snake/helpers';
+import calculatorSource from '../src/components/apps-private/snake/Calculator.astro?raw';
 
 const pts = (list: [number, number][]): Point[] => list.map(([x, y]) => ({ x, y }));
 const mk = (
@@ -379,16 +380,24 @@ describe('input mapping', () => {
 });
 
 describe('key capture scope', () => {
-  it('always acts when focus is inside the game', () => {
-    for (const p of ['ready', 'running', 'paused', 'over'] as const) expect(capturesKeys(p, true), p).toBe(true);
+  it('takes every game key when focus is inside the game', () => {
+    for (const p of ['ready', 'running', 'paused', 'over'] as const) expect(keyScope(p, true), p).toBe('all');
   });
-  it('acts outside the game while running and while paused, so a pause can always be resumed', () => {
-    expect(capturesKeys('running', false)).toBe(true);
-    expect(capturesKeys('paused', false)).toBe(true);
+  it('takes every game key outside the game only while a game is running', () => {
+    expect(keyScope('running', false)).toBe('all');
+  });
+  it('takes only the resume keys when paused with focus elsewhere, so arrows and WASD scroll the page', () => {
+    expect(keyScope('paused', false)).toBe('resume');
   });
   it('leaves the page alone when focus is elsewhere and no game is in progress', () => {
-    expect(capturesKeys('ready', false)).toBe(false);
-    expect(capturesKeys('over', false)).toBe(false);
+    expect(keyScope('ready', false)).toBe('none');
+    expect(keyScope('over', false)).toBe('none');
+  });
+  it('the page handler acts on direction keys only in the "all" scope and never loops on a held key', () => {
+    const src = calculatorSource;
+    expect(src).toContain("if (scope !== 'all') return;"); // direction keys: no preventDefault in the resume scope
+    expect(src).toContain('if (!e.repeat) toggle();'); // a held Space cannot toggle pause repeatedly
+    expect(src).toContain('if (e.repeat) return;'); // nor a held P
   });
   it('lets buttons and summaries keep their own Space action', () => {
     expect(spaceIsNative('BUTTON')).toBe(true);
@@ -553,5 +562,19 @@ describe('fuzz: long random play keeps every invariant', () => {
     expect(wallDeaths).toBeGreaterThan(5);
     expect(selfDeaths).toBeGreaterThan(5);
     expect(maxLen).toBeGreaterThan(12);
+  });
+});
+
+describe('how-it-works heading', () => {
+  it('is a 32 px tap target and keeps the native disclosure marker', () => {
+    const rule = calculatorSource.match(/\.sn-how > summary \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toContain('min-height: 2rem');
+    expect(rule![1]).toContain('padding-block: 0.375rem');
+    expect(rule![1]).toContain('box-sizing: border-box');
+    // Nothing that would hide the native marker or replace it with a drawn arrow.
+    expect(rule![1]).not.toMatch(/display:|list-style/);
+    expect(calculatorSource).not.toContain('.sn-how > summary::');
+    expect(calculatorSource).not.toContain('.sn-how[open] > summary::');
   });
 });

@@ -11,7 +11,7 @@ import { describe, it, expect } from 'vitest';
 import {
   initialBoard, parseBoard, boardToString, legalMoves, applyMove, flippedBy, canPlay, hasMoves, countMoves, isGameOver, advance,
   result, describeResult, perft, evaluate, terminalScore, negamax, randomMove, greedyMove, bestMove, chooseMove, countDiscs,
-  mulberry32, shuffled, opponent, cellName, rowOf, colOf, RAYS, DIRS, CORNERS, EMPTY, DARK, LIGHT, nameOf, HARD_DEPTH, thinkingMessage,
+  mulberry32, shuffled, opponent, cellName, rowOf, colOf, RAYS, DIRS, CORNERS, EMPTY, DARK, LIGHT, nameOf, HARD_DEPTH, thinkingMessage, discsText, undoIndex,
   type Board, type Player, type Level,
 } from '../src/components/apps-private/reversi/helpers';
 import { readFileSync } from 'node:fs';
@@ -670,11 +670,32 @@ describe('page behaviour', () => {
     expect(thinkingMessage('Solid has no legal move and passes. Ring moves again.')).toBe('Solid has no legal move and passes. Ring moves again. Computer is thinking...');
     expect(page(dir + 'Calculator.astro')).toContain('say(thinkingMessage(note));');
   });
-  it('makes the board inert while the game-over panel is up and restores it for a new game and for undo', () => {
+  it('makes the board inert when the game ends, and only a new game makes it playable again', () => {
     const src = page(dir + 'Calculator.astro');
-    expect(src).toContain("boardEl.toggleAttribute('inert', true);");
-    expect(src.split("boardEl.removeAttribute('inert');")).toHaveLength(3); // newGame and undo
+    const between = (from: string, to: string): string => {
+      const i = src.indexOf(from);
+      const j = src.indexOf(to, i);
+      expect(i).toBeGreaterThan(0);
+      expect(j).toBeGreaterThan(i);
+      return src.slice(i, j);
+    };
+    expect(between('const finish = ', 'const settle = ')).toContain("boardEl.toggleAttribute('inert', true);");
+    expect(between('const newGame = ', 'const undoTarget = ')).toContain("boardEl.removeAttribute('inert');");
+    expect(src.split("removeAttribute('inert')")).toHaveLength(2); // nowhere else, so a finished game cannot be reopened
+    expect(between('const undo = ', 'const summary = ')).not.toContain('inert');
     expect(src).toContain("g('rv-again').addEventListener('click', () => { newGame(); g('rv-new').focus(); });");
+  });
+  it('Undo does nothing once the game is over, and its button says so', () => {
+    const src = page(dir + 'Calculator.astro');
+    const undo = src.slice(src.indexOf('const undo = '), src.indexOf('const summary = '));
+    expect(undo.indexOf('if (over) {')).toBeGreaterThan(0);
+    expect(undo.indexOf('if (over) {')).toBeLessThan(undo.indexOf('history = '));
+    expect(undo).not.toContain('over = false');
+    expect(src).toContain("g('rv-undo').setAttribute('aria-disabled', String(over || undoTarget() < 0));");
+    expect(page('src/content/apps/reversi.md')).toContain('Once a game is over, undo is off.');
+  });
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page(dir + 'Calculator.astro')).toContain('.rv-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
   });
   it('uses Solid and Ring in the page and the content page, never Dark or Light', () => {
     const src = page(dir + 'Calculator.astro');
@@ -685,5 +706,22 @@ describe('page behaviour', () => {
     }
     expect(src).toContain('Solid goes first');
     expect(md).toContain('Solid moves first');
+  });
+});
+
+describe('counts and undo target', () => {
+  it('says 1 disc, not 1 discs', () => {
+    expect(discsText(1)).toBe('1 disc');
+    expect(discsText(2)).toBe('2 discs');
+    expect(discsText(0)).toBe('0 discs');
+    expect(describeResult(result(parseBoard('xo' + '.'.repeat(62))), null)).toBe('Draw, 1 disc each.');
+  });
+  it('Undo goes back to the person\'s last move against the computer, and to the last move with two people', () => {
+    expect(undoIndex([], DARK)).toBe(-1);
+    expect(undoIndex([], null)).toBe(-1);
+    expect(undoIndex([LIGHT], DARK)).toBe(-1); // the computer opened and the person has not moved
+    expect(undoIndex([DARK, LIGHT], DARK)).toBe(0);
+    expect(undoIndex([DARK, LIGHT, DARK, LIGHT, LIGHT], DARK)).toBe(2); // the person had to pass
+    expect(undoIndex([DARK, LIGHT, DARK], null)).toBe(2);
   });
 });

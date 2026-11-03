@@ -56,6 +56,6 @@ Nothing is uploaded and there is no account. Your best scores are saved in your 
 - There is one board size, 20 x 20, and one starting length.
 - There is no obstacle mode, power-ups or multiplayer.
 - Changing speed or walls, or pressing Restart, ends the game in progress. If its score beat your best for those settings, the best is kept.
-- The game keys (arrows, WASD, Space, P) are only captured while focus is inside the game, or while a game is running or paused wherever focus is, so the page scrolls normally otherwise. Space still presses a focused button or opens the focused "How the rules work" section instead of pausing.
+- The game keys (arrows, WASD, Space, P) are only captured while focus is inside the game or while a game is running, wherever focus is. If the game is paused and focus is somewhere else on the page, only Space and P act (to resume); the arrow keys and WASD scroll the page as usual, and they do not resume the game. Holding Space or P does not flip pause on and off repeatedly. Space still presses a focused button or opens the focused "How the rules work" section instead of pausing.
 
 Everything runs locally in your browser.

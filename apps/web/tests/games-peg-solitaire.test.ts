@@ -12,8 +12,10 @@
  * best possible result is two pegs, and ratings, results and the hint say so.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
-  BOARD_IDS, BOARD_LABEL, GRID, DEFAULT_CAP, bestPossible, getGeometry, startPegs, pegsLeft, legalMoves, movesFrom, isLegal, applyMove, undoMove,
+  BOARD_IDS, BOARD_LABEL, GRID, DEFAULT_CAP, bestPossible, isBestFinish, finishesLabel, goalWords, bestResultNote, getGeometry, startPegs, pegsLeft, legalMoves, movesFrom, isLegal, applyMove, undoMove,
   isGameOver, isSolved, rating, resultLine, plural, cellName, stepFrom, findSolution, hintMove, mulberry32,
   type Geometry, type Pegs, type Move,
 } from '../src/components/apps-private/peg-solitaire/helpers';
@@ -604,5 +606,41 @@ describe('seeded randomness', () => {
     const b = playRandom(EN, mulberry32(42));
     expect(b.moves).toEqual(a.moves);
     expect(b.final).toEqual(a.final);
+  });
+});
+
+describe('best finish helpers and how the page uses them', () => {
+  it('isBestFinish is one peg on the English board and two on the French board, and nothing else', () => {
+    expect(isBestFinish(EN, pegsAt(EN, [[3, 3]]))).toBe(true);
+    expect(isBestFinish(EN, pegsAt(EN, [[0, 2], [6, 4]]))).toBe(false);
+    expect(isBestFinish(FR, pegsAt(FR, [[0, 2], [6, 4]]))).toBe(true);
+    expect(isBestFinish(FR, pegsAt(FR, [[3, 3]]))).toBe(false);
+    expect(isBestFinish(FR, pegsAt(FR, [[0, 2], [6, 4], [2, 2]]))).toBe(false);
+    expect(isBestFinish(EN, startPegs(EN))).toBe(false);
+  });
+  it('the counter label, the hint words and the best-result note follow the board', () => {
+    expect(finishesLabel(EN)).toBe('One-peg finishes');
+    expect(finishesLabel(FR)).toBe('Two-peg finishes');
+    expect(goalWords(EN)).toBe('a single peg');
+    expect(goalWords(FR)).toBe('two pegs');
+    expect(bestResultNote(EN)).toBe(' One peg left is the best possible result.');
+    expect(bestResultNote(FR)).toBe(' Two pegs left is the best possible result on this board.');
+  });
+  it('the page counts a best finish with isBestFinish and builds its labels and hint text from the helpers', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/peg-solitaire/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/const best = isBestFinish\(geo, pegs\);/);
+    expect(text).toMatch(/if \(best && !winCounted\)/);
+    expect(text).toMatch(/bestResultNote\(geo\)/);
+    expect(text).toMatch(/finishesLabel\(geo\)/);
+    expect(text).toMatch(/\$\{goalWords\(geo\)\}/);
+    expect(text).not.toMatch(/n === 1 && !winCounted/);
+    expect(text).not.toMatch(/n === bp/);
+  });
+});
+
+describe('layout guards', () => {
+  it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
+    const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/peg-solitaire/Calculator.astro'), 'utf8');
+    expect(text).toMatch(/#ps-app \.ps-how > summary \{[^}]*min-height: 2rem;/);
   });
 });

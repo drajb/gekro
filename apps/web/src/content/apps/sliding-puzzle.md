@@ -62,7 +62,8 @@ Nothing is uploaded and there is no account. Your best results are saved in your
 ## Limits
 
 - Hints work on 3x3 only. 4x4 and 5x5 hold far too many arrangements to search in a browser, and a hint there would need a heuristic that cannot promise the shortest route.
-- The move counter counts clicks, so sliding a run of three tiles is one move.- The timer starts at your first move and counts whole seconds, so a result does not include thinking time before you move.
+- The move counter counts clicks, so sliding a run of three tiles is one move.
+- The timer starts at your first move and counts whole seconds, so a result does not include thinking time before you move.
 - Tiles show numbers only; there is no picture mode.
 - Best results belong to one browser on one device. They do not sync.
 - For 4x4 and 5x5 the claim that every passing board is solvable rests on the classical theorem, with the invariant checked by tests rather than proved by search.

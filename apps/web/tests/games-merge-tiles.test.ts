@@ -10,10 +10,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   slideLine, slide, move, spawn, newBoard, canMove, isGameOver, emptyCells, emptyBoard, mulberry32,
-  tileCount, sumTiles, maxTile, hasWon, isValidBoard, keyToDir, dirFromSwipe, describeBoard, where, sanitizeBest,
+  tileCount, sumTiles, maxTile, hasWon, isValidBoard, keyToDir, dirFromSwipe, describeBoard, where, sanitizeBest, plural, MAX_BEST_SCORE,
   DIRS, CELLS, SIZE, WIN_TILE, FOUR_CHANCE, SWIPE_PX,
   type Board,
 } from '../src/components/apps-private/merge-tiles/helpers';
+import calculatorSource from '../src/components/apps-private/merge-tiles/Calculator.astro?raw';
 
 const boom = () => { throw new Error('rng must not be called'); };
 const rows = (b: number[]): number[][] => [b.slice(0, 4), b.slice(4, 8), b.slice(8, 12), b.slice(12, 16)];
@@ -532,10 +533,33 @@ describe('stored best score', () => {
     expect(sanitizeBest({ score: 1240, tile: 128 })).toEqual({ score: 1240 });
     expect(sanitizeBest({ tile: 512 })).toEqual({ score: 0 });
   });
+  it('caps the stored score at ten million, so a huge value cannot make a best nobody can beat', () => {
+    expect(sanitizeBest({ score: MAX_BEST_SCORE })).toEqual({ score: MAX_BEST_SCORE });
+    expect(sanitizeBest({ score: MAX_BEST_SCORE + 1 })).toEqual({ score: 0 });
+    expect(sanitizeBest({ score: 1e21 })).toEqual({ score: 0 });
+    expect(MAX_BEST_SCORE).toBe(10_000_000);
+  });
+  it('reads storage through sanitizeBest and writes only the score', () => {
+    expect(calculatorSource).toContain('sanitizeBest(JSON.parse(');
+    expect(calculatorSource).toContain('best = { score }; writeBest(best);');
+    expect(calculatorSource).not.toMatch(/best\.tile|tile: m/);
+  });
   it('turns anything odd into zero', () => {
     for (const bad of [null, undefined, 5, 'x', [], [3], {}, { score: -4 }, { score: 2.5 }, { score: NaN }, { score: 'abc' }, { score: '12' }, { score: true }, { score: Infinity }]) {
       expect(sanitizeBest(bad), JSON.stringify(bad)).toEqual({ score: 0 });
     }
+  });
+});
+
+describe('move counts in copy', () => {
+  it('plural says "1 move" for one and "N moves" otherwise', () => {
+    expect(plural(1, 'move')).toBe('1 move');
+    expect(plural(0, 'move')).toBe('0 moves');
+    expect(plural(12, 'move')).toBe('12 moves');
+  });
+  it('the game-over text and the copied result both go through plural', () => {
+    expect(calculatorSource).not.toMatch(/\$\{moves\} moves/);
+    expect(calculatorSource).toContain("plural(moves, 'move')");
   });
 });
 
@@ -577,3 +601,17 @@ function checker(): Board {
     4, 2, 4, 2,
   ];
 }
+
+describe('how-it-works heading', () => {
+  it('is a 32 px tap target and keeps the native disclosure marker', () => {
+    const rule = calculatorSource.match(/\.mt-how > summary \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toContain('min-height: 2rem');
+    expect(rule![1]).toContain('padding-block: 0.375rem');
+    expect(rule![1]).toContain('box-sizing: border-box');
+    // Nothing that would hide the native marker or replace it with a drawn arrow.
+    expect(rule![1]).not.toMatch(/display:|list-style/);
+    expect(calculatorSource).not.toContain('.mt-how > summary::');
+    expect(calculatorSource).not.toContain('.mt-how[open] > summary::');
+  });
+});

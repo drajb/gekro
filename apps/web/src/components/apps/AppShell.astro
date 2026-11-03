@@ -121,7 +121,12 @@ const categoryLabels: Record<string, string> = {
     try {
       const { gsap } = await import('gsap');
       gsap.to(island, { opacity: 1, duration: 0.1 });
-      
+      // Reduced motion: show the app straight away, no entrance movement.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        island.style.opacity = '1';
+        return;
+      }
+
       const targets = island.querySelectorAll('.glass-island > div > *, .glass-island > * > div, input, select, button');
       if(targets.length > 0) {
         gsap.from(targets, {

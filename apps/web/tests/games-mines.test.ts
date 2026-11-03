@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import {
   LEVELS, getLevel, mulberry32, neighbours, placeMines, adjacencyCounts, newBoard, boardFromLayout, reveal, toggleFlag, chord,
   statusOf, minesLeft, adjacentFlags, cellKind, describeCell, formatTime, formatCount, HIDDEN, OPEN, FLAG,
-  sanitizeBest, isValidBestSeconds, rovingTabIndexes, MAX_BEST_SECONDS,
+  sanitizeBest, isValidBestSeconds, rovingTabIndexes, recordBestTime, plural, MAX_BEST_SECONDS,
   type Board,
 } from '../src/components/apps-private/mines/helpers';
 import calculatorSource from '../src/components/apps-private/mines/Calculator.astro?raw';
@@ -459,29 +459,22 @@ describe('win and loss', () => {
     expect(statusOf(won)).toBe('won');
     expect(reveal(won, 1, mulberry32(1))).toEqual([]);
   });
-  it('ignores a chord on a satisfied number after a loss, and after a win', () => {
+  it('ignores a chord on a satisfied number after a loss (without the status guard it would open the hidden neighbours)', () => {
     // 3x3, mines at corners 0 and 8; the centre opens as a "2". Two wrong flags satisfy it, then a mine is opened.
     const lost = boardFromLayout(3, 3, [0, 8]);
     reveal(lost, 4, mulberry32(1));
     toggleFlag(lost, 1); toggleFlag(lost, 2);
-    expect(adjacentFlags(lost, 4)).toBe(2);
+    expect(adjacentFlags(lost, 4)).toBe(2); // the number is satisfied, so only the game state can stop the chord
     reveal(lost, 0, mulberry32(1));
     expect(statusOf(lost)).toBe('lost');
+    const hiddenNeighbours = [3, 5, 6, 7];
+    for (const n of hiddenNeighbours) expect(lost.state[n]).toBe(HIDDEN); // there really is something a bad chord could open
     const stateBefore = Array.from(lost.state);
     const openedBefore = lost.opened;
     expect(chord(lost, 4)).toEqual([]);
     expect(Array.from(lost.state)).toEqual(stateBefore);
     expect(lost.opened).toBe(openedBefore);
     expect(lost.exploded).toBe(0);
-
-    const won = boardFromLayout(3, 3, [0, 8]);
-    reveal(won, 4, mulberry32(1));
-    toggleFlag(won, 0); toggleFlag(won, 8);
-    chord(won, 4);
-    expect(statusOf(won)).toBe('won');
-    const wonState = Array.from(won.state);
-    expect(chord(won, 4)).toEqual([]);
-    expect(Array.from(won.state)).toEqual(wonState);
   });
   it('does not reopen an open cell', () => {
     const b = boardFromLayout(5, 1, [1]);
@@ -544,6 +537,21 @@ describe('cell descriptions', () => {
   });
 });
 
+describe('counts in copy', () => {
+  it('plural uses the singular only for exactly one', () => {
+    expect(plural(1, 'mine')).toBe('1 mine');
+    expect(plural(0, 'mine')).toBe('0 mines');
+    expect(plural(10, 'mine')).toBe('10 mines');
+    expect(plural(-1, 'mine')).toBe('-1 mines');
+    expect(plural(2, 'flag')).toBe('2 flags');
+  });
+  it('the mines-left and flag-count messages go through plural', () => {
+    expect(calculatorSource).not.toMatch(/\$\{minesLeft\(board\)\} mines left/);
+    expect(calculatorSource).toContain("plural(minesLeft(board), 'mine')");
+    expect(calculatorSource).toContain("plural(board.counts[i], 'flag')");
+  });
+});
+
 describe('stored best times', () => {
   it('keeps whole seconds from 1 up to the cap, for the three known levels only', () => {
     expect(sanitizeBest({ beginner: 45, intermediate: 300, expert: MAX_BEST_SECONDS })).toEqual({ beginner: 45, intermediate: 300, expert: MAX_BEST_SECONDS });
@@ -559,6 +567,45 @@ describe('stored best times', () => {
   it('survives non-objects and ignores inherited keys', () => {
     for (const bad of [null, undefined, 7, 'x', [], [1, 2]]) expect(sanitizeBest(bad)).toEqual({});
     expect(sanitizeBest(Object.create({ beginner: 5 }))).toEqual({});
+  });
+});
+
+describe('recordBestTime', () => {
+  it('sets a first best, beats a slower one, and keeps a faster or equal one', () => {
+    let r = recordBestTime({}, 'beginner', 90);
+    expect(r).toEqual({ best: { beginner: 90 }, record: true });
+    r = recordBestTime(r.best, 'beginner', 60);
+    expect(r).toEqual({ best: { beginner: 60 }, record: true });
+    for (const secs of [60, 61, 600]) {
+      const same = recordBestTime({ beginner: 60 }, 'beginner', secs);
+      expect(same.record, String(secs)).toBe(false);
+      expect(same.best).toEqual({ beginner: 60 });
+    }
+  });
+  it('keeps levels apart and rejects an unknown level or an invalid time', () => {
+    expect(recordBestTime({ beginner: 60 }, 'expert', 300).best).toEqual({ beginner: 60, expert: 300 });
+    expect(recordBestTime({}, 'giant', 30).record).toBe(false);
+    for (const bad of [0, -2, 1.5, NaN, Infinity, MAX_BEST_SECONDS + 1]) {
+      const r = recordBestTime({}, 'beginner', bad);
+      expect(r, String(bad)).toEqual({ best: {}, record: false });
+    }
+  });
+  it('does not change the object it was given', () => {
+    const before = { beginner: 90 };
+    recordBestTime(before, 'beginner', 10);
+    expect(before).toEqual({ beginner: 90 });
+  });
+});
+
+describe('page wiring', () => {
+  it('rebuilds the keyboard stop through rovingTabIndexes, never by pinning cell 0', () => {
+    expect(calculatorSource).not.toMatch(/cells\[0\]\.tabIndex = 0/);
+    expect(calculatorSource.match(/rovingTabIndexes\(cells\.length, cur\)/g)).toHaveLength(2); // first build and New game
+  });
+  it('reads and records best times through the tested helpers', () => {
+    expect(calculatorSource).toContain('sanitizeBest(JSON.parse(');
+    expect(calculatorSource).toContain('recordBestTime(best, spec.id, secs)');
+    expect(calculatorSource).not.toMatch(/Number\(raw\[k\]\)/);
   });
 });
 
@@ -606,5 +653,19 @@ describe('formatting', () => {
     expect(formatCount(-1)).toBe('-01');
     expect(formatCount(NaN)).toBe('000');
     expect(formatCount(Infinity)).toBe('000');
+  });
+});
+
+describe('how-it-works heading', () => {
+  it('is a 32 px tap target and keeps the native disclosure marker', () => {
+    const rule = calculatorSource.match(/\.mn-how > summary \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toContain('min-height: 2rem');
+    expect(rule![1]).toContain('padding-block: 0.375rem');
+    expect(rule![1]).toContain('box-sizing: border-box');
+    // Nothing that would hide the native marker or replace it with a drawn arrow.
+    expect(rule![1]).not.toMatch(/display:|list-style/);
+    expect(calculatorSource).not.toContain('.mn-how > summary::');
+    expect(calculatorSource).not.toContain('.mn-how[open] > summary::');
   });
 });

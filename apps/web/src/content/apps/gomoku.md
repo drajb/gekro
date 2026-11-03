@@ -22,7 +22,7 @@ These are the freestyle rules: a line of six or more also wins, and the first pl
 - **Difficulty:** Easy, Medium or Hard, used when you play the computer.
 - **You play:** first (solid stones) or second (ring stones). Choosing second gives the computer the opening move.
 
-Click or tap a point to place a stone. With the keyboard, the arrow keys move around the board, Home and End jump to the ends of a row, and Enter or Space places a stone. The newest stone carries a small dot, and a winning line is highlighted. **Undo** takes back your last move and the computer's reply, or one move in a two-player game.
+Click or tap a point to place a stone. With the keyboard, the arrow keys move around the board, Home and End jump to the ends of a row, and Enter or Space places a stone. The newest stone carries a small dot, and a winning line is highlighted. **Undo** takes back your last move and the computer's reply, or one move in a two-player game. Once a game is over, undo is off.
 
 ## How it works
 
@@ -49,7 +49,7 @@ Nothing is uploaded and there is no account. After a win against the computer, t
 - **Hard is a heuristic search, not an unbeatable player.** It looks three moves ahead with scores from a fixed table, and the forced-win search only follows runs of fours, so it can miss longer combinations and be caught by plans that take more than a few moves to develop. A careful player can beat it, and in the test games it did not win every game against Medium.
 - Freestyle rules only: no Renju restrictions on the first player, no exact-five rule and no opening-swap rules.
 - Two players share one screen. There is no online play.
-- On a narrow phone the points are small, most of all on 15 x 15; 9 x 9 has the largest points. 13 x 13 is the default as a middle size.
+- Every point on the board is at least 24 px across. On a screen too narrow for that, the board scrolls sideways inside its own box and the page does not; 9 x 9 needs only about 220 px, so it fits without scrolling on the narrowest screens. 13 x 13 is the default as a middle size.
 - Records are per browser and per board size and difficulty, and are not shared between devices.
 
 Everything runs locally in your browser.

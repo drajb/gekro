@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 import {
   LINES, emptyBoard, other, mulberry32, winningLine, winnerOf, isFull, gameState, isOver, turnOf, legalMoves, play,
   winningMoves, positionValue, moveScores, bestMoves, outcomeUnderPerfectPlay, chooseEasy, chooseMedium, chooseUnbeatable,
-  chooseMove, resultFor, nextStreak, parseBest, cellLabel, squareName, openingMessage, computerMoveMessage,
+  chooseMove, resultFor, nextStreak, parseBest, cellLabel, squareName, openingMessage, computerMoveMessage, savedSettingMessage,
   type Board, type Cell, type Mark, type Level,
 } from '../src/components/apps-private/tic-tac-toe/helpers';
 import { readFileSync } from 'node:fs';
@@ -500,5 +500,50 @@ describe('status messages', () => {
     expect(src).toContain('X and O wins in two-player mode');
     expect(src).not.toContain('tally and unbeaten streak count only');
     expect(src).not.toContain('as plain numbers');
+  });
+});
+
+describe('settings in two-player mode', () => {
+  const src = page('Calculator.astro');
+  const body = (from: string, to: string): string => {
+    const i = src.indexOf(from);
+    const j = src.indexOf(to, i);
+    expect(i).toBeGreaterThan(0);
+    expect(j).toBeGreaterThan(i);
+    return src.slice(i, j);
+  };
+  it('words the stored-setting messages so they read correctly', () => {
+    expect(savedSettingMessage('side', 'O')).toBe('Playing as O is saved for when you play the computer.');
+    expect(savedSettingMessage('difficulty', 'Hard')).toBe('Difficulty Hard is saved for when you play the computer.');
+    expect(src).not.toContain('You play ${human} is saved');
+  });
+  it('Difficulty and "You play" only store the setting in two-player mode, and never start a new game there', () => {
+    const diff = body("diffSel.addEventListener('change'", "sideSel.addEventListener('change'");
+    const side = body("sideSel.addEventListener('change'", "g('tt-again')");
+    for (const h of [diff, side]) {
+      const guard = h.indexOf("if (mode === 'two') {");
+      expect(guard).toBeGreaterThan(0);
+      const guardEnd = h.indexOf('return; }', guard);
+      expect(guardEnd).toBeGreaterThan(guard);
+      expect(h.slice(guard, guardEnd)).not.toContain('newGame(');
+      expect(h.slice(guard, guardEnd)).not.toContain('abandon(');
+      expect(h.slice(guard, guardEnd)).toContain('syncUrl()');
+      expect(h.indexOf('newGame(')).toBeGreaterThan(guardEnd);
+    }
+  });
+  it('switches both menus off while two people play', () => {
+    expect(src).toContain("diffSel.disabled = mode === 'two';");
+    expect(src).toContain("sideSel.disabled = mode === 'two';");
+  });
+  it('the content page says the menus are switched off in two-player mode', () => {
+    const md = page('../../../../src/content/apps/tic-tac-toe.md');
+    expect(md).toContain('both menus are switched off');
+    expect(md).not.toContain('but do nothing there');
+  });
+});
+
+describe('rules summary tap target', () => {
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page('Calculator.astro')).toContain('.tt-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
   });
 });

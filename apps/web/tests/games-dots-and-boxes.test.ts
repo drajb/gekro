@@ -985,3 +985,9 @@ describe('page behaviour and content page', () => {
     expect(md).toContain('small JSON object');
   });
 });
+
+describe('rules summary tap target', () => {
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page('src/components/apps-private/dots-and-boxes/Calculator.astro')).toContain('.db-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
+  });
+});

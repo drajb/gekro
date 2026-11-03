@@ -10,7 +10,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  MAX_HEAPS, MAX_STONES, START, LEVELS, MEDIUM_PERFECT_CHANCE, WIN_KEYS, MAX_SAVED, mulberry32, other, totalStones, startHeaps,
+  MAX_HEAPS, MAX_STONES, START, LEVELS, MEDIUM_PERFECT_CHANCE, WIN_KEYS, MAX_SAVED, tallyKey, mulberry32, other, totalStones, startHeaps,
   isOver, nimSum, legalMoves, applyMove, describeMove, winner, isWinning, perfectMove, hintText, randomMove, smallMove,
   computerMove, rewind, winKey, sanitiseWins, binaryTable, explain,
   type Move, type Player, type Rules, type Difficulty, type Entry,
@@ -673,6 +673,22 @@ describe('undo', () => {
 
 // ── saved results ───────────────────────────────────────────────────────────
 
+describe('session tally key', () => {
+  it('against the computer it is the rule set and level, so settings never share a tally', () => {
+    expect(tallyKey('cpu', 'misere', 'perfect')).not.toBe(tallyKey('cpu', 'normal', 'perfect'));
+    expect(tallyKey('cpu', 'normal', 'easy')).not.toBe(tallyKey('cpu', 'normal', 'medium'));
+    expect(tallyKey('cpu', 'normal', 'easy')).toBe(tallyKey('cpu', 'normal', 'easy'));
+    const keys = new Set<string>();
+    for (const r of ['normal', 'misere'] as Rules[]) for (const d of ['easy', 'medium', 'perfect'] as Difficulty[]) keys.add(tallyKey('cpu', r, d));
+    expect(keys.size).toBe(6);
+  });
+  it('two players share one tally per rule set whatever the (unused) level says, apart from the computer ones', () => {
+    expect(tallyKey('two', 'normal', 'easy')).toBe(tallyKey('two', 'normal', 'perfect'));
+    expect(tallyKey('two', 'normal', 'easy')).not.toBe(tallyKey('two', 'misere', 'easy'));
+    expect(tallyKey('two', 'normal', 'easy')).not.toBe(tallyKey('cpu', 'normal', 'easy'));
+  });
+});
+
 describe('saved wins', () => {
   it('there is one key per rule set and level', () => {
     expect(WIN_KEYS).toHaveLength(6);
@@ -682,7 +698,8 @@ describe('saved wins', () => {
   });
   it('reads back whole positive numbers for known keys only', () => {
     expect(sanitiseWins({ 'normal-easy': 3, 'misere-perfect': 12 })).toEqual({ 'normal-easy': 3, 'misere-perfect': 12 });
-    expect(sanitiseWins({ 'normal-easy': '7', unknown: 5, 'normal-medium': 4 })).toEqual({ 'normal-easy': 7, 'normal-medium': 4 });
+    expect(sanitiseWins({ unknown: 5, 'normal-medium': 4 })).toEqual({ 'normal-medium': 4 });
+    expect(sanitiseWins({ 'normal-easy': '7', 'normal-medium': true, 'normal-perfect': [4], 'misere-easy': null })).toEqual({});
   });
   it('drops anything that is not a sane count', () => {
     const junk = { 'normal-easy': -1, 'normal-medium': 1.5, 'normal-perfect': NaN, 'misere-easy': Infinity, 'misere-medium': 'x', 'misere-perfect': MAX_SAVED + 1 };

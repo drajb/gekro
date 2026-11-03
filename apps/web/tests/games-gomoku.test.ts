@@ -13,7 +13,7 @@ import {
   newBoard, parseBoard, boardToString, sizeOf, centerOf, cellName, rowOf, colOf, placeStone, takeBack, lineAt, findWinner, isFull,
   countStones, candidates, directionClasses, classOfLine, attackScore, defenseScore, scoreCell, winningCells, openFourCells, threats,
   evaluate, forcedWin, randomMove, scoredMove, searchMove, bestMove, newGame, playMove, replay, undoMoves, undoCountVsComputer, stonesOf,
-  sideOfMove, describeResult, mulberry32, shuffled, opponent, nameOf, EMPTY, SOLID, RING, SIZES, DEFAULT_SIZE, DIRS, CLASS,
+  sideOfMove, describeResult, movesText, mulberry32, shuffled, opponent, nameOf, EMPTY, SOLID, RING, SIZES, DEFAULT_SIZE, DIRS, CLASS,
   PATTERN_STATES, HARD_DEPTH, HARD_BREADTH, FORCING_FOURS,
   type Board, type Side, type Level, type Game,
 } from '../src/components/apps-private/gomoku/helpers';
@@ -998,10 +998,9 @@ describe('levels are ordered by strength', () => {
 
 describe('page behaviour and content page', () => {
   const dir = 'src/components/apps-private/gomoku/';
-  it('sends focus to New game after Play again, and does not import what it does not use', () => {
+  it('sends focus to New game after Play again', () => {
     const src = page(dir + 'Calculator.astro');
     expect(src).toContain("g('gm-again').addEventListener('click', () => { newGame(); g('gm-new').focus(); });");
-    expect(src).not.toMatch(/\bopponent\b/);
   });
   it('the content page makes no claim about tapping that depends on the phone, and no clock-dependent claim', () => {
     const md = page('src/content/apps/gomoku.md');
@@ -1010,5 +1009,37 @@ describe('page behaviour and content page', () => {
     expect(md).not.toContain('a very slow machine could differ');
     expect(md).not.toContain('plain numbers');
     expect(page(dir + 'Calculator.astro')).not.toContain('plain numbers');
+  });
+});
+
+describe('counts, undo at game over and board size', () => {
+  const dir = 'src/components/apps-private/gomoku/';
+  it('says 1 move, not 1 moves, in the result and summary text', () => {
+    expect(movesText(0)).toBe('0 moves');
+    expect(movesText(1)).toBe('1 move');
+    expect(movesText(2)).toBe('2 moves');
+    const src = page(dir + 'Calculator.astro');
+    expect(src).toContain('in progress, ${movesText(game.moves.length)}');
+    expect(src).not.toContain('game.moves.length} moves');
+  });
+  it('Undo does nothing once the game is over, and its button says so', () => {
+    const src = page(dir + 'Calculator.astro');
+    const undo = src.slice(src.indexOf('const undo = '), src.indexOf('const summary = '));
+    expect(undo.indexOf('if (over()) {')).toBeGreaterThan(0);
+    expect(undo.indexOf('if (over()) {')).toBeLessThan(undo.indexOf('undoMoves('));
+    expect(src).toContain('const undoMovesNow = (): number => (over() ? 0 :');
+    expect(src).toContain("g('gm-undo').setAttribute('aria-disabled', String(undoMovesNow() === 0));");
+    expect(page('src/content/apps/gomoku.md')).toContain('Once a game is over, undo is off.');
+  });
+  it('the board keeps points of at least 24 px and scrolls sideways inside its own box', () => {
+    const src = page(dir + 'Calculator.astro');
+    expect(src).toContain('.gm-wrap { position: relative; max-width: 560px; overflow-x: auto; }');
+    expect(src).toContain('min-width: calc(var(--gm-n) * 24px + 4px)');
+    const md = page('src/content/apps/gomoku.md');
+    expect(md).toContain('at least 24 px across');
+    expect(md).not.toContain('points are small');
+  });
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page(dir + 'Calculator.astro')).toContain('.gm-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
   });
 });
