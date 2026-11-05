@@ -21,7 +21,7 @@ A run is **five counted tries**. At the end you get the average, median, best (l
 - **Pressing too early** (while it says "Wait for it...") shows "Too soon". That try is thrown away and not counted, and the run carries on from that try, so a miss never lowers your average.
 - A press so quick it lands within 50 ms of GO is treated the same way, because a genuine reaction that quick is not plausible; it is a guess that happened to land.
 - A press more than 5 seconds after GO is not counted either.
-- The four states differ by text, colour and the shape of the panel's outline (solid, dashed, thick and square, double), so colour is never the only signal. Nothing flashes or animates.
+- The states differ by words, a small symbol, colour and the shape of the panel's outline, so colour is never the only signal: blue and rounded to start, amber with a dashed outline and three dots while you wait, bright green with a thick square outline and an arrow at GO, rose with a double outline and a cross for "Too soon", violet with a tick for a counted time, and teal with a star when the run is done. The panel changes at once. The only motion is one soft ring when GO appears and one burst of dots when a run finishes, each played once; if your system asks for reduced motion both are switched off. Nothing flashes.
 - **Start again** begins a fresh run. **Clear saved results** wipes your saved times.
 - Holding a key down does not count as extra presses.
 

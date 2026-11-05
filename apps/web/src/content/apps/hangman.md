@@ -3,18 +3,18 @@ title: "Hangman"
 category: "fun"
 job: "Play free Hangman with over 800 words in six categories and three difficulties. A hint is available, and it costs a guess."
 description: "Free online Hangman with over 800 words, six categories, three difficulties, a hint that costs a guess and a win streak. No ads, no signup."
-aiSummary: "A free browser Hangman. Words come from a fixed list of more than 800 common words, mostly nouns in six categories (animals, food, places, science, technology, home and everyday objects), four to eleven letters long. Easy uses 4 to 5 letters, Medium 6 to 7 and Hard 8 or more. The player gets six wrong guesses, with a gallows drawn in SVG, an on-screen A to Z keyboard and full physical keyboard support. A hint reveals one hidden letter and counts as a wrong guess; it is never offered when it would end the game or finish the word. The last 20 words are not repeated within a session. Win streak and best streak are kept in the browser's local storage as two small numbers; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A word list, a few pure functions and a gallows, with the rules written down and tested."
+aiSummary: "A free browser Hangman. Words come from a fixed list of more than 800 common words, mostly nouns in six categories (animals, food, places, science, technology, home and everyday objects), four to eleven letters long. Easy uses 4 to 5 letters, Medium 6 to 7 and Hard 8 or more. The player gets six wrong guesses, with a small robot picture drawn in SVG that gains one part per wrong guess, an on-screen A to Z keyboard and full physical keyboard support. A hint reveals one hidden letter and counts as a wrong guess; it is never offered when it would end the game or finish the word. The last 20 words are not repeated within a session. Win streak and best streak are kept in the browser's local storage as two small numbers; nothing is uploaded."
+personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A word list, a few pure functions and a little robot picture that builds up as you miss, with the rules written down and tested."
 status: "active"
 publishedAt: "2026-10-22"
-lastVerified: "2026-10-22"
+lastVerified: "2026-11-05"
 license: "MIT"
-icon: "🪢"
+icon: "🤖"
 ---
 
 ## How to play
 
-Guess the hidden word one letter at a time. Tap a letter on the on-screen keyboard or type it on your own keyboard. Typed letters count while focus is on the game, on the page itself or on any button (a letter key does not press a button, so the toolbar buttons do not eat your guesses). They do not count in a text field, in a menu or on a link elsewhere on the page, so reading or navigating the site never uses up a guess. A correct letter fills in every place it appears. A wrong letter draws one more part of the figure on the gallows, and the sixth wrong guess ends the game. Solve the word before that and you win.
+Guess the hidden word one letter at a time. Tap a letter on the on-screen keyboard or type it on your own keyboard. Typed letters count while focus is on the game, on the page itself or on any button (a letter key does not press a button, so the toolbar buttons do not eat your guesses). They do not count in a text field, in a menu or on a link elsewhere on the page, so reading or navigating the site never uses up a guess. A correct letter fills in every place it appears. A wrong letter adds one more part to the little robot on the sunny hill (head, body, two arms, two legs, each in its own colour), and the sixth wrong guess completes the robot and ends the game. Solve the word before that and you win.
 
 Pick a **Category** (or leave it on Any) and a **Difficulty**:
 
@@ -22,7 +22,7 @@ Pick a **Category** (or leave it on Any) and a **Difficulty**:
 - **Medium:** 6 or 7 letters.
 - **Hard:** 8 or more letters, up to 11.
 
-Each letter you use is marked on its key with a symbol as well as a colour (a tick for correct, a cross for wrong), so the state is clear without relying on colour alone. The word is also written out as text under the blanks, for example "6 letters: _ a _ _ e _", which screen readers announce as it changes.
+Each letter you use is marked on its key with a symbol as well as a colour (a tick for correct, a cross for wrong), so the state is clear without relying on colour alone. Vowel keys have a warm amber tint so they are easy to find, correct letters turn green and missed letters turn rose with a line through them. When you win, the stars around the robot twinkle and the letters hop once; when you run out of guesses the robot just looks surprised, and nothing flashes or scolds. With reduced motion switched on in your system settings, all of that movement is turned off. The word is also written out as text under the blanks, for example "6 letters: _ a _ _ e _", which screen readers announce as it changes.
 
 The **Hint** button shows one hidden letter and counts as one of your six wrong guesses. It is switched off when using it would end the game, and also when only one different letter is left, because a hint should help you, not finish the word for you.
 

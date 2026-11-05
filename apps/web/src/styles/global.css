@@ -364,6 +364,16 @@ body {
 .theme-light .app-btn-tab[data-active="true"] {
   background-color: rgba(56, 189, 248, 0.11);
 }
+/* Light reader theme: sky and mid-grey text on a pale page measure under 3:1, so the tab and secondary-button text is mixed toward the dark text colour. */
+.theme-light .app-btn-tab {
+  color: color-mix(in srgb, var(--color-text-primary) 82%, var(--color-bg-base));
+}
+.theme-light .app-btn-tab.active,
+.theme-light .app-btn-tab[data-active="true"],
+.theme-light .app-btn-secondary:hover,
+.theme-light .app-btn-secondary.active {
+  color: color-mix(in srgb, var(--color-accent) 40%, var(--color-text-primary));
+}
 
 /* ── Mobile / touch-screen ergonomics ─────────────────────────────────────
  * Site-wide app component boost on touch devices and narrow viewports.
@@ -685,3 +695,26 @@ html[dir="rtl"] article aside {
   padding-left: 0;
   padding-right: 3rem;
 }
+
+/* Visually hidden text that screen readers still read. Tailwind only writes this utility when a scanned file
+   uses it, and the app components live in a gitignored folder it does not scan, so without this rule every
+   "sr-only" label in a game (Colour Mixer, Nim, Typing Test, ...) showed up as plain text. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Reserved-height utilities the game status lines use. Same reason as .sr-only: only scanned sources get a rule. */
+.min-h-\[1rem\] { min-height: 1rem; }
+.min-h-\[1\.2rem\] { min-height: 1.2rem; }
+.min-h-\[1\.25rem\] { min-height: 1.25rem; }
+.min-h-\[1\.5rem\] { min-height: 1.5rem; }
+.min-h-\[2\.5rem\] { min-height: 2.5rem; }
+.mt-2 { margin-top: 0.5rem; }

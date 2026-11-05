@@ -23,7 +23,7 @@ Open every cell that does not hold a mine. A number tells you how many of the ei
 
 The **Mines left** counter is the number of mines minus the number of flags, so it goes negative if you place too many flags. The timer starts at your first click and stops when you win or lose. When you win, the mines you had not flagged are flagged for you. When you lose, every mine is shown and each flag on a safe cell is marked with a cross.
 
-Numbers and flags are drawn as symbols as well as colour, so the board does not depend on telling colours apart.
+Closed tiles are rounded and tinted, and each number has its own hue plus the digit itself: 1 sky, 2 green, 3 rose, 4 violet, 5 orange, 6 teal, 7 amber, 8 lime. A flag is a small pennant on a pole, a mine is a spiky ball, and a flag on a safe cell shows a cross, all drawn with shapes, so the board does not depend on telling colours apart. The three counters (mines left, time, best) are plain rounded chips. A win lights the result box with a soft glow, which is switched off if your device asks for reduced motion.
 
 ## Levels
 
@@ -33,7 +33,7 @@ Numbers and flags are drawn as symbols as well as colour, so the board does not 
 | Intermediate | 16 x 16 | 40 |
 | Expert | 30 columns x 16 rows | 99 |
 
-The Expert board is 480 cells, wider than a phone screen. It scrolls inside its own box rather than widening the page.
+The Expert board is 480 cells, wider than a phone screen. On a phone, Intermediate and Expert keep every cell at least 28 px wide, so those two boards scroll sideways inside their own box rather than widening the page or shrinking the cells.
 
 ## How it works
 

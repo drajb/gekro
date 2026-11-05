@@ -7,7 +7,7 @@ aiSummary: "A free browser sliding puzzle with numbered tiles in 3x3, 4x4 and 5x
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. Shuffling tiles at random hands you an impossible board half the time. This page checks the parity rule on every shuffle, and the test suite proves the rule by searching every 3x3 board."
 status: "active"
 publishedAt: "2026-10-22"
-lastVerified: "2026-10-22"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "🧩"
 ---
@@ -18,7 +18,7 @@ Put the tiles in order, 1 up to the last number, with the empty gap in the botto
 
 With the keyboard, Tab to a tile and press Enter or Space, or use the arrow keys. Each arrow is the direction a tile travels: Left slides the tile on the right side of the gap one step left, Up slides the tile below the gap one step up, and so on. Tiles are labelled for screen readers with their row, column and whether they can move, and each slide is announced with where the tile landed and how many tiles are in place.
 
-Pick a frame size: 3x3 has 8 tiles, 4x4 has 15 and 5x5 has 24. **New puzzle** shuffles again, **Restart** puts the current puzzle back to where it began. The timer starts at your first move and pauses while the tab is hidden. The page address carries the size and a seed, so sending the link sends the exact same puzzle. Tiles that are already home are drawn in the accent colour, and the "In place" counter tracks them.
+Pick a frame size: 3x3 has 8 tiles, 4x4 has 15 and 5x5 has 24. **New puzzle** shuffles again, **Restart** puts the current puzzle back to where it began. The timer starts at your first move and pauses while the tab is hidden. The page address carries the size and a seed, so sending the link sends the exact same puzzle. Tile colours follow the numbers, from sky blue for tile 1 through green and amber to rose for the last tile, so a solved board is a smooth rainbow and a mixed-up board looks mixed up. The number is printed on every tile as well. A tile that is already home gets a tick in its corner and a ring, and the "In place" counter tracks them. A hint draws a bright ring and a star on the tile to slide.
 
 ## How it works
 

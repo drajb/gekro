@@ -9,13 +9,8 @@
  *  - Light Grid's "Show a solution" marks cells that really clear the board.
  */
 import { test, expect, type Page } from '@playwright/test';
+import { GAMES } from './games-list';
 
-const GAMES = [
-  'sudoku', 'merge-tiles', 'snake', 'tic-tac-toe', 'four-in-a-row', 'match-pairs', 'mines',
-  'hangman', 'solitaire', 'sliding-puzzle', 'light-grid', 'tower-of-hanoi', 'reversi',
-  'reaction-time', 'peg-solitaire', 'checkers', 'dots-and-boxes', 'gomoku',
-  'typing-test', 'aim-trainer', 'nonogram', 'code-breaker', 'nim', 'word-guess',
-];
 
 for (const slug of GAMES) {
   test(`/apps/${slug} makes no off-device requests while played`, async ({ page, baseURL }) => {
@@ -208,11 +203,11 @@ test('dots-and-boxes: a line is answered by the computer', async ({ page }) => {
 
 test('peg-solitaire: a jump removes exactly one peg', async ({ page }) => {
   await page.goto('/apps/peg-solitaire/');
-  await page.locator('#ps-board button[aria-label*="can jump"]').first().click();
-  await page.locator('#ps-board button[aria-label*="legal landing"]').first().click();
-  await expect(page.locator('#ps-left')).toHaveText('31');
-  await page.click('#ps-undo');
-  await expect(page.locator('#ps-left')).toHaveText('32');
+  await page.locator('#pgs-board button[aria-label*="can jump"]').first().click();
+  await page.locator('#pgs-board button[aria-label*="legal landing"]').first().click();
+  await expect(page.locator('#pgs-left')).toHaveText('31');
+  await page.click('#pgs-undo');
+  await expect(page.locator('#pgs-left')).toHaveText('32');
 });
 
 test('typing-test: typing the passage updates speed and keeps accuracy at 100%', async ({ page }) => {

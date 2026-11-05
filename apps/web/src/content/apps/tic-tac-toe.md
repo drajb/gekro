@@ -16,9 +16,9 @@ icon: "⭕"
 
 Take turns placing X and O on a 3 x 3 grid. The first to get three in a row, across, down or diagonally, wins. If the board fills up with no line, it is a draw. X always goes first.
 
-Pick **Computer** or **Two players on this device** under Opponent. Against the computer, choose a difficulty and whether you play X (you move first) or O (the computer moves first). Click or tap a square, or use the keyboard: arrow keys move between squares, **Enter** or **Space** places your mark, and the number keys **1 to 9** place one directly (1 is the top left, 9 is the bottom right). The winning line is outlined, filled and underlined, so it does not rely on colour alone.
+Pick **Computer** or **Two players on this device** under Opponent. Against the computer, choose a difficulty and whether you play X (you move first) or O (the computer moves first). Click or tap a square, or use the keyboard: arrow keys move between squares, **Enter** or **Space** places your mark, and the number keys **1 to 9** place one directly (1 is the top left, 9 is the bottom right). X is drawn in sky blue and O in rose, inside a violet frame, and the Turn pill and the tally boxes use the same two colours (amber for draws). On a device with a mouse, hovering an empty square shows a faint preview of the mark you are about to place. The winning line sweeps in green, and it is also outlined, filled and underlined, so it does not rely on colour alone.
 
-The computer answers after a short pause of about a third of a second, and the board is locked while it thinks. If your system asks for reduced motion, the pause and the small pop-in animation are both switched off.
+The computer answers after a short pause of about a third of a second, and the board is locked while it thinks. If your system asks for reduced motion, the pause, the pop-in animation, the winning sweep and the small dots that appear after a win are all switched off.
 
 ## How it works
 

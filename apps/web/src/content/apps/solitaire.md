@@ -16,10 +16,12 @@ icon: "🃏"
 
 Move every card onto the four foundations at the top right, one per suit, from Ace up to King. The seven columns start with one to seven cards, and only the last card of each column is face up. The other 24 cards are the stock.
 
-- **Columns:** build downwards in alternating colours, so a red 6 goes on a black 7. A run of face-up cards moves as one unit. Only a King, or a run that starts with a King, can go into an empty column.
+- **Columns:** build downwards, alternating between red suits and black suits, so a red 6 goes on a black 7. Hearts and diamonds are the red suits and are drawn in warm hues (rose and amber); spades and clubs are the black suits and are drawn in cool hues (violet and teal). Every card also carries its suit symbol, so you never have to rely on the hue. A run of face-up cards moves as one unit. Only a King, or a run that starts with a King, can go into an empty column.
 - **Foundations:** each one belongs to a suit and takes that suit in order, starting with the Ace. A single card goes to a foundation; a run cannot.
 - **Face-down cards:** when you move the last face-up card away from a column, the card beneath it turns over by itself.
 - **Stock and waste:** click the stock to turn cards onto the waste, where only the top card can be played. **Draw 1** turns one card, **Draw 3** turns three (fewer at the end of the stock). When the stock is empty, clicking it turns the waste back over to make a new stock, with no limit on passes.
+
+The cards are drawn with CSS: a tinted face, a coloured band behind the rank and suit in the corner, and a soft disc behind the large suit symbol. Face-down cards have diagonal bands of sky, violet and rose with an amber centre dot. The table is a deep violet-blue. When you win, the table glows twice and a message appears with your time and a Copy button; no cards fly around, and the glow is off if your system asks for reduced motion.
 
 There are three ways to move, and you can mix them:
 

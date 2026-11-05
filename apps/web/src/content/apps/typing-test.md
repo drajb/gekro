@@ -16,7 +16,7 @@ icon: "⌨️"
 
 Pick a duration, click the box under the text and start typing. The clock starts on your first keystroke, not before, and the test ends when the time is up. Type exactly what you see, capitals, spaces and punctuation included.
 
-While you type, each character in the passage changes. A correct character turns green. A wrong one is underlined with a wavy line, so you can tell it apart without relying on colour. The next character to type has a bar beside it. Backspace works, so you can fix a mistake or leave it and keep going.
+While you type, each character in the passage changes. A correct character gets a soft green highlight and a solid line under it. A wrong one gets a rose highlight and a wavy line under it, so you can tell the two apart without relying on colour. The next character to type has a blue bar beside it. The text itself keeps the normal text colour, so it stays easy to read. Backspace works, so you can fix a mistake or leave it and keep going.
 
 Esc restarts with the same text. **New passage** and **Try again** give you different text. If you get within about 100 characters of the end of the passage, more sentences are added, so nobody runs out of text. Pasting is turned off, and the tab being hidden cancels a running test.
 

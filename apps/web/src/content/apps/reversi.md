@@ -16,7 +16,7 @@ icon: "⚫"
 
 Two colours of disc share an 8 x 8 board. Solid moves first. On your turn you place a disc on an empty square so that at least one straight line of the other colour sits between the new disc and one of your own. Every disc in those lines flips to your colour. Lines can run along a row, a column or either diagonal, and one move can flip several lines at once. Small dots mark the squares where you can play. If you have no legal move you pass, and the page tells you when that happens. The game ends when neither player can move, and the player with more discs on the board wins.
 
-The two sides are called Solid and Ring, and the colours are not the only cue: Solid discs are plain and Ring discs have a ring in the middle. The last move has a tinted square, and the discs it flipped are briefly highlighted (as a static outline if your system asks for reduced motion).
+The board is a deep violet with a faint sky-coloured grid. The two sides are called Solid and Ring: Solid discs are sky blue, Ring discs are amber, and the colours are not the only cue, because Solid discs are plain and Ring discs have a ring in the middle. The last move has a tinted square, and the discs it flipped are briefly highlighted (as a static outline if your system asks for reduced motion).
 
 Controls:
 
@@ -24,6 +24,7 @@ Controls:
 - **Difficulty:** Easy, Medium or Hard. It applies when you play the computer.
 - **You play:** Solid goes first, or Ring goes second and the computer opens.
 - **Undo:** takes back your last move and the reply. Against a person it takes back one move. Once a game is over, undo is off.
+- **Game over:** the result appears in a panel under the board, so the final position stays visible.
 - **New game:** starts again with the current settings. Changing the opponent starts a new game, and against the computer so does changing the difficulty or side.
 
 On the keyboard, arrow keys move around the board (Home and End jump to the ends of a row) and Enter or Space places a disc. Each square is announced with its row, column, contents and whether it is a legal move.

@@ -18,11 +18,11 @@ Find the hidden five-letter word in six guesses. Type with your keyboard or tap 
 
 After each guess every tile gets one of three marks. The mark is never colour alone:
 
-- **Check mark, solid tile:** the right letter in the right place.
-- **Diamond:** the letter is in the word, but somewhere else.
-- **Cross, dimmed tile:** the letter is not in the word.
+- **Sky-blue tile with a check mark:** the right letter in the right place.
+- **Orange tile with a diamond:** the letter is in the word, but somewhere else.
+- **Dark tile with a cross:** the letter is not in the word.
 
-The on-screen keys show the best thing you know about each letter: a letter found in the right place beats a letter found in the wrong place, which beats a letter ruled out.
+Each new row pops up one tile at a time (this reveal is switched off if your device asks for reduced motion). The on-screen keys take the same sky, orange and dark colours and the same marks, and show the best thing you know about each letter: a letter found in the right place beats a letter found in the wrong place, which beats a letter ruled out.
 
 **Today's word** is the same for everyone who plays on the same date, and it follows your own local date, so it changes at your midnight rather than at one moment worldwide. Once you finish it, the page shows your result and tells you a new word comes tomorrow. **Random word** gives a fresh word whenever you like, including after you have finished today's.
 
@@ -41,7 +41,7 @@ Each line is one guess: `#` for a right letter in the right place, `+` for a let
 
 ## How it works
 
-**Two word lists.** Guesses are checked against the five-letter words of ENABLE, a public-domain word list: 8,636 words. The hidden word comes from a separate, hand-written list of more than 1,200 common words that a general player knows. Every one of them is also in the guess list, so any answer can be typed as a guess. Keeping the lists apart means you can use an unusual real word as a guess, but the hidden word is never one you would need a dictionary for.
+**Two word lists.** Guesses are checked against the five-letter words of ENABLE, a public-domain word list: 8,636 words. The hidden word comes from a separate, hand-written list of more than 1,200 common words that a general player knows. Every one of them is also in the guess list, so any answer can be typed as a guess. Keeping the lists apart means you can use an unusual real word as a guess, but the hidden word is never one you would need a dictionary for. The answer list also leaves out violent, scary, crude, drug, drink and abuse-related words (a test checks it against the other games' blocklists), so the "The word was" message never shows one.
 
 **Scoring takes two passes.** Repeated letters are where scoring goes wrong. The first pass marks every exact match and counts the answer letters left over. The second pass walks the guess from left to right and marks a letter "in the word" only while the answer still has an unmatched copy of it. So with the answer ABBEY and the guess BABES, the B in the right place is correct, the other B and the A are in the word, and the S is not. The tests cover this with hand-written cases for repeated letters, plus a property check over 20,000 random pairs: for every letter, the number of correct and in-the-word marks equals the smaller of its count in the guess and its count in the answer, so it can never exceed its count in the answer.
 

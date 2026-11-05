@@ -7,7 +7,7 @@ aiSummary: "A free browser Peg Solitaire. Two boards: the English cross with 33 
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A rules engine, a board and a small search, and the hint comes from running that search on your position, not from a stored answer."
 status: "active"
 publishedAt: "2026-10-23"
-lastVerified: "2026-10-23"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "🔘"
 ---
@@ -16,7 +16,7 @@ icon: "🔘"
 
 Every hole holds a peg except the centre one. A move jumps a peg in a straight line, up, down, left or right, over one neighbouring peg into the empty hole directly beyond it. The peg you jumped over is removed. There are no diagonal jumps. On the English board the aim is to finish with a single peg, best of all in the centre hole. On the French board a single peg is impossible (see below), so the aim is to finish with two.
 
-Click or tap a peg to select it. Holes it can land in get a dashed ring and a dot. Click one to jump. Click anywhere else, or press **Escape**, to let go of the peg. With the keyboard, the arrow keys move a cursor around the board, **Enter** or **Space** selects a peg or jumps, **U** undoes and **H** asks for a hint. Pegs and holes are real buttons with names like "Row 4, column 4, peg, can jump" or "empty, legal landing", so a screen reader can play too.
+Click or tap a peg to select it. Holes it can land in get a dashed green ring and a dot, and the selected peg turns amber with a thick outline. The board is a warm, wood-like plate with darker holes pressed into it, and the pegs are round with a sky-to-violet gradient. Colour is never the only cue: pegs are filled circles, landings have the dashed ring and dot, hints have a solid ring and a diamond, and the empty centre hole shows a small ring. When no jump is left, the pegs left on the board glow slowly, which is skipped if your system asks for reduced motion. Click one to jump. Click anywhere else, or press **Escape**, to let go of the peg. With the keyboard, the arrow keys move a cursor around the board, **Enter** or **Space** selects a peg or jumps, **U** undoes and **H** asks for a hint. Pegs and holes are real buttons with names like "Row 4, column 4, peg, can jump" or "empty, legal landing", so a screen reader can play too.
 
 The game ends when no jump is left. The rating depends on the pegs remaining. English board:
 

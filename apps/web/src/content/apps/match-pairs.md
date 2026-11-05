@@ -7,7 +7,7 @@ aiSummary: "A free browser pairs game. Cards lie face down in a grid of 12, 16, 
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A shuffle, a three-state machine and a grid, with no account, and your game data stays on your device."
 status: "active"
 publishedAt: "2026-10-22"
-lastVerified: "2026-10-22"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "🃏"
 ---
@@ -29,7 +29,7 @@ Pick a size from the **Size** menu:
 
 **Keyboard:** Tab into the grid, then use the arrow keys to move between cards, **Enter** or **Space** to flip the focused card, and **Home** and **End** to jump to the first and last card. Only one card is in the Tab order at a time, so you do not have to tab through all 36.
 
-Every symbol has its own colour, but colour is only a second cue. Each card also has a different shape, and its accessible name says "face down", "face up" or "matched" along with the symbol, so the game never depends on colour alone.
+Every symbol has its own colour, and each pair gets a card face tinted in that colour. Face-down cards have sky and violet stripes with a small diamond, and a matched pair gets a green ring and a tick. Colour is only a second cue. Each card also has a different shape, and its accessible name says "face down", "face up" or "matched" along with the symbol, so the game never depends on colour alone.
 
 ## How it works
 

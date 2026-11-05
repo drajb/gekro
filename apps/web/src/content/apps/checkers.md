@@ -14,7 +14,7 @@ icon: "🔴"
 
 ## How to play
 
-Each side starts with 12 pieces on the darker squares of an 8 x 8 board. Solid moves first. A man moves one square diagonally forward; a king (a man that has reached the far row) moves one square diagonally in any direction. Capturing works by jumping an adjacent enemy piece into the empty square directly beyond it, and the jumped piece is removed.
+Each side starts with 12 pieces on the violet, faintly hatched squares of an 8 x 8 board (the other squares are a warm amber and stay empty). Solid moves first. A man moves one square diagonally forward; a king (a man that has reached the far row) moves one square diagonally in any direction. Capturing works by jumping an adjacent enemy piece into the empty square directly beyond it, and the jumped piece is removed.
 
 The rules that decide most games:
 
@@ -25,7 +25,7 @@ The rules that decide most games:
 - **No legal move means a loss.** You lose if you have no pieces left or every piece you have is blocked.
 - **Draw rule.** The game is drawn after 40 moves in a row, counting both sides together, with no capture and no man moved. The page shows this count.
 
-The two sides are called Solid and Ring, and they are not told apart by colour alone: Solid pieces are plain discs, Ring pieces have a ring inside, and a king carries a crown mark. Click a piece to select it. Pieces that can legally move have a dashed outline, and if a capture is mandatory only the pieces that can capture are marked and the page says "Capture available - you must capture". The legal landing squares show a dot, and the last move is tinted. On the keyboard, arrow keys move around the board (Home and End jump to the ends of a row), Enter or Space selects a piece or moves it, and Escape deselects. Every square is announced with its row, column, contents and whether it can move or is a legal destination.
+The two sides are called Solid and Ring, and they are not told apart by colour alone: Solid pieces are plain discs, Ring pieces have a ring inside, and a king carries a crown mark. Click a piece to select it. Pieces that can legally move have a dashed outline, and if a capture is mandatory only the pieces that can capture are marked and the page says "Capture available - you must capture". Solid pieces are sky blue and Ring pieces are amber. The legal landing squares show a green dot with a ring around it, and the two squares of the last move glow amber. On the keyboard, arrow keys move around the board (Home and End jump to the ends of a row), Enter or Space selects a piece or moves it, and Escape deselects. Every square is announced with its row, column, contents and whether it can move or is a legal destination.
 
 Controls:
 

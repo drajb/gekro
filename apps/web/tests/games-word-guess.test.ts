@@ -11,6 +11,9 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { neverShow, blockedSet } from '../src/components/apps-private/letter-grid/helpers';
+import { BLOCKLIST as WORD_SEARCH_BLOCKLIST } from '../src/components/apps-private/word-search/helpers';
+import { BLOCKED as SPELLING_BLOCKED } from '../src/components/apps-private/spelling-builder/helpers';
 import {
   ENABLE5, ANSWERS, WORD_LENGTH, MAX_GUESSES, LETTERS, KEY_ROWS, MARK_CHAR, MAX_COUNT,
   mulberry32, hashString, shuffled, isLetter, isValidWord, scoreGuess, isWin, keyStates, checkHardMode, evaluateGuess, markSummary,
@@ -49,8 +52,9 @@ describe('accepted-guess list (ENABLE5)', () => {
 });
 
 describe('answer list', () => {
-  it('has more than 1,200 words, as the page says (and well over 800)', () => {
+  it('has more than 1,200 words, as the page says (and well over 1,000, so the daily word takes over three years to repeat)', () => {
     expect(ANSWERS.length).toBeGreaterThan(1200);
+    expect(ANSWERS.length).toBeGreaterThan(1095);
     expect(ANSWERS.length).toBeGreaterThan(800);
   });
   it('has no duplicates', () => {
@@ -78,6 +82,19 @@ describe('answer list', () => {
       'tramp', 'sluts', 'rapes', 'bimbo', 'dicks', 'cunts', 'fagot', 'nazis', 'whack', 'crapy', 'poops', 'farts',
     ];
     expect(ANSWERS.filter((w) => blocklist.includes(w))).toEqual([]);
+  });
+  it('holds no word that another game keeps off the screen (the "The word was ..." text can never show a rude, violent, scary or drug word)', () => {
+    const blocked = blockedSet();
+    const search = new Set(WORD_SEARCH_BLOCKLIST.map((x) => x.toLowerCase()));
+    const spelling = new Set(SPELLING_BLOCKED);
+    expect(ANSWERS.filter((w) => neverShow(w) || blocked.has(w) || search.has(w) || spelling.has(w))).toEqual([]);
+    // A fixed list of words removed in the second audit, written here and not shared with the game code.
+    const removed = ['abuse', 'death', 'blood', 'drunk', 'shoot', 'cigar', 'devil', 'demon', 'rifle', 'skull', 'ghost', 'scary', 'stool', 'sword', 'thigh',
+      'adult', 'agony', 'blade', 'bloat', 'brute', 'crack', 'crude', 'cruel', 'decay', 'flesh', 'gouge', 'grief', 'liver', 'lover', 'nasal', 'purge', 'rogue', 'swear', 'tumor',
+      'bribe', 'joint', 'smoke', 'strip', 'razor', 'poker', 'cider', 'fight', 'knife', 'witch', 'toxic', 'venom', 'wound', 'steal', 'thief', 'theft', 'panic', 'scare'];
+    expect(ANSWERS.filter((w) => removed.includes(w))).toEqual([]);
+    // They are still real words, so a player can type them as a guess.
+    for (const w of removed) expect(isValidWord(w) || !ENABLE5.includes(w), w).toBe(true);
   });
   it('never contains a string the page could mistake for a bad value', () => {
     expect(ANSWERS.filter((w) => /nan|null|undefined|infinity/.test(w))).toEqual([]);

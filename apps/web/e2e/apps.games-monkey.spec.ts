@@ -8,14 +8,9 @@
  * The random stream is seeded per game so a failure can be reproduced.
  */
 import { test, expect, type Page } from '@playwright/test';
+import { GAMES } from './games-list';
 import { isAllowed, consoleText } from './helpers';
 
-const GAMES = [
-  'sudoku', 'merge-tiles', 'snake', 'tic-tac-toe', 'four-in-a-row', 'match-pairs', 'mines',
-  'hangman', 'solitaire', 'sliding-puzzle', 'light-grid', 'tower-of-hanoi', 'reversi',
-  'reaction-time', 'peg-solitaire', 'checkers', 'dots-and-boxes', 'gomoku',
-  'typing-test', 'aim-trainer', 'nonogram', 'code-breaker', 'nim', 'word-guess',
-];
 
 const KEYS = [
   'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'Escape', 'Backspace', 'Delete',

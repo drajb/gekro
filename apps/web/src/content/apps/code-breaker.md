@@ -19,13 +19,13 @@ The computer picks a secret code: a row of pegs, each one a symbol. You build a 
 - **Right place:** pegs that are the right symbol in the right position.
 - **Right symbol, wrong place:** pegs that are a symbol the secret contains, but in a different position.
 
-A score of **2 / 1** means two pegs are right in place and one more is the right symbol in the wrong place. The same score is drawn as small pegs next to your guess: a filled dot for each right place, a hollow ring for each right symbol in the wrong place. Use the scores to narrow the code down before you run out of guesses.
+A score of **2 / 1** means two pegs are right in place and one more is the right symbol in the wrong place. Next to each guess the score is written as two numbers, each with a symbol: a check mark and a number for the right symbol in the right place, a double arrow and a number for the right symbol in the wrong place. Small markers repeat it: a filled square for each right place, a hollow diamond for each right symbol in the wrong place, a faint dot for a position that scores nothing. Use the scores to narrow the code down before you run out of guesses.
 
 Before you start you can choose the code length (4 or 5 pegs), the number of symbols (6 or 8), whether a symbol may appear more than once, and how many guesses you get (8, 10 or 12). The default is 4 pegs, 6 symbols, repeats allowed and 10 guesses.
 
 Click a slot in the current guess, then a symbol, or type the symbol's number. Arrow keys move between slots, Backspace or Delete clears a slot, **Enter** submits, and **H** asks for a hint. With repeats off, the Submit button stays disabled while a symbol is used twice.
 
-Every symbol has a digit, a shape and a colour: 1 circle, 2 square, 3 triangle, 4 diamond, 5 star, 6 cross, 7 hexagon, 8 pentagon. You never need to tell colours apart, because the digit and the shape say the same thing.
+Every symbol has a digit, a shape and a colour: 1 circle, 2 square, 3 triangle, 4 diamond, 5 star, 6 cross, 7 hexagon, 8 pentagon. The symbols are rounded tiles in the site's sky, rose, amber, green, violet, lime, teal and orange tints. You never need to tell colours apart, because the digit and the shape say the same thing.
 
 ## How it works
 

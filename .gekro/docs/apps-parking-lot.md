@@ -8,6 +8,20 @@ See `.gekro/docs/apps-platform-standard.md` for the build recipe.
 
 ---
 
+## Wave 10 - APPROVED 2026-11-05, in progress (branch `feature/games-wave-10` in both repos)
+
+Rohit: "I like all of them, build them all, add some color to the games, multiple rounds of checks", then "add additional children friendly games.. All free.. Created for my own 2 amazing children". Build guide: `.gekro/docs/games-build-guide.md`.
+
+- Puzzle/logic: `colour-flood`, `binary-puzzle`, `water-sort`, `pipe-connect`, `maze-runner`, `traffic-jam`, `crate-pusher`, `loop-puzzle` (never Slitherlink), `bridge-builder` (never Hashi), `cross-sums` (never Kakuro), `inequality-grid` (never Futoshiki), `word-search`, `letter-grid` (never Boggle).
+- Learning: `times-tables`, `clock-reader`, `coin-counter`, `colour-clash`, `morse-tutor`.
+- Arcade: `brick-smasher`, `pattern-echo`, `mole-pop` (Whac-A-Mole is a mark), `wing-hop`, `road-hopper`, `soft-landing`, `cannon-shot`. **`block-stacker` is HELD**: decision-log 2026-10-22 excluded Tetris outright, so it needs Rohit's literal "Override".
+- Sandbox: `falling-sand`, `cell-garden`, `pixel-art`, `drum-pad`, `piano`.
+- Board and card: `dominoes`, `nine-mens-morris`, `fox-and-geese`, `snakes-and-ladders`, `chess`, `go-fish`, `crazy-eights`, `card-war`, `mancala`, `hex`, `pig-dice`. No gambling games.
+- Children's games (Rohit, mid-session): `counting-garden`, `shape-sorter`, `colour-mixer`, `spelling-builder`, `make-ten`, `pattern-maker`, `odd-one-out`, `dot-to-dot`, `colouring-book`, `balloon-maths`, `sort-it`, `picture-puzzle`, `bubble-pop`, `letter-tracer`.
+- Colour: more colour on the new games and a CSS-only colour pass over the existing 24. Palette = mixes of the four locked accent tokens (decision-log 2026-10-02 pattern); shape or label always accompanies colour.
+
+---
+
 ## Wave 9 - BUILT LOCALLY, 23 games, NOT committed until Rohit says so (approved 2026-10-22)
 
 - Rohit wants a set of popular browser games in `/apps` "for more attention": 10 very popular games that run comfortably in the browser and do not strain the system. Asked me for the list first. Shortlist and recommendations are in the reply of 2026-10-22; once he picks, record the chosen slugs here BEFORE building.

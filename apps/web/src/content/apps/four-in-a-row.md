@@ -16,14 +16,14 @@ icon: "🔴"
 
 Take turns dropping a disc into one of seven columns. The disc falls to the lowest free space. The first player to line up four of their discs wins, in a row, a column or a diagonal. If the board fills with no four, it is a draw.
 
-Pick an **Opponent**: the computer, or **Two players** on the same screen. Against the computer, choose a **Difficulty** and whether you **go first** (blue discs with a dot) or **go second** (amber discs with a ring). The first player is always blue. Changing any of these starts a new game.
+Pick an **Opponent**: the computer, or **Two players** on the same screen. Against the computer, choose a **Difficulty** and whether you **go first** (violet discs with a dot) or **go second** (amber discs with a ring). The first player is always violet. Changing any of these starts a new game.
 
 - **Mouse or touch:** press a column button above the board, or tap the board itself. The column buttons say how many spaces are free and switch off when a column is full.
 - **Keyboard:** left and right arrows move between columns, Enter or Space drops a disc, and the keys **1** to **7** drop straight into a column.
 - **Undo** takes back your last move and the computer's reply, so it is your turn again. With two players it takes back one move. Once a game is over, undo is off. A game in which you used Undo against the computer is not counted: it leaves the session tally, your win streak and your saved best as they were.
 - **Copy result** copies a short summary of your session tally and the page address.
 
-Each disc carries a mark as well as a colour, a solid dot for the first player and a ring for the second, so the two sides can be told apart without relying on colour. The winning four is outlined with a solid frame, and the result is also written out in words below the board.
+Each disc carries a mark as well as a colour, a solid dot for the first player and a ring for the second, so the two sides can be told apart without relying on colour. The board is a flat, rounded tray in a soft violet-tinted dark neutral, and the discs are violet and amber with a light shading. The winning four is outlined with a solid frame and glows briefly (not at all if your device asks for reduced motion), and the result is also written out in words below the board.
 
 ## How it works
 

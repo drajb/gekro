@@ -7,14 +7,16 @@ aiSummary: "A free browser Sudoku. A seeded generator fills a random valid grid,
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A generator, a solver and a board in one small engine with its own tests. Every puzzle is checked to have exactly one answer before you see it."
 status: "active"
 publishedAt: "2026-10-22"
-lastVerified: "2026-10-22"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "🔢"
 ---
 
 ## How to play
 
-Fill every row, column and 3 x 3 box with the digits 1 to 9, each exactly once. Pick a cell and a number, or type with the keyboard: arrow keys move, 1 to 9 fill the cell, Backspace erases, **N** switches pencil notes on and off, **U** undoes, **H** gives a hint. Repeating a number on its own cell clears it.
+Fill every row, column and 3 x 3 box with the digits 1 to 9, each exactly once. Pick a cell and a number, or type with the keyboard: arrow keys move, 1 to 9 fill the cell, Backspace erases, **N** switches pencil notes on and off, **U** undoes, **H** gives a hint. Repeating a number on its own cell clears it (press the key again; holding a key down acts once). A number-pad button gets a green tick and a dashed edge once all nine of that digit are placed correctly, and a wrong digit never earns the tick.
+
+**Colour.** The nine boxes use a rotating set of soft tints, so the grid reads at a glance. Selecting a cell shades its row, column and box, marks the same digit elsewhere in amber and rings the selected cell in sky blue. Your own numbers are sky blue and the clues are bold. A number that clashes is underlined as well as coloured rose, and a cell the checker calls wrong is shaded rose and given a dashed outline. Pencil notes are coloured by family, 1 to 3 in sky, 4 to 6 in amber and 7 to 9 in violet, and the number pad uses the same three colours. Colour is never the only cue: weight, an underline, a dashed outline and a ring say the same things.
 
 Pencil notes are small candidate digits. Placing a number, or taking a hint, removes that number from the notes of every cell that shares its row, column or box, so your notes stay honest. Undo puts the notes back.
 

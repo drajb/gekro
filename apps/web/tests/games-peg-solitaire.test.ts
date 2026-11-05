@@ -641,6 +641,6 @@ describe('best finish helpers and how the page uses them', () => {
 describe('layout guards', () => {
   it('the rules summary is at least 2rem tall, so it is a usable touch target', () => {
     const text = readFileSync(resolve(process.cwd(), 'src/components/apps-private/peg-solitaire/Calculator.astro'), 'utf8');
-    expect(text).toMatch(/#ps-app \.ps-how > summary \{[^}]*min-height: 2rem;/);
+    expect(text).toMatch(/#pgs-app \.pgs-how > summary \{[^}]*min-height: 2rem;/);
   });
 });
