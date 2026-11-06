@@ -36,3 +36,6 @@ apps/web/.playwright/
 
 # Agent workflow scaffold (local only, not part of the site)
 .ai/
+
+# Project logs live in the private gekro-apps repo (project-logs/); .gekro/logs is a local junction to it
+.gekro/logs/
