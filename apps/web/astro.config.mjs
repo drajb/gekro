@@ -142,6 +142,8 @@ if (process.env.PUBLIC_SANITY_PROJECT_ID) {
 
 export default defineConfig({
   site: 'https://gekro.com',
+  // Lets a second build go to another folder (ASTRO_OUT_DIR=dist-b) while the default dist is being served.
+  outDir: process.env.ASTRO_OUT_DIR || './dist',
   // Hover-triggered prefetch: the next page's HTML is already in cache by the
   // time the click lands — near-instant navigation on a static site for free.
   // NOT 'viewport' — /apps renders 69 links and would prefetch all of them.

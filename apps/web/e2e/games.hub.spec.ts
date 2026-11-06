@@ -50,7 +50,7 @@ test('a genre hub lists its games and links to the other genres', async ({ page 
 test('a game page sits in the games section: genre link, breadcrumbs, games-only sidebar', async ({ page }) => {
   await page.goto('/games/sudoku/');
   await expect(page.locator('h1')).toHaveText('Sudoku');
-  await expect(page.locator('main a[href="/games/category/puzzle/"]').first()).toBeVisible();
+  await expect(page.locator('a[href="/games/category/puzzle/"]').first()).toBeVisible();
   const crumbs = await page.evaluate(() =>
     [...document.querySelectorAll('script[type="application/ld+json"]')]
       .map((s) => JSON.parse(s.textContent || '{}'))

@@ -4,10 +4,10 @@ What an independent reviewer does to a browser game. It comes from two audit rou
 
 ## Setup
 
-- A production build is served at http://localhost:4457 (do NOT start, stop or restart servers, do NOT run builds). Games are at `/apps/<slug>/`.
+- A production build is served at http://localhost:4457 (do NOT start, stop or restart servers, do NOT run builds). Other reviewers use the same server at the same time, so keep your own request rate modest. Games are at `/games/<slug>/` (moved from /apps/ on 2026-11-05; the preview server does not apply the Cloudflare redirects).
 - Playwright is installed in `G:\Git\gekro\apps\web`. Write your scripts there as `_rev_<yourname>_<n>.mjs` (so `import { chromium } from '@playwright/test'` resolves), run with `node`, and DELETE them when you finish. Use the Write tool to create script files: shell heredocs mangle backslashes and non-ASCII.
 - Wait about 2.5 s after load before measuring: the shell staggers an entrance animation over the buttons.
-- Sources: `G:\Git\gekro-apps\<slug>\Calculator.astro` and `helpers.ts`; tests `G:\Git\gekro\apps\web\tests\games-<slug>.test.ts`; guide page `G:\Git\gekro\apps\web\src\content\apps\<slug>.md`; spec `G:\Git\gekro\.gekro\docs\games-wave-10-specs.md`; rules `games-build-guide.md` and `games-licensing-wave-10.md` in the same folder.
+- Sources: `G:\Git\gekro-apps\<slug>\Calculator.astro` and `helpers.ts`; tests `G:\Git\gekro\apps\web\tests\games-<slug>.test.ts`; guide page `G:\Git\gekro\apps\web\src\content\apps\<slug>.md`; spec `G:\Git\gekro\.gekro\docs\games-wave-11-specs.md`; rules `games-build-guide.md` and `games-licensing-wave-10.md` in the same folder.
 - You find problems and report them. You do NOT edit any repository file.
 
 ## What to check, for every game

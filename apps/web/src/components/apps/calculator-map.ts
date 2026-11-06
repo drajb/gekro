@@ -192,6 +192,56 @@ import BalloonMaths from '../apps-private/balloon-maths/Calculator.astro';
 import LetterTracer from '../apps-private/letter-tracer/Calculator.astro';
 import BubblePop from '../apps-private/bubble-pop/Calculator.astro';
 
+import Hnefatafl from '../apps-private/hnefatafl/Calculator.astro';
+import Konane from '../apps-private/konane/Calculator.astro';
+import BaghChal from '../apps-private/bagh-chal/Calculator.astro';
+import RoyalGameOfUr from '../apps-private/royal-game-of-ur/Calculator.astro';
+import NestedTicTacToe from '../apps-private/nested-tic-tac-toe/Calculator.astro';
+import Hearts from '../apps-private/hearts/Calculator.astro';
+import GinRummy from '../apps-private/gin-rummy/Calculator.astro';
+import SpiderSolitaire from '../apps-private/spider-solitaire/Calculator.astro';
+import PyramidSolitaire from '../apps-private/pyramid-solitaire/Calculator.astro';
+import GolfSolitaire from '../apps-private/golf-solitaire/Calculator.astro';
+import OldMaid from '../apps-private/old-maid/Calculator.astro';
+import BeggarMyNeighbour from '../apps-private/beggar-my-neighbour/Calculator.astro';
+import ShutTheBox from '../apps-private/shut-the-box/Calculator.astro';
+import YachtDice from '../apps-private/yacht-dice/Calculator.astro';
+import TenThousand from '../apps-private/ten-thousand/Calculator.astro';
+import Skyscrapers from '../apps-private/skyscrapers/Calculator.astro';
+import Calcudoku from '../apps-private/calcudoku/Calculator.astro';
+import TentsAndTrees from '../apps-private/tents-and-trees/Calculator.astro';
+import LampGrid from '../apps-private/lamp-grid/Calculator.astro';
+import PairPaths from '../apps-private/pair-paths/Calculator.astro';
+import LogicGrid from '../apps-private/logic-grid/Calculator.astro';
+import EightQueens from '../apps-private/eight-queens/Calculator.astro';
+import RiverCrossing from '../apps-private/river-crossing/Calculator.astro';
+import WaterJugs from '../apps-private/water-jugs/Calculator.astro';
+import Tangram from '../apps-private/tangram/Calculator.astro';
+import KnightsTour from '../apps-private/knights-tour/Calculator.astro';
+import WordLadder from '../apps-private/word-ladder/Calculator.astro';
+import Cryptogram from '../apps-private/cryptogram/Calculator.astro';
+import WordChain from '../apps-private/word-chain/Calculator.astro';
+import SpaceRocks from '../apps-private/space-rocks/Calculator.astro';
+import PaddleRally from '../apps-private/paddle-rally/Calculator.astro';
+import CloudClimb from '../apps-private/cloud-climb/Calculator.astro';
+import CaveFlyer from '../apps-private/cave-flyer/Calculator.astro';
+import TowerStack from '../apps-private/tower-stack/Calculator.astro';
+import GemSwap from '../apps-private/gem-swap/Calculator.astro';
+import GardenDefence from '../apps-private/garden-defence/Calculator.astro';
+import Kaleidoscope from '../apps-private/kaleidoscope/Calculator.astro';
+import BubbleWrap from '../apps-private/bubble-wrap/Calculator.astro';
+import ZenGarden from '../apps-private/zen-garden/Calculator.astro';
+import Fireworks from '../apps-private/fireworks/Calculator.astro';
+import IdleOrchard from '../apps-private/idle-orchard/Calculator.astro';
+import RockPaperScissors from '../apps-private/rock-paper-scissors/Calculator.astro';
+import SortingRace from '../apps-private/sorting-race/Calculator.astro';
+import SwarmGarden from '../apps-private/swarm-garden/Calculator.astro';
+import FractalZoom from '../apps-private/fractal-zoom/Calculator.astro';
+import Amazons from '../apps-private/amazons/Calculator.astro';
+import StarHalma from '../apps-private/star-halma/Calculator.astro';
+import SeaAndIslands from '../apps-private/sea-and-islands/Calculator.astro';
+import HighwayDodge from '../apps-private/highway-dodge/Calculator.astro';
+import Backgammon from '../apps-private/backgammon/Calculator.astro';
 
 export const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -367,4 +417,54 @@ export const CALCULATOR_MAP: Record<string, any> = {
   'balloon-maths': BalloonMaths,
   'letter-tracer': LetterTracer,
   'bubble-pop': BubblePop,
+  'hnefatafl': Hnefatafl,
+  'konane': Konane,
+  'bagh-chal': BaghChal,
+  'royal-game-of-ur': RoyalGameOfUr,
+  'nested-tic-tac-toe': NestedTicTacToe,
+  'hearts': Hearts,
+  'gin-rummy': GinRummy,
+  'spider-solitaire': SpiderSolitaire,
+  'pyramid-solitaire': PyramidSolitaire,
+  'golf-solitaire': GolfSolitaire,
+  'old-maid': OldMaid,
+  'beggar-my-neighbour': BeggarMyNeighbour,
+  'shut-the-box': ShutTheBox,
+  'yacht-dice': YachtDice,
+  'ten-thousand': TenThousand,
+  'skyscrapers': Skyscrapers,
+  'calcudoku': Calcudoku,
+  'tents-and-trees': TentsAndTrees,
+  'lamp-grid': LampGrid,
+  'pair-paths': PairPaths,
+  'logic-grid': LogicGrid,
+  'eight-queens': EightQueens,
+  'river-crossing': RiverCrossing,
+  'water-jugs': WaterJugs,
+  'tangram': Tangram,
+  'knights-tour': KnightsTour,
+  'word-ladder': WordLadder,
+  'cryptogram': Cryptogram,
+  'word-chain': WordChain,
+  'space-rocks': SpaceRocks,
+  'paddle-rally': PaddleRally,
+  'cloud-climb': CloudClimb,
+  'cave-flyer': CaveFlyer,
+  'tower-stack': TowerStack,
+  'gem-swap': GemSwap,
+  'garden-defence': GardenDefence,
+  'kaleidoscope': Kaleidoscope,
+  'bubble-wrap': BubbleWrap,
+  'zen-garden': ZenGarden,
+  'fireworks': Fireworks,
+  'idle-orchard': IdleOrchard,
+  'rock-paper-scissors': RockPaperScissors,
+  'sorting-race': SortingRace,
+  'swarm-garden': SwarmGarden,
+  'fractal-zoom': FractalZoom,
+  'amazons': Amazons,
+  'star-halma': StarHalma,
+  'sea-and-islands': SeaAndIslands,
+  'highway-dodge': HighwayDodge,
+  'backgammon': Backgammon,
 };
