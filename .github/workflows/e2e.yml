@@ -12,6 +12,7 @@ on:
     paths:
       - 'apps/web/src/components/**'
       - 'apps/web/src/pages/apps/**'
+      - 'apps/web/src/pages/games/**'
       - 'apps/web/src/content/apps/**'
       - 'apps/web/src/layouts/AppLayout.astro'
       - 'apps/web/e2e/**'

@@ -5,6 +5,7 @@ import CopyButton from './shared/CopyButton.astro';
 import ResetButton from './shared/ResetButton.astro';
 import { getCollection } from 'astro:content';
 import { MIN_APPS_FOR_HUB, categoryHubUrl } from '../../lib/utils/apps-seo';
+import { GAME_GENRE, GAMES_HUB_URL, GENRES, MIN_GAMES_FOR_GENRE, genreUrl, isGame } from '../../lib/utils/games';
 
 interface Props {
   title: string;
@@ -29,12 +30,18 @@ const {
 } = Astro.props;
 
 // The category kicker links to its hub page when one is built for it.
-const liveApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
-const hubHref = liveApps.filter(a => a.data.category === category).length >= MIN_APPS_FOR_HUB ? categoryHubUrl(category) : null;
+// Games link to their genre hub under /games/, tools to their category hub under /apps/.
+const gameApp = isGame(slug);
+const genre = gameApp ? GAME_GENRE[slug] : undefined;
+const liveApps = await getCollection('apps', ({ id, data }) => data.status !== 'archived' && isGame(id) === gameApp);
+const hubHref = gameApp
+  ? (liveApps.filter(a => GAME_GENRE[a.id] === genre).length >= MIN_GAMES_FOR_GENRE ? genreUrl(genre!) : GAMES_HUB_URL)
+  : (liveApps.filter(a => a.data.category === category).length >= MIN_APPS_FOR_HUB ? categoryHubUrl(category) : null);
 const categoryLabels: Record<string, string> = {
   ai: 'AI', infra: 'Infra', ev: 'EV', trading: 'Trading', dev: 'Dev', finance: 'Finance',
   fun: 'Fun', health: 'Health',
 };
+const kicker = gameApp ? GENRES[genre!].label : `${categoryLabels[category] ?? category} tools`;
 ---
 
 <div class="space-y-8">
@@ -43,7 +50,7 @@ const categoryLabels: Record<string, string> = {
     <div class="flex items-center gap-3">
       {hubHref ? (
         <a href={hubHref} class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent hover:underline underline-offset-4">
-          {categoryLabels[category] ?? category} tools
+          {kicker}
         </a>
       ) : (
         <span class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent">

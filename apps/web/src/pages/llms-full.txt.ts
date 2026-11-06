@@ -30,6 +30,7 @@
  */
 
 import { getCollection } from 'astro:content';
+import { isGame } from '../lib/utils/games';
 
 const SITE = 'https://gekro.com';
 
@@ -137,7 +138,7 @@ Canonical summary: ${SITE}/llms.txt
     const d = a.data as any;
     return [
       `Name: ${d.title}`,
-      `URL: ${SITE}/apps/${a.id}/`,
+      `URL: ${SITE}${isGame(a.id) ? '/games/' : '/apps/'}${a.id}/`,
       `Category: ${d.category}`,
       d.lastVerified ? `Last verified: ${d.lastVerified}` : null,
       `Summary: ${summaryOf(d)}`,

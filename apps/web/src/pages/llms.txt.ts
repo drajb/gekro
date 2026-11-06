@@ -26,6 +26,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { topicToSlug } from '../lib/utils/slugify';
 import { getAllPosts } from '../lib/utils/posts';
+import { GAME_GENRE, GENRES, GENRE_ORDER, isGame } from '../lib/utils/games';
 import { eligibleNewsHubTopics } from '../lib/utils/news-topics';
 import { getActiveLanguages, getTranslationsForLang } from '../lib/utils/translations';
 
@@ -48,7 +49,8 @@ const CATEGORY_ORDER = ['ai', 'dev', 'infra', 'trading', 'finance', 'ev', 'healt
 export const GET: APIRoute = async () => {
   // Same visibility rule as /apps: hide archived, keep active + beta. The enum
   // is ['active','beta','archived'] - there is no 'retired'.
-  const apps = (await getCollection('apps', ({ data }) => data.status !== 'archived'))
+  const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+  const apps = allApps.filter((a) => !isGame(a.id))
     .sort((a, b) => a.data.title.localeCompare(b.data.title));
 
   // Group apps by category, unknown categories last under their raw key.
@@ -92,8 +94,22 @@ export const GET: APIRoute = async () => {
     ? `\n## Translated editions of the blog\nMachine translations of the English posts, each labelled as such on the page and linking to the original. The English post is the authoritative version; cite it. Every translated URL is /blog/<lang>/<slug>/ and carries hreflang alternates.\n\n${translatedLines}\n`
     : '';
 
+  // Browser games live under /games/ (moved from /apps/ on 2026-11-05).
+  const games = allApps.filter((a) => isGame(a.id)).sort((a, b) => a.data.title.localeCompare(b.data.title));
+  const gameSections = GENRE_ORDER
+    .map((g) => ({ g, list: games.filter((x) => GAME_GENRE[x.id] === g) }))
+    .filter((x) => x.list.length > 0)
+    .map(({ g, list }) => {
+      const lines = list
+        .map((a) => `- ${a.data.title} (${SITE}/games/${a.id}/) - ${a.data.job ?? a.data.description ?? ''}`.trim())
+        .join('\n');
+      return `### ${GENRES[g].label} (${list.length})\n${lines}`;
+    })
+    .join('\n\n');
+
   const counts = {
     apps: apps.length,
+    games: games.length,
     blog: (await getCollection('blog')).length,
     experiments: (await getCollection('experiments')).length,
     stack: (await getCollection('stack')).length,
@@ -130,6 +146,7 @@ Content is CC BY 4.0, code is MIT. Citation with a link back to the source URL i
 - /blog          Archive of technical deep dives and engineering notes (${counts.blog})
 - /experiments   Detailed case studies: architecture, outcomes, failures (${counts.experiments})
 - /apps          Free single-session browser tools (${counts.apps})
+- /games         Free browser games: board, card, puzzle, word, arcade and creative toys (${counts.games})
 - /stack         Verified third-party tool reviews, referral disclosures on each entry (${counts.stack})
 - /news          Daily AI industry briefings, neutral, every claim linked to its source (${counts.news})
 - /about         Philosophy, mission, and author biography
@@ -144,6 +161,11 @@ no server round-trip: the page is the whole product. Each app has a companion
 methodology page explaining exactly how it computes its result.
 
 ${appSections}
+
+## Games (${counts.games} free browser games)
+All games run in the browser with no account, no ads and nothing uploaded. Each game page has a written explanation of its rules and how its engine works. Genre pages: ${SITE}/games/category/<genre>/ (board, cards, puzzle, word, arcade, creative, learning).
+
+${gameSections}
 
 ## Topic clusters
 Hubs are derived from post and briefing frontmatter, so each one below is live:

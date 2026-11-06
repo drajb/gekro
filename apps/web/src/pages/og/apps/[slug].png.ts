@@ -10,6 +10,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { renderOgCard } from '../../../lib/og/render';
+import { isGame } from '../../../lib/utils/games';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ai: 'AI Tool',
@@ -23,7 +24,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export async function getStaticPaths() {
-  const apps = await getCollection('apps');
+  // Games have their own cards under og/games/ (they live at /games/<slug>/).
+  const apps = await getCollection('apps', ({ id }) => !isGame(id));
   return apps.map(app => ({
     params: { slug: app.id },
     props: {

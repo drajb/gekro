@@ -17,9 +17,10 @@ import JsonLD from '../../../components/seo/JsonLD.astro';
 import { getCollection } from 'astro:content';
 import { CATEGORY_META, MIN_APPS_FOR_HUB, categoryHubUrl } from '../../../lib/utils/apps-seo';
 import type { AppCategory } from '../../../lib/utils/apps-seo';
+import { isGame } from '../../../lib/utils/games';
 
 export async function getStaticPaths() {
-  const apps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+  const apps = await getCollection('apps', ({ id, data }) => data.status !== 'archived' && !isGame(id));
   const cats = [...new Set(apps.map(a => a.data.category))];
   return cats
     .filter(cat => apps.filter(a => a.data.category === cat).length >= MIN_APPS_FOR_HUB)
@@ -29,7 +30,7 @@ export async function getStaticPaths() {
 const { category } = Astro.params as { category: AppCategory };
 const meta = CATEGORY_META[category];
 
-const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+const allApps = await getCollection('apps', ({ id, data }) => data.status !== 'archived' && !isGame(id));
 const apps = allApps
   .filter(a => a.data.category === category)
   .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());

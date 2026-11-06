@@ -12,9 +12,10 @@
  */
 import { test, expect, type ConsoleMessage } from '@playwright/test';
 import { appSlugs, isAllowed, consoleText } from './helpers';
+import { itemUrl } from '../src/lib/utils/games';
 
 for (const slug of appSlugs()) {
-  test(`/apps/${slug} mounts and runs clean`, async ({ page }) => {
+  test(`${itemUrl(slug)} mounts and runs clean`, async ({ page }) => {
     const errors: string[] = [];
     const onConsole = (m: ConsoleMessage) => {
       if (m.type() === 'error') errors.push(consoleText(m));
@@ -22,7 +23,7 @@ for (const slug of appSlugs()) {
     page.on('console', onConsole);
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
 
-    const resp = await page.goto(`/apps/${slug}/`, { waitUntil: 'domcontentloaded' });
+    const resp = await page.goto(itemUrl(slug), { waitUntil: 'domcontentloaded' });
     expect(resp, `${slug}: no response`).not.toBeNull();
     expect(resp!.status(), `${slug}: HTTP ${resp!.status()}`).toBeLessThan(400);
 

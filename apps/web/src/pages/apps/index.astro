@@ -5,8 +5,11 @@ import JsonLD from '../../components/seo/JsonLD.astro';
 import { getCollection } from 'astro:content';
 import { CATEGORY_META, MIN_APPS_FOR_HUB, categoryHubUrl } from '../../lib/utils/apps-seo';
 import type { AppCategory } from '../../lib/utils/apps-seo';
+import { GAMES_HUB_URL, GAME_SLUGS, isGame } from '../../lib/utils/games';
 
-const apps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+// Browser games live under /games/ (moved 2026-11-05); this page lists the tools only.
+const apps = await getCollection('apps', ({ id, data }) => data.status !== 'archived' && !isGame(id));
+const gameCount = GAME_SLUGS.length;
 
 /* ── Category priority + section split ──────────────────────────────────────
  * Decision (2026-04-20): default sort is by category *priority*, not date.
@@ -119,6 +122,9 @@ const breadcrumbs = {
 
         <p class="text-lg text-text-secondary max-w-xl leading-relaxed">
           Tools I built for my own workflow - now public. Each runs entirely in your browser. Nothing stored anywhere.
+        </p>
+        <p class="text-sm text-text-secondary">
+          Looking for something to play? <a href={GAMES_HUB_URL} class="text-accent hover:underline underline-offset-4">Browse {gameCount} free browser games &rarr;</a>
         </p>
 
         <!-- Stats strip -->

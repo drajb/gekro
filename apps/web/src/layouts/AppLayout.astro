@@ -5,6 +5,7 @@ import AppIcon from '../components/apps/AppIcon.astro';
 import { getCollection } from 'astro:content';
 import { CATEGORY_META, MIN_APPS_FOR_HUB, SCHEMA_CATEGORY_OVERRIDE, appPageTitle, categoryHubUrl, relatedApps } from '../lib/utils/apps-seo';
 import type { AppCategory } from '../lib/utils/apps-seo';
+import { GAME_GENRE, GENRES, GENRE_ORDER, MIN_GAMES_FOR_GENRE, gamePageTitle, genreUrl, isGame, itemUrl } from '../lib/utils/games';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -14,16 +15,26 @@ interface Props {
 const { app } = Astro.props;
 const { data } = app;
 
-const allApps = await getCollection('apps', ({ data }) => data.status !== 'archived');
+// Games and tools share the `apps` collection but are two sections of the site
+// (/games/ and /apps/). Everything on the page (sidebar, related list, breadcrumbs,
+// schema) stays inside the section the page belongs to.
+const inGames = isGame(app.id);
+const section = inGames ? { base: '/games/', name: 'Games', noun: 'game', all: 'All games', plural: 'games' } : { base: '/apps/', name: 'Apps', noun: 'tool', all: 'All apps', plural: 'apps' };
+
+const allApps = await getCollection('apps', ({ id, data }) => data.status !== 'archived' && isGame(id) === inGames);
 allApps.sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime());
 
 const CATEGORY_ORDER = ['ai', 'finance', 'trading', 'dev', 'ev', 'infra', 'fun', 'health'];
 const CATEGORY_LABELS: Record<string, string> = {
   ai: 'AI', finance: 'Finance', trading: 'Trading', dev: 'Dev', ev: 'EV', infra: 'Infra', fun: 'Fun', health: 'Health',
 };
-const grouped = CATEGORY_ORDER
-  .map(cat => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, apps: allApps.filter(a => a.data.category === cat) }))
-  .filter(({ apps }) => apps.length > 0);
+const grouped = inGames
+  ? GENRE_ORDER
+      .map(g => ({ cat: g as string, label: GENRES[g].label, apps: allApps.filter(a => GAME_GENRE[a.id] === g) }))
+      .filter(({ apps }) => apps.length > 0)
+  : CATEGORY_ORDER
+      .map(cat => ({ cat, label: CATEGORY_LABELS[cat] ?? cat, apps: allApps.filter(a => a.data.category === cat) }))
+      .filter(({ apps }) => apps.length > 0);
 
 // Meta/OG description.
 //
@@ -51,13 +62,18 @@ const composeMeta = (job?: string, desc?: string): string => {
 const seoDescription = composeMeta(data.job, data.description || data.aiSummary);
 // aiSummary stays the rich JSON-LD / GEO surface - length is an asset there.
 const aiDescription = data.aiSummary || data.description;
-const pageURL = `https://gekro.com/apps/${app.id}/`;
-const ogImage = `/og/apps/${app.id}.png`;
-const catMeta = CATEGORY_META[data.category as AppCategory];
-// Category hubs exist only for categories with enough apps to be a useful
-// page (see pages/apps/category/[category].astro); link to one only if built.
-const hasHub = allApps.filter(a => a.data.category === data.category).length >= MIN_APPS_FOR_HUB;
-const hubURL = hasHub ? `https://gekro.com${categoryHubUrl(data.category)}` : null;
+const pageURL = `https://gekro.com${itemUrl(app.id)}`;
+const ogImage = `/og${itemUrl(app.id)}`.replace(/\/$/, '.png');
+// Tools: category hubs (pages/apps/category/[category].astro). Games: genre hubs
+// (pages/games/category/[genre].astro). Link to one only if it is built.
+const genre = inGames ? GAME_GENRE[app.id] : undefined;
+const catMeta = inGames ? undefined : CATEGORY_META[data.category as AppCategory];
+const hubLabel = inGames ? GENRES[genre!].label : catMeta?.label;
+const hubPath = inGames ? genreUrl(genre!) : categoryHubUrl(data.category);
+const hasHub = inGames
+  ? allApps.filter(a => GAME_GENRE[a.id] === genre).length >= MIN_GAMES_FOR_GENRE
+  : allApps.filter(a => a.data.category === data.category).length >= MIN_APPS_FOR_HUB;
+const hubURL = hasHub ? `https://gekro.com${hubPath}` : null;
 // Internal links: four related tools at the foot of every app page. Same
 // category and shared vocabulary rank first (lib/utils/apps-seo.ts).
 const related = relatedApps(app, allApps, 4);
@@ -69,8 +85,8 @@ const schema = {
   description: aiDescription,
   url: pageURL,
   image: `https://gekro.com${ogImage}`,
-  applicationCategory: SCHEMA_CATEGORY_OVERRIDE[app.id] ?? catMeta?.schemaCategory ?? 'WebApplication',
-  applicationSubCategory: catMeta?.label,
+  applicationCategory: inGames ? 'GameApplication' : (SCHEMA_CATEGORY_OVERRIDE[app.id] ?? catMeta?.schemaCategory ?? 'WebApplication'),
+  applicationSubCategory: hubLabel,
   operatingSystem: 'Any (runs in a web browser)',
   browserRequirements: 'Requires JavaScript. Runs entirely in the browser; no data is uploaded.',
   inLanguage: 'en',
@@ -78,7 +94,7 @@ const schema = {
   // lastVerified is the date the data and logic were re-checked, which is the
   // honest "modified" signal for a tool page (same field drives sitemap lastmod).
   dateModified: data.lastVerified || data.publishedAt,
-  isPartOf: { '@type': 'CollectionPage', '@id': 'https://gekro.com/apps/' },
+  isPartOf: { '@type': 'CollectionPage', '@id': `https://gekro.com${section.base}` },
   isAccessibleForFree: true,
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   author: {
@@ -94,10 +110,10 @@ const breadcrumbs = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
-    { '@type': 'ListItem', position: 2, name: 'Apps', item: 'https://gekro.com/apps/' },
-    ...(hubURL && catMeta
+    { '@type': 'ListItem', position: 2, name: section.name, item: `https://gekro.com${section.base}` },
+    ...(hubURL && hubLabel
       ? [
-          { '@type': 'ListItem', position: 3, name: `${catMeta.label} tools`, item: hubURL },
+          { '@type': 'ListItem', position: 3, name: inGames ? hubLabel : `${hubLabel} tools`, item: hubURL },
           { '@type': 'ListItem', position: 4, name: data.title, item: pageURL },
         ]
       : [{ '@type': 'ListItem', position: 3, name: data.title, item: pageURL }]),
@@ -106,7 +122,7 @@ const breadcrumbs = {
 ---
 
 <BaseLayout
-  title={appPageTitle(data.title)}
+  title={inGames ? gamePageTitle(data.title) : appPageTitle(data.title)}
   description={seoDescription}
   ogImage={ogImage}
   ogType="website"
@@ -131,8 +147,8 @@ const breadcrumbs = {
           <input
             id="sidebar-search"
             type="search"
-            placeholder="Jump to app…"
-            aria-label="Jump to app"
+            placeholder={inGames ? "Jump to game…" : "Jump to app…"}
+            aria-label={inGames ? "Jump to game" : "Jump to app"}
             autocomplete="off"
             class="w-full bg-bg-elevated border border-border rounded-lg pl-8 pr-3 py-2
                    text-xs font-mono text-text-primary
@@ -149,7 +165,7 @@ const breadcrumbs = {
             <p class="px-2 py-1 text-[9px] font-mono uppercase tracking-widest text-text-secondary select-none">{label}</p>
             {catApps.map(a => (
               <a
-                href={`/apps/${a.id}/`}
+                href={itemUrl(a.id)}
                 class:list={[
                   'sidebar-app-link flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors',
                   a.id === app.id
@@ -172,10 +188,10 @@ const breadcrumbs = {
       <!-- Footer link -->
       <div class="px-4 py-4 border-t border-border shrink-0">
         <a
-          href="/apps/"
+          href={section.base}
           class="text-[10px] font-mono text-text-secondary hover:text-accent transition-colors flex items-center gap-1"
         >
-          <span>←</span> All apps
+          <span>←</span> {section.all}
         </a>
       </div>
     </aside>
@@ -192,13 +208,13 @@ const breadcrumbs = {
       <div class="lg:hidden sticky top-0 z-40 px-4 py-3 border-b border-border-subtle bg-bg-base/90 backdrop-blur-sm" style="padding-top: calc(env(safe-area-inset-top) + 0.75rem)">
         <select
           id="mobile-app-select"
-          aria-label="Switch to another app"
+          aria-label={inGames ? "Switch to another game" : "Switch to another app"}
           class="w-full bg-bg-elevated border border-border rounded-lg px-3 py-3
                  text-text-primary focus:outline-none focus:border-accent transition-colors
                  [font-size:16px] min-h-[44px]"
         >
           {allApps.map(a => (
-            <option value={`/apps/${a.id}/`} selected={a.id === app.id}>
+            <option value={itemUrl(a.id)} selected={a.id === app.id}>
               {a.data.title}
             </option>
           ))}
@@ -232,10 +248,10 @@ const breadcrumbs = {
         {related.length > 0 && (
           <section class="mt-14 pt-8 border-t border-border" aria-labelledby="related-tools-heading">
             <div class="flex flex-wrap items-baseline justify-between gap-3 mb-5">
-              <h2 id="related-tools-heading" class="font-display text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">Related tools</h2>
-              {hasHub && catMeta && (
-                <a href={categoryHubUrl(data.category)} class="text-xs font-mono text-text-secondary hover:text-accent transition-colors">
-                  All {catMeta.label} tools &rarr;
+              <h2 id="related-tools-heading" class="font-display text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">{inGames ? "More games to try" : "Related tools"}</h2>
+              {hasHub && hubLabel && (
+                <a href={hubPath} class="text-xs font-mono text-text-secondary hover:text-accent transition-colors">
+                  {inGames ? `All ${hubLabel.toLowerCase()}` : `All ${hubLabel} tools`} &rarr;
                 </a>
               )}
             </div>
@@ -243,7 +259,7 @@ const breadcrumbs = {
               {related.map(r => (
                 <li>
                   <a
-                    href={`/apps/${r.id}/`}
+                    href={itemUrl(r.id)}
                     class="group flex items-start gap-3 h-full p-4 rounded-xl border border-border-subtle bg-bg-surface hover:border-accent transition-colors"
                   >
                     <AppIcon slug={r.id} fallback={r.data.icon} size={18} class="shrink-0 mt-0.5 text-accent" />
@@ -260,13 +276,13 @@ const breadcrumbs = {
 
         <!-- Disclaimer -->
         <p class="mt-12 text-[10px] font-mono text-text-muted leading-relaxed">
-          For informational purposes only. Not financial, medical, or legal advice. You are solely responsible for how you use these tools.
+          {inGames ? "Free to play, no ads, nothing uploaded. These games are original and are not affiliated with any other game or brand." : "For informational purposes only. Not financial, medical, or legal advice. You are solely responsible for how you use these tools."}
         </p>
 
         <div class="mt-6 lg:hidden">
-          <a href="/apps/" class="inline-flex items-center gap-2 text-sm font-mono text-text-secondary hover:text-accent transition-colors group">
+          <a href={section.base} class="inline-flex items-center gap-2 text-sm font-mono text-text-secondary hover:text-accent transition-colors group">
             <span class="group-hover:-translate-x-1 transition-transform">←</span>
-            All apps
+            {section.all}
           </a>
         </div>
       </div>
