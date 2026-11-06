@@ -3,7 +3,7 @@ title: "Word Guess"
 category: "fun"
 job: "Guess the hidden five-letter word in six tries. Play a daily word that is the same for everyone, or a random one, with optional hard mode and local statistics."
 description: "Free five-letter word game: six guesses, a daily word, random words, hard mode and stats. Checked against a public-domain list. No ads, no signup."
-aiSummary: "A free browser word game. The player has six guesses to find a hidden five-letter word. Every guess must be a word in ENABLE, a public-domain word list (8,636 five-letter words); a rejected guess does not use up a row. Each tile is scored as right letter in the right place, in the word but elsewhere, or not in the word, using a two-pass method so repeated letters are marked no more often than they occur in the answer. The hidden word comes from a hand-written list of more than 1,200 common words. Today's word is the same for everyone on the same local date, chosen from a fixed shuffle of that list with no server, so it never repeats until every answer has been used. Random words, an optional hard mode, an on-screen keyboard, full physical keyboard support, a copyable share result that never reveals the word, and local statistics (played, win percentage, daily streak, guess distribution) kept as plain numbers in the browser. Nothing is uploaded."
+aiSummary: "A free browser word game. The player has six guesses to find a hidden five-letter word. Every guess must be a word in ENABLE, a public-domain word list (8,636 five-letter words); a rejected guess does not use up a row. Each tile is scored as right letter in the right place, in the word but elsewhere, or not in the word, using a two-pass method so repeated letters are marked no more often than they occur in the answer. The hidden word comes from a hand-written list of more than 1,200 common words. Today's word is the same for everyone on the same local date, chosen from a fixed shuffle of that list with no server, so it never repeats until every answer has been used. Random words, an optional hard mode, an on-screen keyboard, full physical keyboard support, a copyable share result that never reveals the word, and local statistics (played, win percentage, daily streak, guess distribution) kept as small numbers inside a small JSON object in the browser. Nothing is uploaded."
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A scoring function, a fixed daily shuffle and a streak rule, each with its own tests. The fiddly part is repeated letters, so there are hand-written cases for them plus a property test over thousands of random pairs."
 status: "active"
 publishedAt: "2026-10-25"
@@ -14,7 +14,7 @@ icon: "🔤"
 
 ## How to play
 
-Find the hidden five-letter word in six guesses. Type with your keyboard or tap the on-screen keys: letters fill the row, Backspace or Delete removes one, Enter submits. A guess must be a real word from the list. If it is not, you see "Not in the word list" and the row is not used up.
+Find the hidden five-letter word in six guesses. Type with your keyboard or tap the on-screen keys: letters fill the row, Backspace or Delete removes one, Enter submits. (If a button or the "How the scoring and the daily word work" heading has focus, Enter does what that control does instead.) A guess must be a real word from the list. If it is not, you see "Not in the word list" and the row is not used up.
 
 After each guess every tile gets one of three marks. The mark is never colour alone:
 
@@ -37,7 +37,7 @@ Word Guess 2026-10-25 3/6
 #####
 ```
 
-Each line is one guess: `#` for a right letter in the right place, `+` for a letter in the word but elsewhere, `.` for a letter not in the word. A lost game shows `X/6`. The result contains no letters, so it never gives the word away.
+Each line is one guess: `#` for a right letter in the right place, `+` for a letter in the word but elsewhere, `.` for a letter not in the word. A lost game shows `X/6`. The grid lines contain no letters, so the result never gives the word away.
 
 ## How it works
 
@@ -53,7 +53,7 @@ Each line is one guess: `#` for a right letter in the right place, `+` for a let
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your statistics are saved in your browser's local storage under one key, as plain numbers: games played, wins, current and best daily streak, how many wins took one to six guesses, the date of your last finished daily game, and today's guesses for the daily word (each guess stored as a number). The page never puts the word or your guesses in its address, so a link to the page never reveals anything. Clearing site data removes the statistics, and anything unreadable in storage is ignored rather than trusted.
+Nothing is uploaded and there is no account. Your statistics are saved in your browser's local storage under one key, as small numbers inside a small JSON object: games played, wins, current and best daily streak, how many wins took one to six guesses, the date of your last finished daily game, and today's guesses for the daily word (each guess stored as a number). The page never puts the word or your guesses in its address, so a link to the page never reveals anything. Clearing site data removes the statistics, and anything unreadable in storage is ignored rather than trusted.
 
 ## Limits
 

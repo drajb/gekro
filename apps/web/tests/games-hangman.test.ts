@@ -12,9 +12,10 @@ import {
   WORD_LIST, CATEGORIES, CATEGORY_LABEL, DIFFICULTIES, DIFFICULTY_RANGE, DIFFICULTY_LABEL, LETTERS, MAX_WRONG, RECENT_LIMIT,
   mulberry32, pickWord, pushRecent, matchesFilters, newGame, applyGuess, applyHint, canHint, maskWord, describeWord,
   status, wrongCount, guessesLeft, misses, hiddenLetters, letterState, isLetter, knownLetters,
-  sanitizeStreak, recordResult, streakAfterAbandon, shareSummary, hasStarted,
+  sanitizeStreak, recordResult, streakAfterAbandon, shareSummary, hasStarted, letterKeyApplies,
   type Entry, type Game, type Filters,
 } from '../src/components/apps-private/hangman/helpers';
+import calculatorSource from '../src/components/apps-private/hangman/Calculator.astro?raw';
 
 const entry = (word: string, category: Entry['category'] = 'animals'): Entry => ({ word, category });
 const play = (word: string, letters: string): Game => [...letters].reduce((g, l) => applyGuess(g, l), newGame(entry(word)));
@@ -276,11 +277,14 @@ describe('hints', () => {
     }
   });
   it('can never turn a game into a win or a loss on its own', () => {
-    for (const e of WORD_LIST.slice(0, 120)) {
+    // Every word in every category, not a sample: no run of hints may win or lose a game.
+    expect(new Set(WORD_LIST.map((e) => e.category)).size).toBe(CATEGORIES.length);
+    for (const e of WORD_LIST) {
       let g = newGame(e);
       for (let i = 0; i < 12; i++) g = applyHint(g, mulberry32(i + 1));
       expect(status(g), e.word).toBe('playing');
-      expect(wrongCount(g)).toBeLessThanOrEqual(MAX_WRONG - 1);
+      expect(wrongCount(g), e.word).toBeLessThanOrEqual(MAX_WRONG - 1);
+      expect(hiddenLetters(g).length, e.word).toBeGreaterThanOrEqual(1);
     }
   });
 });
@@ -446,6 +450,33 @@ describe('streaks', () => {
   });
 });
 
+describe('keyboard scope', () => {
+  it('counts a letter typed on the page body or inside the game', () => {
+    expect(letterKeyApplies('BODY', false)).toBe(true);
+    expect(letterKeyApplies('HTML', false)).toBe(true);
+    expect(letterKeyApplies('SPAN', true)).toBe(true);
+    expect(letterKeyApplies('SUMMARY', true)).toBe(true);
+  });
+  it('counts a letter typed on a button anywhere, inside or outside the game', () => {
+    expect(letterKeyApplies('BUTTON', false)).toBe(true);
+    expect(letterKeyApplies('button', false)).toBe(true);
+    expect(letterKeyApplies('BUTTON', true)).toBe(true);
+  });
+  it('ignores a letter typed while focus is on a link or other control elsewhere on the page', () => {
+    expect(letterKeyApplies('A', false)).toBe(false);
+    expect(letterKeyApplies('DIV', false)).toBe(false);
+    expect(letterKeyApplies('SUMMARY', false)).toBe(false);
+  });
+  it('never takes a letter from a field, a select or an editable area, even inside the game', () => {
+    for (const tag of ['INPUT', 'TEXTAREA', 'SELECT']) {
+      expect(letterKeyApplies(tag, false), tag).toBe(false);
+      expect(letterKeyApplies(tag, true), tag).toBe(false);
+    }
+    expect(letterKeyApplies('DIV', true, true)).toBe(false);
+    expect(letterKeyApplies('BODY', false, true)).toBe(false);
+  });
+});
+
 describe('share text', () => {
   it('never contains the word or a bad value', () => {
     const lost = play('kettle', 'xzqjwv');
@@ -459,5 +490,19 @@ describe('share text', () => {
     }
     expect(shareSummary(won, 'hard', { current: 0, best: 0 })).toContain('solved');
     expect(shareSummary(lost, 'hard', { current: 0, best: 0 })).toContain('not solved');
+  });
+});
+
+describe('how-it-works heading', () => {
+  it('is a 32 px tap target and keeps the native disclosure marker', () => {
+    const rule = calculatorSource.match(/\.hm-how > summary \{([^}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toContain('min-height: 2rem');
+    expect(rule![1]).toContain('padding-block: 0.375rem');
+    expect(rule![1]).toContain('box-sizing: border-box');
+    // Nothing that would hide the native marker or replace it with a drawn arrow.
+    expect(rule![1]).not.toMatch(/display:|list-style/);
+    expect(calculatorSource).not.toContain('.hm-how > summary::');
+    expect(calculatorSource).not.toContain('.hm-how[open] > summary::');
   });
 });

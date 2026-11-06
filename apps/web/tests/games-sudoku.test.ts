@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest';
 import {
   parseGrid, gridToString, solve, conflicts, isSolved, makePuzzle, dailySeed, hashString, mulberry32, shuffled,
   candidates, digitsOf, nextHint, countGivens, formatTime, TARGET_GIVENS, PEERS, UNITS, randomSolved,
+  peersWithNote, placeDigit, undoChanges, dailyFor, sanitiseBest, localIsoDate, MAX_BEST_SECONDS,
 } from '../src/components/apps-private/sudoku/helpers';
 
 const WIKI = '530070000600195000098000060800060003400803001700020006060000280000419005000080079';
@@ -62,7 +63,7 @@ describe('conflicts and completion', () => {
 describe('candidates', () => {
   it('lists exactly the digits not used by peers', () => {
     const g = parseGrid(WIKI);
-    // Cell r1c3 in the published puzzle can only be 4.
+    // Cell r1c3 in the published puzzle has three candidates, 1, 2 and 4 (the published answer is 4).
     expect(digitsOf(candidates(g, 2))).toEqual([1, 2, 4]);
     expect(candidates(g, 0)).toBe(0); // a given has no candidates
   });
@@ -147,6 +148,96 @@ describe('hints', () => {
   it('names a naked single on the published puzzle', () => {
     const h = nextHint(parseGrid(WIKI), parseGrid(WIKI_SOLVED))!;
     expect(h.technique === 'naked single' || h.technique === 'hidden single').toBe(true);
+  });
+});
+
+describe('pencil notes follow a placed digit', () => {
+  it('peersWithNote lists exactly the peers that carry the digit in their notes', () => {
+    const notes = new Array(81).fill(0);
+    notes[1] |= 1 << 5; // same row as cell 0
+    notes[9] |= 1 << 5; // same column
+    notes[10] |= 1 << 5; // same box
+    notes[4] |= 1 << 5; // same row, different box
+    notes[40] |= 1 << 5; // not a peer of cell 0
+    notes[0] |= 1 << 5; // the cell itself is never its own peer
+    notes[2] |= 1 << 6; // a peer but a different digit
+    expect(peersWithNote(notes, 0, 5)).toEqual([1, 4, 9, 10]);
+    expect(peersWithNote(notes, 0, 6)).toEqual([2]);
+    expect(peersWithNote(notes, 0, 7)).toEqual([]);
+  });
+  it('placeDigit (what a hint and a typed digit both use) puts the digit in and clears it from the notes of every peer', () => {
+    const p = makePuzzle(31, 'hard');
+    const g = p.puzzle.slice();
+    const notes = new Array(81).fill(0);
+    for (let i = 0; i < 81; i++) if (!g[i]) notes[i] = digitsOf(candidates(g, i)).reduce((m, d) => m | (1 << d), 0);
+    const h = nextHint(g, p.solution)!;
+    const before = notes.slice();
+    const ch = placeDigit(g, notes, h.cell, h.digit);
+    expect(g[h.cell]).toBe(h.digit);
+    expect(notes[h.cell]).toBe(0);
+    for (const q of PEERS[h.cell]) expect(notes[q] & (1 << h.digit), `peer ${q}`).toBe(0);
+    // Only the peers that carried the note changed, and each change is recorded once, cell first.
+    expect(ch[0]).toEqual({ i: h.cell, val: 0, notes: before[h.cell] });
+    expect(ch.slice(1).map((c) => c.i)).toEqual(PEERS[h.cell].filter((q) => before[q] & (1 << h.digit)));
+    for (let i = 0; i < 81; i++) if (i !== h.cell && !PEERS[h.cell].includes(i)) expect(notes[i]).toBe(before[i]);
+  });
+  it('undoChanges puts the digit and every peer note back exactly', () => {
+    const p = makePuzzle(31, 'hard');
+    const g = p.puzzle.slice();
+    const notes = new Array(81).fill(0);
+    for (let i = 0; i < 81; i++) if (!g[i]) notes[i] = digitsOf(candidates(g, i)).reduce((m, d) => m | (1 << d), 0);
+    const g0 = g.slice();
+    const n0 = notes.slice();
+    const h = nextHint(g, p.solution)!;
+    const ch = placeDigit(g, notes, h.cell, h.digit);
+    expect(notes).not.toEqual(n0);
+    undoChanges(g, notes, ch);
+    expect(g).toEqual(g0);
+    expect(notes).toEqual(n0);
+  });
+});
+
+describe('saved best times', () => {
+  it('keeps whole positive seconds for the three levels and drops everything else', () => {
+    expect(sanitiseBest({ easy: 95, medium: 400, hard: 1200 })).toEqual({ easy: 95, medium: 400, hard: 1200 });
+    expect(sanitiseBest({ easy: 95, extra: 5 })).toEqual({ easy: 95 });
+    expect(sanitiseBest({ easy: '95', medium: true, hard: [400] })).toEqual({});
+    expect(sanitiseBest({ easy: 0, medium: -3, hard: 1.5 })).toEqual({});
+    expect(sanitiseBest({ easy: NaN, medium: Infinity, hard: 1e300 })).toEqual({});
+    expect(sanitiseBest({ easy: MAX_BEST_SECONDS })).toEqual({ easy: MAX_BEST_SECONDS });
+    expect(sanitiseBest({ easy: MAX_BEST_SECONDS + 1 })).toEqual({});
+  });
+  it('survives storage that is not an object', () => {
+    for (const raw of [null, undefined, 5, 'text', true, [1, 2, 3]]) expect(sanitiseBest(raw)).toEqual({});
+  });
+});
+
+describe('local date', () => {
+  it('formats a date as YYYY-MM-DD from its local parts, padded', () => {
+    expect(localIsoDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+    expect(localIsoDate(new Date(2026, 11, 31, 0, 1))).toBe('2026-12-31');
+    expect(localIsoDate()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe('daily puzzle', () => {
+  it('dailyFor takes the date and the seed from one clock reading, so they always agree', () => {
+    const late = new Date(2026, 9, 29, 23, 59, 59);
+    const early = new Date(2026, 9, 30, 0, 0, 1);
+    const a = dailyFor('medium', late);
+    const b = dailyFor('medium', early);
+    expect(a.date).toBe('2026-10-29');
+    expect(b.date).toBe('2026-10-30');
+    expect(a.seed).toBe(dailySeed('2026-10-29', 'medium'));
+    expect(b.seed).toBe(dailySeed('2026-10-30', 'medium'));
+    expect(a.seed).not.toBe(b.seed);
+    expect(dailyFor('hard', late).seed).not.toBe(a.seed);
+  });
+  it('the same moment always gives the same puzzle', () => {
+    const when = new Date(2026, 9, 29, 12);
+    const x = makePuzzle(dailyFor('easy', when).seed, 'easy');
+    const y = makePuzzle(dailyFor('easy', new Date(2026, 9, 29, 3)).seed, 'easy');
+    expect(gridToString(x.puzzle)).toBe(gridToString(y.puzzle));
   });
 });
 

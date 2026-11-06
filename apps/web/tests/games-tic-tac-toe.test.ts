@@ -12,9 +12,13 @@ import { describe, it, expect } from 'vitest';
 import {
   LINES, emptyBoard, other, mulberry32, winningLine, winnerOf, isFull, gameState, isOver, turnOf, legalMoves, play,
   winningMoves, positionValue, moveScores, bestMoves, outcomeUnderPerfectPlay, chooseEasy, chooseMedium, chooseUnbeatable,
-  chooseMove, resultFor, nextStreak, parseBest, cellLabel, squareName,
+  chooseMove, resultFor, nextStreak, parseBest, cellLabel, squareName, openingMessage, computerMoveMessage, savedSettingMessage,
   type Board, type Cell, type Mark, type Level,
 } from '../src/components/apps-private/tic-tac-toe/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), 'src/components/apps-private/tic-tac-toe', name), 'utf8');
 
 /** Build a board from a 9-character string: X, O or any other character for empty. */
 const b = (s: string): Cell[] => Array.from(s).map((ch) => (ch === 'X' || ch === 'O' ? ch : ''));
@@ -469,5 +473,77 @@ describe('labels', () => {
 
   it('no label or name contains the em-dash character', () => {
     for (let i = 0; i < 9; i++) expect(cellLabel(i, 'X', true) + squareName(i)).not.toContain(String.fromCharCode(0x2014));
+  });
+});
+
+describe('status messages', () => {
+  it('only says "Your move" at the start when the person really moves first', () => {
+    expect(openingMessage(true, 'X')).toBe('Your move. Pick a square or press 1 to 9.');
+    expect(openingMessage(true, 'O')).not.toContain('Your move');
+    expect(openingMessage(true, 'O')).toContain('computer moves first');
+    expect(openingMessage(false, 'O')).toBe('Two players: X goes first.');
+  });
+
+  it('keeps the result message when the computer move ends the game', () => {
+    const before = b('XX-OO----');
+    const won = play(before, 2) as Cell[];
+    expect(gameState(won)).toBe('X');
+    expect(computerMoveMessage(2, won)).toBeNull();
+    const drawn = b('XOXXOOOXX');
+    expect(computerMoveMessage(8, drawn)).toBeNull();
+    const ongoing = play(emptyBoard(), 4) as Cell[];
+    expect(computerMoveMessage(4, ongoing)).toBe('The computer played row 2, column 2.');
+  });
+
+  it('the page help text describes the tally the way the code counts it', () => {
+    const src = page('Calculator.astro');
+    expect(src).toContain('X and O wins in two-player mode');
+    expect(src).not.toContain('tally and unbeaten streak count only');
+    expect(src).not.toContain('as plain numbers');
+  });
+});
+
+describe('settings in two-player mode', () => {
+  const src = page('Calculator.astro');
+  const body = (from: string, to: string): string => {
+    const i = src.indexOf(from);
+    const j = src.indexOf(to, i);
+    expect(i).toBeGreaterThan(0);
+    expect(j).toBeGreaterThan(i);
+    return src.slice(i, j);
+  };
+  it('words the stored-setting messages so they read correctly', () => {
+    expect(savedSettingMessage('side', 'O')).toBe('Playing as O is saved for when you play the computer.');
+    expect(savedSettingMessage('difficulty', 'Hard')).toBe('Difficulty Hard is saved for when you play the computer.');
+    expect(src).not.toContain('You play ${human} is saved');
+  });
+  it('Difficulty and "You play" only store the setting in two-player mode, and never start a new game there', () => {
+    const diff = body("diffSel.addEventListener('change'", "sideSel.addEventListener('change'");
+    const side = body("sideSel.addEventListener('change'", "g('tt-again')");
+    for (const h of [diff, side]) {
+      const guard = h.indexOf("if (mode === 'two') {");
+      expect(guard).toBeGreaterThan(0);
+      const guardEnd = h.indexOf('return; }', guard);
+      expect(guardEnd).toBeGreaterThan(guard);
+      expect(h.slice(guard, guardEnd)).not.toContain('newGame(');
+      expect(h.slice(guard, guardEnd)).not.toContain('abandon(');
+      expect(h.slice(guard, guardEnd)).toContain('syncUrl()');
+      expect(h.indexOf('newGame(')).toBeGreaterThan(guardEnd);
+    }
+  });
+  it('switches both menus off while two people play', () => {
+    expect(src).toContain("diffSel.disabled = mode === 'two';");
+    expect(src).toContain("sideSel.disabled = mode === 'two';");
+  });
+  it('the content page says the menus are switched off in two-player mode', () => {
+    const md = page('../../../../src/content/apps/tic-tac-toe.md');
+    expect(md).toContain('both menus are switched off');
+    expect(md).not.toContain('but do nothing there');
+  });
+});
+
+describe('rules summary tap target', () => {
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page('Calculator.astro')).toContain('.tt-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
   });
 });

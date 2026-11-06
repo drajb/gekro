@@ -161,6 +161,8 @@ const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || GA4_MEASUREMENT_ID;
         if (typeof window !== 'undefined') {
           // Honor prefers-reduced-motion — the new page simply appears.
           if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+          // App pages have no <main>; without this GSAP warns on every navigation.
+          if (!document.querySelector('main')) return;
           const { gsap } = await import('gsap');
           gsap.from('main', {
             opacity: 0,

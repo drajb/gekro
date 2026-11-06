@@ -11,9 +11,13 @@ import { describe, it, expect } from 'vitest';
 import {
   initialBoard, parseBoard, boardToString, legalMoves, applyMove, flippedBy, canPlay, hasMoves, countMoves, isGameOver, advance,
   result, describeResult, perft, evaluate, terminalScore, negamax, randomMove, greedyMove, bestMove, chooseMove, countDiscs,
-  mulberry32, shuffled, opponent, cellName, rowOf, colOf, RAYS, DIRS, CORNERS, EMPTY, DARK, LIGHT,
+  mulberry32, shuffled, opponent, cellName, rowOf, colOf, RAYS, DIRS, CORNERS, EMPTY, DARK, LIGHT, nameOf, HARD_DEPTH, thinkingMessage, discsText, undoIndex,
   type Board, type Player, type Level,
 } from '../src/components/apps-private/reversi/helpers';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const page = (name: string): string => readFileSync(join(process.cwd(), name), 'utf8');
 
 const rc = (r: number, c: number): number => r * 8 + c;
 const sorted = (a: number[]): number[] => a.slice().sort((x, y) => x - y);
@@ -231,7 +235,7 @@ describe('edges and corners', () => {
       ........
       ........
       ........`);
-    // Light disc at (1,7); dark above it at (0,7). A dark disc at (2,7) flips it.
+    // Ring disc at (1,7); solid above it at (0,7). A solid disc at (2,7) flips it.
     expect(applyMove(b, rc(2, 7), DARK)!.flipped).toEqual([rc(1, 7)]);
     // But no move can flip the dark disc on row 0 vertically: nothing lies beyond the board.
     expect(applyMove(b, rc(0, 6), LIGHT)).toBeNull();
@@ -280,7 +284,7 @@ describe('passing and the end of the game', () => {
   });
   it('describes results for two players and for a player against the computer', () => {
     const win = result(parseBoard('x'.repeat(40) + 'o'.repeat(24)));
-    expect(describeResult(win, null)).toBe('Dark wins 40 to 24.');
+    expect(describeResult(win, null)).toBe('Solid wins 40 to 24.');
     expect(describeResult(win, DARK)).toBe('You win 40 to 24.');
     expect(describeResult(win, LIGHT)).toBe('The computer wins 40 to 24.');
     expect(describeResult(result(parseBoard('x'.repeat(32) + 'o'.repeat(32))), null)).toBe('Draw, 32 discs each.');
@@ -337,7 +341,7 @@ describe('perft from the starting position', () => {
     expect(perft(initialBoard(), DARK, 0)).toBe(1);
     expect(perft(parseBoard('x'.repeat(64)), DARK, 3)).toBe(1);
   });
-  it('is symmetric: Light moving first gives the same counts on the mirrored position', () => {
+  it('is symmetric: Ring moving first gives the same counts on the mirrored position', () => {
     const b = initialBoard();
     for (let d = 1; d <= 4; d++) expect(perft(b, LIGHT, d)).toBe(perft(b, DARK, d));
   });
@@ -430,7 +434,7 @@ describe('computer players', () => {
       ........
       ........
       ........`);
-    // Dark at (0,0) flips one disc; dark at (4,1) flips three.
+    // Solid at (0,0) flips one disc; solid at (4,1) flips three.
     expect(applyMove(b, rc(0, 0), DARK)!.flipped).toHaveLength(1);
     expect(applyMove(b, rc(4, 1), DARK)!.flipped).toHaveLength(3);
     for (let s = 1; s <= 10; s++) expect(greedyMove(b, DARK, mulberry32(s))).toBe(rc(0, 0));
@@ -604,7 +608,7 @@ describe('self-play fuzz', () => {
     const levels: Level[] = ['easy', 'medium', 'hard'];
     for (let seed = 1; seed <= 12; seed++) {
       const rng = mulberry32(seed + 500);
-      const g = playOut((b, p, ply) => {
+      const g = playOut((b, p) => {
         const level = levels[(seed + (p === DARK ? 0 : 1)) % 3];
         return level === 'hard' ? bestMove(b, p, 2, rng) : chooseMove(b, p, level, rng);
       });
@@ -632,5 +636,92 @@ describe('evaluation sanity', () => {
   });
   it('a board constant EMPTY is zero', () => {
     expect(EMPTY).toBe(0);
+  });
+});
+
+describe('side names and Hard depth', () => {
+  it('names the sides by shape, not by colour', () => {
+    expect(nameOf(DARK)).toBe('Solid');
+    expect(nameOf(LIGHT)).toBe('Ring');
+    expect(describeResult(result(parseBoard('o'.repeat(40) + 'x'.repeat(24))), null)).toBe('Ring wins 40 to 24.');
+  });
+  it('Hard searches HARD_DEPTH plies and Easy and Medium do not search', () => {
+    expect(HARD_DEPTH).toBe(5);
+    const b = initialBoard();
+    for (let s = 1; s <= 5; s++) {
+      expect(chooseMove(b, DARK, 'hard', mulberry32(s))).toBe(bestMove(b, DARK, HARD_DEPTH, mulberry32(s)));
+    }
+  });
+  it('a depth that is not a finite number is treated as depth 1 instead of searching forever', () => {
+    const b = initialBoard();
+    const legal = legalMoves(b, DARK);
+    for (const d of [NaN, Infinity, -Infinity, 0, -3]) {
+      const t = performance.now();
+      expect(legal).toContain(bestMove(b, DARK, d, mulberry32(3)));
+      expect(performance.now() - t).toBeLessThan(1500);
+    }
+  });
+});
+
+describe('page behaviour', () => {
+  const dir = 'src/components/apps-private/reversi/';
+  it('keeps a pass notice in the status line while the computer thinks', () => {
+    expect(thinkingMessage('')).toBe('Computer is thinking...');
+    expect(thinkingMessage('Solid has no legal move and passes. Ring moves again.')).toBe('Solid has no legal move and passes. Ring moves again. Computer is thinking...');
+    expect(page(dir + 'Calculator.astro')).toContain('say(thinkingMessage(note));');
+  });
+  it('makes the board inert when the game ends, and only a new game makes it playable again', () => {
+    const src = page(dir + 'Calculator.astro');
+    const between = (from: string, to: string): string => {
+      const i = src.indexOf(from);
+      const j = src.indexOf(to, i);
+      expect(i).toBeGreaterThan(0);
+      expect(j).toBeGreaterThan(i);
+      return src.slice(i, j);
+    };
+    expect(between('const finish = ', 'const settle = ')).toContain("boardEl.toggleAttribute('inert', true);");
+    expect(between('const newGame = ', 'const undoTarget = ')).toContain("boardEl.removeAttribute('inert');");
+    expect(src.split("removeAttribute('inert')")).toHaveLength(2); // nowhere else, so a finished game cannot be reopened
+    expect(between('const undo = ', 'const summary = ')).not.toContain('inert');
+    expect(src).toContain("g('rv-again').addEventListener('click', () => { newGame(); g('rv-new').focus(); });");
+  });
+  it('Undo does nothing once the game is over, and its button says so', () => {
+    const src = page(dir + 'Calculator.astro');
+    const undo = src.slice(src.indexOf('const undo = '), src.indexOf('const summary = '));
+    expect(undo.indexOf('if (over) {')).toBeGreaterThan(0);
+    expect(undo.indexOf('if (over) {')).toBeLessThan(undo.indexOf('history = '));
+    expect(undo).not.toContain('over = false');
+    expect(src).toContain("g('rv-undo').setAttribute('aria-disabled', String(over || undoTarget() < 0));");
+    expect(page('src/content/apps/reversi.md')).toContain('Once a game is over, undo is off.');
+  });
+  it('the "how the computer plays" summary is at least 2rem tall', () => {
+    expect(page(dir + 'Calculator.astro')).toContain('.rv-how > summary { box-sizing: border-box; min-height: 2rem; padding-block: 0.375rem; }');
+  });
+  it('uses Solid and Ring in the page and the content page, never Dark or Light', () => {
+    const src = page(dir + 'Calculator.astro');
+    const md = page('src/content/apps/reversi.md');
+    for (const text of [src.replace(/DARK|LIGHT/g, ''), md]) {
+      expect(text).not.toMatch(/Dark|Light/);
+      expect(text).not.toContain('plain numbers');
+    }
+    expect(src).toContain('Solid goes first');
+    expect(md).toContain('Solid moves first');
+  });
+});
+
+describe('counts and undo target', () => {
+  it('says 1 disc, not 1 discs', () => {
+    expect(discsText(1)).toBe('1 disc');
+    expect(discsText(2)).toBe('2 discs');
+    expect(discsText(0)).toBe('0 discs');
+    expect(describeResult(result(parseBoard('xo' + '.'.repeat(62))), null)).toBe('Draw, 1 disc each.');
+  });
+  it('Undo goes back to the person\'s last move against the computer, and to the last move with two people', () => {
+    expect(undoIndex([], DARK)).toBe(-1);
+    expect(undoIndex([], null)).toBe(-1);
+    expect(undoIndex([LIGHT], DARK)).toBe(-1); // the computer opened and the person has not moved
+    expect(undoIndex([DARK, LIGHT], DARK)).toBe(0);
+    expect(undoIndex([DARK, LIGHT, DARK, LIGHT, LIGHT], DARK)).toBe(2); // the person had to pass
+    expect(undoIndex([DARK, LIGHT, DARK], null)).toBe(2);
   });
 });

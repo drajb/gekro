@@ -10,6 +10,9 @@ jobs:
   ci:
     name: Lint, Typecheck & Build
     runs-on: ubuntu-latest
+    # A hung test step otherwise runs until GitHub's 6 hour limit (seen on
+    # PR #63, where new tests ran against older game code in the private repo).
+    timeout-minutes: 20
 
     steps:
       # ── Step 1: Checkout main repo ───────────────────────────────────────

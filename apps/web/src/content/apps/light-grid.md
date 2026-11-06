@@ -18,7 +18,7 @@ The board is a grid of lamps, each lit or dark. Pressing a cell flips that lamp 
 
 Pick a size (3x3 to 7x7) and a difficulty, then press cells with a tap, a click, or the keyboard: the arrow keys move, **Enter** or **Space** presses, **H** asks for a hint. Pressing the same cell twice puts everything back, so no undo button is needed. **Restart** returns to the same starting board; **New puzzle** deals a fresh one. The page address carries the board's seed, so you can send a friend the exact puzzle.
 
-Lamps are never shown by colour alone. A lit lamp is a filled circle and a dark lamp is a small hollow square. The solution tool marks cells with a dashed border and a diamond, and a hint uses a solid border and a diamond.
+Each press is announced for screen readers, with the cell pressed and how many lamps are still lit. Lamps are never shown by colour alone. A lit lamp is a filled circle and a dark lamp is a small hollow square. The solution tool marks cells with a dashed border and a diamond, and a hint uses a solid border and a diamond.
 
 **Difficulty.** Easy scrambles the dark grid with about *n* random presses and Normal with about 2*n*, where *n* is the side length. Because presses can overlap and cancel, the fewest presses needed can be lower than that. Hard is different: it picks a board uniformly at random from the boards that can be cleared, never one that is already clear.
 
@@ -62,7 +62,7 @@ The "Fewest possible" figure under the board is the solver's minimum for the sta
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best press count for each size and difficulty is saved in your browser's local storage as plain numbers under one key. Clearing site data removes it. The only other state is the page address, which holds the size, difficulty and board seed.
+Nothing is uploaded and there is no account. Your best press count for each size and difficulty is saved in your browser's local storage as small whole numbers inside a small JSON object under one key. Clearing site data removes it. The only other state is the page address, which holds the size, difficulty and board seed.
 
 ## Limits
 

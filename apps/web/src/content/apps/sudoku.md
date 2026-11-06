@@ -16,7 +16,7 @@ icon: "🔢"
 
 Fill every row, column and 3 x 3 box with the digits 1 to 9, each exactly once. Pick a cell and a number, or type with the keyboard: arrow keys move, 1 to 9 fill the cell, Backspace erases, **N** switches pencil notes on and off, **U** undoes, **H** gives a hint. Repeating a number on its own cell clears it.
 
-Pencil notes are small candidate digits. Placing a number removes it from the notes of every cell that shares its row, column or box, so your notes stay honest.
+Pencil notes are small candidate digits. Placing a number, or taking a hint, removes that number from the notes of every cell that shares its row, column or box, so your notes stay honest. Undo puts the notes back.
 
 **Today's puzzle** is the same for everyone who picks the same difficulty on the same date. There is no server: the date is turned into a seed, and the same seed always builds the same puzzle. It follows your own local date, so it changes at your midnight, not at a fixed time worldwide. **New random puzzle** uses a fresh seed, and the page address then contains that seed, so you can send a friend the exact puzzle.
 
@@ -45,7 +45,7 @@ If neither exists, the hint says so and reveals one digit from the solution. If 
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best time per difficulty is saved in your browser's local storage, as plain numbers, under one key. Clearing site data removes it.
+Nothing is uploaded and there is no account. Your best time per difficulty is saved in your browser's local storage as a whole number of seconds, inside a small JSON object under one key. Clearing site data removes it.
 
 ## Limits
 

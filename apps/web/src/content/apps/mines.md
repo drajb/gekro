@@ -49,7 +49,7 @@ The Expert board is 480 cells, wider than a phone screen. It scrolls inside its 
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your best time for each level is saved in your browser's local storage, as plain numbers, under one key. Only wins count. The level you last played is kept in the page address. Clearing site data removes the times.
+Nothing is uploaded and there is no account. Your best time for each level is saved in your browser's local storage, as whole seconds inside a small JSON object, under one key. Stored times that are not whole seconds between 1 second and 99 hours 59 minutes 59 seconds are ignored when read. Only wins count. The level you last played is kept in the page address. Clearing site data removes the times.
 
 ## Limits
 

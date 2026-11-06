@@ -13,6 +13,7 @@ import {
   lineClue, blocksOf, cluesFromGrid, checkSatisfied, completion, clueTotal, filledCount, rowCells, colCells,
   solveLine, lineSolve, isLogicallySolvable, generate, staircase, dailySeed, hashString, mulberry32,
   hintFor, firstDeduction, formatTime, gridToString, parseGrid, avgClueCount, MIN_AVG_CLUES, SIZES,
+  sanitiseBest, localIsoDate, dailyFor, MAX_BEST_SECONDS,
 } from '../src/components/apps-private/nonogram/helpers';
 
 // A hand-built 5 x 5 reference picture (a heart). It is not taken from a published book.
@@ -420,6 +421,49 @@ describe('completion by clues', () => {
       expect(completion(off, n, cl).complete).toBe(false);
       expect(completion(new Array(n * n).fill(0), n, cl).complete).toBe(false);
     }
+  });
+});
+
+describe('saved best times', () => {
+  it('keeps whole positive seconds for the three sizes and drops everything else', () => {
+    expect(sanitiseBest({ 5: 40, 10: 300, 15: 1500 })).toEqual({ 5: 40, 10: 300, 15: 1500 });
+    expect(sanitiseBest({ 5: 40, 7: 12 })).toEqual({ 5: 40 });
+    expect(sanitiseBest({ 5: '40', 10: true, 15: [300] })).toEqual({});
+    expect(sanitiseBest({ 5: 0, 10: -3, 15: 1.5 })).toEqual({});
+    expect(sanitiseBest({ 5: NaN, 10: Infinity, 15: 1e300 })).toEqual({});
+    expect(sanitiseBest({ 5: MAX_BEST_SECONDS })).toEqual({ 5: MAX_BEST_SECONDS });
+    expect(sanitiseBest({ 5: MAX_BEST_SECONDS + 1 })).toEqual({});
+  });
+  it('survives storage that is not an object', () => {
+    for (const raw of [null, undefined, 5, 'text', true, [1, 2, 3]]) expect(sanitiseBest(raw)).toEqual({});
+  });
+});
+
+describe('local date', () => {
+  it('formats a date as YYYY-MM-DD from its local parts, padded', () => {
+    expect(localIsoDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+    expect(localIsoDate(new Date(2026, 11, 31, 0, 1))).toBe('2026-12-31');
+    expect(localIsoDate()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe('daily puzzle', () => {
+  it('dailyFor takes the date and the seed from one clock reading, so they always agree', () => {
+    const late = new Date(2026, 9, 29, 23, 59, 59);
+    const early = new Date(2026, 9, 30, 0, 0, 1);
+    const a = dailyFor(10, late);
+    const b = dailyFor(10, early);
+    expect(a.date).toBe('2026-10-29');
+    expect(b.date).toBe('2026-10-30');
+    expect(a.seed).toBe(dailySeed('2026-10-29', 10));
+    expect(b.seed).toBe(dailySeed('2026-10-30', 10));
+    expect(a.seed).not.toBe(b.seed);
+    expect(dailyFor(15, late).seed).not.toBe(a.seed);
+  });
+  it('the same moment always gives the same puzzle', () => {
+    const x = generate(dailyFor(5, new Date(2026, 9, 29, 12)).seed, 5);
+    const y = generate(dailyFor(5, new Date(2026, 9, 29, 3)).seed, 5);
+    expect(x.solution).toEqual(y.solution);
   });
 });
 

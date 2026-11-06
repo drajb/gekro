@@ -37,14 +37,14 @@ What the tests prove about Unbeatable: they walk every possible sequence of oppo
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. Your session tally (wins, draws, losses, or X wins, draws and O wins in two-player mode) lives only in the open page and disappears when you leave it. The only thing saved is your best unbeaten streak per difficulty, as plain numbers in your browser's local storage under one key. Clearing site data removes it. The page address records your settings (opponent, difficulty, side) so you can bookmark them, and nothing else.
+Nothing is uploaded and there is no account. Your session tally (wins, draws, losses, or X wins, draws and O wins in two-player mode) lives only in the open page and disappears when you leave it. The only thing saved is your best unbeaten streak per difficulty, as small whole numbers inside a small JSON object in your browser's local storage under one key. Clearing site data removes it. The page address records your settings (opponent, difficulty, side) so you can bookmark them, and nothing else.
 
 ## Limits
 
 - Only finished games against the computer count toward the streak. A win or a draw extends it and a loss ends it. Restarting a game you have already moved in also ends the streak, so walking away from a lost game does not protect it.
 - The unbeaten streak counts draws, which is why it is the number worth watching on Unbeatable: you cannot win there, so a draw is the best result.
 - Two-player mode shares one device and has no streak or saved score.
-- Difficulty and "You play" apply only to the computer. They are remembered in the page address in two-player mode but do nothing there.
+- Difficulty and "You play" apply only to the computer. In two-player mode both menus are switched off, so changing a game in progress is not possible; they keep their last values, which stay in the page address for when you play the computer.
 - It plays the standard 3 x 3 game only: no bigger boards, no online play, no undo.
 
 Everything runs locally in your browser.

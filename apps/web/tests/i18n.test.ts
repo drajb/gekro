@@ -111,5 +111,5 @@ describe('content', () => {
     const r = spawnSync(process.execPath, [join(ROOT, 'scripts/verify-i18n.mjs')], { encoding: 'utf8' });
     expect(r.stderr + r.stdout).toContain('[verify-i18n]');
     expect(r.status, r.stderr + r.stdout).toBe(0);
-  });
+  }, 30_000); // spawns a node process; the 5 s default flakes when the machine is busy
 });

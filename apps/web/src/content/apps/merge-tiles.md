@@ -3,7 +3,7 @@ title: "Merge Tiles"
 category: "fun"
 job: "Play a free sliding tile game on a 4 x 4 grid. Slide, merge equal tiles, reach 2048 and keep going. Keyboard, swipe or buttons, with one-step undo."
 description: "Free tile-merging puzzle on a 4 x 4 grid. Arrow keys, swipe or buttons, one-step undo, a local best score. No ads, no signup, runs in your browser."
-aiSummary: "A free browser tile game on a 4 x 4 grid. Each move slides every tile as far as it can; two equal tiles that meet merge once into one worth double, and a tile made by a merge cannot merge again in the same move. After a move that changed the board, one new tile appears in a random empty cell, a 2 nine times in ten and a 4 otherwise. Reaching 2048 shows a note and play can continue; the game ends when the board is full and no equal tiles touch. Input is arrow keys or WASD, on-screen buttons, or a swipe. It has a single-step undo, which ends best-score tracking for that game. The engine is pure functions that take a random number generator, so tests replay games exactly. The best score is kept in local storage as plain numbers; nothing is uploaded."
+aiSummary: "A free browser tile game on a 4 x 4 grid. Each move slides every tile as far as it can; two equal tiles that meet merge once into one worth double, and a tile made by a merge cannot merge again in the same move. After a move that changed the board, one new tile appears in a random empty cell, a 2 nine times in ten and a 4 otherwise. Reaching 2048 shows a note and play can continue; the game ends when the board is full and no equal tiles touch. Input is arrow keys or WASD, on-screen buttons, or a swipe. It has a single-step undo, which ends best-score tracking for that game. The engine is pure functions that take a random number generator, so tests replay games exactly. The best score is kept as a small number in local storage; nothing is uploaded."
 personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A small engine and a board, with rules covered by tests that play thousands of moves, and no account or sign-in."
 status: "active"
 publishedAt: "2026-10-22"
@@ -40,17 +40,17 @@ Each tile has a stable identity, which is what lets the page animate it. A tile 
 
 ## Scoring, best score and undo
 
-Your score is the sum of the tiles created by merges. Your best score and largest tile are saved in your browser, and only from games where you did not use undo. Undo is a single step, and using it ends best-score tracking for that game, since it lets you retry a move after seeing the next tile. You can still keep playing; it just does not count toward your best.
+Your score is the sum of the tiles created by merges. Your best score is saved in your browser. Undo is a single step, and once you use it that game stops updating your best score, since it lets you retry a move after seeing the next tile. A score you reached before your first undo in that game is still kept. You can keep playing after an undo; the rest of that game just cannot raise your best.
 
 ## Privacy and storage
 
-Nothing is uploaded and there is no account. The best score and largest tile are stored in your browser's local storage as plain numbers, under one key. Clearing site data removes them. If storage is blocked, the game still works; scores just do not persist.
+Nothing is uploaded and there is no account. The best score is a small number kept in your browser's local storage, inside a small JSON object under one key. Clearing site data removes them. If storage is blocked, the game still works; scores just do not persist.
 
 ## Limits
 
 - Undo goes back one move only.
 - A game in progress is not saved if you close or reload the page.
-- Only the best score and largest tile are tracked; there are no leaderboards or daily boards.
+- Only the best score is tracked; there are no leaderboards or daily boards.
 - The new-tile odds are fixed, and the board is always 4 x 4.
 - Reaching a winning tile is not guaranteed to be possible from every starting position; some games run out of moves first.
 
