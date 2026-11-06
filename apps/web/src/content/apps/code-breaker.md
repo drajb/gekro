@@ -4,7 +4,7 @@ category: "fun"
 job: "Crack a secret code of symbols in a limited number of guesses, with exact hints and a solver that replays a classic strategy on your own code."
 description: "Free Code Breaker puzzle. Guess a secret code from 6 or 8 symbols, 4 or 5 pegs, with exact hints and a solver replay. No ads, no signup, runs in your browser."
 aiSummary: "A free browser code-guessing game. The computer picks a secret code of 4 or 5 pegs from 6 or 8 symbols, with repeats allowed or not. Each guess is scored with two numbers: pegs that are the right symbol in the right place, and pegs that are the right symbol in the wrong place, with duplicates handled so each secret peg matches at most one guess peg. A hint counts the codes that still fit all the scores so far, and names the code when only one is left. A solver replays a Knuth-style minimax strategy: in the default game it cracks all 1296 possible codes in at most 5 guesses, averaging 4.476 guesses. Best results are kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A guessing game is a small search problem, which makes it a good place to show a technique. The hint is an exact count, the solver is a well-known strategy, and the test suite checks both against brute force."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A guessing game is a small search problem, which makes it a good place to show a technique. The hint is an exact count, the solver is a well-known strategy, and the test suite checks both against brute force."
 status: "active"
 publishedAt: "2026-10-23"
 lastVerified: "2026-10-23"
@@ -19,13 +19,13 @@ The computer picks a secret code: a row of pegs, each one a symbol. You build a 
 - **Right place:** pegs that are the right symbol in the right position.
 - **Right symbol, wrong place:** pegs that are a symbol the secret contains, but in a different position.
 
-A score of **2 / 1** means two pegs are right in place and one more is the right symbol in the wrong place. The same score is drawn as small pegs next to your guess: a filled dot for each right place, a hollow ring for each right symbol in the wrong place. Use the scores to narrow the code down before you run out of guesses.
+A score of **2 / 1** means two pegs are right in place and one more is the right symbol in the wrong place. Next to each guess the score is written as two numbers, each with a symbol: a check mark and a number for the right symbol in the right place, a double arrow and a number for the right symbol in the wrong place. Small markers repeat it: a filled square for each right place, a hollow diamond for each right symbol in the wrong place, a faint dot for a position that scores nothing. Use the scores to narrow the code down before you run out of guesses.
 
 Before you start you can choose the code length (4 or 5 pegs), the number of symbols (6 or 8), whether a symbol may appear more than once, and how many guesses you get (8, 10 or 12). The default is 4 pegs, 6 symbols, repeats allowed and 10 guesses.
 
 Click a slot in the current guess, then a symbol, or type the symbol's number. Arrow keys move between slots, Backspace or Delete clears a slot, **Enter** submits, and **H** asks for a hint. With repeats off, the Submit button stays disabled while a symbol is used twice.
 
-Every symbol has a digit, a shape and a colour: 1 circle, 2 square, 3 triangle, 4 diamond, 5 star, 6 cross, 7 hexagon, 8 pentagon. You never need to tell colours apart, because the digit and the shape say the same thing.
+Every symbol has a digit, a shape and a colour: 1 circle, 2 square, 3 triangle, 4 diamond, 5 star, 6 cross, 7 hexagon, 8 pentagon. The symbols are rounded tiles in the site's sky, rose, amber, green, violet, lime, teal and orange tints. You never need to tell colours apart, because the digit and the shape say the same thing.
 
 ## How it works
 

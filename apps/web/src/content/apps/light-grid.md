@@ -4,10 +4,10 @@ category: "fun"
 job: "Play a free lamp-flipping puzzle in five sizes and three difficulties. Every board is solvable, and a hint and a shortest-solution tool are built in."
 description: "Free Light Grid puzzle from 3x3 to 7x7. Press a cell to flip it and its neighbours, switch every lamp off. Hint and shortest solution included. No signup."
 aiSummary: "A free browser puzzle. Pressing a cell flips it and its four orthogonal neighbours, and the goal is to turn every lamp off on a grid from 3x3 to 7x7. Boards are made by pressing random cells on a dark grid, so they are always solvable, whereas a random lit board on 5x5 is solvable only one time in four. Because presses commute and cancel in pairs, a game is a linear system over GF(2). The solver runs Gaussian elimination with bitmask rows, then enumerates the null space to find a minimum-size set of presses, which powers the Hint and Show a solution buttons. The null space has dimension 0 for 3x3, 6x6 and 7x7, 4 for 4x4 and 2 for 5x5. Best scores, fewest presses per size and difficulty, are kept in local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A small puzzle where the interesting part is the solver. It shows how a page of linear algebra over a two-element field turns trial and error into a calculation, and every claim about it is checked by tests."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A small puzzle where the interesting part is the solver. It shows how a page of linear algebra over a two-element field turns trial and error into a calculation, and every claim about it is checked by tests."
 status: "active"
 publishedAt: "2026-10-22"
-lastVerified: "2026-10-22"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "💡"
 ---
@@ -18,7 +18,7 @@ The board is a grid of lamps, each lit or dark. Pressing a cell flips that lamp 
 
 Pick a size (3x3 to 7x7) and a difficulty, then press cells with a tap, a click, or the keyboard: the arrow keys move, **Enter** or **Space** presses, **H** asks for a hint. Pressing the same cell twice puts everything back, so no undo button is needed. **Restart** returns to the same starting board; **New puzzle** deals a fresh one. The page address carries the board's seed, so you can send a friend the exact puzzle.
 
-Each press is announced for screen readers, with the cell pressed and how many lamps are still lit. Lamps are never shown by colour alone. A lit lamp is a filled circle and a dark lamp is a small hollow square. The solution tool marks cells with a dashed border and a diamond, and a hint uses a solid border and a diamond.
+Each press is announced for screen readers, with the cell pressed and how many lamps are still lit. Lamps are never shown by colour alone. A lit lamp is a filled circle and a dark lamp is a small hollow square. The solution tool marks cells with a dashed border and a diamond, and a hint uses a solid border and a diamond. Lit lamps glow amber in the middle with a soft sky-blue halo, and the solution and hint markers are violet so they never look like a lit lamp. When you clear the board a wave of colour ripples across the lamps, and it is switched off if your device asks for reduced motion.
 
 **Difficulty.** Easy scrambles the dark grid with about *n* random presses and Normal with about 2*n*, where *n* is the side length. Because presses can overlap and cancel, the fewest presses needed can be lower than that. Hard is different: it picks a board uniformly at random from the boards that can be cleared, never one that is already clear.
 

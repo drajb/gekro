@@ -4,7 +4,7 @@ category: "fun"
 job: "Play free Gomoku (five in a row) against the computer at three levels, or against a friend on the same screen. Freestyle rules, three board sizes."
 description: "Free Gomoku, five in a row, on a 9, 13 or 15 point board. Play the computer at three levels or a friend. No ads, no signup, runs in your browser."
 aiSummary: "A free browser Gomoku (five in a row) with freestyle rules: players alternate placing stones, and the first to make an unbroken line of five or more across, down or diagonally wins; a full board is a draw. Boards are 9 x 9, 13 x 13 or 15 x 15. The computer has three levels: Easy plays near existing stones but always takes a win and blocks a loss; Medium scores every empty point near a stone by the shapes it builds and stops, using a 6,561-entry pattern table; Hard adds a search for wins made of consecutive fours and an alpha-beta search three moves ahead over the 12 best points, capped at about a second. It is a heuristic search, not a perfect player. Records are kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. Gomoku is a good small test of game AI: the rules fit in two lines, and a pattern table plus a short search already plays a decent game. This version keeps the whole engine small, with tests behind the numbers on this page."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. Gomoku is a good small test of game AI: the rules fit in two lines, and a pattern table plus a short search already plays a decent game. This version keeps the whole engine small, with tests behind the numbers on this page."
 status: "active"
 publishedAt: "2026-10-23"
 lastVerified: "2026-10-23"
@@ -22,7 +22,7 @@ These are the freestyle rules: a line of six or more also wins, and the first pl
 - **Difficulty:** Easy, Medium or Hard, used when you play the computer.
 - **You play:** first (solid stones) or second (ring stones). Choosing second gives the computer the opening move.
 
-Click or tap a point to place a stone. With the keyboard, the arrow keys move around the board, Home and End jump to the ends of a row, and Enter or Space places a stone. The newest stone carries a small dot, and a winning line is highlighted. **Undo** takes back your last move and the computer's reply, or one move in a two-player game. Once a game is over, undo is off.
+Click or tap a point to place a stone. With the keyboard, the arrow keys move around the board, Home and End jump to the ends of a row, and Enter or Space places a stone. The board is a soft teal; solid stones are sky blue and ring stones are amber with a hollow centre. The newest stone carries a small dot on a lime-tinted point, and a winning line is highlighted in green with a ring that pulses twice (not at all if your system asks for reduced motion). With a mouse, hovering an empty point shows a faint preview of the stone you would place. **Undo** takes back your last move and the computer's reply, or one move in a two-player game. Once a game is over, undo is off.
 
 ## How it works
 

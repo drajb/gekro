@@ -4,7 +4,7 @@ category: "fun"
 job: "Play Snake on a 20 x 20 grid with keyboard, swipe or on-screen buttons. Pick a speed and choose between deadly walls or wrap-around edges."
 description: "Free Snake game for the browser. Three speeds, walls or wrap-around, keyboard, swipe and touch controls, and a best score per setting. No ads, no signup."
 aiSummary: "A free browser Snake on a 20 x 20 grid. A pure engine moves the snake one cell per tick, grows it by one segment per food eaten, and places food uniformly on empty cells. Walls either end the game or wrap to the opposite edge. A two-slot turn queue makes quick turns register and makes reversing into the neck impossible, and the tail cell counts as free on the step it leaves. A fixed-step accumulator keeps speed identical on 60 Hz and 144 Hz screens, at 6, 9 or 13 steps per second. Best scores are kept in the browser's local storage per speed and wall setting; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. Snake is small enough to read in one sitting: a grid, a list of cells and a handful of rules. This version keeps the engine free of the page, so the rules can be tested and replayed exactly."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. Snake is small enough to read in one sitting: a grid, a list of cells and a handful of rules. This version keeps the engine free of the page, so the rules can be tested and replayed exactly."
 status: "active"
 publishedAt: "2026-10-22"
 lastVerified: "2026-10-22"
@@ -21,6 +21,8 @@ Steer the snake to the food. Each piece you eat adds one segment and one point. 
 - **Start:** the game waits until your first move, or until you press **Start**. It cannot start by turning straight back, because the snake starts facing right.
 
 The game pauses itself when you switch to another tab and waits for you to resume.
+
+The snake is smooth and rounded, and its colour runs from a sky-blue head through violet to a rose tail, so a long snake shows which end is which. The food is a glowing amber berry. The board is a soft checker of two tints. Two eyes on the head show which way the snake faces. The only decoration that moves is the frame around the board, which changes colour when a game starts or ends; if your device asks for reduced motion, that is switched off too. The snake itself always steps one cell at a time.
 
 ## Speed and walls
 
@@ -43,7 +45,7 @@ The engine is a pure function with no page attached: `step(state, direction, rng
 - **Food.** New food is picked uniformly over the empty cells only, by counting the free cells and choosing the nth one. It can never land on the snake, and the test suite checks that every free cell comes up about equally often.
 - **Turn queue.** Pressing two keys within one step (up then left, say) is a normal way to make a U-turn. The game keeps up to two pending turns. Each new turn is checked against the one before it rather than against the current heading, so a turn that would reverse into the neck is dropped, however quickly keys arrive.
 - **Steady speed.** The loop adds up the time since the last frame and takes a step each time a full interval has passed, so a 144 Hz screen plays at the same speed as a 60 Hz one. A frame delta is capped at a quarter of a second, so a stalled tab cannot fast-forward the snake.
-- **Drawing.** The board is a canvas sized for your screen's pixel density (capped at 2x) and its colours are read from the site's own theme, so it follows light and dark mode. It is plain rectangles plus short text overlays such as Paused and Game over.
+- **Drawing.** The board is a canvas sized for your screen's pixel density (capped at 2x) and its colours are read from the site's own theme, so it follows light and dark mode. It is rounded shapes and circles plus short text overlays such as Paused and Game over, and it redraws when you switch between light and dark.
 
 The tests run a few hundred random and food-seeking games on several board sizes, with and without wrap-around, and check after every single step that no two segments overlap, every segment is on the board and next to the previous one, the length equals the starting length plus the food eaten, and the food is never on the snake. A scripted path that visits every cell wins on 4 x 4, 6 x 6 and 8 x 8 boards.
 

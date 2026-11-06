@@ -4,7 +4,7 @@ category: "fun"
 job: "Play free Klondike Solitaire with Draw 1 or Draw 3, drag and drop or keyboard play, unlimited undo, auto-complete and deal numbers you can share."
 description: "Free Klondike Solitaire with Draw 1 or Draw 3, drag and drop, keyboard play, unlimited undo and shareable deal numbers. No ads, no signup, runs in your browser."
 aiSummary: "A free browser Klondike Solitaire. A 52-card deck is shuffled with a seeded generator, so a deal number always gives the same layout and the page address (?deal=) can share it. It supports Draw 1 and Draw 3 with unlimited passes through the stock, drag and drop, click-to-select, a full keyboard path, unlimited undo, and auto-complete once every card on the table is face up and the stock is empty. The engine is pure TypeScript with immutable states and is tested by random play that checks that the position stays consistent after each move (52 distinct cards, face-down order, valid runs, foundation order). Random deals are shuffled, not filtered, so some cannot be won. Best times and win counts stay in the browser's local storage."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A seeded shuffle and a small rules engine, and every deal has a number so you can replay a hand or send it to someone."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A seeded shuffle and a small rules engine, and every deal has a number so you can replay a hand or send it to someone."
 status: "active"
 publishedAt: "2026-10-22"
 lastVerified: "2026-10-22"
@@ -16,10 +16,12 @@ icon: "🃏"
 
 Move every card onto the four foundations at the top right, one per suit, from Ace up to King. The seven columns start with one to seven cards, and only the last card of each column is face up. The other 24 cards are the stock.
 
-- **Columns:** build downwards in alternating colours, so a red 6 goes on a black 7. A run of face-up cards moves as one unit. Only a King, or a run that starts with a King, can go into an empty column.
+- **Columns:** build downwards, alternating between red suits and black suits, so a red 6 goes on a black 7. Hearts and diamonds are the red suits and are drawn in warm hues (rose and amber); spades and clubs are the black suits and are drawn in cool hues (violet and teal). Every card also carries its suit symbol, so you never have to rely on the hue. A run of face-up cards moves as one unit. Only a King, or a run that starts with a King, can go into an empty column.
 - **Foundations:** each one belongs to a suit and takes that suit in order, starting with the Ace. A single card goes to a foundation; a run cannot.
 - **Face-down cards:** when you move the last face-up card away from a column, the card beneath it turns over by itself.
 - **Stock and waste:** click the stock to turn cards onto the waste, where only the top card can be played. **Draw 1** turns one card, **Draw 3** turns three (fewer at the end of the stock). When the stock is empty, clicking it turns the waste back over to make a new stock, with no limit on passes.
+
+The cards are drawn with CSS: a tinted face, a coloured band behind the rank and suit in the corner, and a soft disc behind the large suit symbol. Face-down cards have diagonal bands of sky, violet and rose with an amber centre dot. The table is a deep violet-blue. When you win, the table glows twice and a message appears with your time and a Copy button; no cards fly around, and the glow is off if your system asks for reduced motion.
 
 There are three ways to move, and you can mix them:
 

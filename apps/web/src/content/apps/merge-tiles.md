@@ -1,10 +1,10 @@
 ---
 title: "Merge Tiles"
 category: "fun"
-job: "Play a free sliding tile game on a 4 x 4 grid. Slide, merge equal tiles, reach 2048 and keep going. Keyboard, swipe or buttons, with one-step undo."
+job: "Play a free sliding tile game on a 4 x 4 grid. Slide, merge equal tiles, build the biggest tile you can and keep going. Keyboard, swipe or buttons, with one-step undo."
 description: "Free tile-merging puzzle on a 4 x 4 grid. Arrow keys, swipe or buttons, one-step undo, a local best score. No ads, no signup, runs in your browser."
-aiSummary: "A free browser tile game on a 4 x 4 grid. Each move slides every tile as far as it can; two equal tiles that meet merge once into one worth double, and a tile made by a merge cannot merge again in the same move. After a move that changed the board, one new tile appears in a random empty cell, a 2 nine times in ten and a 4 otherwise. Reaching 2048 shows a note and play can continue; the game ends when the board is full and no equal tiles touch. Input is arrow keys or WASD, on-screen buttons, or a swipe. It has a single-step undo, which ends best-score tracking for that game. The engine is pure functions that take a random number generator, so tests replay games exactly. The best score is kept as a small number in local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A small engine and a board, with rules covered by tests that play thousands of moves, and no account or sign-in."
+aiSummary: "A free browser tile game on a 4 x 4 grid. Each move slides every tile as far as it can; two equal tiles that meet merge once into one worth double, and a tile made by a merge cannot merge again in the same move. After a move that changed the board, one new tile appears in a random empty cell, a 2 nine times in ten and a 4 otherwise. Making one of the largest tiles (shown with an amber rim) shows a note and play can continue; the game ends when the board is full and no equal tiles touch. Input is arrow keys or WASD, on-screen buttons, or a swipe. It has a single-step undo, which ends best-score tracking for that game. The engine is pure functions that take a random number generator, so tests replay games exactly. The best score is kept as a small number in local storage; nothing is uploaded."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A small engine and a board, with rules covered by tests that play thousands of moves, and no account or sign-in."
 status: "active"
 publishedAt: "2026-10-22"
 lastVerified: "2026-10-22"
@@ -16,9 +16,11 @@ icon: "🧩"
 
 The board is a 4 x 4 grid. Each move slides every tile as far as it can in one direction. When two tiles with the same number meet, they merge into one tile worth double, and the new tile's value is added to your score. After any move that changed the board, one new tile appears in a random empty cell: a 2 about nine times in ten, a 4 otherwise.
 
+Tile colours climb with the value: a pale sky blue for 2, then sky, teal, green, lime, amber, orange, rose and violet as the numbers grow. The number is printed on every tile, so you never need the colour to read the board. The board is a cool violet-tinted tray, and the glowing top tiles get a brief halo (not at all if your device asks for reduced motion).
+
 Click the board to focus it, then use the arrow keys or **W, A, S, D**. On a phone or tablet, swipe on the board; a drag of 24 pixels or more counts as one move. The four buttons beside the board do the same thing if you prefer to tap. **U** undoes the last move. **New game** starts over.
 
-Reach a 2048 tile and you get a note, then you can keep playing for a higher score. The game ends when the board is full and no two equal tiles touch. Arrow keys only scroll the page when the board is not focused.
+Make one of the glowing top tiles, the ones with an amber rim, and you get a note, then you can keep playing for a higher score. The game ends when the board is full and no two equal tiles touch. Arrow keys only scroll the page when the board is not focused.
 
 ## The one rule people argue about
 
@@ -52,6 +54,6 @@ Nothing is uploaded and there is no account. The best score is a small number ke
 - A game in progress is not saved if you close or reload the page.
 - Only the best score is tracked; there are no leaderboards or daily boards.
 - The new-tile odds are fixed, and the board is always 4 x 4.
-- Reaching a winning tile is not guaranteed to be possible from every starting position; some games run out of moves first.
+- Making a glowing top tile is not guaranteed to be possible from every starting position; some games run out of moves first.
 
 Everything runs locally in your browser.

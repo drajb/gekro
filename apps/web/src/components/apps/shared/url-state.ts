@@ -39,7 +39,8 @@ export function writeState(state: Record<string, StateValue>): void {
     params.set(key, String(value));
   }
   const newUrl = `${window.location.pathname}?${params.toString()}`;
-  window.history.replaceState(null, '', newUrl);
+  // Keep the router's own history entry (Astro stores its scroll index there); replacing it with null breaks Back after client-side navigation.
+  window.history.replaceState(window.history.state, '', newUrl);
 }
 
 export function shareLinkUrl(): string {

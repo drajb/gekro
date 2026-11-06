@@ -151,6 +151,61 @@ import AimTrainer from '../../components/apps-private/aim-trainer/Calculator.ast
 import TypingTest from '../../components/apps-private/typing-test/Calculator.astro';
 import Nonogram from '../../components/apps-private/nonogram/Calculator.astro';
 import WordGuess from '../../components/apps-private/word-guess/Calculator.astro';
+import LoopPuzzle from '../../components/apps-private/loop-puzzle/Calculator.astro';
+import IslandBridges from '../../components/apps-private/island-bridges/Calculator.astro';
+import MazeDash from '../../components/apps-private/maze-dash/Calculator.astro';
+import LetterGrid from '../../components/apps-private/letter-grid/Calculator.astro';
+import ColourFlood from '../../components/apps-private/colour-flood/Calculator.astro';
+import BinaryPuzzle from '../../components/apps-private/binary-puzzle/Calculator.astro';
+import SumGrid from '../../components/apps-private/sum-grid/Calculator.astro';
+import InequalityGrid from '../../components/apps-private/inequality-grid/Calculator.astro';
+import ColourTubes from '../../components/apps-private/colour-tubes/Calculator.astro';
+import PipeConnect from '../../components/apps-private/pipe-connect/Calculator.astro';
+import TrafficJam from '../../components/apps-private/traffic-jam/Calculator.astro';
+import CratePusher from '../../components/apps-private/crate-pusher/Calculator.astro';
+import WordSearch from '../../components/apps-private/word-search/Calculator.astro';
+import TimesTables from '../../components/apps-private/times-tables/Calculator.astro';
+import ClockReader from '../../components/apps-private/clock-reader/Calculator.astro';
+import CoinCounter from '../../components/apps-private/coin-counter/Calculator.astro';
+import ColourClash from '../../components/apps-private/colour-clash/Calculator.astro';
+import MorseTutor from '../../components/apps-private/morse-tutor/Calculator.astro';
+import Mancala from '../../components/apps-private/mancala/Calculator.astro';
+import Hex from '../../components/apps-private/hex/Calculator.astro';
+import NineMensMorris from '../../components/apps-private/nine-mens-morris/Calculator.astro';
+import FoxAndGeese from '../../components/apps-private/fox-and-geese/Calculator.astro';
+import Chess from '../../components/apps-private/chess/Calculator.astro';
+import GoFish from '../../components/apps-private/go-fish/Calculator.astro';
+import CrazyEights from '../../components/apps-private/crazy-eights/Calculator.astro';
+import CardWar from '../../components/apps-private/card-war/Calculator.astro';
+import Dominoes from '../../components/apps-private/dominoes/Calculator.astro';
+import SnakesAndLadders from '../../components/apps-private/snakes-and-ladders/Calculator.astro';
+import PigDice from '../../components/apps-private/pig-dice/Calculator.astro';
+import BrickSmasher from '../../components/apps-private/brick-smasher/Calculator.astro';
+import PatternEcho from '../../components/apps-private/pattern-echo/Calculator.astro';
+import CritterPop from '../../components/apps-private/critter-pop/Calculator.astro';
+import WingHop from '../../components/apps-private/wing-hop/Calculator.astro';
+import RoadHopper from '../../components/apps-private/road-hopper/Calculator.astro';
+import SoftLanding from '../../components/apps-private/soft-landing/Calculator.astro';
+import CannonShot from '../../components/apps-private/cannon-shot/Calculator.astro';
+import FallingSand from '../../components/apps-private/falling-sand/Calculator.astro';
+import CellGarden from '../../components/apps-private/cell-garden/Calculator.astro';
+import PixelArt from '../../components/apps-private/pixel-art/Calculator.astro';
+import DrumPad from '../../components/apps-private/drum-pad/Calculator.astro';
+import Piano from '../../components/apps-private/piano/Calculator.astro';
+import ColourMixer from '../../components/apps-private/colour-mixer/Calculator.astro';
+import CountingGarden from '../../components/apps-private/counting-garden/Calculator.astro';
+import ShapeSorter from '../../components/apps-private/shape-sorter/Calculator.astro';
+import MakeTen from '../../components/apps-private/make-ten/Calculator.astro';
+import SpellingBuilder from '../../components/apps-private/spelling-builder/Calculator.astro';
+import PatternMaker from '../../components/apps-private/pattern-maker/Calculator.astro';
+import OddOneOut from '../../components/apps-private/odd-one-out/Calculator.astro';
+import SortIt from '../../components/apps-private/sort-it/Calculator.astro';
+import DotToDot from '../../components/apps-private/dot-to-dot/Calculator.astro';
+import ColouringBook from '../../components/apps-private/colouring-book/Calculator.astro';
+import PicturePuzzle from '../../components/apps-private/picture-puzzle/Calculator.astro';
+import BalloonMaths from '../../components/apps-private/balloon-maths/Calculator.astro';
+import LetterTracer from '../../components/apps-private/letter-tracer/Calculator.astro';
+import BubblePop from '../../components/apps-private/bubble-pop/Calculator.astro';
 
 const CALCULATOR_MAP: Record<string, any> = {
   'llm-cost-calculator': LLMCostCalculator,
@@ -271,6 +326,61 @@ const CALCULATOR_MAP: Record<string, any> = {
   'typing-test': TypingTest,
   'nonogram': Nonogram,
   'word-guess': WordGuess,
+  'loop-puzzle': LoopPuzzle,
+  'island-bridges': IslandBridges,
+  'maze-dash': MazeDash,
+  'letter-grid': LetterGrid,
+  'colour-flood': ColourFlood,
+  'binary-puzzle': BinaryPuzzle,
+  'sum-grid': SumGrid,
+  'inequality-grid': InequalityGrid,
+  'colour-tubes': ColourTubes,
+  'pipe-connect': PipeConnect,
+  'traffic-jam': TrafficJam,
+  'crate-pusher': CratePusher,
+  'word-search': WordSearch,
+  'times-tables': TimesTables,
+  'clock-reader': ClockReader,
+  'coin-counter': CoinCounter,
+  'colour-clash': ColourClash,
+  'morse-tutor': MorseTutor,
+  'mancala': Mancala,
+  'hex': Hex,
+  'nine-mens-morris': NineMensMorris,
+  'fox-and-geese': FoxAndGeese,
+  'chess': Chess,
+  'go-fish': GoFish,
+  'crazy-eights': CrazyEights,
+  'card-war': CardWar,
+  'dominoes': Dominoes,
+  'snakes-and-ladders': SnakesAndLadders,
+  'pig-dice': PigDice,
+  'brick-smasher': BrickSmasher,
+  'pattern-echo': PatternEcho,
+  'critter-pop': CritterPop,
+  'wing-hop': WingHop,
+  'road-hopper': RoadHopper,
+  'soft-landing': SoftLanding,
+  'cannon-shot': CannonShot,
+  'falling-sand': FallingSand,
+  'cell-garden': CellGarden,
+  'pixel-art': PixelArt,
+  'drum-pad': DrumPad,
+  'piano': Piano,
+  'colour-mixer': ColourMixer,
+  'counting-garden': CountingGarden,
+  'shape-sorter': ShapeSorter,
+  'make-ten': MakeTen,
+  'spelling-builder': SpellingBuilder,
+  'pattern-maker': PatternMaker,
+  'odd-one-out': OddOneOut,
+  'sort-it': SortIt,
+  'dot-to-dot': DotToDot,
+  'colouring-book': ColouringBook,
+  'picture-puzzle': PicturePuzzle,
+  'balloon-maths': BalloonMaths,
+  'letter-tracer': LetterTracer,
+  'bubble-pop': BubblePop,
 };
 
 export async function getStaticPaths() {

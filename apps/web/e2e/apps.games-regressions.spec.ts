@@ -9,13 +9,8 @@
  *  - touch-size floors for the disclosure toggle and the Gomoku board.
  */
 import { test, expect } from '@playwright/test';
+import { GAMES } from './games-list';
 
-const GAMES = [
-  'sudoku', 'merge-tiles', 'snake', 'tic-tac-toe', 'four-in-a-row', 'match-pairs', 'mines',
-  'hangman', 'solitaire', 'sliding-puzzle', 'light-grid', 'tower-of-hanoi', 'reversi',
-  'reaction-time', 'peg-solitaire', 'checkers', 'dots-and-boxes', 'gomoku',
-  'typing-test', 'aim-trainer', 'nonogram', 'code-breaker', 'nim', 'word-guess',
-];
 
 const NOISE = /cloudflare|CORS|ERR_FAILED|preload|favicon/i;
 
@@ -60,6 +55,66 @@ test('client-side navigation between games logs no warnings or errors', async ({
     await page.waitForTimeout(900);
   }
   expect(bad).toEqual([]);
+});
+
+test('the shell cancels repeated Enter and Space on game buttons, once per key press only', async ({ page }) => {
+  await page.goto('/apps/pig-dice/');
+  await expect(page.locator('#calculator-island')).toBeVisible();
+  await page.waitForTimeout(1200);
+  const r = await page.evaluate(() => {
+    const island = document.getElementById('calculator-island')!;
+    const btn = document.createElement('button');
+    island.appendChild(btn);
+    const fire = (el: Element, init: KeyboardEventInit) => {
+      const ev = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init });
+      el.dispatchEvent(ev);
+      return ev.defaultPrevented;
+    };
+    const optOut = document.createElement('button');
+    optOut.setAttribute('data-allow-repeat', '');
+    island.appendChild(optOut);
+    const box = document.createElement('input');
+    box.type = 'text';
+    island.appendChild(box);
+    const out = {
+      textBoxRepeatEnter: fire(box, { key: 'Enter', repeat: true }),
+      textBoxRepeatSpace: fire(box, { key: ' ', repeat: true }),
+      textBoxFirstEnter: fire(box, { key: 'Enter', repeat: false }),
+      repeatEnter: fire(btn, { key: 'Enter', repeat: true }),
+      repeatSpace: fire(btn, { key: ' ', repeat: true }),
+      firstEnter: fire(btn, { key: 'Enter', repeat: false }),
+      repeatArrow: fire(btn, { key: 'ArrowRight', repeat: true }),
+      optOut: fire(optOut, { key: 'Enter', repeat: true }),
+    };
+    optOut.remove();
+    btn.remove();
+    box.remove();
+    return out;
+  });
+  expect(r).toEqual({ textBoxRepeatEnter: true, textBoxRepeatSpace: false, textBoxFirstEnter: false, repeatEnter: true, repeatSpace: true, firstEnter: false, repeatArrow: false, optOut: false });
+});
+
+test('the shell keeps keyboard focus in the game when the focused button hides itself', async ({ page }) => {
+  await page.goto('/apps/pig-dice/');
+  await expect(page.locator('#calculator-island')).toBeVisible();
+  await page.waitForTimeout(1200);
+  await page.evaluate(() => {
+    const island = document.getElementById('calculator-island')!;
+    const box = document.createElement('div');
+    box.id = 'focus-guard-box';
+    box.innerHTML = '<button id="focus-guard-btn" type="button">Test</button>';
+    island.appendChild(box);
+    (document.getElementById('focus-guard-btn') as HTMLButtonElement).focus();
+    island.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    box.style.display = 'none';
+  });
+  await page.waitForTimeout(500);
+  const where = await page.evaluate(() => {
+    const a = document.activeElement;
+    const island = document.getElementById('calculator-island')!;
+    return { body: a === document.body, inIsland: !!a && island.contains(a), hiddenBox: a?.closest('#focus-guard-box') != null };
+  });
+  expect(where).toEqual({ body: false, inIsland: true, hiddenBox: false });
 });
 
 for (const slug of ['sudoku', 'sliding-puzzle', 'light-grid']) {
@@ -122,6 +177,7 @@ test('tic-tac-toe: two-player mode keeps the game when the computer menus are to
 });
 
 test('every game\'s "how it works" toggle is at least 28 px tall', async ({ page }) => {
+  test.setTimeout(240_000); // one page load per game
   const small: string[] = [];
   for (const slug of GAMES) {
     await page.goto(`/apps/${slug}/`);

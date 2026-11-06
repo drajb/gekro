@@ -4,10 +4,10 @@ category: "fun"
 job: "Play Tower of Hanoi with 3 to 8 discs, see the minimum move count, and watch the shortest solution play out step by step from wherever you are."
 description: "Free Tower of Hanoi with 3 to 8 discs, a live minimum-move count, undo, keyboard play and an Auto-solve that plays the shortest solution. No ads, no signup."
 aiSummary: "A free browser Tower of Hanoi with three pegs and 3 to 8 discs. It shows the minimum number of moves (2^n - 1) beside your move count, supports click, tap and keyboard play, undo, and an Auto-solve that plays the shortest possible solution from the current position (confirmed by exhaustive search for 3 to 6 discs). The engine is tested: the recursive solution is legal and has exactly 2^n - 1 moves for 1 to 12 discs, an exhaustive search of all 3^n positions confirms nothing shorter exists up to 8 discs, and the disc moved at step k is set by the trailing zero bits of k. Best moves and best time per disc count are kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A small puzzle whose whole solution is one short recursive function, which makes it a clean case where you can prove the answer is the shortest possible instead of just trusting it."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A small puzzle whose whole solution is one short recursive function, which makes it a clean case where you can prove the answer is the shortest possible instead of just trusting it."
 status: "active"
 publishedAt: "2026-10-22"
-lastVerified: "2026-10-22"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "🗼"
 ---
@@ -19,6 +19,8 @@ Three pegs, and a stack of discs on the first one with the largest at the bottom
 - **Mouse or touch:** click a peg to pick up its top disc (it lifts), then click the peg to drop it on. Click the same peg again to put the disc back. Illegal moves show a short message instead of doing anything.
 - **Keyboard:** left and right arrows move between pegs, **Enter** or **Space** picks up and drops, **1**, **2** and **3** choose a peg directly, **Escape** puts a disc back, **U** undoes.
 - **Screen readers:** each peg is a button that names its contents from bottom to top, for example "Peg 2: discs 3 and 1, top is 1", and a status line says which disc moved and between which pegs.
+
+Every disc has its own colour as well as its number, from the smallest to the largest: rose, orange, amber, lime, green, teal, sky and violet. The colour is only decoration, because the number printed on each disc says which one it is. The three pegs have a soft tint of their own (sky, violet and amber) so they are easy to tell apart. A peg you can legally drop onto gets a dashed, glowing edge, which is a shape cue as well as a colour. When you finish, the discs hop one after another and the result card turns green. With reduced motion switched on in your system settings the hop is skipped.
 
 Beside your move count the page shows the minimum possible for that many discs. When you finish it says **Perfect** if you matched it, or how many moves over the minimum you were. **Undo** takes a disc back, but the move still counts in your total, so the number stays honest. The timer starts at your first move and pauses when the tab is hidden.
 

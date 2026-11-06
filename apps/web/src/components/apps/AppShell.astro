@@ -148,10 +148,65 @@ const categoryLabels: Record<string, string> = {
     }
   };
 
+  // Holding Enter or Space on a button must act once, not once per key repeat. Without this a held key
+  // restarts a game, resigns a chess game or fires every shot in a cannon game (22 games leaked it in review).
+  // A button that really wants repeats (hold to nudge) opts out with data-allow-repeat.
+  const initRepeatGuard = () => {
+    const island = document.getElementById('calculator-island');
+    if (!island || (island as any)._repeatInit) return;
+    (island as any)._repeatInit = true;
+    island.addEventListener('keydown', (e) => {
+      if (!e.repeat || (e.key !== 'Enter' && e.key !== ' ')) return;
+      const t = e.target as Element | null;
+      // A held Enter in a one-line text box submits its form again and again; held Space still types spaces.
+      const textBox = e.key === 'Enter' && t && t.matches && t.matches('input:not([type=checkbox]):not([type=radio]):not([type=range])') ? t : null;
+      const b = textBox ?? (t && t.closest ? t.closest('button, [role="button"]') : null);
+      if (!b || !island.contains(b) || b.hasAttribute('data-allow-repeat')) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+  };
+
+  // Safety net for keyboard focus. When a player presses a button that hides its own panel (New game in a
+  // result card) or disables itself, the browser drops focus to <body> and the next Tab starts at the top
+  // of the page. A game should move focus itself; if it did not, this puts it on a usable control.
+  const initFocusGuard = () => {
+    const island = document.getElementById('calculator-island');
+    if (!island || (island as any)._focusInit) return;
+    (island as any)._focusInit = true;
+    let last: HTMLElement | null = null;
+    let lastAction = 0;
+    island.addEventListener('focusin', (e) => { last = e.target as HTMLElement; });
+    for (const type of ['keydown', 'pointerdown', 'click']) {
+      island.addEventListener(type, () => { lastAction = Date.now(); }, true);
+    }
+    const usable = (el: HTMLElement | null): el is HTMLElement =>
+      !!el && el.isConnected && el.getClientRects().length > 0 && !(el as HTMLButtonElement).disabled && !el.closest('[inert]');
+    const check = () => {
+      if (Date.now() - lastAction > 2500) return;
+      const now = document.activeElement;
+      if (now && now !== document.body && now !== document.documentElement) return;
+      if (!last || usable(last)) return;
+      const candidates = [...island.querySelectorAll<HTMLElement>('[tabindex="0"], button, [role="button"]')];
+      const pick = candidates.find((el) => el.getAttribute('tabindex') === '0' && usable(el) && el.getAttribute('aria-disabled') !== 'true')
+        ?? candidates.find((el) => usable(el) && el.getAttribute('aria-disabled') !== 'true');
+      if (pick) pick.focus({ preventScroll: true });
+    };
+    let queued = 0;
+    new MutationObserver(() => {
+      if (queued) return;
+      queued = window.setTimeout(() => { queued = 0; check(); }, 120);
+    }).observe(island, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'disabled', 'inert', 'style', 'class', 'aria-hidden'] });
+  };
+
   initShareButton();
   initAppAnimations();
+  initRepeatGuard();
+  initFocusGuard();
   document.addEventListener('astro:after-swap', () => {
     initShareButton();
     initAppAnimations();
+    initRepeatGuard();
+    initFocusGuard();
   });
 </script>

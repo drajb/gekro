@@ -4,7 +4,7 @@ category: "fun"
 job: "Play Dots and Boxes against a computer at three levels, or against a friend on the same screen. Three board sizes, undo, keyboard play, and a session tally."
 description: "Free Dots and Boxes for one or two players. Three board sizes, three computer levels, undo, keyboard play, letters on every box. No ads, no signup."
 aiSummary: "A free browser game of Dots and Boxes on 3 x 3, 4 x 4 or 5 x 5 boxes. Players take turns drawing a line between two dots; whoever completes the fourth side of a box claims it and moves again. The computer has three levels: Easy takes a box when it can and otherwise draws at random; Medium also avoids drawing the third side of a box and, when it cannot, gives away as few boxes as possible; Hard adds end-game chain control, solving the rest of the game exactly by memoised minimax once 16 or fewer lines are left (which finds the double-dealing move), with a one-second time cap. Players are told apart by the letter A or B in each claimed box as well as by colour. It supports two players on one screen, undo, full keyboard play, and a session tally. Wins per size and level are kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A rules engine, a chain-aware computer and an exact endgame solver, with tests that check the solver against a plain brute-force search."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A rules engine, a chain-aware computer and an exact endgame solver, with tests that check the solver against a plain brute-force search."
 status: "active"
 publishedAt: "2026-10-23"
 lastVerified: "2026-10-23"
@@ -16,14 +16,14 @@ icon: "🔲"
 
 The board is a grid of dots. Players take turns drawing one line between two neighbouring dots. When a line completes the fourth side of a box, that player claims the box, which is marked with their letter (**A** or **B**), and **must draw again**. When every line is drawn, whoever holds more boxes wins. The 3 x 3 and 5 x 5 boards have an odd number of boxes (9 and 25), so they cannot end in a tie; the 4 x 4 board has 16 and can.
 
-Choose a **Board size**: 3 x 3 boxes (4 x 4 dots, 24 lines), 4 x 4 boxes (5 x 5 dots, 40 lines) or 5 x 5 boxes (6 x 6 dots, 60 lines). Pick an **Opponent**: the computer, or **Two players** on the same screen. Against the computer, choose a **Difficulty** and whether you play **first (A)** or **second (B)**. A is always the player who moves first, with blue lines; B has amber lines. Changing any setting starts a new game.
+Choose a **Board size**: 3 x 3 boxes (4 x 4 dots, 24 lines), 4 x 4 boxes (5 x 5 dots, 40 lines) or 5 x 5 boxes (6 x 6 dots, 60 lines). Pick an **Opponent**: the computer, or **Two players** on the same screen. Against the computer, choose a **Difficulty** and whether you play **first (A)** or **second (B)**. A is always the player who moves first, with blue lines; B has amber lines. A box you close is filled in your colour and ringed, with your letter in the middle. Changing any setting starts a new game.
 
-- **Mouse or touch:** press the gap between two dots. Each line has a tap area at least 28 px thick, and the line you or the computer drew last has a ring around it.
+- **Mouse or touch:** press the gap between two dots. Each line has a tap area about 28 px thick (24 px on the 5 x 5 board at 320 px wide), and the line you or the computer drew last has a ring around it.
 - **Keyboard:** arrow keys move between lines, Home and End jump to the ends of a row, Enter or Space draws the line.
-- **Undo** takes back your last turn, including the computer's reply and any chain of boxes it took, so it is your turn again. With two players it takes back the last turn, which may be a chain. Once a game is over, undo is off.
+- **Undo** takes back your last turn, including the computer's reply and any chain of boxes it took, so it is your turn again. With two players it takes back the last turn, which may be a chain, and the status line names whose turn it is again. Once a game is over, undo is off.
 - **Copy result** copies a short summary of your session tally and the page address.
 
-A box shows the letter of whoever claimed it, not only a colour, so the two sides can be told apart without relying on colour. The result is also written out in words below the board.
+The board sits on a soft violet and teal panel with violet dots. A box shows the letter of whoever claimed it, not only a colour, so the two sides can be told apart without relying on colour. The result is also written out in words below the board.
 
 ## How it works
 
@@ -58,7 +58,7 @@ Nothing is uploaded and there is no account. The number of games you have won ag
 
 - Hard is exact only for the last 16 lines. Before that it follows rules of thumb about chains, so a long plan can still beat it. It is a good opponent, not a perfect one.
 - Easy is meant to be beatable: it never looks ahead and happily gives boxes away.
-- The 5 x 5 board has small boxes on a narrow phone. Lines keep a tap area of at least 28 px, but 4 x 4 or 3 x 3 is easier to play there.
+- The 5 x 5 board has small boxes on a narrow phone. Lines keep a tap area of 28 px, or 24 px at 320 px wide, but 4 x 4 or 3 x 3 is easier to play there.
 - With two players there is no clock, no names and no saved games.
 - The tally and the current game are not saved if you reload the page.
 - Undo is not available after the game ends.

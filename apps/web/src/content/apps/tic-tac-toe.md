@@ -4,7 +4,7 @@ category: "fun"
 job: "Play free Tic Tac Toe against a computer at three levels, including one that never loses, or against a friend on the same device."
 description: "Free Tic Tac Toe against the computer (easy, medium or unbeatable) or a friend on one device. Keyboard friendly, no ads, no signup, runs in your browser."
 aiSummary: "A free browser Tic Tac Toe. Easy plays random legal moves, Medium takes a win or blocks a loss and otherwise plays randomly, and Unbeatable runs a memoised minimax search over the whole game tree, so it never loses as X or as O. The test suite enumerates every reachable position (5,478, including the empty board) and every possible complete game (255,168: 131,184 X wins, 77,904 O wins, 46,080 draws), and plays the Unbeatable computer against every possible sequence of opponent moves as both first and second player. Two-player mode, keyboard play (arrow keys, Enter, number keys 1 to 9) and a session tally are included. Best unbeaten streaks are kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. Tic Tac Toe is small enough to solve completely, which makes it a good place to see minimax working with nothing hidden. The engine is small, and the tests check it against every game that can be played."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. Tic Tac Toe is small enough to solve completely, which makes it a good place to see minimax working with nothing hidden. The engine is small, and the tests check it against every game that can be played."
 status: "active"
 publishedAt: "2026-10-22"
 lastVerified: "2026-10-22"
@@ -16,9 +16,9 @@ icon: "⭕"
 
 Take turns placing X and O on a 3 x 3 grid. The first to get three in a row, across, down or diagonally, wins. If the board fills up with no line, it is a draw. X always goes first.
 
-Pick **Computer** or **Two players on this device** under Opponent. Against the computer, choose a difficulty and whether you play X (you move first) or O (the computer moves first). Click or tap a square, or use the keyboard: arrow keys move between squares, **Enter** or **Space** places your mark, and the number keys **1 to 9** place one directly (1 is the top left, 9 is the bottom right). The winning line is outlined, filled and underlined, so it does not rely on colour alone.
+Pick **Computer** or **Two players on this device** under Opponent. Against the computer, choose a difficulty and whether you play X (you move first) or O (the computer moves first). Click or tap a square, or use the keyboard: arrow keys move between squares, **Enter** or **Space** places your mark, and the number keys **1 to 9** place one directly (1 is the top left, 9 is the bottom right). X is drawn in sky blue and O in rose, inside a violet frame, and the Turn pill and the tally boxes use the same two colours (amber for draws). On a device with a mouse, hovering an empty square shows a faint preview of the mark you are about to place. The winning line sweeps in green, and it is also outlined, filled and underlined, so it does not rely on colour alone.
 
-The computer answers after a short pause of about a third of a second, and the board is locked while it thinks. If your system asks for reduced motion, the pause and the small pop-in animation are both switched off.
+The computer answers after a short pause of about a third of a second, and the board is locked while it thinks. If your system asks for reduced motion, the pause, the pop-in animation, the winning sweep and the small dots that appear after a win are all switched off.
 
 ## How it works
 

@@ -4,10 +4,10 @@ category: "fun"
 job: "Play free Nonogram picture logic puzzles in three sizes with a daily puzzle. Every puzzle has one solution that logic alone will find, so you never have to guess."
 description: "Free Nonogram picture puzzles in 5x5, 10x10 and 15x15 with a daily puzzle and explained hints. Every puzzle has one solution found by logic. No ads, no signup."
 aiSummary: "A free browser Nonogram (picture logic puzzle) in 5x5, 10x10 and 15x15. A seeded generator draws a random picture, reads off the row and column clues, and keeps the picture only if a line solver can rebuild it from the clues alone. The solver only fills a cell that every possible arrangement of a clue agrees on, so a finished solve proves the answer is unique and reachable without guessing. The same seed always gives the same puzzle, which makes the daily puzzle identical for everyone with no server. Hints name the row or column they came from. Best times are kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A Nonogram generator is easy to write badly: a random picture often has several valid answers, which turns a logic puzzle into a guessing game. This one throws away any picture its own line solver cannot finish, and the solver is small."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A Nonogram generator is easy to write badly: a random picture often has several valid answers, which turns a logic puzzle into a guessing game. This one throws away any picture its own line solver cannot finish, and the solver is small."
 status: "active"
 publishedAt: "2026-10-23"
-lastVerified: "2026-10-23"
+lastVerified: "2026-11-05"
 license: "MIT"
 icon: "🟦"
 ---
@@ -19,7 +19,8 @@ Each number beside a row or above a column is the length of a run of filled cell
 - **Fill** and **Mark X** set what a click or tap does. Mark X puts a cross on a cell you know is empty. Crosses are only a memory aid and are never needed to win.
 - On a computer you can **drag** across a row or column to paint it. On a touch screen, tap one cell at a time.
 - Keyboard: arrow keys move, **F** or **Space** fills, **X** marks, **Backspace** or **Delete** clears the cell, **M** switches Fill and Mark X, **U** undoes, **H** gives a hint.
-- When a row or column already matches its clue, the clue is dimmed, crossed out and given a check mark. A line can match its clue and still sit in the wrong place, so this is a progress cue, not proof.
+- When a row or column already matches its clue, the clue is dimmed, crossed out and given a check mark. A line can match its clue and still sit in the wrong place, so this is a progress cue, not proof. The matched line's clue also gets a green edge and its filled cells shine.
+- Filled cells are gradient blocks. Their colour sweeps across the picture in six bands, from sky blue through teal, green, amber and rose to violet, so the finished picture is a rainbow. The colour carries no meaning: a filled cell is a solid block with an inset edge, a marked cell is a cross, and a mistake is a dashed border with an exclamation mark. When you finish, a wave of colour runs once across the picture; with reduced motion switched on in your system settings it is skipped.
 - **Check** reports how many lines match. **Show mistakes** compares your board with the answer and flags the cells that contradict it.
 
 The puzzle is solved when every row and column matches its clue. That is judged by the clues, not by comparing with a stored picture. Because every puzzle has exactly one solution, the two are the same thing.
@@ -61,7 +62,8 @@ Nothing is uploaded and there is no account. Your best time per size is saved in
 
 - Sizes are 5, 10 and 15 square. There are no rectangular or colour puzzles.
 - Difficulty is by size only. Puzzles are guaranteed to be solvable by single-line deductions, so they never need the harder two-line reasoning that large hand-made puzzles sometimes do.
-- A 15 x 15 board is tight on a 375 px wide phone. The cells shrink to about 18 px and the clue text gets small. If the board is still wider than the screen it scrolls sideways inside its own box, and the page says so.
+- A 15 x 15 board is tight on a 375 px wide phone. The cells shrink to about 19 px (18 px at 320 px wide) and the clue text gets small. If a board is ever wider than the screen it scrolls sideways inside its own box, and the page says so.
+- A 10 x 10 board on a 320 px wide phone has cells of about 25 px, a little under the 28 px I aim for elsewhere. The 5 x 5 cells are larger, and on a wider phone the 10 x 10 cells grow.
 - Drag painting works with a mouse or pen. On a touch screen it is turned off so that scrolling the page keeps working, and you tap one cell at a time.
 - The daily puzzle uses your local date, so two players in different time zones can briefly see different dates.
 - Pictures are random shapes, not drawings, so a solved puzzle shows an abstract pattern rather than a recognisable image.

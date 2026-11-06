@@ -4,7 +4,7 @@ category: "fun"
 job: "Measure your typing speed in 30, 60 or 120 seconds with the standard words-per-minute formulas. Plain text, live accuracy, saved personal bests, nothing uploaded."
 description: "Free typing speed test with 30, 60 and 120 second rounds. Shows net and gross WPM, accuracy and mistakes. Bests stay in your browser. No ads, no signup."
 aiSummary: "A free browser typing speed test. It shows a passage built from a bank of plain-English sentences written for this page, starts the clock on the first keystroke and runs for 30, 60 or 120 seconds. It compares every typed character with the text and reports net WPM, gross WPM, accuracy, characters correct, errors left and mistakes made, using the standard definition of one word as five characters. Pasting and bulk input are ignored. The best net WPM and the number of tests per duration are kept in the browser's local storage as small numbers inside a small JSON object; what you type is never stored or sent."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. This test states its formulas on the page, shows corrected mistakes separately from errors left, and keeps your bests on your own device."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. This test states its formulas on the page, shows corrected mistakes separately from errors left, and keeps your bests on your own device."
 status: "active"
 publishedAt: "2026-10-23"
 lastVerified: "2026-10-23"
@@ -16,7 +16,7 @@ icon: "⌨️"
 
 Pick a duration, click the box under the text and start typing. The clock starts on your first keystroke, not before, and the test ends when the time is up. Type exactly what you see, capitals, spaces and punctuation included.
 
-While you type, each character in the passage changes. A correct character turns green. A wrong one is underlined with a wavy line, so you can tell it apart without relying on colour. The next character to type has a bar beside it. Backspace works, so you can fix a mistake or leave it and keep going.
+While you type, each character in the passage changes. A correct character gets a soft green highlight and a solid line under it. A wrong one gets a rose highlight and a wavy line under it, so you can tell the two apart without relying on colour. The next character to type has a blue bar beside it. The text itself keeps the normal text colour, so it stays easy to read. Backspace works, so you can fix a mistake or leave it and keep going.
 
 Esc restarts with the same text. **New passage** and **Try again** give you different text. If you get within about 100 characters of the end of the passage, more sentences are added, so nobody runs out of text. Pasting is turned off, and the tab being hidden cancels a running test.
 

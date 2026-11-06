@@ -4,7 +4,7 @@ category: "fun"
 job: "Play Four in a Row against a computer at three levels, or against a friend on the same screen. Drop discs, line up four, keep a session tally."
 description: "Free Four in a Row for one or two players. Three computer levels, undo, keyboard play, and a mark on every disc beyond colour. No ads, no signup."
 aiSummary: "A free browser game of Four in a Row on a 7 by 6 board. The computer opponent uses negamax search with alpha-beta pruning, looking 1, 4 or 7 moves ahead on Easy, Medium and Hard. It scores each of the 69 possible lines of four, adds a centre-column bonus, takes a win and blocks an immediate loss on Medium and Hard (Easy skips that check about one move in four), and picks at random among equal moves. Discs differ by a dot or a ring as well as by colour. It supports two players on one screen, undo, full keyboard play, and a session tally. The best win streak per level is kept in the browser's local storage; nothing is uploaded."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. A rules engine, a search and a board in one small engine, and its tests check every one of the 69 winning lines and the computer's behaviour move by move."
+personalUse: "Anyone is welcome to play and learn with this, with no ads. A rules engine, a search and a board in one small engine, and its tests check every one of the 69 winning lines and the computer's behaviour move by move."
 status: "active"
 publishedAt: "2026-10-22"
 lastVerified: "2026-10-22"
@@ -16,14 +16,14 @@ icon: "🔴"
 
 Take turns dropping a disc into one of seven columns. The disc falls to the lowest free space. The first player to line up four of their discs wins, in a row, a column or a diagonal. If the board fills with no four, it is a draw.
 
-Pick an **Opponent**: the computer, or **Two players** on the same screen. Against the computer, choose a **Difficulty** and whether you **go first** (blue discs with a dot) or **go second** (amber discs with a ring). The first player is always blue. Changing any of these starts a new game.
+Pick an **Opponent**: the computer, or **Two players** on the same screen. Against the computer, choose a **Difficulty** and whether you **go first** (violet discs with a dot) or **go second** (amber discs with a ring). The first player is always violet. Changing any of these starts a new game.
 
 - **Mouse or touch:** press a column button above the board, or tap the board itself. The column buttons say how many spaces are free and switch off when a column is full.
 - **Keyboard:** left and right arrows move between columns, Enter or Space drops a disc, and the keys **1** to **7** drop straight into a column.
 - **Undo** takes back your last move and the computer's reply, so it is your turn again. With two players it takes back one move. Once a game is over, undo is off. A game in which you used Undo against the computer is not counted: it leaves the session tally, your win streak and your saved best as they were.
 - **Copy result** copies a short summary of your session tally and the page address.
 
-Each disc carries a mark as well as a colour, a solid dot for the first player and a ring for the second, so the two sides can be told apart without relying on colour. The winning four is outlined with a solid frame, and the result is also written out in words below the board.
+Each disc carries a mark as well as a colour, a solid dot for the first player and a ring for the second, so the two sides can be told apart without relying on colour. The board is a flat, rounded tray in a soft violet-tinted dark neutral, and the discs are violet and amber with a light shading. The winning four is outlined with a solid frame and glows briefly (not at all if your device asks for reduced motion), and the result is also written out in words below the board.
 
 ## How it works
 
