@@ -133,6 +133,8 @@ The project uses a formal **decision log + issue tracker** workflow. These files
 3. **Override protocol:** If a user request contradicts an existing decision, STOP, cite the conflicting decision's date, reason through trade-offs, and wait for the user to say literally **"Override"** before proceeding.
 4. **Proactive verification:** If a proposed change might break an existing decision or recreate a known issue, warn the user before implementing.
 
+**Where the logs live (since 2026-11-05):** `.gekro/logs/` is gitignored here. It is a local directory junction to `project-logs/` in the PRIVATE `drajb/gekro-apps` repo, so paths in this file still work. Commit log changes in `G:/Git/gekro-apps`, not here. Fresh machine: `cmd /c mklink /J G:\Git\gekro\.gekro\logs G:\Git\gekro-apps\project-logs`.
+
 Current decision count: **~60+ decisions** (latest: 2026-10-23; override count 2).
 Current issue count: **~60+ logged** (latest: 2026-10-23 AppShell clearProps wiped inline styles, found while building the games; incl. the proof-layer backlog item — every new experiment must have at least one screenshot or `render_diffs` block).
 
