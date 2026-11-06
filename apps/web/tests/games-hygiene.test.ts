@@ -174,7 +174,11 @@ describe.each(SLUGS)('games hygiene: %s guide page', (slug) => {
   });
 
   it('opens personalUse with the standard audience sentence', () => {
-    expect(field('personalUse')).toMatch(/^I built this for my kids to play and learn, and anyone is welcome to use it, with no ads\./);
+    expect(field('personalUse')).toMatch(/^Anyone is welcome to play and learn with this, with no ads\./);
+  });
+
+  it('never mentions the owner\'s family anywhere in the guide', () => {
+    expect(raw).not.toMatch(/\b(my|his|our)\s+(own\s+)?(two\s+|2\s+)?(kids|children|family|son|daughter|boys|girls)\b/i);
   });
 
   it('has a How to play section, at least one more section, and a sensible length', () => {

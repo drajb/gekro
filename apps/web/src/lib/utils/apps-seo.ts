@@ -96,7 +96,7 @@ export const CATEGORY_META: Record<AppCategory, CategoryMeta> = {
     description:
       'Dozens of free browser games for children and families: puzzles, Chess and board games, learning games, arcade and sandbox toys. No ads, no signup.',
     intro:
-      'I built the games here for my kids to play and learn, and anyone is welcome to use them. They run entirely in your browser: nothing to install, no account, no ads, and nothing uploaded. Random draws use the browser crypto API rather than Math.random, and daily puzzles are built from the date so everyone gets the same one. Every game is original and is not affiliated with any other game or brand.',
+      'Anyone is welcome to play and learn with the games here. They run entirely in your browser: nothing to install, no account, no ads, and nothing uploaded. Random draws use the browser crypto API rather than Math.random, and daily puzzles are built from the date so everyone gets the same one. Every game is original and is not affiliated with any other game or brand.',
     schemaCategory: 'EntertainmentApplication',
   },
   health: {
