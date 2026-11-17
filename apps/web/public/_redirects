@@ -6,6 +6,18 @@
 #
 # Reference: https://developers.cloudflare.com/pages/configuration/redirects/
 
+# Retired URLs that Search Console reported as 404 (2026-11-16) -------------
+# Old topic hubs, now folded into a broader topic by TOPIC_MAP in posts.ts.
+/topics/ai      /topics/ai-agents/       301
+/topics/ai/     /topics/ai-agents/       301
+/topics/wsl2    /topics/infrastructure/  301
+/topics/wsl2/   /topics/infrastructure/  301
+/topics/astro   /topics/architecture/    301
+/topics/astro/  /topics/architecture/    301
+# Wrong slug used in the embedding-playground guide; the app is rag-chunk-inspector.
+/apps/rag-chunk-visualizer   /apps/rag-chunk-inspector/  301
+/apps/rag-chunk-visualizer/  /apps/rag-chunk-inspector/  301
+
 # Vanity / convention redirects --------------------------------------------
 # /uses → /stack — captures the uses.tech naming convention for "what tools
 # does this engineer use" pages. Many readers type /uses out of habit.
