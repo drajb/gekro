@@ -129,7 +129,7 @@ for (const slug of appSlugs()) {
     expect(childCount, `${slug}: island emptied out after interaction`).toBeGreaterThan(3);
 
     // Interactions must not have navigated us away.
-    expect(page.url(), `${slug}: interaction navigated away`).toContain(itemUrl(slug).replace(//$/, ''));
+    expect(page.url(), `${slug}: interaction navigated away`).toContain(itemUrl(slug).replace(/\/$/, ''));
 
     const real = errors.filter((e) => !isAllowed(slug, e));
     expect(
