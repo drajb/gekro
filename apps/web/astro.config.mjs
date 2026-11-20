@@ -80,6 +80,9 @@ scanCollection(join(__dirname, 'src/content/experiments'), '/experiments/', ['en
 // Apps use lastVerified (re-verification = "re-crawl me") — the schema has no
 // updatedAt field, so the old ['publishedAt','updatedAt'] never signalled updates.
 scanCollection(join(__dirname, 'src/content/apps'), '/apps/', ['lastVerified', 'publishedAt']);
+// Games share the apps collection but live under /games/ (moved 2026-11-05). The map is keyed by
+// URL, so scanning both prefixes is harmless: only URLs that exist are ever looked up.
+scanCollection(join(__dirname, 'src/content/apps'), '/games/', ['lastVerified', 'publishedAt']);
 // Stack uses lastVerified (the explicit "this review is alive" date) — the
 // strongest signal for crawlers to re-index when a review is refreshed.
 scanCollection(join(__dirname, 'src/content/stack'), '/stack/', ['lastVerified', 'publishedAt']);
@@ -139,6 +142,8 @@ if (process.env.PUBLIC_SANITY_PROJECT_ID) {
 
 export default defineConfig({
   site: 'https://gekro.com',
+  // Lets a second build go to another folder (ASTRO_OUT_DIR=dist-b) while the default dist is being served.
+  outDir: process.env.ASTRO_OUT_DIR || './dist',
   // Hover-triggered prefetch: the next page's HTML is already in cache by the
   // time the click lands — near-instant navigation on a static site for free.
   // NOT 'viewport' — /apps renders 69 links and would prefetch all of them.
@@ -185,6 +190,7 @@ export default defineConfig({
           item.url === 'https://gekro.com/blog/' ||
           item.url === 'https://gekro.com/experiments/' ||
           item.url === 'https://gekro.com/apps/' ||
+          item.url === 'https://gekro.com/games/' ||
           item.url === 'https://gekro.com/stack/'
         ) {
           item.priority = 0.9;
@@ -196,7 +202,7 @@ export default defineConfig({
         ) {
           item.priority = 0.8;
           item.changefreq = 'monthly';
-        } else if (item.url.includes('/apps/')) {
+        } else if (item.url.includes('/apps/') || item.url.includes('/games/')) {
           item.priority = 0.7;
           item.changefreq = 'monthly';
         } else if (item.url.includes('/topics/')) {

@@ -274,3 +274,16 @@ specs. This app therefore reports a **roofline theoretical ceiling** derived fro
 bandwidth, explicitly labelled as such, and never claims a measured tok/s. New Mac entries
 added to `llm-cost-calculator/data.ts` carry `null` benchmarks because the hardware has not
 shipped and no measurements exist.
+
+## Wave 11 - 50 more browser games (2026-11-05, Rohit: "think of another 50 games, license-free, make it a fun site, drive traffic")
+
+Category `fun`, all original code/art/sound, traditional or public-domain rules only. Specs and design rules: `games-wave-11-specs.md`. Status: BUILDING on branch `feature/games-wave-11` (both repos).
+
+Board: backgammon, star-halma, hnefatafl, konane, bagh-chal, royal-game-of-ur, amazons, nested-tic-tac-toe.
+Cards: hearts, gin-rummy, spider-solitaire, pyramid-solitaire, golf-solitaire, old-maid, beggar-my-neighbour.
+Dice: shut-the-box, yacht-dice, ten-thousand.
+Logic: skyscrapers, calcudoku, tents-and-trees, lamp-grid, pair-paths, sea-and-islands, logic-grid, eight-queens.
+Brainteasers: river-crossing, water-jugs, tangram, knights-tour.
+Word: word-ladder, cryptogram, word-chain.
+Arcade: space-rocks, paddle-rally, cloud-climb, cave-flyer, highway-dodge, tower-stack, gem-swap, garden-defence.
+Toys: kaleidoscope, bubble-wrap, zen-garden, fireworks, idle-orchard, rock-paper-scissors, sorting-race, swarm-garden, fractal-zoom.

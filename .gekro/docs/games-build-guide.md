@@ -4,7 +4,7 @@ The recipe for adding a browser game to `/apps` (category `fun`). It records wha
 
 ## 0. Who this is for
 
-- Built for Rohit's kids to play and learn, open to everyone, free, no ads. Many Wave 10 games are for young children. Say exactly that in each page's `personalUse` (see section 9). Never invent details: no ages, no names, no "my daughter loves it".
+- Free for everyone, no ads. Many games are suitable for young children. NEVER mention the owner or his family anywhere (decision-log 2026-11-05). Each page's `personalUse` opens with the standard audience sentence (see section 9). Never invent details.
 - No account, no upload, nothing leaves the tab. The only storage is a small best-score object in localStorage.
 
 ## 1. Licensing hard rules (non-negotiable)
@@ -28,7 +28,7 @@ In `G:\Git\gekro\`:
 - `apps/web/tests/games-<slug>.test.ts`: vitest engine tests.
 - `apps/web/src/content/apps/<slug>.md`: the guide page (section 9).
 
-Do NOT edit any other file. The orchestrator registers each game (`pages/apps/[slug].astro` import and map entry, `app-icons.ts`, `apps-seo.ts` GameApplication entry, the e2e game lists, hub copy). Do not run `astro build` or Playwright; only the orchestrator builds (two builds at once corrupt each other). You may run vitest.
+Do NOT edit any other file. The orchestrator registers each game: `lib/utils/games.ts` (slug -> genre; this single registry drives the /games/ hub, genre pages, URLs, sitemap, schema, e2e and hygiene lists), `components/apps/calculator-map.ts` (import + map entry) and `app-icons.ts`. Games live at `/games/<slug>/` (moved from `/apps/<slug>/` on 2026-11-05, with 301s in `public/_redirects`). Do not run `astro build` or Playwright; only the orchestrator builds (two builds at once corrupt each other). You may run vitest.
 
 Copy for testing: `cp -r /g/Git/gekro-apps/<slug> /g/Git/gekro/apps/web/src/components/apps-private/` (the `apps-private` folder is gitignored and is just a working copy), then from `G:\Git\gekro\apps\web`: `pnpm exec vitest run tests/games-<slug>.test.ts`. Edit in `gekro-apps`, re-copy, re-run.
 
@@ -130,7 +130,7 @@ category: "fun"
 job: "One sentence, what a visitor can do. Starts with a verb like 'Play'."
 description: "Meta description under 160 characters, plain, no hype, ends 'No signup.'"
 aiSummary: "A factual paragraph: rules, how the engine works, numbers the tests prove."
-personalUse: "I built this for my kids to play and learn, and anyone is welcome to use it, with no ads. <one honest sentence about what is interesting or useful in the game, no invented detail>"
+personalUse: "Anyone is welcome to play and learn with this, with no ads. <one honest sentence about what is interesting or useful in the game, no invented detail>"
 status: "active"
 publishedAt: "2026-11-05"
 lastVerified: "2026-11-05"

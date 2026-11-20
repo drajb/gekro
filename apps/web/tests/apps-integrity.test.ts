@@ -17,7 +17,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, '..'); // apps/web
 const contentDir = join(webRoot, 'src/content/apps');
 const compDir = join(webRoot, 'src/components/apps-private');
-const slugRoute = join(webRoot, 'src/pages/apps', '[slug].astro');
+// The registry moved out of the route file when games got their own /games/ route (2026-11-05).
+const slugRoute = join(webRoot, 'src/components/apps', 'calculator-map.ts');
 
 const VALID_CATEGORIES = ['ai', 'infra', 'ev', 'trading', 'dev', 'finance', 'fun', 'health'];
 const REQUIRED_FIELDS = ['title', 'category', 'job', 'description'];
@@ -33,8 +34,8 @@ function mapKeys(): string[] {
   const src = readFileSync(slugRoute, 'utf8');
   // Scope to the CALCULATOR_MAP object literal so import lines / other quotes
   // can't be mistaken for keys.
-  const start = src.indexOf('const CALCULATOR_MAP');
-  const end = src.indexOf('export async function getStaticPaths');
+  const start = src.indexOf('export const CALCULATOR_MAP');
+  const end = src.length;
   const block = src.slice(start, end);
   return [...block.matchAll(/^\s*'([a-z0-9-]+)'\s*:/gm)].map((m) => m[1]).sort();
 }

@@ -15,7 +15,7 @@ import { GAMES } from './games-list';
 const NOISE = /cloudflare|CORS|ERR_FAILED|preload|favicon/i;
 
 test('a 225-point Gomoku board is fully visible shortly after load', async ({ page }) => {
-  await page.goto('/apps/gomoku/?n=15');
+  await page.goto('/games/gomoku/?n=15');
   await expect(page.locator('#calculator-island')).toBeVisible();
   // The old stagger needed about 5 s for 225 buttons; it must now finish well inside 3 s.
   await expect
@@ -32,7 +32,7 @@ test('a 225-point Gomoku board is fully visible shortly after load', async ({ pa
 test('reduced motion: the entrance animation is skipped', async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: 'reduce' });
   const page = await ctx.newPage();
-  await page.goto('/apps/gomoku/');
+  await page.goto('/games/gomoku/');
   await expect(page.locator('#calculator-island')).toBeVisible();
   await page.waitForTimeout(200);
   const hidden = await page.evaluate(() =>
@@ -48,17 +48,17 @@ test('client-side navigation between games logs no warnings or errors', async ({
     if (['warning', 'error'].includes(m.type()) && !NOISE.test(m.text())) bad.push(m.text());
   });
   page.on('pageerror', (e) => bad.push(String(e)));
-  await page.goto('/apps/snake/');
+  await page.goto('/games/snake/');
   for (const slug of ['sudoku', 'nim', 'mines']) {
-    await page.locator(`a[href="/apps/${slug}/"]`).first().click();
-    await expect(page).toHaveURL(new RegExp(`/apps/${slug}/`));
+    await page.locator(`a[href="/games/${slug}/"]`).first().click();
+    await expect(page).toHaveURL(new RegExp(`/games/${slug}/`));
     await page.waitForTimeout(900);
   }
   expect(bad).toEqual([]);
 });
 
 test('the shell cancels repeated Enter and Space on game buttons, once per key press only', async ({ page }) => {
-  await page.goto('/apps/pig-dice/');
+  await page.goto('/games/pig-dice/');
   await expect(page.locator('#calculator-island')).toBeVisible();
   await page.waitForTimeout(1200);
   const r = await page.evaluate(() => {
@@ -95,7 +95,7 @@ test('the shell cancels repeated Enter and Space on game buttons, once per key p
 });
 
 test('the shell keeps keyboard focus in the game when the focused button hides itself', async ({ page }) => {
-  await page.goto('/apps/pig-dice/');
+  await page.goto('/games/pig-dice/');
   await expect(page.locator('#calculator-island')).toBeVisible();
   await page.waitForTimeout(1200);
   await page.evaluate(() => {
@@ -119,7 +119,7 @@ test('the shell keeps keyboard focus in the game when the focused button hides i
 
 for (const slug of ['sudoku', 'sliding-puzzle', 'light-grid']) {
   test(`${slug}: Ctrl and Alt combinations are left to the browser`, async ({ page }) => {
-    await page.goto(`/apps/${slug}/`);
+    await page.goto(`/games/${slug}/`);
     await expect(page.locator('#calculator-island')).toBeVisible();
     await page.waitForTimeout(1200);
     const prevented = await page.evaluate(() => {
@@ -147,7 +147,7 @@ for (const slug of ['sudoku', 'sliding-puzzle', 'light-grid']) {
 }
 
 test('snake: a paused game does not trap the arrow keys page-wide', async ({ page }) => {
-  await page.goto('/apps/snake/');
+  await page.goto('/games/snake/');
   await expect(page.locator('#sn-area')).toBeVisible();
   await page.waitForTimeout(1200);
   await page.locator('#sn-start').click();
@@ -164,7 +164,7 @@ test('snake: a paused game does not trap the arrow keys page-wide', async ({ pag
 });
 
 test('tic-tac-toe: two-player mode keeps the game when the computer menus are touched', async ({ page }) => {
-  await page.goto('/apps/tic-tac-toe/');
+  await page.goto('/games/tic-tac-toe/');
   await expect(page.locator('#tt-board')).toBeVisible();
   await page.waitForTimeout(1200);
   await page.selectOption('#tt-opp', 'two');
@@ -180,7 +180,7 @@ test('every game\'s "how it works" toggle is at least 28 px tall', async ({ page
   test.setTimeout(240_000); // one page load per game
   const small: string[] = [];
   for (const slug of GAMES) {
-    await page.goto(`/apps/${slug}/`);
+    await page.goto(`/games/${slug}/`);
     await expect(page.locator('#calculator-island')).toBeVisible();
     const hs = await page.evaluate(() =>
       [...document.querySelectorAll('#calculator-island details > summary')].map((s) => Math.round(s.getBoundingClientRect().height)),
@@ -193,7 +193,7 @@ test('every game\'s "how it works" toggle is at least 28 px tall', async ({ page
 test('gomoku: every point is at least 24 px wide at 320 px and the page does not scroll sideways', async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 320, height: 800 } });
   const page = await ctx.newPage();
-  await page.goto('/apps/gomoku/?n=15');
+  await page.goto('/games/gomoku/?n=15');
   await expect(page.locator('#calculator-island')).toBeVisible();
   await page.waitForTimeout(1400);
   const m = await page.evaluate(() => {

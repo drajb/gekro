@@ -50,13 +50,13 @@ async function step(page: Page, r: () => number) {
 }
 
 for (const [i, slug] of GAMES.entries()) {
-  test(`/apps/${slug} survives 250 random inputs`, async ({ page }) => {
+  test(`/games/${slug} survives 250 random inputs`, async ({ page }) => {
     test.setTimeout(120_000);
     const r = rng(1000 + i);
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(consoleText(m)); });
-    await page.goto(`/apps/${slug}/`);
+    await page.goto(`/games/${slug}/`);
     await expect(page.locator('#calculator-island')).toBeVisible();
     for (let n = 0; n < 250; n++) {
       await step(page, r);

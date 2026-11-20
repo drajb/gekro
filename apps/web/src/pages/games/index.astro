@@ -1,0 +1,213 @@
+---
+/**
+ * games/index.astro - the Games hub (/games/), added 2026-11-05.
+ *
+ * Why: the browser games were 80+ of the ~190 pages under /apps and drowned the
+ * engineering tools. They now have their own top-level section. The page is a
+ * searchable, genre-filtered gallery; every genre heading is also a crawlable
+ * link to its own hub (pages/games/category/[genre].astro).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GameCard from '../../components/apps/GameCard.astro';
+import JsonLD from '../../components/seo/JsonLD.astro';
+import { getCollection } from 'astro:content';
+import { GAME_GENRE, GAME_SLUGS, GENRES, GENRE_ORDER, MIN_GAMES_FOR_GENRE, genreUrl, isGame } from '../../lib/utils/games';
+
+const all = await getCollection('apps', ({ id, data }) => isGame(id) && data.status !== 'archived');
+const order = (id: string) => GAME_SLUGS.indexOf(id);
+const games = [...all].sort((a, b) => order(a.id) - order(b.id));
+
+const byGenre = GENRE_ORDER
+  .map(g => ({ id: g, meta: GENRES[g], games: games.filter(x => GAME_GENRE[x.id] === g) }))
+  .filter(g => g.games.length > 0);
+
+const newest = [...games]
+  .sort((a, b) => new Date(b.data.publishedAt).getTime() - new Date(a.data.publishedAt).getTime() || order(a.id) - order(b.id))
+  .slice(0, 8);
+
+const daily = ['sudoku', 'nonogram', 'word-guess', 'skyscrapers', 'calcudoku', 'sea-and-islands', 'tents-and-trees', 'lamp-grid']
+  .map(id => games.find(g => g.id === id))
+  .filter((g): g is NonNullable<typeof g> => !!g)
+  .slice(0, 6);
+
+const title = `Free Online Games - ${games.length} Browser Games, No Ads | gekro`;
+const description = `Play ${games.length} free browser games: Chess, Backgammon, Sudoku, Hearts, Spider Solitaire, arcade games, word games and creative toys. No ads, no signup.`;
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': 'https://gekro.com/games/',
+  name: 'Free browser games on gekro',
+  description,
+  url: 'https://gekro.com/games/',
+  inLanguage: 'en',
+  isPartOf: { '@id': 'https://gekro.com/#website' },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: games.length,
+    itemListElement: games.map((g, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://gekro.com/games/${g.id}/`,
+      name: g.data.title,
+    })),
+  },
+};
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Games', item: 'https://gekro.com/games/' },
+  ],
+};
+---
+
+<BaseLayout title={title} description={description}>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20">
+    <header class="relative mb-10 space-y-5">
+      <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent">Free · No ads · No signup</p>
+      <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.02]">
+        <span class="text-text-primary">Play</span>
+        <span style="background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-warm) 55%, var(--color-accent-danger) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{games.length} free games</span>
+      </h1>
+      <p class="text-lg text-text-secondary max-w-2xl leading-relaxed">
+        Board games, card games, logic puzzles, word games, arcade games and calm creative toys. They run entirely in your browser: nothing to install, no account, no adverts, and your best scores stay on your own device. Daily puzzles are the same for everyone.
+      </p>
+      <div class="flex flex-wrap gap-2 pt-1" role="list" aria-label="Browse by type">
+        {byGenre.map(g => (
+          g.games.length >= MIN_GAMES_FOR_GENRE ? (
+            <a href={genreUrl(g.id)} role="listitem" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-bg-elevated text-xs font-mono text-text-secondary hover:border-accent hover:text-accent transition-colors">
+              {g.meta.label} <span class="text-text-muted">{g.games.length}</span>
+            </a>
+          ) : null
+        ))}
+      </div>
+    </header>
+
+    <!-- Search + genre filter -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-4" id="games-filter-bar">
+      <div class="relative flex-1">
+        <input
+          type="search"
+          id="games-search"
+          placeholder="Search games..."
+          aria-label="Search games"
+          autocomplete="off"
+          class="w-full bg-bg-elevated border border-border rounded-xl pl-10 pr-4 py-3 text-sm text-text-primary focus:outline-none focus:border-accent transition-colors [font-size:16px]"
+        />
+        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" aria-hidden="true">⌕</span>
+      </div>
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by type">
+        <button type="button" class="games-chip app-btn-tab active" data-genre="all" aria-pressed="true">All</button>
+        {byGenre.map(g => (
+          <button type="button" class="games-chip app-btn-tab" data-genre={g.id} aria-pressed="false">{g.meta.label}</button>
+        ))}
+      </div>
+    </div>
+    <p id="games-count" class="text-xs font-mono text-text-secondary mb-6" aria-live="polite">{games.length} games</p>
+
+    <div id="games-sections" class="space-y-14">
+      <section data-section="new" aria-labelledby="h-new">
+        <h2 id="h-new" class="font-display text-2xl font-semibold text-text-primary mb-4">Just added</h2>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" role="list">
+          {newest.map(g => (
+            <li data-game data-genre={GAME_GENRE[g.id]} data-title={g.data.title.toLowerCase()} data-text={`${g.data.title} ${g.data.job}`.toLowerCase()}>
+              <GameCard title={g.data.title} job={g.data.job} genre={GAME_GENRE[g.id]} icon={g.data.icon} slug={g.id} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {daily.length > 0 && (
+        <section data-section="daily" aria-labelledby="h-daily">
+          <h2 id="h-daily" class="font-display text-2xl font-semibold text-text-primary mb-1">Daily puzzles</h2>
+          <p class="text-sm text-text-secondary mb-4">A new puzzle every day, the same for everyone, with no server.</p>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
+            {daily.map(g => (
+              <li data-game data-genre={GAME_GENRE[g.id]} data-title={g.data.title.toLowerCase()} data-text={`${g.data.title} ${g.data.job}`.toLowerCase()}>
+                <GameCard title={g.data.title} job={g.data.job} genre={GAME_GENRE[g.id]} icon={g.data.icon} slug={g.id} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {byGenre.map(g => (
+        <section data-section={g.id} aria-labelledby={`h-${g.id}`}>
+          <div class="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+            <h2 id={`h-${g.id}`} class="font-display text-2xl font-semibold text-text-primary">{g.meta.label}</h2>
+            {g.games.length >= MIN_GAMES_FOR_GENRE && (
+              <a href={genreUrl(g.id)} class="text-xs font-mono text-text-secondary hover:text-accent transition-colors">All {g.games.length} &rarr;</a>
+            )}
+          </div>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
+            {g.games.map(x => (
+              <li data-game data-genre={g.id} data-title={x.data.title.toLowerCase()} data-text={`${x.data.title} ${x.data.job}`.toLowerCase()}>
+                <GameCard title={x.data.title} job={x.data.job} genre={g.id} icon={x.data.icon} slug={x.id} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <p id="games-empty" class="hidden mt-8 text-text-secondary">No game matches that search. Try a shorter word.</p>
+
+    <p class="mt-16 text-[11px] font-mono text-text-muted leading-relaxed max-w-2xl">
+      Every game here is original: the code, art and sound were written from scratch, the rules are traditional or public domain, and none is affiliated with any other game, company or brand. Random draws use the browser crypto API, and daily puzzles are built from the date.
+    </p>
+  </main>
+</BaseLayout>
+
+<script>
+  const initGamesHub = () => {
+    const root = document.getElementById('games-sections');
+    const search = document.getElementById('games-search') as HTMLInputElement | null;
+    const countEl = document.getElementById('games-count');
+    const empty = document.getElementById('games-empty');
+    if (!root || !search || (root as any)._gamesInit) return;
+    (root as any)._gamesInit = true;
+    const chips = [...document.querySelectorAll<HTMLButtonElement>('.games-chip')];
+    const items = [...root.querySelectorAll<HTMLElement>('[data-game]')];
+    const sections = [...root.querySelectorAll<HTMLElement>('[data-section]')];
+    let genre = 'all';
+    const apply = () => {
+      const q = search.value.toLowerCase().trim();
+      const filtered = q !== '' || genre !== 'all';
+      const seen = new Set<string>();
+      let shown = 0;
+      for (const li of items) {
+        const okGenre = genre === 'all' || li.dataset.genre === genre;
+        const okText = !q || (li.dataset.text || '').includes(q);
+        const slug = li.querySelector('a')?.getAttribute('href') || '';
+        // "Just added" and "Daily" repeat games shown below; while filtering, hide those two rows so a game is listed once.
+        const dup = li.closest('[data-section="new"], [data-section="daily"]') && filtered;
+        const show = okGenre && okText && !dup && !(seen.has(slug) && filtered);
+        if (show) seen.add(slug);
+        li.hidden = !show;
+        if (show) shown += 1;
+      }
+      for (const s of sections) {
+        const any = [...s.querySelectorAll<HTMLElement>('[data-game]')].some(li => !li.hidden);
+        s.hidden = !any;
+      }
+      const uniq = filtered ? shown : new Set(items.map(li => li.querySelector('a')?.getAttribute('href'))).size;
+      if (countEl) countEl.textContent = `${uniq} ${uniq === 1 ? 'game' : 'games'}`;
+      if (empty) empty.classList.toggle('hidden', shown > 0 || !filtered);
+    };
+    search.addEventListener('input', apply);
+    for (const c of chips) {
+      c.addEventListener('click', () => {
+        genre = c.dataset.genre || 'all';
+        for (const o of chips) { o.setAttribute('aria-pressed', String(o === c)); o.classList.toggle('active', o === c); }
+        apply();
+      });
+    }
+  };
+  initGamesHub();
+  document.addEventListener('astro:after-swap', initGamesHub);
+</script>

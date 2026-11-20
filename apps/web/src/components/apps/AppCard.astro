@@ -1,5 +1,6 @@
 ---
 import AppIcon from './AppIcon.astro';
+import { itemUrl } from '../../lib/utils/games';
 
 interface Props {
   title: string;
@@ -32,7 +33,7 @@ const categoryColor = categoryColors[category] ?? categoryColors.infra;
 ---
 
 <a
-  href={`/apps/${slug}/`}
+  href={itemUrl(slug)}
   class="app-card group relative block p-6 bg-bg-surface border border-border rounded-xl
          transition-all duration-300 hover:border-accent hover:shadow-2xl hover:shadow-accent/5"
 >

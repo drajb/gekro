@@ -34,6 +34,7 @@ import Tag from '../components/ui/Tag.astro';
 import NewsletterEmbed from '../components/ui/NewsletterEmbed.astro';
 import GlobalSchema from '../components/seo/GlobalSchema.astro';
 import { getCollection } from 'astro:content';
+import { isGame } from '../lib/utils/games';
 import { getAllPosts, getTopicCounts } from '../lib/utils/posts';
 
 // Experiments from Content Collections (local-only, sorted newest-first)
@@ -50,7 +51,8 @@ const recentPosts = allPosts.slice(0, 3);
 const topics = getTopicCounts(allPosts).slice(0, 8);
 
 // ── Section counts for the "Explore" grid (computed, never stale) ──
-const appsCount = (await getCollection('apps')).length;
+const appsCount = (await getCollection('apps', ({ id }) => !isGame(id))).length;
+const gamesCount = (await getCollection('apps', ({ id }) => isGame(id))).length;
 const stackCount = (await getCollection('stack')).length;
 const newsAll = (await getCollection('news', n => n.data.approved))
   .sort((a, b) => b.data.publishedAt.localeCompare(a.data.publishedAt));
@@ -60,6 +62,7 @@ const latestNews = newsAll[0] ?? null;
 const sections = [
   { href: '/blog/',        label: 'Blog',        meta: `${allPosts.length} posts`,           desc: 'Deep dives on agentic AI, local LLMs, and self-hosted infra.',   icon: '✍' },
   { href: '/apps/',        label: 'Apps',        meta: `${appsCount} free tools`,            desc: 'Browser-based calculators and dev tools. No signup, no ads.',    icon: '🧰' },
+  { href: '/games/',       label: 'Games',       meta: `${gamesCount} free games`,           desc: 'Chess, Backgammon, Sudoku, arcade games and creative toys. No signup, no ads.', icon: '🎮' },
   { href: '/news/',        label: 'News',        meta: 'Updated daily',                      desc: 'AI industry briefings, neutral and cited. Catch up in a minute.', icon: '📡' },
   { href: '/stack/',       label: 'Stack',       meta: `${stackCount} reviews`,              desc: 'Honest reviews of the tools actually in the workflow.',          icon: '🔧' },
   { href: '/experiments/', label: 'Experiments', meta: `${allExperiments.length}+ live`,  desc: 'Engineering case studies and lab notes, post-mortem honest.',     icon: '🧪' },

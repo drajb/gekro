@@ -1,0 +1,119 @@
+---
+/**
+ * Genre hubs for /games (added 2026-11-05).
+ *
+ * Why: searches such as "free board games online" or "free logic puzzles" need an
+ * indexable page scoped to that intent; the /games/ filter chips are JS buttons.
+ * Each hub has its own title, description, intro, ItemList JSON-LD and breadcrumb,
+ * and every game page links back to its genre hub. Only genres with
+ * MIN_GAMES_FOR_GENRE or more games get a page.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import GameCard from '../../../components/apps/GameCard.astro';
+import JsonLD from '../../../components/seo/JsonLD.astro';
+import { getCollection } from 'astro:content';
+import { GAME_GENRE, GAME_SLUGS, GENRES, GENRE_ORDER, MIN_GAMES_FOR_GENRE, genreUrl, isGame } from '../../../lib/utils/games';
+import type { GenreId } from '../../../lib/utils/games';
+
+export async function getStaticPaths() {
+  const games = await getCollection('apps', ({ id, data }) => isGame(id) && data.status !== 'archived');
+  return GENRE_ORDER
+    .filter(g => games.filter(x => GAME_GENRE[x.id] === g).length >= MIN_GAMES_FOR_GENRE)
+    .map(g => ({ params: { genre: g } }));
+}
+
+const { genre } = Astro.params as { genre: GenreId };
+const meta = GENRES[genre];
+const all = await getCollection('apps', ({ id, data }) => isGame(id) && data.status !== 'archived');
+const order = (id: string) => GAME_SLUGS.indexOf(id);
+const games = all.filter(g => GAME_GENRE[g.id] === genre).sort((a, b) => order(a.id) - order(b.id));
+const others = GENRE_ORDER
+  .filter(g => g !== genre)
+  .map(g => ({ g, meta: GENRES[g], n: all.filter(x => GAME_GENRE[x.id] === g).length }))
+  .filter(h => h.n >= MIN_GAMES_FOR_GENRE);
+
+const url = `https://gekro.com${genreUrl(genre)}`;
+const latest = games.map(g => g.data.lastVerified || g.data.publishedAt).sort().at(-1);
+
+const collectionSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': url,
+  name: meta.heading,
+  description: meta.description,
+  url,
+  inLanguage: 'en',
+  dateModified: latest,
+  isPartOf: { '@id': 'https://gekro.com/#website' },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: games.length,
+    itemListElement: games.map((g, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://gekro.com/games/${g.id}/`,
+      name: g.data.title,
+    })),
+  },
+};
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gekro.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Games', item: 'https://gekro.com/games/' },
+    { '@type': 'ListItem', position: 3, name: meta.label, item: url },
+  ],
+};
+---
+
+<BaseLayout title={meta.title} description={meta.description}>
+  <JsonLD data={collectionSchema} />
+  <JsonLD data={breadcrumbs} />
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-20">
+    <nav aria-label="Breadcrumb" class="mb-6 text-xs font-mono text-text-muted">
+      <ol class="flex flex-wrap items-center gap-2">
+        <li><a href="/games/" class="hover:text-accent transition-colors">Games</a></li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page" class="text-text-secondary">{meta.label}</li>
+      </ol>
+    </nav>
+
+    <header class="mb-10 space-y-4 max-w-3xl">
+      <p class="text-[11px] font-mono uppercase tracking-[0.25em] text-accent">{games.length} free games · No ads · No signup</p>
+      <h1 class="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-text-primary">{meta.heading}</h1>
+      <p class="text-lg text-text-secondary leading-relaxed">{meta.intro}</p>
+    </header>
+
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
+      {games.map(g => (
+        <li>
+          <GameCard title={g.data.title} job={g.data.job} genre={genre} icon={g.data.icon} slug={g.id} />
+        </li>
+      ))}
+    </ul>
+
+    <section class="mt-16 pt-8 border-t border-border" aria-labelledby="more-genres">
+      <h2 id="more-genres" class="font-display text-xl font-semibold text-text-primary mb-4">More games</h2>
+      <ul class="flex flex-wrap gap-2" role="list">
+        {others.map(h => (
+          <li>
+            <a href={genreUrl(h.g)} class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-bg-elevated text-xs font-mono text-text-secondary hover:border-accent hover:text-accent transition-colors">
+              {h.meta.label} <span class="text-text-muted">{h.n}</span>
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="/games/" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-bg-elevated text-xs font-mono text-text-secondary hover:border-accent hover:text-accent transition-colors">
+            All games <span class="text-text-muted">{all.length}</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <p class="mt-12 text-[11px] font-mono text-text-muted leading-relaxed max-w-2xl">
+      Every game here is original and is not affiliated with any other game, company or brand.
+    </p>
+  </main>
+</BaseLayout>

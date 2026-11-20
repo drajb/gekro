@@ -13,15 +13,15 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { GAME_SLUGS } from '../src/lib/utils/games';
 
 const WEB = resolve(__dirname, '..');
 const PRIVATE = join(WEB, 'src/components/apps-private');
 const CONTENT = join(WEB, 'src/content/apps');
 
-/** Games are the slugs that apps-seo.ts marks as GameApplication. */
+/** Games are the slugs listed in the registry src/lib/utils/games.ts (GAME_GENRE). */
 const gameSlugs = (): string[] => {
-  const seo = readFileSync(join(WEB, 'src/lib/utils/apps-seo.ts'), 'utf8');
-  const registered = [...seo.matchAll(/'([a-z0-9-]+)':\s*'GameApplication'/g)].map((m) => m[1]);
+  const registered = GAME_SLUGS;
   // While a game is being built it is not registered yet: GAMES_EXTRA=slug-a,slug-b includes it.
   const extra = (process.env.GAMES_EXTRA ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   return [...new Set([...registered, ...extra])].sort();
@@ -57,6 +57,10 @@ const MARKS = [
   'Handwriting Without Tears', "D'Nealian", 'Zaner-Bloser', 'Google', 'Microsoft', 'Facebook', 'YouTube',
   'Takuzu', 'Binairo', 'Powder Toy', 'Pass the Pigs', 'Ravensburger', 'ThinkFun', 'FIDE', 'Cracker Barrel', 'Pente',
   'Rubik', 'Candy Land', 'Cluedo', 'Kalah', 'Lights Out',
+  // Wave 11
+  'Farkle', 'Spirograph', 'Magic 8', 'Flow Free', 'Akari', 'Nurikabe', 'Asteroids', 'Doodle Jump', 'Cookie Clicker',
+  'Plants vs', 'Bloons', 'Atari', 'Parker Brothers', 'Milton Bradley', 'Hoyle', 'Bicycle', 'Zynga', 'Taito',
+  'Space Invaders', 'FreeCell', 'Suika', 'Cranium',
 ];
 // Case-sensitive on purpose: word lists hold lower-case words such as "apple" and "bluey", marks are capitalised or upper case.
 const markRe = (m: string) => {

@@ -39,3 +39,7 @@ apps/web/.playwright/
 
 # Project logs live in the private gekro-apps repo (project-logs/); .gekro/logs is a local junction to it
 .gekro/logs/
+dist-b/
+apps/web/.smoke-tmp/
+apps/web/_rev_*
+apps/web/sweep.tmp.mjs

@@ -13,12 +13,13 @@
  */
 import { test, expect } from '@playwright/test';
 import { appSlugs } from './helpers';
+import { itemUrl } from '../src/lib/utils/games';
 
 interface Finding { kind: string; desc: string }
 
 for (const slug of appSlugs()) {
-  test(`/apps/${slug} controls are labelled and clamped`, async ({ page }) => {
-    await page.goto(`/apps/${slug}/`, { waitUntil: 'domcontentloaded' });
+  test(`${itemUrl(slug)} controls are labelled and clamped`, async ({ page }) => {
+    await page.goto(itemUrl(slug), { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#calculator-island')).toBeVisible();
     await page.waitForTimeout(500);
 

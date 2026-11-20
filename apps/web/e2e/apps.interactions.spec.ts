@@ -24,6 +24,7 @@
  */
 import { test, expect, type ConsoleMessage, type Page } from '@playwright/test';
 import { appSlugs, isAllowed, consoleText } from './helpers';
+import { itemUrl } from '../src/lib/utils/games';
 
 // Executes only if an app injects user input into innerHTML/attributes unescaped.
 const XSS_PROBE = `"><img src=x onerror="window.__xssProbe=1">'-->]]>`;
@@ -101,7 +102,7 @@ async function fuzzApp(page: Page, slug: string): Promise<void> {
 }
 
 for (const slug of appSlugs()) {
-  test(`/apps/${slug} survives interaction + fuzz input`, async ({ page }) => {
+  test(`${itemUrl(slug)} survives interaction + fuzz input`, async ({ page }) => {
     // Interaction budget is inherently bigger than the load-only smoke's.
     test.setTimeout(90_000);
     const errors: string[] = [];
@@ -112,7 +113,7 @@ for (const slug of appSlugs()) {
     // Auto-dismiss any dialog so a stray alert()/confirm() can't hang the run.
     page.on('dialog', (d) => void d.dismiss().catch(() => {}));
 
-    await page.goto(`/apps/${slug}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(itemUrl(slug), { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#calculator-island')).toBeVisible();
     await page.waitForTimeout(400); // let the island hydrate + init
 
@@ -128,7 +129,7 @@ for (const slug of appSlugs()) {
     expect(childCount, `${slug}: island emptied out after interaction`).toBeGreaterThan(3);
 
     // Interactions must not have navigated us away.
-    expect(page.url(), `${slug}: interaction navigated away`).toContain(`/apps/${slug}`);
+    expect(page.url(), `${slug}: interaction navigated away`).toContain(itemUrl(slug).replace(/\/$/, ''));
 
     const real = errors.filter((e) => !isAllowed(slug, e));
     expect(

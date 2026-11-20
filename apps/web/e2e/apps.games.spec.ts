@@ -13,7 +13,7 @@ import { GAMES } from './games-list';
 
 
 for (const slug of GAMES) {
-  test(`/apps/${slug} makes no off-device requests while played`, async ({ page, baseURL }) => {
+  test(`/games/${slug} makes no off-device requests while played`, async ({ page, baseURL }) => {
     const origin = new URL(baseURL ?? 'http://localhost').origin;
     const bad: string[] = [];
     page.on('request', (r) => {
@@ -23,7 +23,7 @@ for (const slug of GAMES) {
       if (u.origin !== origin) bad.push(`${r.method()} ${r.url()}`);
       else if (r.method() !== 'GET') bad.push(`${r.method()} ${r.url()}`);
     });
-    await page.goto(`/apps/${slug}/`);
+    await page.goto(`/games/${slug}/`);
     await expect(page.locator('#calculator-island')).toBeVisible();
     const buttons = page.locator('#calculator-island button:visible:not([disabled])');
     const n = Math.min(await buttons.count(), 10);
@@ -36,9 +36,9 @@ for (const slug of GAMES) {
 // clearProps "all", which wiped inline CSS variables (grid sizes, tile
 // positions) after load and collapsed some boards into one tall column.
 for (const slug of GAMES) {
-  test(`/apps/${slug} keeps its layout after the entrance animation`, async ({ page }) => {
+  test(`/games/${slug} keeps its layout after the entrance animation`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
-    await page.goto(`/apps/${slug}/`);
+    await page.goto(`/games/${slug}/`);
     await page.waitForTimeout(1500);
     const h = await page.locator('#calculator-island').evaluate((el) => el.getBoundingClientRect().height);
     expect(h, `${slug} island is ${Math.round(h)}px tall at 375px`).toBeLessThan(2200);
@@ -46,7 +46,7 @@ for (const slug of GAMES) {
 }
 
 test('match-pairs: the board keeps four columns', async ({ page }) => {
-  await page.goto('/apps/match-pairs/');
+  await page.goto('/games/match-pairs/');
   await page.waitForTimeout(1500);
   const cols = await page.locator('#mp-board').evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
   expect(cols).toBe(4);
@@ -54,7 +54,7 @@ test('match-pairs: the board keeps four columns', async ({ page }) => {
 
 test('tic-tac-toe: Unbeatable never loses against random play', async ({ page }) => {
   test.setTimeout(150_000); // 16 full games with a real computer-reply delay each move
-  await page.goto('/apps/tic-tac-toe/');
+  await page.goto('/games/tic-tac-toe/');
   await page.selectOption('#tt-diff', 'unbeatable');
   for (const side of ['X', 'O']) {
     await page.selectOption('#tt-side', side);
@@ -76,7 +76,7 @@ test('tic-tac-toe: Unbeatable never loses against random play', async ({ page })
 });
 
 test('tower-of-hanoi: Auto-solve uses exactly the minimum number of moves', async ({ page }) => {
-  await page.goto('/apps/tower-of-hanoi/');
+  await page.goto('/games/tower-of-hanoi/');
   await page.selectOption('#th-discs', '4');
   await page.click('#th-auto');
   await expect(page.locator('#th-win')).toBeVisible({ timeout: 30_000 });
@@ -89,7 +89,7 @@ async function litCount(page: Page): Promise<number> {
 }
 
 test('light-grid: the shown solution clears the board', async ({ page }) => {
-  await page.goto('/apps/light-grid/');
+  await page.goto('/games/light-grid/');
   for (const size of ['3', '4', '5']) {
     await page.selectOption('#lg-size', size);
     await page.click('#lg-new');
@@ -105,7 +105,7 @@ test('light-grid: the shown solution clears the board', async ({ page }) => {
 });
 
 test('sliding-puzzle: following the hint solves a 3x3', async ({ page }) => {
-  await page.goto('/apps/sliding-puzzle/');
+  await page.goto('/games/sliding-puzzle/');
   await page.selectOption('#sp-size', '3');
   await page.click('#sp-new');
   for (let i = 0; i < 40; i++) {
@@ -117,20 +117,20 @@ test('sliding-puzzle: following the hint solves a 3x3', async ({ page }) => {
 });
 
 test('reversi: a move is answered by the computer and discs are conserved', async ({ page }) => {
-  await page.goto('/apps/reversi/');
+  await page.goto('/games/reversi/');
   await page.locator('#rv-board .rv-cell[data-legal="true"]').first().click();
   await expect.poll(async () => page.locator('#rv-board .rv-cell:not([data-p="0"])').count(), { timeout: 5000 }).toBe(6);
 });
 
 test('four-in-a-row: a drop is answered by the computer', async ({ page }) => {
-  await page.goto('/apps/four-in-a-row/');
+  await page.goto('/games/four-in-a-row/');
   await page.locator('#fr-app .fr-head').nth(3).click();
   await expect.poll(async () => page.locator('#fr-board .fr-cell:not([data-p="0"])').count(), { timeout: 5000 }).toBe(2);
 });
 
 test('mines: the first click is safe and opens cells', async ({ page }) => {
   for (let run = 0; run < 5; run++) {
-    await page.goto('/apps/mines/');
+    await page.goto('/games/mines/');
     await page.locator('#mn-board .mn-cell').nth(40).click();
     expect(await page.locator('#mn-board .mn-cell[data-k="boom"]').count()).toBe(0);
     expect(await page.locator('#mn-board .mn-cell[data-k="open"]').count()).toBeGreaterThan(0);
@@ -138,7 +138,7 @@ test('mines: the first click is safe and opens cells', async ({ page }) => {
 });
 
 test('merge-tiles: arrow keys move tiles and score', async ({ page }) => {
-  await page.goto('/apps/merge-tiles/');
+  await page.goto('/games/merge-tiles/');
   await page.locator('#mt-board').focus();
   const keys = ['ArrowLeft', 'ArrowDown', 'ArrowRight', 'ArrowUp'];
   for (let i = 0; i < 60; i++) await page.keyboard.press(keys[i % 4]);
@@ -146,7 +146,7 @@ test('merge-tiles: arrow keys move tiles and score', async ({ page }) => {
 });
 
 test('match-pairs: two flips either match or turn back down', async ({ page }) => {
-  await page.goto('/apps/match-pairs/');
+  await page.goto('/games/match-pairs/');
   const cards = page.locator('#mp-board .mp-card');
   await cards.nth(0).click();
   await cards.nth(1).click();
@@ -155,7 +155,7 @@ test('match-pairs: two flips either match or turn back down', async ({ page }) =
 });
 
 test('hangman: guessing every letter ends the game with a result', async ({ page }) => {
-  await page.goto('/apps/hangman/');
+  await page.goto('/games/hangman/');
   for (const l of 'etaoinshrdlucmfwypvbgkjqxz') {
     const key = page.locator(`#hm-app .hm-key[data-l="${l}"]`);
     if (await key.isDisabled()) continue;
@@ -166,7 +166,7 @@ test('hangman: guessing every letter ends the game with a result', async ({ page
 });
 
 test('reaction-time: a press at GO is timed, an early press is discarded', async ({ page }) => {
-  await page.goto('/apps/reaction-time/');
+  await page.goto('/games/reaction-time/');
   const panel = page.locator('#rt-panel');
   await panel.click();
   await expect(panel).toHaveAttribute('data-state', 'waiting');
@@ -180,13 +180,13 @@ test('reaction-time: a press at GO is timed, an early press is discarded', async
 });
 
 test('gomoku: a stone is answered by the computer', async ({ page }) => {
-  await page.goto('/apps/gomoku/');
+  await page.goto('/games/gomoku/');
   await page.locator('#gm-board .gm-cell').nth(84).click();
   await expect.poll(async () => page.locator('#gm-board .gm-cell:not([data-p="0"])').count(), { timeout: 5000 }).toBe(2);
 });
 
 test('checkers: a move is answered by the computer', async ({ page }) => {
-  await page.goto('/apps/checkers/');
+  await page.goto('/games/checkers/');
   await page.locator('#ck-board button[aria-label*="can move"]').first().click();
   await page.locator('#ck-board button[aria-label*="legal destination"]').first().click();
   await expect(page.locator('#ck-turn')).toContainText(/your move/i, { timeout: 6000 });
@@ -194,7 +194,7 @@ test('checkers: a move is answered by the computer', async ({ page }) => {
 });
 
 test('dots-and-boxes: a line is answered by the computer', async ({ page }) => {
-  await page.goto('/apps/dots-and-boxes/');
+  await page.goto('/games/dots-and-boxes/');
   const open = page.locator('#db-board button[aria-label*="not drawn"]');
   const before = await open.count();
   await open.first().click();
@@ -202,7 +202,7 @@ test('dots-and-boxes: a line is answered by the computer', async ({ page }) => {
 });
 
 test('peg-solitaire: a jump removes exactly one peg', async ({ page }) => {
-  await page.goto('/apps/peg-solitaire/');
+  await page.goto('/games/peg-solitaire/');
   await page.locator('#pgs-board button[aria-label*="can jump"]').first().click();
   await page.locator('#pgs-board button[aria-label*="legal landing"]').first().click();
   await expect(page.locator('#pgs-left')).toHaveText('31');
@@ -211,7 +211,7 @@ test('peg-solitaire: a jump removes exactly one peg', async ({ page }) => {
 });
 
 test('typing-test: typing the passage updates speed and keeps accuracy at 100%', async ({ page }) => {
-  await page.goto('/apps/typing-test/');
+  await page.goto('/games/typing-test/');
   const text = (await page.locator('#ty-text').innerText()).replace(/\s+/g, ' ').slice(0, 24);
   await page.locator('#ty-input').click();
   await page.keyboard.type(text, { delay: 30 });
@@ -220,7 +220,7 @@ test('typing-test: typing the passage updates speed and keeps accuracy at 100%',
 });
 
 test('aim-trainer: hitting targets counts hits', async ({ page }) => {
-  await page.goto('/apps/aim-trainer/');
+  await page.goto('/games/aim-trainer/');
   await page.locator('#at-start-target').click();
   for (let i = 0; i < 3; i++) {
     const t = page.locator('#at-area .at-target:not(#at-start-target)').first();
@@ -231,7 +231,7 @@ test('aim-trainer: hitting targets counts hits', async ({ page }) => {
 });
 
 test('nonogram: following hints solves a 5x5', async ({ page }) => {
-  await page.goto('/apps/nonogram/');
+  await page.goto('/games/nonogram/');
   await page.selectOption('#ng-size', '5');
   for (let i = 0; i < 40; i++) {
     if (await page.locator('#ng-win').isVisible()) break;
@@ -241,7 +241,7 @@ test('nonogram: following hints solves a 5x5', async ({ page }) => {
 });
 
 test('code-breaker: a full guess is scored and stacked', async ({ page }) => {
-  await page.goto('/apps/code-breaker/');
+  await page.goto('/games/code-breaker/');
   const picks = page.locator('#cb-app .cb-pick');
   for (let i = 0; i < 4; i++) await picks.nth(i).click();
   await page.click('#cb-submit');
@@ -250,7 +250,7 @@ test('code-breaker: a full guess is scored and stacked', async ({ page }) => {
 });
 
 test('nim: a take is answered by the computer', async ({ page }) => {
-  await page.goto('/apps/nim/');
+  await page.goto('/games/nim/');
   const before = Number(await page.locator('#nm-left').textContent());
   await page.locator('#nm-field button:visible').first().click();
   await page.click('#nm-take');
@@ -258,7 +258,7 @@ test('nim: a take is answered by the computer', async ({ page }) => {
 });
 
 test('word-guess: a valid word fills a row, an invalid one is refused', async ({ page }) => {
-  await page.goto('/apps/word-guess/');
+  await page.goto('/games/word-guess/');
   await page.waitForTimeout(1500); // let the entrance animation finish so the mode buttons are really under the pointer
   await page.click('#wg-random'); // regression: Enter after a mode-button click used to press that button again
   await page.keyboard.type('zzzzz');

@@ -22,6 +22,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { appSlugs } from './helpers';
+import { itemUrl } from '../src/lib/utils/games';
 
 /** Tokens that should never be user-visible in a finished render. */
 const POISON = ['NaN', 'Infinity', 'undefined', 'null%', '[object Object]', '$NaN', 'e+21'];
@@ -66,8 +67,8 @@ async function poisonIn(page: Page, slug: string): Promise<string[]> {
 
 test.describe('apps output sanity', () => {
   for (const slug of appSlugs()) {
-    test(`/apps/${slug} never renders NaN/Infinity/undefined`, async ({ page }) => {
-      await page.goto(`/apps/${slug}/`, { waitUntil: 'domcontentloaded' });
+    test(`${itemUrl(slug)} never renders NaN/Infinity/undefined`, async ({ page }) => {
+      await page.goto(itemUrl(slug), { waitUntil: 'domcontentloaded' });
       const island = page.locator('#calculator-island');
       await expect(island).toBeVisible();
       await page.waitForTimeout(350); // first paint / default compute
